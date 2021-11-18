@@ -1112,7 +1112,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForEwm.class);
          createPeripheralTemplateInformation(
-               "FB", "", "$2",
+               "FLEXBUS", "", "$2",
                "(FB|FLEXBUS)_?(.*)",
                getDeviceFamily(),
                WriterForFlexBus.class);
@@ -1757,10 +1757,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
       } catch (Exception e) {
          Activator.logError(e.getMessage(), e);
-      }
-      for (String pinName:fPins.keySet()) {
-         Pin pin = fPins.get(pinName);
-         pin.migrateSettings();;
       }
       setDirty(false);
    }

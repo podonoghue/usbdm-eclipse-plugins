@@ -95,7 +95,9 @@ public class Field extends ModeControl implements Cloneable {
     * ====================================================================
     */
    private AccessType                   fAccessType;
+   private String                       fBitOffsetText = null;
    private long                         fBitOffset;
+   private String                       fBitwidthText = null;
    private long                         fBitwidth;
    private Field                        fDerivedFrom;
    private String                       fDescription;
@@ -136,7 +138,9 @@ public class Field extends ModeControl implements Cloneable {
    public Field(Field other) {
       fDerivedFrom        = other;
       fAccessType         = other.fAccessType;    
+      fBitOffsetText      = other.fBitOffsetText;     
       fBitOffset          = other.fBitOffset;     
+      fBitwidthText       = other.fBitwidthText;      
       fBitwidth           = other.fBitwidth;      
       fDescription        = other.fDescription;
       fSortedEnumerations = other.fSortedEnumerations;
@@ -189,23 +193,45 @@ public class Field extends ModeControl implements Cloneable {
       fDescription = getSanitizedDescription(description.trim());
    }
 
-   public long getBitOffset() {
-      return fBitOffset;
-   }
-
    public void setBitOffset(long bitOffset) {
+      if (fBitOffsetText == null) {
+         fBitOffsetText = Long.toString(bitOffset);
+      }
       fBitOffset = bitOffset;
    }
 
-   public long getBitwidth() {
-      return fBitwidth;
+   public void setBitOffsetText(String text) {
+      fBitOffsetText = text;
+   }
+
+   public String getBitOffsetText() {
+      return fBitOffsetText;
+   }
+
+   public long getBitOffset() {
+      return fBitOffset;
    }
 
    public void setBitwidth(long bitwidth) throws Exception {
       if (bitwidth == 0) {
          throw new Exception("Illegal width");
       }
+      if (fBitwidthText == null) {
+         fBitwidthText = Long.toString(bitwidth);
+      }
       fBitwidth = bitwidth;
+   }
+
+   public void setBitWidthText(String text) {
+      fBitwidthText = text;
+   }
+
+   public String getBitwidthText() {
+      return fBitwidthText;
+   }
+
+   public long getBitwidth() {
+      return fBitwidth;
    }
 
    public AccessType getAccessType() {
@@ -361,9 +387,11 @@ public class Field extends ModeControl implements Cloneable {
          if (!fDerivedFrom.getDescription().equals(getDescription()) && (getDescription().length()>0)) {
             writer.write(String.format(" <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
          }
-         writer.write(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
-         if (fDerivedFrom.getBitwidth() != getBitwidth()) {
-            writer.write(String.format(" <bitWidth>%d</bitWidth>",       getBitwidth()));
+         if (fDerivedFrom.getBitOffsetText() != getBitOffsetText()) {
+            writer.write(String.format(" <bitOffset>%s</bitOffset>",     getBitOffsetText()));
+         }
+         if (fDerivedFrom.getBitwidthText() != getBitwidthText()) {
+            writer.write(String.format(" <bitWidth>%s</bitWidth>",       getBitwidthText()));
          }
          if (fDerivedFrom.getAccessType() != getAccessType()) {
             writer.write(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
@@ -388,9 +416,11 @@ public class Field extends ModeControl implements Cloneable {
          if (getDescription().length() > 0) {
             writer.write(String.format(indenter+"   <description>%s</description>\n", SVD_XML_BaseParser.escapeString(getDescription())));
          }
-         writer.write(String.format(   indenter+"   <bitOffset>%d</bitOffset>\n",     getBitOffset()));
-         if ((owner == null) || standardFormat || (owner.getWidth() != getBitwidth())) {
-            writer.write(String.format(indenter+"   <bitWidth>%d</bitWidth>\n",       getBitwidth()));
+         writer.write(String.format(   indenter+"   <bitOffset>%s</bitOffset>\n",     getBitOffsetText()));
+         if (getBitwidthText() != null) {
+            if ((owner == null) || standardFormat || (Long.toString(owner.getWidth()) != getBitwidthText())) {
+               writer.write(String.format(indenter+"   <bitWidth>%s</bitWidth>\n",  getBitwidthText()));
+            }
          }
          if ((owner == null) || standardFormat || (owner.getAccessType() != getAccessType())) {
             writer.write(String.format(indenter+"   <access>%s</access>\n",           getAccessType().getPrettyName()));

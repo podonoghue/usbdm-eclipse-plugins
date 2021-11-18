@@ -260,6 +260,7 @@ public class ParseFamilyXML extends XML_BaseParser {
 
    /**
     * Parses document from top element
+    * 
     * @param deviceInfo 
     * @return 
     * 
@@ -300,6 +301,10 @@ public class ParseFamilyXML extends XML_BaseParser {
             throw new Exception("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }      
+      for (String key:fDeviceInfo.getPeripherals().keySet()) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         peripheral.addLinkedSignals();
+      }
       fDeviceInfo.consistencyCheck();
    }
 

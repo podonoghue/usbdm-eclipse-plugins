@@ -52,7 +52,14 @@ public class WriterForSdramc extends PeripheralWithState {
       }
       offset += 4;
 
-      final String signalNames[] = {"RAS(_b)?", "CAS(_b)?", "WE(_b)?", "CKE", "CS0(_b)?", "CS1(_b)?"};
+      final String signalNames[] = {"CLKOUT", "RAS(_b)?", "CAS(_b)?", "WE(_b)?", "CKE", "CS0(_b)?", "CS1(_b)?"};
       return offset+getSignalIndex(function, signalNames);
    }
+   
+   @Override
+   public void addLinkedSignals() {
+      Signal signal = fDeviceInfo.getSignals().get("CLKOUT");
+      addSignal(signal);
+   }
+
 }

@@ -451,6 +451,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    
    /**
     * Get status of this signal and mapped pin
+    * (Cached value)
     * 
     * @return Status 
     */

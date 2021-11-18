@@ -365,19 +365,19 @@ public class WriteFamilyCpp {
       return portInitialisationVariable;
    }
 
-   private final String DOCUMENTATION_OPEN = "/**\n" + " *\n" + " * @page PinSummary Pin Mapping\n";
+   private final String DOCUMENTATION_OPEN = "///\n" + "/// @page PinSummary Pin Mapping\n";
 
    private final String TABLE_OPEN = 
-         " *\n" + 
-         " * @section %s %s\n" + " *\n" + 
-         " *   Pin Name      |  Functions                                         |  Location       |  Description\n" + 
-         " *  -------------- | -------------------------------------------------- | --------------- | ----------------------------------------------------\n";
+         "///\n" + 
+         "/// @section %s %s\n" + "///\n" + 
+         "///   Pin Name      |  Functions                                         |  Location                 |  Description\n" + 
+         "///  -------------- | -------------------------------------------------- | ------------------------- | ----------------------------------------------------\n";
 
-   private final String DOCUMENTATION_TEMPLATE = " *  %-14s | %-50s | %-15s | %s\n";
+   private final String DOCUMENTATION_TEMPLATE = "///  %-14s | %-50s | %-25s | %s\n";
 
-   private final String TABLE_CLOSE = " *\n";
+   private final String TABLE_CLOSE = "///\n";
 
-   private final String DOCUMENTATION_CLOSE = " */\n";
+   private final String DOCUMENTATION_CLOSE = "///\n";
 
    /**
     * Write pin mapping documentation
@@ -483,16 +483,19 @@ public class WriteFamilyCpp {
     */
    private void writePinMappingHeaderFile(Path filePath) throws IOException {
 
-//      aliases = null;
-
       BufferedWriter headerFile = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8);
       DocumentUtilities writer = new DocumentUtilities(headerFile);
 
-      writer.writeHeaderFilePreamble(PIN_MAPPING_BASEFILENAME + ".h", fDeviceInfo.getSourceFilename(), DeviceInfo.VERSION, "Pin declarations for " + fDeviceInfo.getVariantName());
+      writer.writeHeaderFilePreamble(
+            PIN_MAPPING_BASEFILENAME + ".h", 
+            fDeviceInfo.getSourceFilename(), 
+            DeviceInfo.VERSION, 
+            "Peripheral declarations for " + fDeviceInfo.getVariantName());
 
+      writer.writeSystemHeaderFileInclude("stdint.h");
       writer.writeSystemHeaderFileInclude("stddef.h");
-      writer.writeHeaderFileInclude("derivative.h");
       headerFile.write("\n");
+      writer.writeHeaderFileInclude("derivative.h");
       writer.writeHeaderFileInclude("pcr.h");
       headerFile.write("\n");
 

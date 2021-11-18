@@ -35,22 +35,22 @@ import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
  */
 public class DevicePeripherals extends ModeControl {
 
-   private String                       name;
-   private String                       svdFilename;
-   private String                       version;
-   private String                       description;
-   private long                         addressUnitBits;
-   private long                         width;
-   private long                         resetValue;
-   private long                         resetMask;
-   private List<Peripheral>             peripherals;
-   private AccessType                   accessType;
-   private Cpu                          cpu;
+   private String                       fName;
+   private String                       fSvdFilename;
+   private String                       fVersion;
+   private String                       fDescription;
+   private long                         fAddressUnitBits;
+   private long                         fWidth;
+   private long                         fResetValue;
+   private long                         fResetMask;
+   private List<Peripheral>             fPeripherals;
+   private AccessType                   fAccessType;
+   private Cpu                          fCpu;
 
-   private ArrayList<String>            equivalentDevices;
-   private VectorTable                  vectorTable;
-   private String                       vendor;
-   private String                       license;
+   private ArrayList<String>            fEquivalentDevices;
+   private VectorTable                  fVectorTable;
+   private String                       fVendor;
+   private String                       fLicense;
 
 
    @Override
@@ -66,22 +66,23 @@ public class DevicePeripherals extends ModeControl {
     * @throws Exception 
     */
    public DevicePeripherals(Path path) throws UsbdmException {
-      name              = "";
-      version           = "0.0";
-      description       = "";
-      addressUnitBits   =  8;
-      width             = 32;
-      resetValue        =  0L;
-      resetMask         =  0xFFFFFFFFL;
-      peripherals       = new ArrayList<Peripheral>();
-      accessType        = AccessType.ReadWrite;
-      cpu               = null;
-      equivalentDevices = new ArrayList<String>();
-      vectorTable       = null;
+      fName              = "";
+      fVersion           = "0.0";
+      fDescription       = "";
+      fAddressUnitBits   =  8;
+      fWidth             = 32;
+      fResetValue        =  0L;
+      fResetMask         =  0xFFFFFFFFL;
+      fPeripherals       = new ArrayList<Peripheral>();
+      fAccessType        = AccessType.ReadWrite;
+      fCpu               = null;
+      fEquivalentDevices = new ArrayList<String>();
+      fVectorTable       = null;
 
       try {
-         SVD_XML_Parser.parseDocument(path, this);
-         svdFilename = path.getFileName().toString();
+         SVD_XML_Parser parser = new SVD_XML_Parser();
+         parser.parseDocument(path, this);
+         fSvdFilename = path.getFileName().toString();
       } catch (Exception e) {
          e.printStackTrace();
          throw new UsbdmException("Failed to parse SVD file "+path, e);
@@ -89,7 +90,7 @@ public class DevicePeripherals extends ModeControl {
    }
 
    public void addPeripheral(Peripheral peripheral) {
-      peripherals.add(peripheral);
+      fPeripherals.add(peripheral);
    }
 
 
@@ -98,15 +99,15 @@ public class DevicePeripherals extends ModeControl {
    }
 
    public String getVersion() {
-      return version;
+      return fVersion;
    }
 
    public void setVersion(String version) {
-      this.version = version;
+      this.fVersion = version;
    }
 
    public String getDescription() {
-      return description;
+      return fDescription;
    }
 
    public String getCDescription() {
@@ -114,95 +115,95 @@ public class DevicePeripherals extends ModeControl {
    }
 
    public void setDescription(String description) {
-      this.description = getSanitizedDescription(description.trim());
+      this.fDescription = getSanitizedDescription(description.trim());
    }
 
    public long getAddressUnitBits() {
-      return addressUnitBits;
+      return fAddressUnitBits;
    }
 
    public void setAddressUnitBits(long addressUnitBits) {
-      this.addressUnitBits = addressUnitBits;
+      this.fAddressUnitBits = addressUnitBits;
    }
 
    public long getWidth() {
-      return width;
+      return fWidth;
    }
 
    public void setWidth(long width) {
-      this.width = width;
+      this.fWidth = width;
    }
 
    public void setName(String name) {
-      this.name = name;
+      this.fName = name;
       if (isHackKnownValues()) {
-         if ((cpu.getName() == null) || (cpu.getName().length() == 0)) {
+         if ((fCpu.getName() == null) || (fCpu.getName().length() == 0)) {
             if (name.startsWith("MKL") || name.startsWith("MKE") || name.startsWith("MKX")) {
-               cpu.setName("CM0");
+               fCpu.setName("CM0");
             }
             else if (name.startsWith("MK")) {
-               cpu.setName("CM4");
+               fCpu.setName("CM4");
             }
             else {
-               cpu.setName("CM3");
+               fCpu.setName("CM3");
             }
          }
-         if ((cpu.getNvicPrioBits() == 0)) {
+         if ((fCpu.getNvicPrioBits() == 0)) {
             if (name.startsWith("MKL") || name.startsWith("MKE") || name.startsWith("MKX")) {
-               cpu.setNvicPrioBits(2);
+               fCpu.setNvicPrioBits(2);
             }
             else if (name.startsWith("MK")) {
-               cpu.setNvicPrioBits(4);
+               fCpu.setNvicPrioBits(4);
             }
          }
          if (name.matches("^MK\\d*F.*")) {
-            cpu.fpuPresent = true;
+            fCpu.fpuPresent = true;
          }
       }
    }
 
    public String getName() {
-      return name;
+      return fName;
    }
 
    public List<Peripheral> getPeripherals() {
-      return peripherals;
+      return fPeripherals;
    }
 
    public AccessType getAccessType() {
-      return accessType;
+      return fAccessType;
    }
 
    public void setAccessType(AccessType accessType) {
-      this.accessType = accessType;
+      this.fAccessType = accessType;
    }
 
    /**
     * @return the resetValue
     */
    public long getResetValue() {
-      return resetValue;
+      return fResetValue;
    }
 
    /**
     * @param resetValue the resetValue to set
     */
    public void setResetValue(long resetValue) {
-      this.resetValue = resetValue;
+      this.fResetValue = resetValue;
    }
 
    /**
     * @return the resetMask
     */
    public long getResetMask() {
-      return resetMask;
+      return fResetMask;
    }
 
    /**
     * @param resetMask the resetMask to set
     */
    public void setResetMask(long resetMask) {
-      this.resetMask = resetMask;
+      this.fResetMask = resetMask;
    }
 
 
@@ -212,19 +213,19 @@ public class DevicePeripherals extends ModeControl {
     * @param vendor
     */
    public void setVendor(String vendor) {
-      this.vendor = vendor;
+      this.fVendor = vendor;
    }
 
    public void setLicense(String license) {
-      this.license = license;
+      this.fLicense = license;
    }
 
    public String getVendor() {
-      return vendor;
+      return fVendor;
    }
 
    public String getLicense() {
-      return license;
+      return fLicense;
    }
 
    /**
@@ -235,18 +236,18 @@ public class DevicePeripherals extends ModeControl {
     * @throws Exception 
     */
    public VectorTable getVectorTable() throws Exception {
-      if (vectorTable == null) {
-         vectorTable = VectorTable.factory(getCpu().getName());
-         vectorTable.setName(getName()+"_VectorTable");
+      if (fVectorTable == null) {
+         fVectorTable = VectorTable.factory(getCpu().getName());
+         fVectorTable.setName(getName()+"_VectorTable");
       }
-      return vectorTable;
+      return fVectorTable;
    }
 
    /**
     * @param vectorTable the vectorTable to set
     */
    public void setVectorTable(VectorTable vectorTable) {
-      this.vectorTable = vectorTable;
+      this.fVectorTable = vectorTable;
    }
 
 
@@ -256,7 +257,7 @@ public class DevicePeripherals extends ModeControl {
     * @return
     */
    public ArrayList<String> getEquivalentDevices() {
-      return equivalentDevices;
+      return fEquivalentDevices;
    }
 
    /**
@@ -265,11 +266,11 @@ public class DevicePeripherals extends ModeControl {
     * @param device
     */
    public void addEquivalentDevice(String device) {
-      this.equivalentDevices.add(device);
+      this.fEquivalentDevices.add(device);
    }
 
    public Peripheral findPeripheral(String name) {
-      for( Peripheral peripheral : peripherals) {
+      for( Peripheral peripheral : fPeripherals) {
          if (name.equals(peripheral.getName())) {
             return peripheral;
          }
@@ -281,7 +282,7 @@ public class DevicePeripherals extends ModeControl {
     * Sort the peripherals list by address
     */
    public void sortPeripherals() {
-      Collections.sort(peripherals, new Comparator<Peripheral>() {
+      Collections.sort(fPeripherals, new Comparator<Peripheral>() {
          @Override
          public int compare(Peripheral peripheral1, Peripheral peripheral2) {
             if (peripheral2.getBaseAddress() < peripheral1.getBaseAddress()) {
@@ -299,7 +300,7 @@ public class DevicePeripherals extends ModeControl {
     * Sort the peripherals by Name
     */
    public void sortPeripheralsByName() {
-      Collections.sort(peripherals, new Comparator<Peripheral>() {
+      Collections.sort(fPeripherals, new Comparator<Peripheral>() {
          @Override
          public int compare(Peripheral peripheral1, Peripheral peripheral2) {
             return (peripheral1.getName().compareTo(peripheral2.getName()));
@@ -312,15 +313,15 @@ public class DevicePeripherals extends ModeControl {
     */
    private void extractDerivedPeripherals() {
       //      sortPeripheralsByName();
-      for (int index1=0; index1<peripherals.size(); index1++) {
-         Peripheral peripheral = peripherals.get(index1);
+      for (int index1=0; index1<fPeripherals.size(); index1++) {
+         Peripheral peripheral = fPeripherals.get(index1);
          //         boolean debug1 = false; //peripheral.getName().matches("ADC0");
          //         if (debug1) {
          //            System.out.println("DevicePeripherals.extractDerivedPeripherals() checking \""+peripheral.getName()+"\"");
          //         }
          // Check if a compatible peripheral has already been created in this device
-         for (int index2=index1+1; index2<peripherals.size(); index2++) {
-            Peripheral checkPeripheral = peripherals.get(index2);
+         for (int index2=index1+1; index2<fPeripherals.size(); index2++) {
+            Peripheral checkPeripheral = fPeripherals.get(index2);
             //            boolean debug2 = debug1 && checkPeripheral.getName().matches("CAU");
             //            if (debug2) {
             //               System.out.println("DevicePeripherals.extractDerivedPeripherals() checking \""+checkPeripheral.getName()+"\" ?= \""+peripheral.getName()+"\"");
@@ -351,7 +352,7 @@ public class DevicePeripherals extends ModeControl {
     */
    public void optimise() throws Exception {
       sortPeripheralsByName();
-      for (Peripheral peripheral : peripherals) {
+      for (Peripheral peripheral : fPeripherals) {
          try {
             peripheral.optimise();
          } catch (Exception e) {
@@ -369,7 +370,7 @@ public class DevicePeripherals extends ModeControl {
       boolean rv = (this.getAccessType()      == other.getAccessType()) &&
             (this.getAddressUnitBits() == other.getAddressUnitBits()) && 
             (this.getWidth()           == other.getWidth()) && 
-            this.cpu.equals(other.cpu);
+            this.fCpu.equals(other.fCpu);
       if (!rv) {
          return false;
       }
@@ -393,7 +394,7 @@ public class DevicePeripherals extends ModeControl {
       System.out.println("    addressUnitBits = " + getAddressUnitBits());
       System.out.println("    width = " + getWidth());
 
-      for (Peripheral peripheral : peripherals) {
+      for (Peripheral peripheral : fPeripherals) {
          peripheral.report();
       }
    }
@@ -454,7 +455,7 @@ public class DevicePeripherals extends ModeControl {
    }
 
    void collectVectors() throws Exception {
-      for (Peripheral peripheral : peripherals) {
+      for (Peripheral peripheral : fPeripherals) {
          ArrayList<InterruptEntry> interruptEntries = peripheral.getInterruptEntries();
          if (interruptEntries == null) {
             return;
@@ -482,14 +483,14 @@ public class DevicePeripherals extends ModeControl {
     * @return the cpu
     */
    public Cpu getCpu() {
-      return cpu;
+      return fCpu;
    }
 
    /**
     * @param cpu the cpu to set
     */
    public void setCpu(Cpu cpu) {
-      this.cpu = cpu;
+      this.fCpu = cpu;
    }
 
    /**
@@ -524,7 +525,7 @@ public class DevicePeripherals extends ModeControl {
       writer.println(String.format("   <name>%s</name>", SVD_XML_BaseParser.escapeString(getName())));
       writer.println(String.format("   <version>%s</version>", ((getVersion()==null)?"0.0":getVersion())));
       writer.println(String.format("   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
-      cpu.writeSVD(writer, standardFormat, this);
+      fCpu.writeSVD(writer, standardFormat, this);
       String headerDefinitionPrefix = getHeaderDefinitionsPrefix();
       if (headerDefinitionPrefix.length() > 0) {
          writer.println(String.format("   <headerDefinitionsPrefix>%s</headerDefinitionsPrefix>", getHeaderDefinitionsPrefix()));
@@ -533,7 +534,7 @@ public class DevicePeripherals extends ModeControl {
       writer.println(String.format("   <width>%d</width>", getWidth()));
       writer.println("   <peripherals>");
       sortPeripheralsByName();
-      for (Peripheral peripheral : peripherals) {
+      for (Peripheral peripheral : fPeripherals) {
          if (standardFormat) {
             peripheral.writeSVD(writer, standardFormat, this, indent);
          }
@@ -735,7 +736,7 @@ public class DevicePeripherals extends ModeControl {
    private String getEquivalentDevicesList() {
       StringBuffer s = new StringBuffer();
       boolean firstname = true;
-      for (String name : equivalentDevices) {
+      for (String name : fEquivalentDevices) {
          if (!firstname) {
             s.append(", ");
          }
@@ -802,8 +803,8 @@ public class DevicePeripherals extends ModeControl {
       Peripheral.clearTypedefsTable();
       getVectorTable().writeCInterruptHeader(writer);
       writer.print(PROCESSOR_AND_CORE_PERIPHERAL_INTRO);
-      cpu.writeCHeaderFile(writer);
-      writer.print(String.format(CORE_HEADER_FILE_INCLUSION, "\"" + cpu.getHeaderFileName() + "\"", "\"system.h\""));
+      fCpu.writeCHeaderFile(writer);
+      writer.print(String.format(CORE_HEADER_FILE_INCLUSION, "\"" + fCpu.getHeaderFileName() + "\"", "\"system.h\""));
       writer.print(String.format(COMMON_DEFINITIONS));
       writer.print(String.format(HEADER_FILE_DEVICE_SPECIFIC_PERIPHERAL_SEPARATOR));
 
@@ -814,7 +815,7 @@ public class DevicePeripherals extends ModeControl {
       // Collect DMA slot numbers into single enum
       StringBuilder muxSlotEnums = new StringBuilder();
       
-      for (Peripheral peripheral : peripherals) {
+      for (Peripheral peripheral : fPeripherals) {
          if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
             continue;
          }
@@ -829,7 +830,7 @@ public class DevicePeripherals extends ModeControl {
       final Pattern dmamuxPeripheralPattern = Pattern.compile("DMAMUX(\\d+)");
       if (useFreescaleFieldNames()) {
          // Structs for each peripheral
-         for (Peripheral peripheral : peripherals) {
+         for (Peripheral peripheral : fPeripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
@@ -868,7 +869,7 @@ public class DevicePeripherals extends ModeControl {
       }
       else {
          // Structs for each peripheral
-         for (Peripheral peripheral : peripherals) {
+         for (Peripheral peripheral : fPeripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
@@ -902,7 +903,7 @@ public class DevicePeripherals extends ModeControl {
          // Memory map
          writer.print(PERIPHERAL_MEMORY_MAP_COMMENT);
          // #define address of each peripheral
-         for (Peripheral peripheral : peripherals) {
+         for (Peripheral peripheral : fPeripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
@@ -913,7 +914,7 @@ public class DevicePeripherals extends ModeControl {
          // Peripheral definitions
          writer.print(PERIPHERAL_DECLARATION_INTRO);
          // #define each peripheral
-         for (Peripheral peripheral : peripherals) {
+         for (Peripheral peripheral : fPeripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
@@ -994,7 +995,7 @@ public class DevicePeripherals extends ModeControl {
    }
 
    public String getSvdFilename() {
-      return svdFilename;
+      return fSvdFilename;
    }
 
    //   /**

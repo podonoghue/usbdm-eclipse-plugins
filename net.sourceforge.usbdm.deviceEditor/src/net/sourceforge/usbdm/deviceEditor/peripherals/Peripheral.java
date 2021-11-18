@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
@@ -1136,30 +1137,70 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
    // Indicates the peripheral has associated signals
    boolean hasSignal = false;
+
+   /**
+    * Class to hold peripheral to get signals from and a filter to select them
+    */
+   class PeripheralSignals {
+      private final Peripheral fPeripheral;
+      private final String     fSignalFilter;
+      
+      public PeripheralSignals(Peripheral peripheral, String signalFilter) {
+         this.fPeripheral   = peripheral;
+         this.fSignalFilter = signalFilter;
+      }
+
+      /**
+       * Get peripheral
+       * 
+       * @return
+       */
+      public Peripheral getPeripheral() {
+         return fPeripheral;
+      }
+
+      /**
+       * get Filter selecting signals (may be null)
+       * 
+       * @return
+       */
+      public String getSignalFilter() {
+         return fSignalFilter;
+      }
+      
+   };
    
    /**
     * Array of peripherals to obtain signals from
     */
-   ArrayList<Peripheral> fSignalPeripherals;
+   ArrayList<PeripheralSignals> fSignalPeripherals;
    
    /**
-    * Create models representing the signals directly associated with this peripheral
+    * Create models representing the signals directly associated with this peripheral filtered
+    * by regex filter.
     * 
     * @param parent     Parent model to contain pins created
     */
-   private void createMySignalModels(BaseModel parent) {
-      
+   private void createMySignalModels(BaseModel parent, String filter) {
+      Pattern pattern = null;
+      if (filter != null) {
+         pattern = Pattern.compile(filter);  
+      }
       TreeMap<String, Signal> signals = getSignals();
       if (signals == null) {
          // No signals
          return;
       }
-      // Add signals from this peripheral
+      // Add signals from this peripheral filtered by filter
       for (String signalName:signals.keySet()) {
          Signal signal = fSignals.get(signalName);
-         if (signal.isAvailableInPackage()) {
-            new SignalModel(parent, signal);
+         if (!signal.isAvailableInPackage()) {
+            continue;
          }
+         if ((pattern != null) && !pattern.matcher(signal.getName()).matches()) {
+            continue;
+         }
+         new SignalModel(parent, signal);
       }
    }
 
@@ -1173,13 +1214,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void createSignalModels(BaseModel parent) {
 
       // Add signals from this peripheral
-      createMySignalModels(parent);
+      createMySignalModels(parent, null);
       
       if (fSignalPeripherals != null) {
          
          // Add signals from referenced peripherals
-         for (Peripheral peripheral:fSignalPeripherals) {
-            peripheral.createMySignalModels(parent);
+         for (PeripheralSignals signalPeripheral:fSignalPeripherals) {
+            signalPeripheral.getPeripheral().createMySignalModels(parent, signalPeripheral.getSignalFilter());
          }
       }
    }
@@ -1206,16 +1247,17 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param parentModel   Model to contain signal category
     * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
     */
-   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral) {
+   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter) {
+      
       hasSignal = true;
       if (peripheral == this) {
          // Don't add me!
          return;
       }
       if (fSignalPeripherals == null) {
-         fSignalPeripherals = new ArrayList<Peripheral>();
+         fSignalPeripherals = new ArrayList<PeripheralSignals>();
       }
-      fSignalPeripherals.add(peripheral);
+      fSignalPeripherals.add(new PeripheralSignals(peripheral, filter));
    }
 
    /**
@@ -1337,6 +1379,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          return "";
       }
       return fUserDescription;
+   }
+
+   public void addLinkedSignals() {
    }
 
 }

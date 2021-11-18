@@ -122,7 +122,8 @@ public class WriterForFtm extends PeripheralWithState {
          final String clkinNames[] = {"CLKIN0", "CLKIN1"};
          for (signalIndex=0; signalIndex<clkinNames.length; signalIndex++) {
             if (signal.getSignalName().matches(clkinNames[signalIndex])) {
-               infoTable = fClkinSignals;
+               infoTable = fInfoTable;
+               signalIndex += 8;
                break;
             }
          }
@@ -148,6 +149,18 @@ public class WriterForFtm extends PeripheralWithState {
       rv.add(fQuadSignals);
       rv.add(fClkinSignals);
       return rv;
+   }
+
+   @Override
+   public void addLinkedSignals() {
+      String signalNames[] = {"FTM_CLKIN0", "FTM_CLKIN1"};
+      for (String signalName:signalNames) {
+         Signal signal = fDeviceInfo.getSignals().get(signalName);
+         if (signal == null) {
+            continue;
+         }
+         addSignal(signal);
+      }
    }
    
 }

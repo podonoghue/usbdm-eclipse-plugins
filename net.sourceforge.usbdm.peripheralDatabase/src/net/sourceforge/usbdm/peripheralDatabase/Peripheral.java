@@ -44,7 +44,13 @@ public class Peripheral extends ModeControl implements Cloneable {
    private String                    fFilename               = null;
    private DevicePeripherals         fOwner                  = null;
    
-   private TreeMap<String, Parameter> fParameters          = new TreeMap<String, Parameter>();
+   private TreeMap<String, Parameter> fParameters          = new TreeMap<String, Parameter>(new Comparator<String>() {
+
+      @Override
+      public int compare(String o1, String o2) {
+         return o1.compareTo(o2);
+      }
+   });
    private Map<String, String>        fSimpleParameterMap  = null;
 
    /** Arbitrary text to add to peripheral C declaration */

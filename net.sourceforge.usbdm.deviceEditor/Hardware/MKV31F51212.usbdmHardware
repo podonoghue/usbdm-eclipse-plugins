@@ -98,7 +98,7 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm" />
          <clock clockEnable="SIM->SCGC4 |= SIM_SCGC4_EWM_MASK;" clockDisable="SIM->SCGC4 &amp;= ~SIM_SCGC4_EWM_MASK;" />
       </peripheral>
-      <peripheral baseName="FB"       instance=""         version="fb">
+      <peripheral baseName="FLEXBUS"  instance=""         version="flexbus">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus" />
          <clock clockEnable="SIM->SCGC7 |= SIM_SCGC7_FLEXBUS_MASK;" clockDisable="SIM->SCGC7 &amp;= ~SIM_SCGC7_FLEXBUS_MASK;" />
       </peripheral>
@@ -167,7 +167,7 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart" />
          <clock clockEnable="SIM->SCGC6 |= SIM_SCGC6_LPUART0_MASK;" clockDisable="SIM->SCGC6 &amp;= ~SIM_SCGC6_LPUART0_MASK;" />
       </peripheral>
-      <peripheral baseName="MCG"      instance=""         version="mcg_mk_ics48m_no_rtc">
+      <peripheral baseName="MCG"      instance=""         version="mcg_mk_ics48m">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg" />
       </peripheral>
       <peripheral baseName="OSC"      instance="0"        version="osc0_div">

@@ -131,7 +131,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    private TabModel createPeripheralParameterPageModel() {
       fParameterModels = new TabModel(
-            null, "Peripheral Parameters", "Periperhal signal declarations\nInterrupt handling and\ndefault settings used by defaultConfigure()");
+            null, "Peripheral Parameters", "Peripheral signal declarations\nInterrupt handling and\ndefault settings used by defaultConfigure()");
       
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
@@ -356,7 +356,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    void report() {
       for (String key:fDeviceInfo.getPins().keySet()) {
          Pin pin= fDeviceInfo.getPins().get(key);
-         System.err.println(String.format("Pin:%-15s => %-15s %s", pin.getName(), pin.getMuxValue()+",", pin.getMappableSignals().get(pin.getMuxValue())));
+         System.err.println(String.format("Pin:%-15s => %-15s %s", pin.getName(), pin.getMappedSignals()));
       }
       for (String key:fDeviceInfo.getSignals().keySet()) {
          Signal signal = fDeviceInfo.getSignals().get(key);

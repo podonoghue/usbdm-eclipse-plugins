@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -23,6 +24,10 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
+      if (element instanceof PinModel) {
+         Signal mappedSignal = ((PinModel)element).getPin().getUniqueMappedSignal();
+         return mappedSignal != null;
+      }
       if ((element instanceof SignalModel)) {
          return true;
       }
@@ -35,7 +40,8 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof SignalModel)||
+      if ((element instanceof PinModel) ||
+            (element instanceof SignalModel) ||
             (element instanceof PeripheralSignalsModel)) {
          return new StringCellEditor(viewer.getTree());
       }
@@ -44,10 +50,13 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
+      if (element instanceof PinModel) {
+         Signal signal = ((PinModel)element).getPin().getUniqueMappedSignal();
+         return signal.getUserDescription();
+      }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
          return signalModel.getSignal().getUserDescription();
-//         return signalModel.getSignal().getMappedPin().getUserDescription();
       }
       if (element instanceof PeripheralSignalsModel) {
          PeripheralSignalsModel peripheralSignalsModel = ((PeripheralSignalsModel)element);
@@ -59,20 +68,24 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
    @Override
    protected void setValue(Object element, Object value) {
       if (element instanceof PinModel) {
-         PinModel pinModel = (PinModel)element;
-         pinModel.getPin().setUserDescription((String) value);
+         Signal signal = ((PinModel)element).getPin().getUniqueMappedSignal();
+         if (signal != null) {
+            signal.setUserDescription((String) value);
+            viewer.update(element, null);
+         }
       }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
          signalModel.getSignal().setUserDescription((String) value);
-//         signalModel.getSignal().getMappedPin().setUserDescription((String) value);
+         //         signalModel.getSignal().getMappedPin().setUserDescription((String) value);
+         viewer.update(element, null);
       }
       if (element instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
          peripheral.setUserDescription((String) value);
+         viewer.update(element, null);
       }
-      viewer.update(element, null);
-      }
+   }
 
    public class StringCellEditor extends TextCellEditor {
 

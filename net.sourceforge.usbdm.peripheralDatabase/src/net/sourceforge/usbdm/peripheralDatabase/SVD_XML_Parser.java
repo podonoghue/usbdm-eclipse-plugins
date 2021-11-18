@@ -112,7 +112,23 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String WIDTH_TAG                        = "width";
    static final String WRITECONSTRAINT_TAG              = "writeConstraint";
    
-   static DevicePeripherals devicePeripherals = null;          
+   DevicePeripherals fDevicePeripherals = null;          
+   Peripheral        fCurrentPeripheral = null;
+   
+   /**
+    * @param element - XML element to parse
+    * 
+    * @return integer
+    * 
+    * @throws Exception
+    */
+   protected long getIntElement(Node element) throws Exception {
+      String text = element.getTextContent();
+      if (fCurrentPeripheral != null) {
+         text = ReplacementParser.substitute(text, fCurrentPeripheral.getSimpleParameterMap());
+      }
+      return getIntFromText(text);
+   }
    
    /**
     * Parse a <enumeratedValue> element
@@ -256,7 +272,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private static Field parseField(Register register, Element fieldElement) throws Exception {
+   private Field parseField(Register register, Element fieldElement) throws Exception {
       Field field = null;
       if (fieldElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
          Field referencedField = null;
@@ -298,15 +314,19 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             field.setDescription(element.getTextContent().trim());
          }
          else if (element.getTagName() == LSB_TAG) {
+            field.setBitOffsetText(element.getTextContent());
             field.setBitOffset(getIntElement(element));
          }
          else if (element.getTagName() == MSB_TAG) {
+            field.setBitWidthText(element.getTextContent()+"-"+field.getBitOffsetText()+"+1");
             field.setBitwidth(getIntElement(element)-field.getBitOffset()+1);
          }
          else if (element.getTagName() == BITOFFSET_TAG) {
+            field.setBitOffsetText(element.getTextContent());
             field.setBitOffset(getIntElement(element));
          }
          else if (element.getTagName() == BITWIDTH_TAG) {
+            field.setBitWidthText(element.getTextContent());
             field.setBitwidth(getIntElement(element));
          }
          else if (element.getTagName() == BITRANGE_TAG) {
@@ -324,7 +344,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             String start = bitRange.substring(commaIndex+1);
             int startBit = Integer.parseInt(start);
             int endBit   = Integer.parseInt(end);
+            field.setBitOffsetText(start);
             field.setBitOffset(startBit);
+            field.setBitWidthText(end+"-"+start+"+1");
             field.setBitwidth(endBit-startBit+1);
          }
          else if (element.getTagName() == ACCESS_TAG) {
@@ -357,7 +379,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private static void parseFields(Register register, Element fieldsElement) throws Exception {
+   private void parseFields(Register register, Element fieldsElement) throws Exception {
       for (Node node = fieldsElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -388,7 +410,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private static Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
+   private Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
 
       Register register = null;
       boolean  derived  = registerElement.hasAttribute(DERIVEDFROM_ATTRIB);
@@ -586,7 +608,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private static Cluster parseCluster(Peripheral peripheral, Element clusterElement) throws Exception {
+   private Cluster parseCluster(Peripheral peripheral, Element clusterElement) throws Exception {
 
       Cluster cluster = new Cluster(peripheral);
       
@@ -683,7 +705,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private static void parseRegisters(Peripheral peripheral, Element peripheralElement) throws Exception {
+   private void parseRegisters(Peripheral peripheral, Element peripheralElement) throws Exception {
 
       for (Node node = peripheralElement.getFirstChild();
             node != null;
@@ -732,7 +754,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private static AddressBlock parseAddressBlock(Element addressBlockElement) throws Exception {
+   private AddressBlock parseAddressBlock(Element addressBlockElement) throws Exception {
 
 //      System.out.println("parsePeripheral");
       AddressBlock addressBlock = new AddressBlock();
@@ -783,9 +805,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @return  Corrected name
     */
-   private static String getFixedVectorPeripheralName(String name) {
+   private String getFixedVectorPeripheralName(String name) {
 
-      Peripheral peripheral = devicePeripherals.findPeripheral(name);
+      Peripheral peripheral = fDevicePeripherals.findPeripheral(name);
       if (peripheral == null) {
          final String ftfNames[] = {
                "FTFA",
@@ -794,7 +816,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          };
          if (name.startsWith("FTF")) {
             for (String ftfName:ftfNames) {
-               peripheral = devicePeripherals.findPeripheral(ftfName);
+               peripheral = fDevicePeripherals.findPeripheral(ftfName);
                if (peripheral != null) {
                   break;
                }
@@ -802,7 +824,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
       }
       if (peripheral == null) {
-         peripheral = devicePeripherals.findPeripheral(name+"0");
+         peripheral = fDevicePeripherals.findPeripheral(name+"0");
       }
       if (peripheral == null) {
          Pattern p = Pattern.compile("(PT)([a-z|A-Z])");
@@ -810,19 +832,19 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          if (m.matches()) {
             name = m.replaceFirst("GPIO$2");
          }
-         peripheral = devicePeripherals.findPeripheral(name);
+         peripheral = fDevicePeripherals.findPeripheral(name);
       }
       if (peripheral == null) {
          if (name.startsWith("Tamper")) {
             name = "RCM";
          }
-         peripheral = devicePeripherals.findPeripheral(name);
+         peripheral = fDevicePeripherals.findPeripheral(name);
       }
       if (peripheral == null) {
          if (name.startsWith("TRNG")) {
             name = "RNG";
          }
-         peripheral = devicePeripherals.findPeripheral(name);
+         peripheral = fDevicePeripherals.findPeripheral(name);
       }
       if (peripheral != null) {
          name = peripheral.getName();
@@ -840,7 +862,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private static InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
+   private InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
 
       InterruptEntry interruptEntry = new InterruptEntry();
       Peripheral peripheral = null;
@@ -863,7 +885,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == PERIPHERAL_TAG) {
             String name = getFixedVectorPeripheralName(element.getTextContent().trim());
-            peripheral = devicePeripherals.findPeripheral(name);
+            peripheral = fDevicePeripherals.findPeripheral(name);
             if (peripheral == null) {
                throw new Exception("Failed to find peripheral "+name+" for vector");
             }
@@ -890,7 +912,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private static InterruptEntry parseInterrupt(Element interruptElement, Peripheral peripheral) throws Exception {
+   private InterruptEntry parseInterrupt(Element interruptElement, Peripheral peripheral) throws Exception {
       InterruptEntry interruptEntry =  parseInterrupt(interruptElement);
       interruptEntry.addPeripheral(peripheral);
       if (interruptEntry.getDescription().isEmpty()) {
@@ -908,9 +930,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private static Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
+   private Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
 
-      Peripheral peripheral = null;
+      fCurrentPeripheral = null;
       boolean    derived    = peripheralElement.hasAttribute(DERIVEDFROM_ATTRIB);
       
       if (derived) {
@@ -927,15 +949,15 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                      "Referenced peripheral cannot be found: \""+peripheralElement.getAttribute(DERIVEDFROM_ATTRIB)+"\"\n");
             }
          }
-         peripheral = (Peripheral) referencedPeripheral.clone();
+         fCurrentPeripheral = (Peripheral) referencedPeripheral.clone();
       }
       else {
-         peripheral = new Peripheral(device);
+         fCurrentPeripheral = new Peripheral(device);
          // Inherit default from device
-         peripheral.setWidth(device.getWidth());
-         peripheral.setAccessType(device.getAccessType());
-         peripheral.setResetValue(device.getResetValue());
-         peripheral.setResetMask(device.getResetMask());
+         fCurrentPeripheral.setWidth(device.getWidth());
+         fCurrentPeripheral.setAccessType(device.getAccessType());
+         fCurrentPeripheral.setResetValue(device.getResetValue());
+         fCurrentPeripheral.setResetMask(device.getResetMask());
 //         peripheral.setForcedBlockMultiple(32);
 //         peripheral.setBlockAccessWidth(32);
       }
@@ -945,19 +967,19 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == SOURCEFILE_PROCESSING) {
-               peripheral.setSourceFilename(stripQuotes(element.getTextContent()));
+               fCurrentPeripheral.setSourceFilename(stripQuotes(element.getTextContent()));
             }            
             if (element.getNodeName() == PREFERREDACCESSWIDTH_PROCESSING) {
-               peripheral.setBlockAccessWidth((int)getIntElement(element));
+               fCurrentPeripheral.setBlockAccessWidth((int)getIntElement(element));
             }            
             if (element.getNodeName() == FORCED_ACCESS_PROCESSING) {
                System.err.println("OPPS");
             }            
             if (element.getNodeName() == FORCED_BLOCK_PROCESSING) {
-               peripheral.setForcedBlockMultiple((int)getIntElement(element));
+               fCurrentPeripheral.setForcedBlockMultiple((int)getIntElement(element));
             }            
             if (element.getNodeName() == REFRESH_WHOLE_PERIPHERAL_PROCESSING) {
-               peripheral.setRefreshAll(true);
+               fCurrentPeripheral.setRefreshAll(true);
             }            
             continue;
          }
@@ -966,76 +988,76 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-            peripheral.setName(element.getTextContent());
+            fCurrentPeripheral.setName(element.getTextContent());
          }
          else if (element.getTagName() == VERSION_TAG) {
             //TODO: Implement version
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
-            peripheral.setDescription(element.getTextContent().trim());
+            fCurrentPeripheral.setDescription(element.getTextContent().trim());
          }
          else if (element.getTagName() == GROUPNAME_TAG) {
-            peripheral.setGroupName(element.getTextContent());
+            fCurrentPeripheral.setGroupName(element.getTextContent());
          }
          else if (element.getTagName() == PREPENDTONAME_TAG) {
-            peripheral.setPrependToName(element.getTextContent());
+            fCurrentPeripheral.setPrependToName(element.getTextContent());
          }
          else if (element.getTagName() == APPENDTONAME_TAG) {
-            peripheral.setAppendToName(element.getTextContent());
+            fCurrentPeripheral.setAppendToName(element.getTextContent());
          }
          else if (element.getTagName() == HEADERSTRUCTNAME_TAG) {
-            peripheral.setHeaderStructName(element.getTextContent());
+            fCurrentPeripheral.setHeaderStructName(element.getTextContent());
          }
          else if (element.getTagName() == DISABLECONDITION_TAG) {
             //TODO: Implement disableCondition
          }
          else if (element.getTagName() == BASEADDRESS_TAG) {
-            peripheral.setBaseAddress(getIntElement(element));
+            fCurrentPeripheral.setBaseAddress(getIntElement(element));
          }
          else if (element.getTagName() == INTERRUPT_TAG) {
             InterruptEntry interruptEntry;
-            if (peripheral.getName().contains("NVIC")) {
+            if (fCurrentPeripheral.getName().contains("NVIC")) {
                interruptEntry = parseInterrupt(element);
-               System.err.println("Not adding vector for " + peripheral.getName());
+               System.err.println("Not adding vector for " + fCurrentPeripheral.getName());
             }
             else {
-               interruptEntry = parseInterrupt(element, peripheral);
+               interruptEntry = parseInterrupt(element, fCurrentPeripheral);
 //               System.err.println("Adding vector for " + peripheral.getName());
             }
             device.addInterruptEntry(interruptEntry);
          }
          else if (element.getTagName() == ADDRESSBLOCK_TAG ){
-            peripheral.addAddressBlock(parseAddressBlock(element));
+            fCurrentPeripheral.addAddressBlock(parseAddressBlock(element));
          }
          else if (element.getTagName() == TEMPLATE_TAG) {
-            peripheral.addTemplate(element.getTextContent());
+            fCurrentPeripheral.addTemplate(element.getTextContent());
          }
          else if (derived) {
             throw new Exception("Unexpected field in derived PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
          else if (element.getTagName() == ACCESS_TAG) {
-            peripheral.setAccessType(getAccessElement(element));
+            fCurrentPeripheral.setAccessType(getAccessElement(element));
          }
          else if (element.getTagName() == RESETVALUE_TAG) {
-            peripheral.setResetValue(getIntElement(element));
+            fCurrentPeripheral.setResetValue(getIntElement(element));
          }
          else if (element.getTagName() == RESETMASK_TAG) {
-            peripheral.setResetMask(getIntElement(element));
+            fCurrentPeripheral.setResetMask(getIntElement(element));
          }
          else if (element.getTagName() == SIZE_TAG) {
-            peripheral.setWidth(getIntElement(element));
+            fCurrentPeripheral.setWidth(getIntElement(element));
          }
          else if (element.getTagName() == REGISTERS_TAG) {
-            parseRegisters(peripheral, element);
+            parseRegisters(fCurrentPeripheral, element);
          }
          else if (element.getTagName() == PARAMETERS_TAG) {
-            parseParameters(peripheral, element);
+            parseParameters(fCurrentPeripheral, element);
          }
          else {
             throw new Exception("parsePeripheral() - Unexpected field in PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
       }
-      return peripheral;
+      return fCurrentPeripheral;
    }
 
    private static void parseParameters(Peripheral peripheral, Element parametersElement) throws Exception {
@@ -1102,7 +1124,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private static void parsePeripherals(DevicePeripherals device, Element peripheralsElement) throws Exception {
+   private void parsePeripherals(DevicePeripherals device, Element peripheralsElement) throws Exception {
 
 //      System.out.println("parsePeripherals");
       // Collect all the interrupt nodes
@@ -1153,7 +1175,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private static void parseCpu(DevicePeripherals devicePeripherals, Element cpuElement) throws Exception {
+   private void parseCpu(DevicePeripherals devicePeripherals, Element cpuElement) throws Exception {
 
       NodeList nameNodes = cpuElement.getElementsByTagName(NAME_TAG);
       if (nameNodes.getLength() != 1) {
@@ -1210,7 +1232,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private static void parseInterrupts(DevicePeripherals devicePeripherals, Element interruptElement) throws Exception {
+   private void parseInterrupts(DevicePeripherals devicePeripherals, Element interruptElement) throws Exception {
       int lastEntryNumber = -1000;
       VectorTable vectorTable = VectorTable.factory(devicePeripherals.getCpu().getName());
 
@@ -1261,7 +1283,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private static void parseVendorExtensions(DevicePeripherals devicePeripherals, Element vendorExtensionsElement) throws Exception {
+   private void parseVendorExtensions(DevicePeripherals devicePeripherals, Element vendorExtensionsElement) throws Exception {
       for (Node node = vendorExtensionsElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -1283,9 +1305,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   public static void parseDocument(Path path, DevicePeripherals devicePeripherals) throws Exception {
+   public void parseDocument(Path path, DevicePeripherals devicePeripherals) throws Exception {
       
-      SVD_XML_Parser.devicePeripherals = devicePeripherals;
+      fDevicePeripherals = devicePeripherals;
       
       Document document = parseXmlFile(path);
       

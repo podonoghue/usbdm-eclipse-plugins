@@ -16,7 +16,13 @@ public class WriterForFlexBus extends PeripheralWithState {
    public WriterForFlexBus(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
-
+   
+   @Override
+   protected void writeDeclarations() {
+      
+      super.writeDeclarations();
+   }
+   
    @Override
    public String getTitle() {
       return "Flexbus - External Bus Interface";
@@ -49,8 +55,15 @@ public class WriterForFlexBus extends PeripheralWithState {
       }
       offset += 32;
       
-      final String signalNames[] = {"TSIZ0", "TSIZ1", "ALE", "OE(_b)?", "RW(_b)?", "TA(_b)?", "TBST(_b)?", "TS(_b)?", 
+      final String signalNames[] = {"CLKOUT", "TSIZ0", "TSIZ1", "ALE", "OE(_b)?", "RW(_b)?", "TA(_b)?", "TBST(_b)?", "TS(_b)?", 
             "BE7_0_BLS31_24(_b)?", "BE15_8_BLS23_16(_b)?", "BE23_16_BLS15_8(_b)?", "BE31_24_BLS7_0(_b)?", };
       return offset+super.getSignalIndex(function, signalNames);
    }
+   
+   @Override
+   public void addLinkedSignals() {
+      Signal signal = fDeviceInfo.getSignals().get("CLKOUT");
+      addSignal(signal);
+   }
+
 }

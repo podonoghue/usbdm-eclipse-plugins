@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -23,7 +24,8 @@ public class PcrInitialiser {
    /**
     * Adds information required to set up the PCR associated with the given signal
     * 
-    * @param signal
+    * @param signal     Signal to process
+    * @param pcrValue   PCR value to append to
     */
    public void addSignal(Signal signal, String pcrValue) {
 
@@ -38,15 +40,8 @@ public class PcrInitialiser {
          // Fixed port mapping
          return;
       }
-      MuxSelection mux = pin.getMuxValue();
-      if (!mux.isMappedValue()) {
-         // Skip unmapped pin
-         return;
-      }
-      pcrValue = pcrValue+"|PORT_PCR_MUX("+mux.value+")";
+      pcrValue = pcrValue+"|PORT_PCR_MUX("+mappingInfo.getMux().value+")";
       if (mappingInfo.isSelected()) {
-//         System.err.println("Pin = "+pin);
-//         System.err.println("portClockMasks = "+portClockMasks);
          portClockMasks.add(pin.getPort());
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
@@ -82,13 +77,17 @@ public class PcrInitialiser {
          // Discard unmapped signals on this package 
          return;
       }
-      MuxSelection mux = pin.getMuxValue();
-      if (!mux.isMappedValue()) {
-         // Skip unmapped pin
+      ArrayList<MappingInfo> mappedSignals = pin.getMappedSignals();
+      if ((mappedSignals.size()==0) || (mappedSignals.size()>1)) {
+         // Unmapped or multiply mapped
          return;
       }
-//      String pcrValue = pin.getPcrValueAsString();
-      String pcrValue = longTo4Hex(pin.getPcrValue());
+      MuxSelection mux = mappedSignals.get(0).getMux();
+      if (!mux.isMappedValue()) {
+         // Not mappable
+         return;
+      }
+      String pcrValue = longTo4Hex(pin.getPcrValue(mux));
       portClockMasks.add(pin.getPort());
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {

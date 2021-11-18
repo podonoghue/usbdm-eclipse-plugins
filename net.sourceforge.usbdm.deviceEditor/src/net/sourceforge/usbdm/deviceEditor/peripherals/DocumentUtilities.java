@@ -236,7 +236,7 @@ public class DocumentUtilities {
          trueFileName = "";
       }
       else {
-         trueFileName = "(derived from "+trueFileName+")";
+         trueFileName = "(generated from "+trueFileName+")";
       }
       description = description.replaceAll("\n", "\n *            ");
       _write( String.format(headerfilePreambleTemplate, 

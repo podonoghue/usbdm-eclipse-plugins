@@ -10,11 +10,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 public class SVD_XML_BaseParser {
 
-   static final Pattern whiteSpacePattern = Pattern.compile("\\s+");
+   static final Pattern fWhiteSpacePattern = Pattern.compile("\\s+");
 
    /**
     * Escapes a string for writing to an XML file
@@ -27,7 +26,7 @@ public class SVD_XML_BaseParser {
          return "";
       }
       if (ModeControl.isStripWhiteSpace()) {
-         str = whiteSpacePattern.matcher(str).replaceAll(" ");
+         str = fWhiteSpacePattern.matcher(str).replaceAll(" ");
       }
       StringBuffer sb = new StringBuffer();
       int len = str.length();
@@ -172,9 +171,11 @@ public class SVD_XML_BaseParser {
    }
 
    /**
+    * Strip enclosing quotes and white space
+    * 
     * @param element - XML element to parse
     * 
-    * @return integer
+    * @return String
     * 
     * @throws Exception
     */
@@ -188,17 +189,6 @@ public class SVD_XML_BaseParser {
       return s;
    }
 
-   /**
-    * @param element - XML element to parse
-    * 
-    * @return integer
-    * 
-    * @throws Exception
-    */
-   protected static long getIntElement(Node element) throws Exception {
-      return getIntFromText(element.getTextContent());
-   }
-   
    /**
     * @param text - Text to convert to integer
     * 
@@ -412,35 +402,6 @@ public class SVD_XML_BaseParser {
          throw new Exception("Failed to parse ACCESS', value = \'"+accessName+"\'");
       }
    }
-   //   
-   //   private static Path xmlRootPath;
-   //   
-   //   /**
-   //    * Sets where to look for XML files
-   //    * 
-   //    * @param xmlRootPath the xmlRootPath to set
-   //    */
-   //   public static void setXmlRootPath(Path xmlRootPath) {
-   //      SVD_XML_BaseParser.xmlRootPath = xmlRootPath;
-   //   }
-   //
-   //   /**
-   //    * Sets where to look for XML files
-   //    * 
-   //    * @param xmlRootPath the xmlRootPath to set
-   //    */
-   //   public static Path getXmlRootPath() {
-   //      return xmlRootPath;
-   //   }
-   //
-   //   /**
-   //    * Sets default extension added to XML files
-   //    * 
-   //    * @param xmlExtension the xmlExtension to set
-   //    */
-   //   public static void setXmlExtension(String xmlExtension) {
-   //      SVD_XML_BaseParser.xmlExtension = xmlExtension;
-   //   }
 
    /**
     * Parse the XML file into the XML internal DOM representation

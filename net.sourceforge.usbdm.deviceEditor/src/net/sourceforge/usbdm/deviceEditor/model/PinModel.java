@@ -24,11 +24,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 
       fPin = pin;
       fPin.addListener(this);
-
-      MuxSelection currentMuxValue  = fPin.getMuxValue();
-
-      fSelection        = 0;
-
+ 
       Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappableSignals();
 
       MappingInfo fixedMapping = mappingInfoMap.get(MuxSelection.fixed);
@@ -46,17 +42,12 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       values.add(MuxSelection.unassigned.getShortName()+": Unassigned");
       mappingInfos.add(MappingInfo.UNASSIGNED_MAPPING);
       
+      fSelection        = 0;
       for (MuxSelection muxSelection:mappingInfoMap.keySet()) {
          MappingInfo mappingInfo = mappingInfoMap.get(muxSelection);
-
          mappingInfos.add(mappingInfo);
-         if (muxSelection == MuxSelection.unassigned) {
-            values.add(muxSelection.getShortName()+": ("+mappingInfo.getSignalList()+")");
-         }
-         else {
-            values.add(muxSelection.getShortName()+": "+mappingInfo.getSignalList());
-         }
-         if (muxSelection == currentMuxValue) {
+         values.add(muxSelection.getShortName()+": "+mappingInfo.getSignalList());
+         if (mappingInfo.isSelected()) {
             fSelection = values.size()-1;
          }
       }
@@ -89,31 +80,28 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       return sb.toString();
    }
    
-   /**
-    * Find selection index corresponding to mapping info from signal
-    * 
-    * @param value
-    * @return
-    */
-   int findValueIndex(MappingInfo value) {
-      if (fMappingInfos == null) {
-         // Fixed mapping
-         return 0;
-      }
-      for (int index=0; index<fMappingInfos.length; index++) {
-         if (fMappingInfos[index] == value) {
-            return index;
-         }
-      }
-      return -1;
-   }
-   
    @Override
    public String getValueAsString() {
-      if (fPin.checkMappingConflicted() != null) {
-         return "Multiple"; 
+      if (fMappingInfos == null) {
+         // Fixed mapping
+         return fChoices[0];
       }
-      return fChoices[findValueIndex(fPin.getMappedSignals())];
+      ArrayList<MappingInfo> mappedSignals = fPin.getMappedSignals();
+      if (mappedSignals.size() == 0) {
+         // No signals mapped
+         return fChoices[0];
+      }
+      if (mappedSignals.size() > 1) {
+         // Multiple signals mapped
+         return "Multiple";
+      }
+      // Find mapped signal in table
+      for (int index=0; index<fMappingInfos.length; index++) {
+         if (fMappingInfos[index] == mappedSignals.get(0)) {
+            return fChoices[index];
+         }
+      }
+      return "Broken";
    }
 
    @Override
@@ -127,24 +115,8 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    public void modelElementChanged(ObservableModel model) {
       
       // Update status
-      Status status = fPin.checkMappingConflicted();
-      if (status == null) {
-         for (Signal signal : fPin.getMappedSignals().getSignals()) {
-            status = signal.checkMappingConflicted();
-            if (status != null) {
-               break;
-            }
-         }
-      }
-      setStatus(status);
-      
-      if (model instanceof Pin) {
-//         // XXX Delete OK
-//         Pin pin = (Pin)model;
-//         System.err.println("PinModel("+fPin.getName()+").modelElementChanged(Pin("+pin.getName()+"))");
-         update();
-//         checkConflicts();
-      }
+      setStatus(fPin.getStatus());
+      update();
    }
 
    @Override
@@ -170,8 +142,8 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    }
    
    @Override
-   public boolean isUnassigned() {
-      return (fPin.getMuxValue() == MuxSelection.unassigned);
+   public boolean isInactive() {
+      return fPin.getMappedSignals().isEmpty();
    }
 
    /**

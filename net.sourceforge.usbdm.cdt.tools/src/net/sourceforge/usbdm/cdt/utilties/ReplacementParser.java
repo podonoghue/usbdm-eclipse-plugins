@@ -498,7 +498,7 @@ public class ReplacementParser {
     * @param inputText     String to replace macros in
     * @param map           Map of key->value pairs for substitution
     * @param keyMaker      Interface providing a method to create a key from a variable name
-    * @param ignorUnknowns True to ignore (preserved) unknown symbols.
+    * @param ignoreUnknowns True to ignore (preserved) unknown symbols.
     * 
     * @return      String with substitutions (or original if none)
     */
@@ -506,14 +506,14 @@ public class ReplacementParser {
          String               inputText, 
          Map<String, String>  map, 
          IKeyMaker            keyMaker,
-         boolean              ignorUnknowns,
+         boolean              ignoreUnknowns,
          String               prefix) {
       
       if (inputText == null) {
          return null;
       }
       ReplacementParser replacementParser = new ReplacementParser(map, keyMaker);
-      replacementParser.setIgnoreUnknowns(ignorUnknowns);
+      replacementParser.setIgnoreUnknowns(ignoreUnknowns);
       replacementParser.setSymbolPrefix("");
       replacementParser.setSymbolPrefix(prefix);
       try {

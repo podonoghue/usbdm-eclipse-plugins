@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,15 +46,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    private Map<MuxSelection, MappingInfo> fMappableSignals = new TreeMap<MuxSelection, MappingInfo>();
 
    private MuxSelection fResetMuxValue = MuxSelection.unassigned;
-
-   /** User description of pin use */
-   private String fUserDescription = "";
-
-   /** User identifier to use in code generation */
-   private String fCodeIdentifier = "";
-   
-   /** Current multiplexor setting */
-   private MuxSelection fMuxValue = MuxSelection.unassigned;
 
    /** PCR value (excluding MUX) */
    private long fProperties = 0;
@@ -270,7 +262,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    @Override
    public String toString() {
       StringBuffer sb = new StringBuffer();
-      sb.append("Pin("+fName+",\n   R:"+fResetMuxValue+",\n   C:"+fMuxValue);
+      sb.append("Pin("+fName+",\n   R:"+fResetMuxValue+",\n   C:");
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
          sb.append(",\n   "+fMappableSignals.get(muxSelection).toString());
       }
@@ -333,7 +325,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Get map of signals mappable to this pin ordered by MUX value
+    * Get map of signals mappable to this pin indexed by MUX value
     * 
     * @return
     */
@@ -341,33 +333,21 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return fMappableSignals;
    }
 
-   /** 
-    * Set description of pin use 
-    */
-   public void setUserDescription(String userDescription) {
-      if (this == UNASSIGNED_PIN) {
-         return;
-      }
-      if ((fUserDescription != null) && (fUserDescription.compareTo(userDescription) == 0)) {
-         return;
-      }
-      fUserDescription  = userDescription;
-
-      // Update watchers of active mapping
-      MappingInfo mappingInfo = getMappedSignals();
-      mappingInfo.notifyListeners();
-
-      setDirty(true);
-      notifyListeners();
-   }
-
    /**
-    * Get user description for pin.
+    * Returns the <b>single</b> signal mapped to this pin.<br>
+    * If more than a single mapping is active then null is returned.
     * 
-    * @return
+    * @return Mapped signal or null if multiple mapped.
     */
-   public String getUserDescription( ) {
-      return fUserDescription;
+   public Signal getUniqueMappedSignal() {
+      ArrayList<MappingInfo> mappedSignals = getMappedSignals();
+      if (mappedSignals.size() == 1) {
+         ArrayList<Signal> signals = mappedSignals.get(0).getSignals();
+         if (signals.size() == 1) {
+            return signals.get(0);
+         }
+      }
+      return null;
    }
    
    /**
@@ -387,10 +367,19 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public String determineMappedSignalsUserDescriptions( ) {
       StringBuilder sb = new StringBuilder();
+      boolean doSeparator = false;
       for (MuxSelection muxSel:fMappableSignals.keySet()) {
          MappingInfo mappinfo = fMappableSignals.get(muxSel);
          if (mappinfo.isSelected()) {
-            sb.append(mappinfo.getMappedSignalsUserDescriptions());
+            String description = mappinfo.getMappedSignalsUserDescriptions();
+            if (description.isBlank()) {
+               continue;
+            }
+            if (doSeparator) {
+               sb.append("/");
+            }
+            sb.append(description);
+            doSeparator = true;
          }
       }
       return sb.toString();
@@ -433,37 +422,18 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return sb.toString();
    }
 
-   /** 
-    * Set identifier to use in code generation
-    */
-   public void setCodeIdentifier(String codeIdentifier) {
-      if (this == UNASSIGNED_PIN) {
-         return;
-      }
-      if ((fCodeIdentifier != null) && (fCodeIdentifier.compareTo(codeIdentifier) == 0)) {
-         return;
-      }
-      fCodeIdentifier = codeIdentifier;
-      setDirty(true);
-      notifyListeners();
-   }
-
-   /** 
-    * Get identifier to use in code generation
-    */
-   public String getCodeIdentifier() {
-      return fCodeIdentifier;
-   }
-
    /**
     * Get the currently mapped signal(s) for this pin.
     * 
-    * @return Mapped signal or <b>MappingInfo.UNASSIGNED_MAPPING</b> if none
+    * @return List of mapped signals (which may be empty)
     */
-   public MappingInfo getMappedSignals() {
-      MappingInfo rv = fMappableSignals.get(fMuxValue);
-      if (rv == null) {
-         rv = MappingInfo.UNASSIGNED_MAPPING;
+   public ArrayList<MappingInfo> getMappedSignals() {
+      ArrayList<MappingInfo> rv = new ArrayList<MappingInfo>();
+      for (MuxSelection muxSelection:fMappableSignals.keySet()) {
+         MappingInfo mappingInfo = fMappableSignals.get(muxSelection);
+         if (mappingInfo.isSelected()) {
+            rv.add(mappingInfo);
+         }
       }
       return rv;
    }
@@ -510,12 +480,17 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return
     */
    Status getAssociatedSignalsStatus() {
-      MappingInfo mappingInfo = getMappedSignals();
-      ArrayList<Signal> signals = mappingInfo.getSignals();
-      if (signals.isEmpty()) {
-         return null;
+      Status status = null;
+      for (MappingInfo mappingInfo:getMappedSignals()) {
+         ArrayList<Signal> signals = mappingInfo.getSignals();
+         if (!signals.isEmpty()) {
+            status = signals.get(0).getSignalStatus();
+            if (status != null) {
+               break;
+            }
+         }
       }
-      return signals.get(0).getSignalStatus();
+      return status;
    }
    
    /**
@@ -559,38 +534,20 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (this == UNASSIGNED_PIN) {
          return;
       }
-      if ((newMuxValue == fMuxValue) && (checkMappingConflicted() == null)) {
-         // No change
-         return;
-      }
-      if ((fMuxValue == MuxSelection.fixed) && (newMuxValue != MuxSelection.fixed)) {
-         System.err.println("Attempting to change fixed signal mapping - ignored");
-         return;
-      }
-      if ((newMuxValue == MuxSelection.fixed) && (fMuxValue != MuxSelection.unassigned)) {
-         System.err.println("Attempting to change to a fixed signal mapping - ignored");
-         return;
-      }
+      MappingInfo activatedMuxSetting = fMappableSignals.get(newMuxValue);
       
-      // Update mux value
-      fMuxValue = newMuxValue;
+      // Update selection
       for (MuxSelection muxKey : fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxKey);
-         if (muxKey == fMuxValue) {
+         if (mappingInfo == activatedMuxSetting) {
             mappingInfo.select(Origin.pin, true);
          }
          else {
             mappingInfo.select(Origin.pin, false);
          }
       }
+      notifyListeners();
       setDirty(true);
-   }
-
-   /** 
-    * Get current pin multiplexor value 
-    */
-   public MuxSelection getMuxValue() {
-      return fMuxValue;
    }
 
    /**
@@ -617,24 +574,20 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return mapInfo;
    }
 
-   private static final String getOldMuxKey(String name) {
-      return "$signal$"+name+"_muxSetting";
+   private  final String getOldMuxKey() {
+      return "$signal$"+fName+"_muxSetting";
    }
 
-   private static final String getMuxKey(String name) {
-      return "$pin$"+name+"_muxSetting";
+   private  final String getMuxKey() {
+      return "$pin$"+fName+"_muxSetting";
    }
 
-   private static final String getOldUserDescriptionKey(String name) {
-      return "$signal$"+name+"_descriptionSetting";
-   }
+//   private  final String getOldUserDescriptionKey() {
+//      return "$signal$"+fName+"_descriptionSetting";
+//   }
 
-   private static final String getOldCodeIndentifierKey(String name) {
-      return "$signal$"+name+"_codeIdentifier";
-   }
-
-   private static final String getPCRKey(String name) {
-      return "$signal$"+name+"_pcrSetting";
+   private  final String getPCRKey() {
+      return "$signal$"+fName+"_pcrSetting";
    }
 
    /**
@@ -646,47 +599,46 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (this == UNASSIGNED_PIN) {
          return;
       }
-      String value = settings.get(getOldMuxKey(fName));
-      if (value != null) {
-         MuxSelection muxValue = MuxSelection.valueOf(value);
+      String oldMuxValue = settings.get(getOldMuxKey());
+      if (oldMuxValue != null) {
+         MuxSelection muxValue = MuxSelection.valueOf(oldMuxValue);
          setMuxSelection(muxValue);
       }
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
-         value = settings.get(getMuxKey(fName)+"_" +muxSelection.toString());
-         if (value != null) {
+         String muxValue = settings.get(getMuxKey()+"_" +muxSelection.getShortName());
+         if (muxValue != null) {
             fMappableSignals.get(muxSelection).select(Origin.pin, true);
          }
       }
-      value = settings.get(getOldCodeIndentifierKey(fName));
-      if (value != null) {
-         setCodeIdentifier(value);
+      String pcrValue = settings.get(getPCRKey());
+      if (pcrValue != null) {
+         setProperties(Long.parseLong(pcrValue, 16));
       }
-      value = settings.get(getOldUserDescriptionKey(fName));
-      if (value != null) {
-         setUserDescription(value);
+      /**
+       * Migrate old settings
+       */
+      for (MuxSelection muxSelection:fMappableSignals.keySet()) {
+         String muxValue = settings.get(getMuxKey()+"_" +muxSelection.toString());
+         if (muxValue != null) {
+            fMappableSignals.get(muxSelection).select(Origin.pin, true);
+         }
       }
-      value = settings.get(getPCRKey(fName));
-      if (value != null) {
-         setProperties(Long.parseLong(value, 16));
-      }
+//      Map<MuxSelection, MappingInfo> mappedSignals = getMappableSignals();
+//      if (mappedSignals.isEmpty()) {
+//         // Only migrate if mapped to a signal
+//         return;
+//      }
+//      final String descriptionValue = settings.get(getOldUserDescriptionKey());
+//      if (descriptionValue != null) {
+//         mappedSignals.get(MuxSelection.mux0).getSignals().forEach(new Consumer<Signal>() {
+//            @Override
+//            public void accept(Signal signal) {
+//               signal.setUserDescription(descriptionValue);
+//            }
+//         });
+//      }
    }
 
-   public void migrateSettings() {
-      for (MuxSelection  key:fMappableSignals.keySet()) {
-         MappingInfo mappingInfo = fMappableSignals.get(key);
-         if (!mappingInfo.isSelected()) {
-            continue;
-         }
-         for (Signal signal:mappingInfo.getSignals()) {
-            if (!fCodeIdentifier.isBlank() && signal.getCodeIdentifier().isBlank()) {
-               signal.setCodeIdentifier(fCodeIdentifier);
-            }
-            if (!fUserDescription.isBlank() && signal.getUserDescription().isBlank()) {
-               signal.setUserDescription(fUserDescription);
-            }
-         }
-      }
-   }
    /**
     * Save pin settings to settings object
     * 
@@ -707,7 +659,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             continue;
          }
          if (fMappableSignals.get(muxSelection).isSelected()) {
-            settings.put(getMuxKey(fName)+"_" +muxSelection.toString(), fMuxValue.name());
+            settings.put(getMuxKey()+"_" +muxSelection.getShortName(), "selected");
          }
       }
 //      String desc = getUserDescription();
@@ -719,7 +671,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 //         settings.put(getCodeIndentifierKey(fName), ident);
 //      }
       if (getProperties() != 0) {
-         settings.put(getPCRKey(fName), Long.toHexString(getProperties()));
+         settings.put(getPCRKey(), Long.toHexString(getProperties()));
       }
    }
 
@@ -735,25 +687,12 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    @Override
    public void modelElementChanged(ObservableModel model) {
       //      System.err.println("Pin["+fName+"].modelElementChanged("+model+")");
+      boolean changed = false;
       if (model instanceof MappingInfo) {
-         boolean changed = false;
-
-         MuxSelection newMuxValue = findMappedSetting().getMux();
-         if (fMuxValue != newMuxValue) {
-            fMuxValue = newMuxValue;
-            changed = true;
-         }
-         Status newStatus = checkMappingConflicted();
-         if (fStatus != newStatus) {
-            fStatus = newStatus;
-            changed = true;
-         }
-         if (changed) {
-            notifyListeners();
-         }
+         changed = true;
+         fStatus = checkMappingConflicted();
       }
       if (model instanceof Signal) {
-         boolean changed = false;
          Status status = getAssociatedSignalsStatus();
          if (fAssociatedStatus != status) {
             fAssociatedStatus = status;
@@ -769,9 +708,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             fMappedSignalsUserDescriptions = mappedSignalsUserDescriptions;
             changed = true;
          }
-         if (changed) {
-            notifyListeners();
-         }
+      }
+      if (changed) {
+         notifyListeners();
       }
       //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
    }
@@ -1113,28 +1052,35 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       notifyStatusListeners();
    }
 
-   public long getPcrValue() {
-      return (getProperties()&PCR_MASK) | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
+   /**
+    * Get PCR value for pin combined with mux value given
+    * 
+    * @param muxValue Mux value to combine with PCR values for pin
+    * 
+    * @return PCR value
+    */
+   public long getPcrValue(MuxSelection muxValue) {
+      return (getProperties()&PCR_MASK) | ((muxValue.value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
    }
 
-   public String getPcrValueAsString() {
-      long pcrValue = getProperties() | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
-      return getPcrValueAsString(pcrValue);
-   }
-
-   public static String getPcrValueAsString(long pcrValue) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
-      sb.append("PORT_PCR_DSE(" +((pcrValue & PORT_PCR_DSE_MASK) >> PORT_PCR_DSE_SHIFT)+")|");
-      sb.append("PORT_PCR_IRQC("+((pcrValue & PORT_PCR_IRQC_MASK)>> PORT_PCR_IRQC_SHIFT)+")|");
-      sb.append("PORT_PCR_ISF(" +((pcrValue & PORT_PCR_ISF_MASK) >> PORT_PCR_ISF_SHIFT)+")|");
-      sb.append("PORT_PCR_LK("  +((pcrValue & PORT_PCR_LK_MASK) >> PORT_PCR_LK_SHIFT)+")|");
-      sb.append("PORT_PCR_ODE(" +((pcrValue & PORT_PCR_ODE_MASK) >> PORT_PCR_ODE_SHIFT)+")|");
-      sb.append("PORT_PCR_PFE(" +((pcrValue & PORT_PCR_PFE_MASK) >> PORT_PCR_PFE_SHIFT)+")|");
-      sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
-      sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
-      sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
-
-      return sb.toString();
-   }
+//   public String getPcrValueAsString() {
+//      long pcrValue = getProperties() | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
+//      return getPcrValueAsString(pcrValue);
+//   }
+//
+//   public static String getPcrValueAsString(long pcrValue) {
+//      StringBuilder sb = new StringBuilder();
+//      sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
+//      sb.append("PORT_PCR_DSE(" +((pcrValue & PORT_PCR_DSE_MASK) >> PORT_PCR_DSE_SHIFT)+")|");
+//      sb.append("PORT_PCR_IRQC("+((pcrValue & PORT_PCR_IRQC_MASK)>> PORT_PCR_IRQC_SHIFT)+")|");
+//      sb.append("PORT_PCR_ISF(" +((pcrValue & PORT_PCR_ISF_MASK) >> PORT_PCR_ISF_SHIFT)+")|");
+//      sb.append("PORT_PCR_LK("  +((pcrValue & PORT_PCR_LK_MASK) >> PORT_PCR_LK_SHIFT)+")|");
+//      sb.append("PORT_PCR_ODE(" +((pcrValue & PORT_PCR_ODE_MASK) >> PORT_PCR_ODE_SHIFT)+")|");
+//      sb.append("PORT_PCR_PFE(" +((pcrValue & PORT_PCR_PFE_MASK) >> PORT_PCR_PFE_SHIFT)+")|");
+//      sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
+//      sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
+//      sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
+//
+//      return sb.toString();
+//   }
 }

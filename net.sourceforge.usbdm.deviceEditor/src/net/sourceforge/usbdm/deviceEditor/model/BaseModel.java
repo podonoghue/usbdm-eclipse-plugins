@@ -413,11 +413,11 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /** 
-    * Indicates that element is 'unassigned'
+    * Indicates that element is inactive and should be displayed dimmed.
     * 
     * @return
     */
-   public boolean isUnassigned() {
+   public boolean isInactive() {
       return false;
    }
 

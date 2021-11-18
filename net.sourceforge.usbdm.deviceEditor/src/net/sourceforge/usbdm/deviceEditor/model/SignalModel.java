@@ -89,7 +89,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          }
          isFirst = false;
          sb.append(pin.getName());
-         if (pin.getMappedSignals() == MappingInfo.UNASSIGNED_MAPPING) {
+         if (pin.getMappedSignals().isEmpty()) {
             // Pin is not currently mapped
             sb.append("*");
          }
@@ -230,7 +230,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
 
    @Override
-   public boolean isUnassigned() {
+   public boolean isInactive() {
       MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
       return ((currentMapping == null) || 
               (currentMapping.getMux() == MuxSelection.unassigned));

@@ -1126,7 +1126,8 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return;
       }
-      fPeripheral.addSignalsFromPeripheral(parentModel, peripheral);
+      String filter = element.getAttribute("filter");
+      fPeripheral.addSignalsFromPeripheral(parentModel, peripheral, filter);
    }
 
    /**

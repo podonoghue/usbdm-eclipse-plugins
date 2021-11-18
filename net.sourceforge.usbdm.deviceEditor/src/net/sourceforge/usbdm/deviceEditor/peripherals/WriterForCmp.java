@@ -60,7 +60,7 @@ public class WriterForCmp extends PeripheralWithState {
    protected void writeDeclarations() {
       super.writeDeclarations();
       
-      String enumName    = "Input";
+      String enumName    = "Input_";
       String commentRoot = "///< ";
       ArrayList<InfoTable> signalTables = getSignalTables();
       HashSet<String> usedIdentifiers = new HashSet<String>();
@@ -88,16 +88,16 @@ public class WriterForCmp extends PeripheralWithState {
                continue;
             }
             String comment = pin.getName()+" ("+pin.getLocation()+")";
-            String pinName = enumName+"_"+prettyPinName(pin.getName());
+            String pinName = enumName+prettyPinName(pin.getName());
             String cIdentifier = signal.getCodeIdentifier().trim();
             String inputIdentifier = "";
             if (!cIdentifier.isBlank()) {
                cIdentifier     = makeCTypeIdentifier(cIdentifier);
-               inputIdentifier =  enumName+"_"+cIdentifier;
+               inputIdentifier =  enumName+cIdentifier;
                String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Pin", index);
                writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, pin.getLocation());
             }
-            int mapName = index;
+            String mapName = ""+index;
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
                comment = commentRoot+"Fixed pin  "+comment;
