@@ -11,7 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of FTM
+ * Class encapsulating the code for writing an instance of FTM or TPM
  */
 public class WriterForFtm extends PeripheralWithState {
 
@@ -23,6 +23,8 @@ public class WriterForFtm extends PeripheralWithState {
 
    /** Signals that use this writer */
    protected InfoTable fClkinSignals = new InfoTable("InfoCLKIN");
+
+   protected String clockSignalNames[] = {"CLKIN0", "CLKIN1"};
 
    public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
@@ -119,9 +121,9 @@ public class WriterForFtm extends PeripheralWithState {
          }
       }
       if (infoTable == null) {
-         final String clkinNames[] = {"CLKIN0", "CLKIN1"};
-         for (signalIndex=0; signalIndex<clkinNames.length; signalIndex++) {
-            if (signal.getSignalName().matches(clkinNames[signalIndex])) {
+         // Look for shared clock inputs
+         for (signalIndex=0; signalIndex<clockSignalNames.length; signalIndex++) {
+            if (signal.getSignalName().matches(clockSignalNames[signalIndex])) {
                infoTable = fInfoTable;
                signalIndex += 8;
                break;
@@ -153,9 +155,8 @@ public class WriterForFtm extends PeripheralWithState {
 
    @Override
    public void addLinkedSignals() {
-      String signalNames[] = {"FTM_CLKIN0", "FTM_CLKIN1"};
-      for (String signalName:signalNames) {
-         Signal signal = fDeviceInfo.getSignals().get(signalName);
+      for (String signalName:clockSignalNames) {
+         Signal signal = fDeviceInfo.getSignals().get(getBaseName()+"_"+signalName);
          if (signal == null) {
             continue;
          }

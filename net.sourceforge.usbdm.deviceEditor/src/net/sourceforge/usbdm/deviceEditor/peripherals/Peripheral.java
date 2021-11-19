@@ -1215,7 +1215,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
       // Add signals from this peripheral
       createMySignalModels(parent, null);
-      
+
       if (fSignalPeripherals != null) {
          
          // Add signals from referenced peripherals
@@ -1248,7 +1248,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
     */
    public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter) {
-      
       hasSignal = true;
       if (peripheral == this) {
          // Don't add me!
@@ -1256,6 +1255,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
       if (fSignalPeripherals == null) {
          fSignalPeripherals = new ArrayList<PeripheralSignals>();
+      }
+      if (filter.isBlank()) {
+         // Remove empty filter
+         filter = null;
       }
       fSignalPeripherals.add(new PeripheralSignals(peripheral, filter));
    }
