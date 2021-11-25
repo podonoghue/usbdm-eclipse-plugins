@@ -484,10 +484,13 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^PORT[A-Z]_(ISFR|DFER)_[A-Z]*[0-9]*.$"),   null));
          mappedMacros.add(new Pair(Pattern.compile("^(PORT)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PCTL)[A-Z](_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(QSPI)\\d?(_BUF)\\d(CR_(MSTRID|ADATSZ).*)$"),  "$1$2$3"));   // QSPI_BUF0CR_ADATSZ => QSPI_BUFCR_ADATSZ
+         mappedMacros.add(new Pair(Pattern.compile("^(QSPI)\\d?(_BUF)\\d(.*)\\d(.*)$"),      "$1$2$3$4"));    // QSPI_BUF0CR_ADATSZ => QSPI_BUFCR_ADATSZ
+         mappedMacros.add(new Pair(Pattern.compile("^(QSPI)\\d?(_SF)(A1|A2|B1|B2)(.*)(A1|A2|B1|B2)(.*)$"), "$1$2$4$6"));    // QSPI_SFA1AD_TPADA1_MASK => QSPI_SFAD_TPAD_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(SDHC)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(L?PIT)[0-9](_.*)$"),                    "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?SPI)[0-9](_.*)$"),                    "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?SPI)[0-9](_.*)$"),                "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(QSPI)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USBHS)[0-9](_.*)$"),                    "$1$2"));
