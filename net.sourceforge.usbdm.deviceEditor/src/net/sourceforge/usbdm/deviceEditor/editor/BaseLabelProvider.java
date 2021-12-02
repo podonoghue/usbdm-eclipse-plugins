@@ -164,6 +164,21 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
       }
    }
 
+   /**
+    * Get text for display
+    * 
+    * @param model Base model
+    * 
+    * @return
+    */
    public abstract String getText(BaseModel model);
+   
+   /**
+    * Get image for display
+    * 
+    * @param model Base model
+    * 
+    * @return
+    */
    public abstract Image getImage(BaseModel model);
 }

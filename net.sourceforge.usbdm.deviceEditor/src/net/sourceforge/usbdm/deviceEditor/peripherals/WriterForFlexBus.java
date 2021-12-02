@@ -18,12 +18,6 @@ public class WriterForFlexBus extends PeripheralWithState {
    }
    
    @Override
-   protected void writeDeclarations() {
-      
-      super.writeDeclarations();
-   }
-   
-   @Override
    public String getTitle() {
       return "Flexbus - External Bus Interface";
    }

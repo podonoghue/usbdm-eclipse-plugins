@@ -28,7 +28,7 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
     * @param peripheral    Peripheral used to locate signals model
     */
    public PeripheralSignalsModel(BaseModel parent, Peripheral peripheral) {
-      super(parent, peripheral.getName()+" Signals");
+      super(parent, peripheral.getName());
       
       fPeripheral = peripheral;
       fPeripheral.createSignalModels(this);

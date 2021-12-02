@@ -20,6 +20,9 @@ public class WriterForLlwu extends PeripheralWithState {
 
    public WriterForLlwu(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can create type declarations for signals belonging to this peripheral
+      super.setCanCreateSignalType(true);
    }
 
    @Override
@@ -80,13 +83,17 @@ public class WriterForLlwu extends PeripheralWithState {
             if (pin == Pin.UNASSIGNED_PIN) {
                continue;
             }
-            String comment = "";
+            String comment = pin.getName();
+            String location = pin.getLocation();
+            if ((location != null) && !location.isBlank()) {
+               comment = comment+" ("+location+")";
+            }
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
-               comment = commentRoot+"Fixed pin  "+pin.getName();
+               comment = commentRoot+"Fixed pin  "+comment;
             }
             else {
-               comment = commentRoot+"Mapped pin "+pin.getName();
+               comment = commentRoot+"Mapped pin "+comment;
             }
             if (comment.isBlank() ) {
                continue;
@@ -159,4 +166,5 @@ public class WriterForLlwu extends PeripheralWithState {
          fDeviceInfo.addOrReplaceVariable(llwuModuleInputsVar.getKey(), llwuModuleInputsVar);
       }
    }
+
 }

@@ -82,10 +82,18 @@ public final class PinViewPageModel extends TreeViewModel implements IPage {
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Category.Pin",        150, new NameColumnLabelProvider(),               null),
-                           new TreeColumnInformation("Code Identifier",     200, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Pin Use Description", 200, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Mux:Signals",         180, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Pin",                 150, new NameColumnLabelProvider(),               null, 
+                                 "Pins grouped by category"),
+                           new TreeColumnInformation("Code Identifier",     200, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer), 
+                                 "C Identifier for code generation\n"+
+                                 "Collected from signals mapped to this pin"),
+                           new TreeColumnInformation("Pin Use Description", 200, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer), 
+                                 "Description of pin use\n"+
+                                 "Appears as a comment in user code\n"+
+                                 "Collected from signals mapped to this pin"),
+                           new TreeColumnInformation("Mux:Signals",         180, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer), 
+                                 "Signal mapping for this pin\n"+
+                                 "More than one signal may be mapped to a pin"),
                            new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer)),
                            new TreeColumnInformation("LK",                   40, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer)),
                            new TreeColumnInformation("DSE",                  40, PinBooleanColumnLabelProvider.getDse(),      PinBooleanEditingSupport.getDse(viewer)),

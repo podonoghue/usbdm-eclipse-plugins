@@ -18,20 +18,19 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public String getText(BaseModel baseModel) {
-//      System.err.println("CodeIdentifierColumnLabelProvider::getText(" + baseModel.getName() + baseModel+")");
       if (baseModel instanceof SignalModel) {
          Signal signal = ((SignalModel) baseModel).getSignal();
          return signal.getCodeIdentifier();
-      }
-      if (baseModel instanceof PinModel) {
-         Pin pin = ((PinModel)baseModel).getPin();
-         return pin.getMappedSignalsCodeIdentifiers();
       }
       if (baseModel instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)baseModel).getPeripheral();
          return peripheral.getCodeIdentifier();
       }
-      return null;// baseModel.toString();
+      if (baseModel instanceof PinModel) {
+         Pin pin = ((PinModel)baseModel).getPin();
+         return pin.getMappedSignalsCodeIdentifiers();
+      }
+      return null;
    }
 
    @Override
@@ -41,14 +40,18 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public String getToolTipText(Object element) {
+      final String tooltip = "List of C identifiers separated by '/'";
+      if (element instanceof PeripheralSignalsModel) {
+         return tooltip;
+      }
       if (element instanceof SignalModel) {
          Signal signal = ((SignalModel)element).getSignal();
          if (signal.getMappedPin() != Pin.UNASSIGNED_PIN) {
-            return "List of C identifiers separated by '/'";
+            return tooltip;
          }
       }
       if (element instanceof PinModel) {
-         return "List of C identifiers separated by '/'";
+         return tooltip+"\nThese are generated from mapped signals";
       }
       return super.getToolTipText(element);
    }

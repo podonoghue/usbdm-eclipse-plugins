@@ -26,17 +26,19 @@ public class DescriptionColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public String getToolTipText(Object element) {
+      final String tooltip = "List of C comments separated by '/'";
+      
       if (element instanceof SignalModel) {
          Signal signal = ((SignalModel)element).getSignal();
          if (signal.getMappedPin() != Pin.UNASSIGNED_PIN) {
-            return "List of C comments separated by '/'";
+            return tooltip;
          }
          else {
             return "Pins mappable to this signal (*indicates free pins)";
          }
       }
       if (element instanceof PinModel) {
-         return "List of C comments separated by '/'";
+         return tooltip+"\nThese are generated from mapped signals";
       }
       return super.getToolTipText(element);
    }

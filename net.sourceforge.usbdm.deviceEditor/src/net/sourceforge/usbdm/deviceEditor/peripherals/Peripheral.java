@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.SignalTemplate;
@@ -60,11 +61,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Hardware interrupt numbers */
    private final ArrayList<String> fIrqNums = new ArrayList<String>();
 
-   /** Key used for peripheral declarations in C code */
-   private final String PERIPHERAL_DECLARATIONS_KEY = makeKey("Declarations");
-
    /** Key used to save/restore identifier used for code generation */
    private final String CODE_IDENTIFIER_KEY  = "$peripheral$"+getName()+"_codeIdentifier";
+   
+   /** Key used to save/restore identifier used for code generation */
+   private final String CREATE_INSTANCE_KEY  = "$peripheral$"+getName()+"_createInstance";
    
    /** Key used to save/restore user description */
    private final String USER_DESCRIPTION_KEY = "$peripheral$"+getName()+"_userDescription";
@@ -102,24 +103,48 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Proxy used to support ObservableModel interface */
    private final ObservableModel fProxy;
    
-   /** Indicates the class representing this peripheral is const (May be placed in ROM) - default true */
+   /** 
+    * Indicates the class representing this peripheral is const - default true
+    * - May be placed in ROM
+    * - Has only static methods (or are overloaded by same) 
+    * - This means that an instance need not be created
+    */
    private boolean fIsConstType = true;
    
    /** Indicates the peripheral as synthetic i.e. no hardware is associated - default false */
    private boolean fIsSynthetic = false;
+
+   /** Indicates that code for a user instance of the peripheral class should be created */ 
+   private boolean fCreateInstance = false;
    
-   /**
-    * Sets the peripheral as synthetic i.e. no hardware is associated
-    */
-   protected void setSynthetic() {
-      fIsSynthetic = true;
-   }
+   /** Most peripheral have a useful type declaration or enum/const value */
+   boolean fCanCreateType           = true;
    
+   /** Most peripheral don't have a useful instance */
+   boolean fCanCreateInstance       = false;
+   
+   /** Most signals don't have a useful type */
+   boolean fcanCreateSignalType     = false;
+   
+   /** Most signals don't have a useful instance */
+   boolean fCanCreateSignalInstance = false;
+
    /**
     * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM 
     */
    protected void clearConstType() {
       fIsConstType = false;
+   }
+   
+   /**
+    * Indicates the class representing this peripheral is const
+    *  - May be placed in ROM - Has only static methods (or are overloaded by same) 
+    *  - This means that an instance need not be created
+    *  
+    * @return true is const
+    */
+   public boolean isConstType() {
+      return fIsConstType;
    }
    
    /**
@@ -393,6 +418,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param settings Settings object
     */
    public void loadSettings(Settings settings) {
+      if (settings.get(CREATE_INSTANCE_KEY) != null) {
+         setCreateInstance(true);
+      }
       String value = settings.get(CODE_IDENTIFIER_KEY);
       if (value != null) {
          setCodeIdentifier(value);
@@ -409,6 +437,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param settings Settings object
     */
    public void saveSettings(Settings settings) {
+      if (getCreateInstance()) {
+         settings.put(CREATE_INSTANCE_KEY, "true");
+      }
       String value = getCodeIdentifier();
       if ((value != null) && !value.isBlank()) {
          settings.put(CODE_IDENTIFIER_KEY, value);
@@ -572,24 +603,25 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       cIdentifier = makeCVariableIdentifier(cIdentifier);
       boolean isRepeated = !fUsedNames.add(cIdentifier);
       
-      fDeclarations.append("\n");
+      fHardwareDeclarations.append("\n");
       if (!description.isBlank()) {
-         fDeclarations.append("/// " + description + "\n");
+         fHardwareDeclarations.append("/// " + description + "\n");
          if (error.isBlank()) {
             fHardwareDefinitions.append("/// " + description + "\n");
          }
       }
       
       if (!error.isBlank()) {
-         fDeclarations.append("#error \"" + error + "\"\n");
+         fHardwareDeclarations.append("#error \"" + error + "\"\n");
       }
       
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      fDeclarations.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", "extern " + cType, cIdentifier+";", trailingComment));
+      fCreatedUserDeclarations = true;
+      fHardwareDeclarations.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+"extern " + cType, cIdentifier+";", trailingComment));
       if (error.isBlank()) {
-         fHardwareDefinitions.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", cType, cIdentifier+";", trailingComment));
+         fHardwareDefinitions.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+";", trailingComment));
       }
    }
    
@@ -611,19 +643,20 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       cIdentifier = makeCTypeIdentifier(cIdentifier);
       boolean isRepeated = !fUsedNames.add(cIdentifier);
       
-      fDeclarations.append("\n");
+      fHardwareDeclarations.append("\n");
       if (!description.isBlank()) {
-         fDeclarations.append("/// " + description + "\n");
+         fHardwareDeclarations.append("/// " + description + "\n");
       }
       
       if (!error.isBlank()) {
-         fDeclarations.append("#error \"" + error + "\"\n");
+         fHardwareDeclarations.append("#error \"" + error + "\"\n");
       }
       
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      fDeclarations.append(String.format("%susing %-30s = %-50s %s\n", isRepeated?"// ":"", cIdentifier, cType+";", trailingComment));
+      fCreatedUserDeclarations = true;
+      fHardwareDeclarations.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+"typedef "+cType, cIdentifier+";", trailingComment));
    }
    
    /**
@@ -635,8 +668,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * // UserDescription
     * using CodeIdentifier = const <i><b>className</b></i>;
     * </pre>
-    * @param sb               Where to write
-    * @param className
+    * 
+    * @param className  Class name to use in creating declarations and definitions
+    * 
+    * @return true if a declaration or definition was created
     */
    protected void writeDefaultPeripheralDeclaration(String className) {
       // Default action is to create a declaration for the device itself 
@@ -650,8 +685,51 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (description.isBlank()) {
          description = getDescription();
       }
-      writeTypeDeclaration("", description, cIdentifier, cType, "");
-      writeVariableDeclaration("", description, cIdentifier, cType, "");
+      if (getCreateInstance()) {
+         writeVariableDeclaration("", description, cIdentifier, cType, "");
+      }
+      else {
+         writeTypeDeclaration("", description, cIdentifier, cType, "");
+      }
+   }
+
+   /**
+    * Write PCR style type declarations for all mapped signals in peripheral<br>
+    * 
+    * <pre>
+    * /// Clkout
+    * using Clkout  = const PcrTable_T<ControlInfo,10>;  // PTC3 ()
+    * </pre>
+    */
+   protected void writeSignalPcrDeclarations() {
+
+      ArrayList<InfoTable> InfoTables = getSignalTables();
+      for (InfoTable infoTable:InfoTables) {
+         for (int infoTableIndex=0; infoTableIndex<infoTable.table.size(); infoTableIndex++) {
+            
+            Signal signal = infoTable.table.get(infoTableIndex);
+            if (signal == null) {
+               continue;
+            }
+            MappingInfo pinMapping = signal.getFirstMappedPinInformation();
+            if (pinMapping == MappingInfo.UNASSIGNED_MAPPING) {
+               continue;
+            }
+            Pin pin = pinMapping.getPin();
+            String comment = pin.getName();
+            String location = pin.getLocation();
+            if ((location != null) && !location.isBlank()) {
+               comment = comment+" ("+location+")";
+            }
+            String cIdentifier = signal.getCodeIdentifier().trim();
+
+            if (!cIdentifier.isBlank()) {
+               cIdentifier     = makeCTypeIdentifier(cIdentifier);
+               String type = String.format("const PcrTable_T<%sInfo,%d>", getClassBaseName(), infoTableIndex);
+               writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
+            }
+         }
+      }
    }
 
    /**
@@ -667,23 +745,24 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * Default action is to create a declaration for the device itself.<br>
     * Overridden in some peripherals to add declarations for signals
-    * 
-    * @param writer        Where to write declarations
     */
    protected void writeDeclarations() {
       // Default action is to create a declaration for the device itself 
       writeDefaultPeripheralDeclaration(getClassName());
    }
 
-   // Used by by peripheral to record shared information when generating code
+   // Used by by peripheral to record shared information when generating user objects
    // Prevent re-use of C identifiers
    Set<String>   fUsedNames            = null;
    
-   // Collects definitions of user objects for hardware file
+   // Collects definitions of user objects for hardware.cpp
    StringBuilder fHardwareDefinitions  = null;
    
-   // Collects declarations of user objects for the include file for this peripheral
-   StringBuilder fDeclarations          = null;
+   // Collects declarations of user objects for hardware.cpp
+   StringBuilder fHardwareDeclarations          = null;
+   
+   // Indicates that user objects were created for this peripheral 
+   boolean fCreatedUserDeclarations = false;
    
    /**
     * Creat declarations for variables and types associated with this peripheral e.g.
@@ -698,33 +777,27 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * 
     * @param usedIdentifiers        Set used to prevent repeated C identifiers
-    * @param hardwareIncludeFiles   Collects include files need for user declared objects
-    * @param hardwareDefinitions    Collects definitions of user objects
-    * @return 
+    * @param hardwareIncludeFiles   Collects include files need for user declared objects (->hardware.h)
+    * @param hardwareDeclarations   Collects declarations of user objects (->hardware.h)
+    * @param hardwareDefinitions    Collects definitions of user objects (->hardware.cpp)
     */
-   final synchronized void createDeclarations(Set<String> usedIdentifiers, HashSet<String> hardwareIncludeFiles, StringBuilder hardwareDefinitions) {
+   final synchronized void createDeclarations(
+         Set<String>       usedIdentifiers, 
+         HashSet<String>   hardwareIncludeFiles,
+         StringBuilder     hardwareDeclarations, 
+         StringBuilder     hardwareDefinitions) {
       
       // Used by by peripheral to record shared information for hardware file
-      fUsedNames            = usedIdentifiers;
-      fHardwareDefinitions  = hardwareDefinitions;
-
-      // Collects declarations of user objects for the include file for this peripheral
-      fDeclarations         = new StringBuilder();
-            
+      fUsedNames                 = usedIdentifiers;
+      fHardwareDeclarations      = hardwareDeclarations;
+      fHardwareDefinitions       = hardwareDefinitions;
+      fCreatedUserDeclarations   = false;
+      
       writeDeclarations();
       
-      if (fDeclarations.toString().isBlank()) {
-         // No declarations for this peripheral
-         fDeviceInfo.removeVariableIfExists(PERIPHERAL_DECLARATIONS_KEY);
-      }
-      else {
+      if (fCreatedUserDeclarations) {
          // Need include file in hardware.cpp since created instance of type
          hardwareIncludeFiles.add("#include \"" + getBaseName().toLowerCase()+".h\"");
-
-         // Create variable containing declarations for this peripheral
-         StringVariable declarationsVar = new StringVariable("Declarations", PERIPHERAL_DECLARATIONS_KEY, fDeclarations.toString());
-         declarationsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(PERIPHERAL_DECLARATIONS_KEY, declarationsVar);
       }
    }
    
@@ -1273,6 +1346,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
+    * Sets the peripheral as synthetic i.e. no hardware is associated
+    */
+   protected void setSynthetic() {
+      fIsSynthetic = true;
+   }
+   
+   /**
     * Indicates if the peripheral represents real hardware
     * 
     * @return true if not real hardware
@@ -1382,6 +1462,105 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          return "";
       }
       return fUserDescription;
+   }
+
+   /**
+    * Sets whether code for a user instance of the peripheral class should be created
+    * 
+    * @param value true to create instance
+    */
+   public void setCreateInstance(boolean value) {
+      if (fCreateInstance != value) {
+         fCreateInstance = value;
+         setDirty(true);
+         notifyListeners();
+      }
+   }
+
+   /**
+    * Indicates whether code for a instance or type declaration should be created in user code
+    * 
+    * @return true => Instance, false => Type
+    */
+   public boolean getCreateInstance() {
+      return fCreateInstance;
+   }
+   
+   /**
+    * Set whether peripheral has a useful type declaration or enum/const value
+    * 
+    * @param value
+    */
+   void setCanCreateType(boolean value) {
+      fCanCreateType = value;
+   }
+   
+   /**
+    * Indicates whether code for a user declaration of the peripheral type can be generated.
+    * This also includes enums or constant values e.g. CMP input selectors
+    * 
+    * @return true to indicate type declaration can be created
+    */
+   public final boolean canCreateType() {
+      return !isSynthetic() && fCanCreateType;
+   }
+
+   /**
+    * Set whether code for a user declaration of the signal type can be generated
+    * This also includes enums or constant values e.g. CMP input selectors
+    * 
+    * @param value
+    */
+   void setCanCreateSignalType(boolean value) {
+      fcanCreateSignalType = value;
+   }
+   
+   /**
+    * Indicates whether code for a user declaration of the signal type can be generated
+    * This also includes enums or constant values e.g. CMP input selectors
+    * 
+    * @return true to indicate type declaration can be created
+    */
+   public final boolean canCreateType(Signal signal) {
+      return fcanCreateSignalType;
+   }
+
+   /**
+    * Set whether code for a user instance of the peripheral can be created
+    * 
+    * @param value
+    */
+   void setCanCreateInstance(boolean value) {
+      fCanCreateInstance = value;
+   }
+   
+   /**
+    * Indicates whether code for a user instance of the peripheral can be created
+    * 
+    * @return true to indicate an instance can be created
+    */
+   public final boolean canCreateInstance() {
+      // Most devices can't create a useful instance
+      return fCanCreateInstance;
+   }
+
+   /**
+    * Set whether code for a user instance of the peripheral can be created
+    * 
+    * @param value
+    */
+   public final void setCanCreateSignalInstance(boolean value) {
+      fCanCreateSignalInstance = value;
+   }
+   
+   /**
+    * Indicates whether code for a user instance of the signal related class can be created
+    * 
+    * @return true to indicate an instance can be created
+    */
+   public final boolean canCreateInstance(Signal signal) {
+      // Most signals can't create a useful instance
+      return fCanCreateSignalInstance;
    }
 
    public void addLinkedSignals() {

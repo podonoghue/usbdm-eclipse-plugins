@@ -69,11 +69,21 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Peripheral.Signal", 200, new NameColumnLabelProvider(),              null),
-                           new TreeColumnInformation("Mux:Pin",           200, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Code Identifier",   200, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Polarity",          100, BooleanColumnLabelProvider.getPolarity(),   BooleanEditingSupport.getPolarity(viewer)),
-                           new TreeColumnInformation("Description",       600, new DescriptionColumnLabelProvider(),       new DescriptionColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Peripherals and Signals", 200, new NameColumnLabelProvider(),              null, 
+                                 "Signals grouped by peripheral"),
+                           new TreeColumnInformation("Mux:Pin",                 200, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer), 
+                                 "Mapping of peripheral signal\n"+
+                                 "Blue bold text is used if multiple incompatible signals are mapped to a pin"),
+                           new TreeColumnInformation("Code Identifier",         200, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer), 
+                                 "C Identifier for code generation\n"+
+                                 "If not blank code will be generated for the peripheral or signal"),
+                           new TreeColumnInformation("Polarity",                100, BooleanColumnLabelProvider.getPolarity(),   BooleanEditingSupport.getPolarity(viewer), 
+                                 BooleanColumnLabelProvider.getPolarity().getColumnToolTipText()),
+                           new TreeColumnInformation("Instance",                80,  BooleanColumnLabelProvider.getInstance(),   BooleanEditingSupport.getInstance(viewer), 
+                                 BooleanColumnLabelProvider.getInstance().getColumnToolTipText()),
+                           new TreeColumnInformation("Description",             600, new DescriptionColumnLabelProvider(),       new DescriptionColumnEditingSupport(viewer), 
+                                 "Description of use - Appears as comment in user code\n"+
+                                 "Default description may be edited"),
                      };
                      return fColumnInformation;
                   }

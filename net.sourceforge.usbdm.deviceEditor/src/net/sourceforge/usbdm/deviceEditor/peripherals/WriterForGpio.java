@@ -19,6 +19,15 @@ public class WriterForGpio extends PeripheralWithState {
 
    public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can't create instances of this peripheral 
+      super.setCanCreateInstance(false);
+      
+      // Can create type declarations for signals belonging to this peripheral
+      super.setCanCreateSignalType(true);
+      
+      // Can create instances for signals belonging to this peripheral
+      super.setCanCreateSignalInstance(true);
    }
 
    @Override
@@ -32,10 +41,11 @@ public class WriterForGpio extends PeripheralWithState {
       private final ArrayList<Pin>     fListOfPins    = new ArrayList<Pin>();
       private final ArrayList<Signal>  fListOfSignals = new ArrayList<Signal>();
       private final String  fDescription;
-      private boolean fConflictedPolarity    = false;
-      private boolean fBitsAreConsecutive    = true;
+      private boolean fIsMixedPolarity    = false;
+      private boolean fBitsAreConsecutive = true;
       private int     fLastBitAdded;
       private int     fPolarity;
+      private boolean fCreateInstance;
       
       /**
        * Constructor. Creates entry for first (only) bit.
@@ -50,6 +60,7 @@ public class WriterForGpio extends PeripheralWithState {
          fPolarity          = signal.isActiveLow()?(1<<bitNum):0;
          fLastBitAdded      = bitNum;
          fDescription       = description;
+         fCreateInstance    = signal.getCreateInstance();
       }
       
       /**
@@ -66,8 +77,10 @@ public class WriterForGpio extends PeripheralWithState {
             fBitsAreConsecutive = false;
          }
          fLastBitAdded  = bitNum;
-         fConflictedPolarity = 
-               fConflictedPolarity || 
+         // Only create instance for field if ALL bits marked
+         fCreateInstance = fCreateInstance && signal.getCreateInstance();
+         fIsMixedPolarity = 
+               fIsMixedPolarity || 
                (((fPolarity == 0) && signal.isActiveLow()) || 
                ((fPolarity != 0) && !signal.isActiveLow()));
          fPolarity     |= signal.isActiveLow()?(1<<bitNum):0;
@@ -119,12 +132,21 @@ public class WriterForGpio extends PeripheralWithState {
       }
       
       /**
+       * Indicates if should be created as an instance
+       * 
+       * @return
+       */
+      public boolean isCreateInstance() {
+         return fCreateInstance;
+      }
+      
+      /**
        * Indicates if there is an inconsistency in the bit polarities
        * 
        * @return
        */
       public boolean isMixedPolarity() {
-         return fConflictedPolarity;
+         return fIsMixedPolarity;
       }
       
       /**
@@ -156,7 +178,7 @@ public class WriterForGpio extends PeripheralWithState {
       // Information about each unique identifier in GPIO
       HashMap<String, GpioPinInformation> variablesToCreate = new HashMap<String, GpioPinInformation>();
 
-      // Collect the pins into fields and individual bits based on primary code identifier 
+      // Collect the pins into fields and individual bits based on code identifier 
       for (int infoTableIndex=0; infoTableIndex<fInfoTable.table.size(); infoTableIndex++) {
          Signal signal = fInfoTable.table.get(infoTableIndex);
          if (signal == null) {
@@ -197,13 +219,6 @@ public class WriterForGpio extends PeripheralWithState {
       for (String mainIdentifier:variablesToCreate.keySet()) {
          
          GpioPinInformation gpioPinInformation = variablesToCreate.get(mainIdentifier);
-         String comment = "";
-         String error = "";
-         if (!gpioPinInformation.areBitConsecutive()) {
-            error = "Bits are not consecutive in field - check Configure.usbdmProject";
-            comment = "<== Error: Missing bits";
-         }
-         
          final ArrayList<Integer> bitNums = gpioPinInformation.getListOfBits();
          final ArrayList<Pin>     pins    = gpioPinInformation.getPins();
          final ArrayList<Signal>  signals = gpioPinInformation.getSignals();
@@ -212,15 +227,26 @@ public class WriterForGpio extends PeripheralWithState {
             int bitNum = bitNums.get(0);
             Pin    pin    = pins.get(0);
             Signal signal = signals.get(0);
-            String pinTrailingComment = pin.getLocation() + comment;
+            String pinTrailingComment = pin.getLocation();
             String polarity           = signal.isActiveLow()?", ActiveLow":"";
             String pinDescription     = gpioPinInformation.getDescription();
             
             String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
-            writeVariableDeclaration(error, pinDescription, mainIdentifier, type, pinTrailingComment);
+            if (signal.getCreateInstance()) {
+               writeVariableDeclaration("", pinDescription, mainIdentifier, type, pinTrailingComment);
+            }
+            else {
+               writeTypeDeclaration("", pinDescription, mainIdentifier, type, pinTrailingComment);
+            }
          }
          else {
             // Do GpioField
+            String comment = "";
+            String error = "";
+            if (!gpioPinInformation.areBitConsecutive()) {
+               error = "Bits are not consecutive in field - check Configure.usbdmProject";
+               comment = "<== Error: Missing bits";
+            }
             String fieldDescription = gpioPinInformation.getDescription();
             if (!fieldDescription.isBlank()) {
                fieldDescription = fieldDescription + " (Bit Field)";
@@ -239,8 +265,13 @@ public class WriterForGpio extends PeripheralWithState {
                }
             }
             String type = String.format("const %s<%d, %d%s>", getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
-
-            writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
+            
+            if (gpioPinInformation.isCreateInstance()) {
+               writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
+            }
+            else {
+               writeTypeDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
+            }
          }
       }
    }
@@ -250,25 +281,10 @@ public class WriterForGpio extends PeripheralWithState {
       return false;
    }
 
-//   @Override
-//   public String getPcrDefinition() {
-//      return String.format(
-//            "   //! Value for PCR (including MUX value)\n"+
-//            "   static constexpr uint32_t %s  = GPIO_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
-//            );
-//   }
-
    @Override
-   public int getSignalIndex(Signal function) {
+   public int getSignalIndex(Signal signal) {
       // No tables for GPIO
-      return Integer.parseInt(function.getSignalName());
-//      Pattern p = Pattern.compile("(\\d+).*");
-//      Matcher m = p.matcher(function.getSignalName());
-//      if (!m.matches()) {
-//         throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
-//      }
-//      int signalIndex = Integer.parseInt(m.group(1));
-//      return signalIndex;
+      return Integer.parseInt(signal.getSignalName());
    }
 
    @Override
@@ -278,7 +294,6 @@ public class WriterForGpio extends PeripheralWithState {
             modifyVectorTable(vectorTable, var, "Port");
          }
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }

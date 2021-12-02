@@ -23,6 +23,9 @@ public class WriterForCmp extends PeripheralWithState {
    
    public WriterForCmp(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can create type declarations for signals belonging to this peripheral (actually enums)
+      super.setCanCreateSignalType(true);
    }
 
    @Override
@@ -44,13 +47,16 @@ public class WriterForCmp extends PeripheralWithState {
    static final String PIN_FORMAT   = "      %-25s = %-8s %s\n";
    
    /**
-    * Generate set of enum symbols for comparator inputs that are mapped to pins.
+    * Generate set of enum symbols and Types for CMP inputs that are mapped to pins.
     * 
     * <pre>
-    *       Input_Ptc7       = 1,       ///< Mapped pin PTC7
-    *       Input_VrefOut    = 5,       ///< Fixed pin  VREF_OUT
-    *       Input_Bandgap    = 6,       ///< Fixed pin  BANDGAP
-    *       Input_CmpDac     = 7,       ///< Fixed pin  CMP_DAC
+    *   // In tsi.h
+    *   Input_Ptc6                = 6,       ///< Mapped pin PTC6 (p51)
+    *   Input_MyComparatorInput   = 6,       ///< Mapped pin PTC6 (p51)
+    *   
+    *   // In hardware.h
+    *   /// User comment
+    *   typedef const Cmp0::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
     * </pre> 
     * 
     * @param documentUtilities
@@ -58,6 +64,7 @@ public class WriterForCmp extends PeripheralWithState {
     */
    @Override
    protected void writeDeclarations() {
+      
       super.writeDeclarations();
       
       String enumName    = "Input_";
@@ -87,17 +94,23 @@ public class WriterForCmp extends PeripheralWithState {
             if (!pin.isAvailableInPackage()) {
                continue;
             }
-            String comment = pin.getName()+" ("+pin.getLocation()+")";
+            
+            String comment = pin.getName();
+            String location = pin.getLocation();
+            if ((location != null) && !location.isBlank()) {
+               comment = comment+" ("+location+")";
+            }
+            
             String pinName = enumName+prettyPinName(pin.getName());
             String cIdentifier = signal.getCodeIdentifier().trim();
             String inputIdentifier = "";
+            String mapName = "Input_"+index;
             if (!cIdentifier.isBlank()) {
                cIdentifier     = makeCTypeIdentifier(cIdentifier);
                inputIdentifier =  enumName+cIdentifier;
-               String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Pin", index);
-               writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, pin.getLocation());
+               String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", getClassName()+"::"+pinName);
+               writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
             }
-            String mapName = ""+index;
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
                comment = commentRoot+"Fixed pin  "+comment;
@@ -136,5 +149,5 @@ public class WriterForCmp extends PeripheralWithState {
          fDeviceInfo.addOrReplaceVariable(cmpInputsVar.getKey(), cmpInputsVar);
       }
    }
-
+   
 }

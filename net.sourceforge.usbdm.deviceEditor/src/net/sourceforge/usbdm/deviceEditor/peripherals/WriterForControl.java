@@ -19,8 +19,16 @@ public class WriterForControl extends PeripheralWithState {
    public WriterForControl(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       setSynthetic();
+      
+      // Can create a PCR for the signals
+      setCanCreateSignalType(true);
    }
 
+   @Override
+   protected void writeDeclarations() {
+      writeSignalPcrDeclarations();
+   }
+   
    @Override
    public String getTitle() {
       return "Control";

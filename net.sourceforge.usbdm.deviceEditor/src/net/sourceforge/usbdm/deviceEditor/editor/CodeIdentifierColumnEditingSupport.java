@@ -9,7 +9,6 @@ import org.eclipse.swt.widgets.Composite;
 
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
-import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
@@ -24,25 +23,21 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if (element instanceof PinModel) {
-         Signal mappedSignal = ((PinModel)element).getPin().getUniqueMappedSignal();
-         return mappedSignal != null;
-      }
       if (element instanceof SignalModel) {
-         return true;
+         Signal s = ((SignalModel)element).getSignal();
+         return s.canCreateType() || s.canCreateInstance();
       }
-      if ((element instanceof PeripheralSignalsModel) && 
-            !((PeripheralSignalsModel) element).getPeripheral().isSynthetic()) {
-         return true;
+      if (element instanceof PeripheralSignalsModel) { 
+         Peripheral p = ((PeripheralSignalsModel) element).getPeripheral();
+         return p.canCreateType() || p.canCreateInstance();
       }
       return false;
    }
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof PinModel) ||
-            (element instanceof SignalModel) ||
-            (element instanceof PeripheralSignalsModel)) {
+      if ((element instanceof SignalModel) ||
+          (element instanceof PeripheralSignalsModel)) {
          return new StringCellEditor(viewer.getTree());
       }
       return null;
@@ -50,10 +45,6 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (element instanceof PinModel) {
-         Signal signal = ((PinModel)element).getPin().getUniqueMappedSignal();
-         return signal.getCodeIdentifier();
-      }
       if (element instanceof SignalModel) {
          Signal signal = ((SignalModel) element).getSignal();
          return signal.getCodeIdentifier();
@@ -67,22 +58,10 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected void setValue(Object element, Object value) {
-      if (element instanceof PinModel) {
-         Signal signal = ((PinModel)element).getPin().getUniqueMappedSignal();
-         if (signal != null) {
-            signal.setCodeIdentifier((String) value);
-         }
-         viewer.update(element, null);
-      }
       if (element instanceof SignalModel) {
          Signal signal = ((SignalModel) element).getSignal();
          signal.setCodeIdentifier((String) value);
          viewer.update(element, null);
-//         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
-//         if (pin != Pin.UNASSIGNED_PIN) {
-//            pin.setCodeIdentifier((String) value);
-//            viewer.update(element, null);
-//         }
       }
       if (element instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();

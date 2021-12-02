@@ -79,7 +79,14 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    
    /** Indicates whether GPIO signal is active-low */
    private boolean fIsActiveLow = false;
+
+   /** Indicates that code for a user instance of the signal class should be created */ 
+   private boolean fCreateInstance;
    
+   private static final String getCreateInstanceKey(String name) {
+      return "$signal$"+name+"_createInstance";
+   }
+
    private static final String getUserDescriptionKey(String name) {
       return "$signal$"+name+"_descriptionSetting";
    }
@@ -107,8 +114,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @param isActiveLow
     */
    public void setActiveLow(boolean isActiveLow) {
-      fIsActiveLow = isActiveLow;
-      setDirty(true);
+      if (fIsActiveLow != isActiveLow) {
+         fIsActiveLow = isActiveLow;
+         setDirty(true);
+      }
    }
    
    /**
@@ -202,6 +211,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (this == DISABLED_SIGNAL) {
          return;
       }
+      if (settings.get(getCreateInstanceKey(fName)) != null) {
+         setCreateInstance(true);
+      }
       String value = settings.get(getCodeIndentifierKey(fName));
       if (value != null) {
          setCodeIdentifier(value);
@@ -225,13 +237,16 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (this == DISABLED_SIGNAL) {
          return;
       }
-      String desc = getUserDescription();
-      if ((desc != null) && !desc.isEmpty()) {
-         settings.put(getUserDescriptionKey(fName), desc);
+      if (getCreateInstance()) {
+         settings.put(getCreateInstanceKey(fName), "true");
       }
       String ident = getCodeIdentifier();
       if ((ident != null) && !ident.isEmpty()) {
          settings.put(getCodeIndentifierKey(fName), ident);
+      }
+      String desc = getUserDescription();
+      if ((desc != null) && !desc.isEmpty()) {
+         settings.put(getUserDescriptionKey(fName), desc);
       }
       Boolean polarity = isActiveLow();
       if (polarity) {
@@ -529,6 +544,46 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    @Override
    public void elementStatusChanged(ObservableModel observableModel) {
       notifyStatusListeners();
+   }
+
+   /**
+    * Sets whether code for a user instance of the peripheral class should be created
+    * 
+    * @param value true to create instance
+    */
+   public void setCreateInstance(boolean value) {
+      if (fCreateInstance != value) {
+         fCreateInstance = value;
+         setDirty(true);
+         notifyListeners();
+      }
+   }
+
+   /**
+    * Indicates whether code for a instance or type declaration should be created in user code
+    * 
+    * @return true => Instance, false => Type
+    */
+   public Boolean getCreateInstance() {
+      return fCreateInstance && getPeripheral().canCreateInstance(this);
+   }
+
+   /**
+    * Indicates whether code for a user instance of the signal related class can be created
+    * 
+    * @return true to indicate an instance can be created
+    */
+   public boolean canCreateInstance() {
+      return getPeripheral().canCreateInstance(this);
+   }
+
+   /**
+    * Indicates whether code for a user instance of the signal related class can be created
+    * 
+    * @return true to indicate an instance can be created
+    */
+   public boolean canCreateType() {
+      return getPeripheral().canCreateType(this);
    }
 
 }

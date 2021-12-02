@@ -408,7 +408,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             continue;
          }
          for (Signal signal:mappingInfo.getSignals()) {
-            if (signal.getCodeIdentifier().isBlank()) {
+            if ((signal.getCodeIdentifier() == null) || signal.getCodeIdentifier().isBlank()) {
                continue;
             }
             if (doSeparator) {

@@ -63,6 +63,7 @@ public class WriterForFlexio extends PeripheralWithState {
     */
    @Override
    protected void writeDeclarations() {
+      
       super.writeDeclarations();
       
       String enumName    = "FlexioPinSel_";
@@ -138,6 +139,5 @@ public class WriterForFlexio extends PeripheralWithState {
          fDeviceInfo.addOrReplaceVariable(cmpInputsVar.getKey(), cmpInputsVar);
       }
    }
-
    
 }

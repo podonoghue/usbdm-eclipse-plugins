@@ -1068,7 +1068,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForAdc.class);
          createPeripheralTemplateInformation(
                "ADC", "$2", "$3",
-               "(PGA)([0-3])_((DM|DP))",
+               "(PGA)([0-3])(_(DM|DP))?",
                getDeviceFamily(),
                WriterForAdc.class);
          createPeripheralTemplateInformation(

@@ -29,18 +29,34 @@ public abstract class TreeEditor implements IEditor {
       final int               width;
       final BaseLabelProvider labelProvider;
       final EditingSupport    editingSupport;
+      final String            tooltip;
       
       public TreeColumnInformation(
-            String                    name, 
-            int                       width, 
-            BaseLabelProvider         labelProvider, 
-            EditingSupport            editingSupport) {
+            String              name, 
+            int                 width, 
+            BaseLabelProvider   labelProvider, 
+            EditingSupport      editingSupport,
+            String              tooltip) {
          
          this.name           = name;
          this.width          = width;
          this.labelProvider  = labelProvider;
          this.editingSupport = editingSupport;
+         this.tooltip        = tooltip;
       }
+      public TreeColumnInformation(
+            String              name, 
+            int                 width, 
+            BaseLabelProvider   labelProvider, 
+            EditingSupport      editingSupport) {
+         
+         this.name           = name;
+         this.width          = width;
+         this.labelProvider  = labelProvider;
+         this.editingSupport = editingSupport;
+         this.tooltip        = null;
+      }
+
    }
    
    public TreeEditor() {
@@ -89,6 +105,7 @@ public abstract class TreeEditor implements IEditor {
          fColumns[index].getColumn().setWidth(fColumnInformation[index].width);
          fColumns[index].setLabelProvider(new DelegatingStyledCellLabelProvider(fColumnInformation[index].labelProvider));
          fColumns[index].getColumn().setText(fColumnInformation[index].name);
+         fColumns[index].getColumn().setToolTipText(fColumnInformation[index].tooltip);
          if (fColumnInformation[index].editingSupport != null) {
             fColumns[index].setEditingSupport(fColumnInformation[index].editingSupport);
          }

@@ -24,15 +24,10 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if (element instanceof PinModel) {
-         Signal mappedSignal = ((PinModel)element).getPin().getUniqueMappedSignal();
-         return mappedSignal != null;
-      }
       if ((element instanceof SignalModel)) {
          return true;
       }
-      if ((element instanceof PeripheralSignalsModel) && 
-            !((PeripheralSignalsModel) element).getPeripheral().isSynthetic()) {
+      if (element instanceof PeripheralSignalsModel) {
            return true;
         }
       return false;
@@ -67,13 +62,6 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected void setValue(Object element, Object value) {
-      if (element instanceof PinModel) {
-         Signal signal = ((PinModel)element).getPin().getUniqueMappedSignal();
-         if (signal != null) {
-            signal.setUserDescription((String) value);
-            viewer.update(element, null);
-         }
-      }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
          signalModel.getSignal().setUserDescription((String) value);

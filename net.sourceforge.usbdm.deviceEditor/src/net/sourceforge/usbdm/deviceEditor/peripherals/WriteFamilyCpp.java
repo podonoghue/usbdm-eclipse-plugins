@@ -44,14 +44,17 @@ public class WriteFamilyCpp {
    /** Base name for C++ files */
    private final static String HARDWARE_BASEFILENAME = "hardware";
 
-   /** Key for **/
-   private final static String HARDWARE_FILE_INCLUDES_FILE_KEY = "/HARDWARE_CPP/IncludeFiles";
+   /** Key for include files needed in hardware.h **/
+   private final static String HARDWARE_FILE_INCLUDES_FILE_KEY = "/HARDWARE_H/IncludeFiles";
    
-   /** Key for **/
+   /** Key for user object declarations needed in hardware.h **/
+   private final static String HARDWARE_FILE_DECLARATIONS_KEY = "/HARDWARE_H/Declarations";
+   
+   /** Key for user object definitions needed in hardware.cpp **/
    private final static String HARDWARE_FILE_DEFINITIONS_KEY = "/HARDWARE_CPP/Definitions";
-   
-   /** Key for **/
-   private final static String HARDWARE_FILE_INITILISATIONS_KEY = "/HARDWARE_CPP/PortInitialisations";
+
+   /** Key for user object definitions needed in hardware.cpp **/
+   private final static String HARDWARE_FILE_PORT_INIT_KEY = "/HARDWARE_CPP/PortInitialisations";
    /*
     * Macros
     * ==========================================================================
@@ -301,30 +304,51 @@ public class WriteFamilyCpp {
       // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
       StringBuilder hardwareDefinitions = new StringBuilder();
       
+      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
+      StringBuilder hardwareDeclarations = new StringBuilder();
+      
       for (String key : fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         peripheral.createDeclarations(usedIdentifiers, hardwareIncludeFiles, hardwareDefinitions);
+         peripheral.createDeclarations(usedIdentifiers, hardwareIncludeFiles, hardwareDeclarations, hardwareDefinitions);
       }
-      
+
+      // Save #include files for any user objects needed by peripherals in hardware.h
       if (hardwareIncludeFiles.isEmpty()) {
+         // None  delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_INCLUDES_FILE_KEY);
       }
       else {
+         // Append found #includes
          StringBuilder sb = new StringBuilder();
          Iterator<String> i = hardwareIncludeFiles.iterator();
          while(i.hasNext()) {
             sb.append("" + i.next() + "\n");
          }
+         // Create or replace variable
          StringVariable hardwareIncludeFilesVar = new StringVariable("IncludeFiles", HARDWARE_FILE_INCLUDES_FILE_KEY, sb.toString());
          hardwareIncludeFilesVar.setDerived(true);
          fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_INCLUDES_FILE_KEY, hardwareIncludeFilesVar);
       }         
 
+      // Save declarations for any user objects needed by peripherals in hardware.h
+      if (hardwareDeclarations.toString().isBlank()) {
+         // None  delete variable
+         fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DECLARATIONS_KEY);
+      }
+      else {
+         // Create or replace variable
+         StringVariable hardwareDefinitionsVar = new StringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDeclarations);
+         hardwareDefinitionsVar.setDerived(true);
+         fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_DECLARATIONS_KEY, hardwareDefinitionsVar);
+      }
+      
       // Save actual definitions for any user objects needed by peripherals in hardware.cpp
       if (hardwareDefinitions.toString().isBlank()) {
+         // None  delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DEFINITIONS_KEY);
       }
       else {
+         // Create or replace variable
          StringVariable hardwareDefinitionsVar = new StringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitions);
          hardwareDefinitionsVar.setDerived(true);
          fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitionsVar);
@@ -358,7 +382,7 @@ public class WriteFamilyCpp {
       sb.append(pcrInitialiser.getInitPortClocksStatement(""));
       sb.append(pcrInitialiser.getPcrInitStatements(""));
       
-      StringVariable portInitialisationVariable = new StringVariable("Port Initialisation", HARDWARE_FILE_INITILISATIONS_KEY);
+      StringVariable portInitialisationVariable = new StringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY);
       portInitialisationVariable.setValue(sb.toString());
       portInitialisationVariable.setDerived(true);
       fDeviceInfo.addOrReplaceVariable(portInitialisationVariable.getKey(), portInitialisationVariable);

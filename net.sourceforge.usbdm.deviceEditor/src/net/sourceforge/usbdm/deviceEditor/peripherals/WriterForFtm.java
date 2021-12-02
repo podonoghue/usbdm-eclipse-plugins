@@ -28,6 +28,15 @@ public class WriterForFtm extends PeripheralWithState {
 
    public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can create type instances of this peripheral
+      super.setCanCreateInstance(true);
+      
+      // Can create type declarations for signals belonging to this peripheral
+      super.setCanCreateSignalType(true);
+      
+      // Can create instances for signals belonging to this peripheral
+      super.setCanCreateSignalInstance(true);
    }
 
    @Override
@@ -53,8 +62,18 @@ public class WriterForFtm extends PeripheralWithState {
          if (cIdentifier.isBlank()) {
             continue;
          }
+         String comment = pin.getName();
+         String location = pin.getLocation();
+         if ((location != null) && !location.isBlank()) {
+            comment = comment+" ("+location+")";
+         }
          String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
-         writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, pin.getLocation());
+         if (signal.getCreateInstance()) {
+            writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
+         }
+         else {
+            writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
+         }
       }
       
       if (fQuadSignals.table.size() >= 2) {
@@ -74,9 +93,22 @@ public class WriterForFtm extends PeripheralWithState {
          if ((pinPhaseA == Pin.UNASSIGNED_PIN) || (pinPhaseB == Pin.UNASSIGNED_PIN)) {
             continue;
          }
+         String comment = pinPhaseA.getName();
+         String location = pinPhaseA.getLocation();
+         if ((location != null) && !location.isBlank()) {
+            comment += " ("+location+")";
+         }
+         comment += ", "+pinPhaseA.getName();
+         location = pinPhaseA.getLocation();
+         if ((location != null) && !location.isBlank()) {
+            comment = comment+" ("+location+")";
+         }
          String cIdentifier = makeCIdentifier(cIdentifierPhaseA);
          String type = String.format("const FtmQuadDecoder"+getInstance());
-         writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, pinPhaseA.getLocation()+", "+pinPhaseB.getLocation());
+         writeTypeDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, comment);
+         if (signalPhaseA.getCreateInstance() || signalPhaseB.getCreateInstance()) {
+            writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, comment);
+         }
          } while (false);
       }
    }
@@ -163,5 +195,5 @@ public class WriterForFtm extends PeripheralWithState {
          addSignal(signal);
       }
    }
-   
+
 }

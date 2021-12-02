@@ -10,11 +10,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-//import org.eclipse.swt.widgets.Event;
-//import org.eclipse.swt.widgets.Listener;
-//import org.eclipse.swt.widgets.Tree;
-//import org.eclipse.swt.widgets.TreeItem;
-//import org.eclipse.swt.widgets.Widget;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IEditor;
@@ -88,10 +83,18 @@ public class TabbedEditor implements IEditor {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                   final TreeColumnInformation[] fColumnInformation = {
-                        new TreeColumnInformation("Property",        200, new NameColumnLabelProvider(),           null),
-                        new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer)),
-                        new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer)),
-                        new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Property",        200, new NameColumnLabelProvider(),           null, 
+                              "Name of property"),
+                        new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer), 
+                              "Value of property"),
+                        new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer), 
+                              "C Identifier for code generation\n"+
+                              "If not blank code will be generated for the signal or peripheral"),
+                        new TreeColumnInformation("Instance",                80,  BooleanColumnLabelProvider.getInstance(),   BooleanEditingSupport.getInstance(viewer), 
+                              BooleanColumnLabelProvider.getInstance().getColumnToolTipText()),
+                        new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer), 
+                              "Property Description or\n"+
+                              "User description of use - Appears as comment in user code (Periperals and signals only)"),
                   };
                   return fColumnInformation;
                }

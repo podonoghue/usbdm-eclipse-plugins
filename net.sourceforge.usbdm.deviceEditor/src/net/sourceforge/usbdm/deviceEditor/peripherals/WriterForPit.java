@@ -14,6 +14,15 @@ public class WriterForPit extends PeripheralWithState {
 
    public WriterForPit(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can create instances for signals belonging to this peripheral
+      super.setCanCreateInstance(true);
+
+      // Can create type declarations for signals belonging to this peripheral
+      super.setCanCreateSignalType(true);
+
+      // Can create instances for signals belonging to this peripheral
+      super.setCanCreateSignalInstance(true);
    }
 
    @Override
@@ -48,7 +57,12 @@ public class WriterForPit extends PeripheralWithState {
          String description = signal.getUserDescription();
          String declaration = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          
-         writeVariableDeclaration("", description, cIdentifier, declaration, pin.getLocation());
+         if (signal.getCreateInstance()) {
+            writeVariableDeclaration("", description, cIdentifier, declaration, pin.getLocation());
+         }
+         else {
+            writeTypeDeclaration("", description, cIdentifier, declaration, pin.getLocation());
+         }
       }
    }
 
@@ -56,5 +70,5 @@ public class WriterForPit extends PeripheralWithState {
    public boolean isPcrTableNeeded() {
       return false;
    }
-   
+
 }
