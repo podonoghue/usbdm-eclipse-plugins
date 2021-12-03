@@ -227,16 +227,16 @@ public class WriterForGpio extends PeripheralWithState {
             int bitNum = bitNums.get(0);
             Pin    pin    = pins.get(0);
             Signal signal = signals.get(0);
-            String pinTrailingComment = pin.getLocation();
-            String polarity           = signal.isActiveLow()?", ActiveLow":"";
-            String pinDescription     = gpioPinInformation.getDescription();
+            String trailingComment  = pin.getNameWithLocation();
+            String polarity         = signal.isActiveLow()?", ActiveLow":"";
+            String pinDescription   = gpioPinInformation.getDescription();
             
             String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
             if (signal.getCreateInstance()) {
-               writeVariableDeclaration("", pinDescription, mainIdentifier, type, pinTrailingComment);
+               writeVariableDeclaration("", pinDescription, mainIdentifier, type, trailingComment);
             }
             else {
-               writeTypeDeclaration("", pinDescription, mainIdentifier, type, pinTrailingComment);
+               writeTypeDeclaration("", pinDescription, mainIdentifier, type, trailingComment);
             }
          }
          else {
@@ -251,8 +251,16 @@ public class WriterForGpio extends PeripheralWithState {
             if (!fieldDescription.isBlank()) {
                fieldDescription = fieldDescription + " (Bit Field)";
             }
-            String fieldComment = pins.get(0).getLocation() + "-" + pins.get(pins.size()-1).getLocation();
-            fieldComment = fieldComment + comment;
+            boolean doComma = false;
+            String trailingComment = "";
+            for (Pin pin:pins) {
+               if (doComma) {
+                  trailingComment += ", ";
+               }
+               doComma = true;
+               trailingComment += pin.getNameWithLocation();
+            }
+            trailingComment = trailingComment + comment;
             final int fieldPolarity = gpioPinInformation.getFieldPolarity(); 
             String polarity= "";
             if (fieldPolarity != 0) {
@@ -267,10 +275,10 @@ public class WriterForGpio extends PeripheralWithState {
             String type = String.format("const %s<%d, %d%s>", getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
             
             if (gpioPinInformation.isCreateInstance()) {
-               writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
+               writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
             }
             else {
-               writeTypeDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
+               writeTypeDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
             }
          }
       }

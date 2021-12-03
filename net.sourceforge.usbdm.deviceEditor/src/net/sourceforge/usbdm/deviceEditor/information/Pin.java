@@ -244,18 +244,21 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Get name of the pin with package location e.g. PTA1(p36) 
+    * Get name of the pin with package location
     * 
-    * @return Pin name
+    * <pre>
+    * e.g "PTC6(p51)"
+    * </pre>
+    * 
+    * @return String suitable as trailing comment
     */
    public String getNameWithLocation() {
+      String trailingComment = getName();
       String location = getLocation();
-      if ((location == null) || (location.length() == 0)) {
-         return fName;
+      if ((location != null) && !location.isBlank()) {
+         trailingComment = trailingComment+"("+location+")";
       }
-      else {  
-         return fName + " ("+location+")";
-      }
+      return trailingComment;
    }
 
    @Override

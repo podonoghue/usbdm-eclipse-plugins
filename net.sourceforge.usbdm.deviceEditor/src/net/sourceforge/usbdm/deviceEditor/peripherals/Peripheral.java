@@ -586,6 +586,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
    
    /**
+    * Indicates that an <b>#include</b> for this peripheral is needed for hardware.h
+    * 
+    * Used during code generation
+    */
+   void setHardwareIncludeFile() {
+      fCreatedUserDeclarations = true;
+   }
+   
+   /**
     *  Write variable declaration
     *  
     *  <pre> {} = optional
@@ -618,7 +627,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      fCreatedUserDeclarations = true;
+      setHardwareIncludeFile();
       fHardwareDeclarations.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+"extern " + cType, cIdentifier+";", trailingComment));
       if (error.isBlank()) {
          fHardwareDefinitions.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+";", trailingComment));
@@ -655,7 +664,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      fCreatedUserDeclarations = true;
+      setHardwareIncludeFile();
       fHardwareDeclarations.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+"typedef "+cType, cIdentifier+";", trailingComment));
    }
    
@@ -716,17 +725,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
                continue;
             }
             Pin pin = pinMapping.getPin();
-            String comment = pin.getName();
-            String location = pin.getLocation();
-            if ((location != null) && !location.isBlank()) {
-               comment = comment+" ("+location+")";
-            }
+            String trailingComment  = pin.getNameWithLocation();
             String cIdentifier = signal.getCodeIdentifier().trim();
-
             if (!cIdentifier.isBlank()) {
                cIdentifier     = makeCTypeIdentifier(cIdentifier);
                String type = String.format("const PcrTable_T<%sInfo,%d>", getClassBaseName(), infoTableIndex);
-               writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
+               writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
          }
       }
@@ -796,7 +800,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       writeDeclarations();
       
       if (fCreatedUserDeclarations) {
-         // Need include file in hardware.cpp since created instance of type
+         // Need include file in hardware.cpp since peripheral is referenced in generated code
          hardwareIncludeFiles.add("#include \"" + getBaseName().toLowerCase()+".h\"");
       }
    }

@@ -63,8 +63,9 @@ public class WriterForLlwu extends PeripheralWithState {
       String enumName    = getClassName()+"Pin";
       String commentRoot = "///< ";
       ArrayList<InfoTable> signalTables = getSignalTables();
-      HashSet<String> usedIdentifiers = new HashSet<String>();
+      HashSet<String> usedEnumIdentifiers = new HashSet<String>();
       
+      // Generate enums for llwu pin inputs (signals)
       StringBuffer sb = new StringBuffer();
       for (InfoTable signalTable:signalTables) {
          int index = -1;
@@ -78,41 +79,43 @@ public class WriterForLlwu extends PeripheralWithState {
             }
             MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
             Pin pin = mappingInfo.getPin();
-            String pinName = enumName+"_"+prettyPinName(pin.getName());
-            String mapName = enumName+"_"+index;
             if (pin == Pin.UNASSIGNED_PIN) {
                continue;
             }
-            String comment = pin.getName();
-            String location = pin.getLocation();
-            if ((location != null) && !location.isBlank()) {
-               comment = comment+" ("+location+")";
-            }
+
+            // Found fixed or mapped pin
+            String trailingComment  = pin.getNameWithLocation();
+            String cIdentifier      = signal.getCodeIdentifier();
+            String pinName = enumName+"_"+prettyPinName(pin.getName());
+            String mapName = enumName+"_"+index;
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
-               comment = commentRoot+"Fixed pin  "+comment;
+               trailingComment = "Fixed pin  "+trailingComment;
             }
             else {
-               comment = commentRoot+"Mapped pin "+comment;
+               trailingComment = "Mapped pin "+trailingComment;
             }
-            if (comment.isBlank() ) {
-               continue;
-            }
-            // Found fixed or mapped pin
-            sb.append(String.format(PIN_FORMAT, pinName, mapName+',', comment));
+            trailingComment = commentRoot + trailingComment;
             
-            String cIdentifier = signal.getCodeIdentifier();
+            // Default enum e.g.  "LlwuPin_Pta13 = LlwuPin_4, ///< Mapped pin PTA13(p29)"
+            sb.append(String.format(PIN_FORMAT, pinName, mapName+',', trailingComment));
+            
             if (!cIdentifier.isBlank()) {
-               cIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
-               String userComment = signal.getUserDescription();
-               if (!userComment.isBlank()) {
-                  comment = "///< " + userComment;
+               String description = signal.getUserDescription();
+               String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
+               if (signal.getCreateInstance()) {
+                  writeVariableDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
                }
-               boolean inUse = !usedIdentifiers.add(cIdentifier);
+               else {
+                  writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
+               }
+               String enumIdentifier      = makeCTypeIdentifier(enumName+"_"+cIdentifier);
+               boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
                if (inUse) {
-                  cIdentifier = "// "+cIdentifier; 
+                  // Repeated value comment out
+                  enumIdentifier = "// "+enumIdentifier; 
                }
-               sb.append(String.format(PIN_FORMAT, cIdentifier, mapName+",", comment));
+               sb.append(String.format(PIN_FORMAT, enumIdentifier, mapName+",", trailingComment));
             }
          }
       }
@@ -121,6 +124,7 @@ public class WriterForLlwu extends PeripheralWithState {
       llwuPinInputsVar.setDerived(true);
       fDeviceInfo.addOrReplaceVariable(llwuPinInputsVar.getKey(), llwuPinInputsVar);
 
+      // Generate enums for llwu modules (peripherals) from configuration parameter
       String devices = getParam("device_list");
       if (devices != null) {
          enumName    = getClassName()+"Peripheral";
@@ -132,7 +136,7 @@ public class WriterForLlwu extends PeripheralWithState {
                for (String deviceName:deviceNames.split("/")) {
                   String mapName    = enumName+"_"+peripheralCount;
                   String moduleName = makeCTypeIdentifier(enumName+"_"+prettyPinName(deviceName));
-                  boolean inUse = !usedIdentifiers.add(moduleName);
+                  boolean inUse = !usedEnumIdentifiers.add(moduleName);
                   if (inUse) {
                      moduleName = "// "+moduleName; 
                   }
@@ -143,19 +147,20 @@ public class WriterForLlwu extends PeripheralWithState {
                      String identifier = peripheral.getCodeIdentifier();
                      if (!identifier.isBlank()) {
                         identifier = makeCTypeIdentifier(enumName+"_"+identifier);
-                        inUse = !usedIdentifiers.add(identifier);
+                        inUse = !usedEnumIdentifiers.add(identifier);
                         if (inUse) {
                            identifier = "// "+identifier; 
                         }
                         String description = peripheral.getUserDescription();
+                        if (description.isBlank()) {
+                           description = peripheral.getDescription();
+                        }
                         if (!description.isBlank()) {
                            description = "///< "+description;
                         }
                         sb.append(String.format(PIN_FORMAT,  identifier, mapName+",", description));
                      }
                   }
-               
-                  
                }
             }
             peripheralCount++;

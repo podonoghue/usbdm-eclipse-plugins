@@ -62,17 +62,13 @@ public class WriterForFtm extends PeripheralWithState {
          if (cIdentifier.isBlank()) {
             continue;
          }
-         String comment = pin.getName();
-         String location = pin.getLocation();
-         if ((location != null) && !location.isBlank()) {
-            comment = comment+" ("+location+")";
-         }
+         String trailingComment  = pin.getNameWithLocation();
          String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
+            writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
          }
          else {
-            writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, comment);
+            writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
          }
       }
       
@@ -93,21 +89,12 @@ public class WriterForFtm extends PeripheralWithState {
          if ((pinPhaseA == Pin.UNASSIGNED_PIN) || (pinPhaseB == Pin.UNASSIGNED_PIN)) {
             continue;
          }
-         String comment = pinPhaseA.getName();
-         String location = pinPhaseA.getLocation();
-         if ((location != null) && !location.isBlank()) {
-            comment += " ("+location+")";
-         }
-         comment += ", "+pinPhaseA.getName();
-         location = pinPhaseA.getLocation();
-         if ((location != null) && !location.isBlank()) {
-            comment = comment+" ("+location+")";
-         }
+         String trailingComment  = pinPhaseA.getNameWithLocation()+", "+pinPhaseB.getNameWithLocation();
          String cIdentifier = makeCIdentifier(cIdentifierPhaseA);
          String type = String.format("const FtmQuadDecoder"+getInstance());
-         writeTypeDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, comment);
+         writeTypeDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, trailingComment);
          if (signalPhaseA.getCreateInstance() || signalPhaseB.getCreateInstance()) {
-            writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, comment);
+            writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, trailingComment);
          }
          } while (false);
       }

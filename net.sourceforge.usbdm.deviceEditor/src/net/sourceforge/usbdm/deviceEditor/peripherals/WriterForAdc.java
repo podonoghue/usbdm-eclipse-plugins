@@ -72,6 +72,7 @@ public class WriterForAdc extends PeripheralWithState {
          if (cIdentifier.isBlank()) {
             continue;
          }
+         String trailingComment  = pin.getNameWithLocation();
          String description = signal.getUserDescription();
          String type;
          if (isPgaSignal(signal)) {
@@ -81,16 +82,11 @@ public class WriterForAdc extends PeripheralWithState {
          else {
             type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          }
-         String comment = pin.getName();
-         String location = pin.getLocation();
-         if ((location != null) && !location.isBlank()) {
-            comment = comment+" ("+location+")";
-         }
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", description, cIdentifier, type, comment);
+            writeVariableDeclaration("", description, cIdentifier, type, trailingComment);
          }
          else {
-            writeTypeDeclaration("", description, cIdentifier, type, comment);
+            writeTypeDeclaration("", description, cIdentifier, type, trailingComment);
          }
       }
    }
@@ -130,22 +126,13 @@ public class WriterForAdc extends PeripheralWithState {
          String dmDescription = dmSignal.getUserDescription();
          String type;
          String error = "";
-         String comment = dpPin.getName();
-         String location = dpPin.getLocation();
+         String trailingComment = dpPin.getNameWithLocation()+", "+dmPin.getNameWithLocation();
          String description = dpDescription;
          if (!dmDescription.equalsIgnoreCase(dpDescription)) {
             if (!dpDescription.isBlank()) {
                description += ", ";
             }
             description += dmDescription;
-         }
-         if ((location != null) && !location.isBlank()) {
-            comment += " ("+location+")";
-         }
-         comment += ", "+dmPin.getName();
-         location = dmPin.getLocation();
-         if ((location != null) && !location.isBlank()) {
-            comment = comment+" ("+location+")";
          }
          if (unMatchedNames) {
             error = "Differential channel has unmatched input names '" + dpIdentifier + "', '" + dmIdentifier + "'";
@@ -159,10 +146,10 @@ public class WriterForAdc extends PeripheralWithState {
             type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"DiffChannel", index);
          }
          if (dpSignal.getCreateInstance() || dmSignal.getCreateInstance()) {
-            writeVariableDeclaration(error, description, cIdentifier, type, comment);
+            writeVariableDeclaration(error, description, cIdentifier, type, trailingComment);
          }
          else {
-            writeTypeDeclaration(error, description, cIdentifier, type, comment);
+            writeTypeDeclaration(error, description, cIdentifier, type, trailingComment);
          }
       }
    }

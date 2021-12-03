@@ -54,14 +54,15 @@ public class WriterForPit extends PeripheralWithState {
          if (pin == Pin.UNASSIGNED_PIN) {
             continue;
          }
+         String trailingComment  = pin.getNameWithLocation();
          String description = signal.getUserDescription();
          String declaration = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", description, cIdentifier, declaration, pin.getLocation());
+            writeVariableDeclaration("", description, cIdentifier, declaration, trailingComment);
          }
          else {
-            writeTypeDeclaration("", description, cIdentifier, declaration, pin.getLocation());
+            writeTypeDeclaration("", description, cIdentifier, declaration, trailingComment);
          }
       }
    }

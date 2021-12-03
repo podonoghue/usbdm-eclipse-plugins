@@ -23,7 +23,7 @@ read -s -p "Password for certificate: " KEY_PASSWORD
 #sudo keytool -list -cacerts -storepass ${STORE_PASSWORD} -validity 180
 
 # Sign jars
- for f in ${USBDM_UPDATE_SITE}/features/*.jar ${USBDM_UPDATE_SITE}/plugins/*.jar ${USBDM_UPDATE_SITE}/*.jar; do
-    echo $f
-    jarsigner -keystore ${KEY_STORE} -storepass ${STORE_PASSWORD} -keypass ${KEY_PASSWORD} $f ${KEY_ALIAS}
- done
+for f in ${USBDM_UPDATE_SITE}/features/*.jar ${USBDM_UPDATE_SITE}/plugins/*.jar ${USBDM_UPDATE_SITE}/*.jar; do
+   echo $f
+   jarsigner -keystore ${KEY_STORE} -storepass ${STORE_PASSWORD} -keypass ${KEY_PASSWORD} $f ${KEY_ALIAS}
+done

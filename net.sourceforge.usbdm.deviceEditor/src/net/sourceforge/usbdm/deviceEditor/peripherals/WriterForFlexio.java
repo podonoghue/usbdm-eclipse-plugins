@@ -90,7 +90,7 @@ public class WriterForFlexio extends PeripheralWithState {
             if (!pin.isAvailableInPackage()) {
                continue;
             }
-            String comment = pin.getName()+" ("+pin.getLocation()+")";
+            String trailingComment  = pin.getNameWithLocation();
             String pinName = enumName+prettyPinName(pin.getName());
             String cIdentifier = signal.getCodeIdentifier().trim();
             String inputIdentifier = "";
@@ -103,33 +103,33 @@ public class WriterForFlexio extends PeripheralWithState {
             String mapName = "FlexioPinSel_"+index;
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
-               comment = commentRoot+"Fixed pin  "+comment;
+               trailingComment = commentRoot+"Fixed pin  "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
                   pinName = "// "+pinName; 
                }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
                      inputIdentifier = "// "+inputIdentifier; 
                   }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", comment));
+                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
             }
             else if (mappingInfo.isSelected()) {
-               comment = commentRoot+"Mapped pin "+comment;
+               trailingComment = commentRoot+"Mapped pin "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
                   pinName = "// "+pinName; 
                }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
                      inputIdentifier = "// "+inputIdentifier; 
                   }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", comment));
+                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
             }
          }
