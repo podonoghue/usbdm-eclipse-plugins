@@ -8,6 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -16,6 +17,11 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * Class encapsulating the code for writing an instance of GPIO
  */
 public class WriterForGpio extends PeripheralWithState {
+   
+   /** Key used to save/restore identifier used for code generation */
+   private final String POLARITY_KEY  = "$peripheral$"+getName()+"_polarity";
+
+   int fPolarity = 0;
 
    public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
@@ -57,7 +63,7 @@ public class WriterForGpio extends PeripheralWithState {
          fListOfBits.add(bitNum);
          fListOfPins.add(pin);
          fListOfSignals.add(signal);
-         fPolarity          = signal.isActiveLow()?(1<<bitNum):0;
+         fPolarity          = isActiveLow(signal)?(1<<bitNum):0;
          fLastBitAdded      = bitNum;
          fDescription       = description;
          fCreateInstance    = signal.getCreateInstance();
@@ -81,9 +87,9 @@ public class WriterForGpio extends PeripheralWithState {
          fCreateInstance = fCreateInstance && signal.getCreateInstance();
          fIsMixedPolarity = 
                fIsMixedPolarity || 
-               (((fPolarity == 0) && signal.isActiveLow()) || 
-               ((fPolarity != 0) && !signal.isActiveLow()));
-         fPolarity     |= signal.isActiveLow()?(1<<bitNum):0;
+               (((fPolarity == 0) && isActiveLow(signal)) || 
+               ((fPolarity != 0) && !isActiveLow(signal)));
+         fPolarity     |= isActiveLow(signal)?(1<<bitNum):0;
       }
       
       /**
@@ -136,7 +142,7 @@ public class WriterForGpio extends PeripheralWithState {
        * 
        * @return
        */
-      public boolean isCreateInstance() {
+      public boolean getCreateInstance() {
          return fCreateInstance;
       }
       
@@ -228,7 +234,7 @@ public class WriterForGpio extends PeripheralWithState {
             Pin    pin    = pins.get(0);
             Signal signal = signals.get(0);
             String trailingComment  = pin.getNameWithLocation();
-            String polarity         = signal.isActiveLow()?", ActiveLow":"";
+            String polarity         = isActiveLow(signal)?", ActiveLow":"";
             String pinDescription   = gpioPinInformation.getDescription();
             
             String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
@@ -274,7 +280,7 @@ public class WriterForGpio extends PeripheralWithState {
             }
             String type = String.format("const %s<%d, %d%s>", getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
             
-            if (gpioPinInformation.isCreateInstance()) {
+            if (gpioPinInformation.getCreateInstance()) {
                writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
             }
             else {
@@ -306,4 +312,55 @@ public class WriterForGpio extends PeripheralWithState {
       }
    }
    
+   /**
+    * Indicates whether the signal is active-low
+    * 
+    * @param signal Signal to check
+    * 
+    * @return  true if Active-low
+    */
+   public boolean isActiveLow(Signal signal) {
+      int index = fInfoTable.table.indexOf(signal);
+      if (index<0) {
+         return false;
+      }
+      return (fPolarity&(1<<index)) != 0;
+   }
+
+   /**
+    * Set signal as active-low
+    * 
+    * @param signal Signal to modify
+    * @param value  true to set signal active-low, false otherwise
+    */
+   public void setActiveLow(Signal signal, boolean value) {
+      int index = fInfoTable.table.indexOf(signal);
+      if (index<0) {
+         return;
+      }
+      boolean currentValue = (fPolarity & (1<<index)) != 0;
+      if (currentValue == value) {
+         return;
+      }
+      fPolarity ^= (1<<index);
+      setDirty(currentValue != value);
+   }
+
+   @Override
+   public void saveSettings(Settings settings) {
+      super.saveSettings(settings);
+      if (fPolarity != 0) {
+         settings.put(POLARITY_KEY, Integer.toString(fPolarity));
+      }
+   }
+
+   @Override
+   public void loadSettings(Settings settings) {
+      super.loadSettings(settings);
+      String value = settings.get(POLARITY_KEY);
+      if (value != null) {
+         fPolarity = Integer.parseInt(value);
+      }
+   }
+
 }

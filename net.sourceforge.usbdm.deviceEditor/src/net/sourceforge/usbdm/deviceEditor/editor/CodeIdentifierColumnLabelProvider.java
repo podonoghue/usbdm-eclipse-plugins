@@ -20,6 +20,9 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
    public String getText(BaseModel baseModel) {
       if (baseModel instanceof SignalModel) {
          Signal signal = ((SignalModel) baseModel).getSignal();
+         if (signal.getMappedPin() == Pin.UNASSIGNED_PIN) {
+            return null;
+         }
          return signal.getCodeIdentifier();
       }
       if (baseModel instanceof PeripheralSignalsModel) {

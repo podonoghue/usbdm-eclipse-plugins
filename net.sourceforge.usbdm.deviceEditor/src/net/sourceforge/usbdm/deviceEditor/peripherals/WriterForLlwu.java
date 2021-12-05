@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -18,8 +19,46 @@ import net.sourceforge.usbdm.jni.UsbdmException;
  */
 public class WriterForLlwu extends PeripheralWithState {
 
+   /** Key used to save/restore identifier used for code generation */
+   private final String PIN_MODE_KEY  = "$peripheral$"+getName()+"_pinMode";
+
+   public enum LlwuPinMode {
+      LlwuPinMode_Disabled   ("Disabled",    0b00),      //!< Wake-up by pin change disabled
+      LlwuPinMode_RisingEdge ("RisingEdge",  0b01),    //!< Wake-up on pin rising edge
+      LlwuPinMode_FallingEdge("FallingEdge", 0b10),   //!< Wake-up on pin falling edge
+      LlwuPinMode_EitherEdge ("EitherEdge",  0b11);    //!< Wake-up on pin rising or falling edge
+      
+      private final int      fValue;
+      private final String   fName;
+      
+      private LlwuPinMode(String name, int value) {
+         fName  = name;
+         fValue = value;
+      }
+      
+      public String getName() {
+         return fName;
+      }
+      
+      public int getValue() {
+         return fValue;
+      }
+      
+      static public LlwuPinMode convertFromInt(int value) {
+         if ((value<0)||(value>0b11)) {
+            return LlwuPinMode_Disabled;
+         }
+         return values()[value];
+      }
+   };
+   
+   LlwuPinMode pinMode[] = new LlwuPinMode[32];
+   
    public WriterForLlwu(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can create instances for signals belonging to this peripheral
+      super.setCanCreateSignalInstance(true);
       
       // Can create type declarations for signals belonging to this peripheral
       super.setCanCreateSignalType(true);
@@ -104,7 +143,7 @@ public class WriterForLlwu extends PeripheralWithState {
                String description = signal.getUserDescription();
                String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
                if (signal.getCreateInstance()) {
-                  writeVariableDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
+                  writeVariableDeclaration("", description, cIdentifier, type, getPinMode(signal).toString(), pin.getNameWithLocation());
                }
                else {
                   writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
@@ -169,6 +208,64 @@ public class WriterForLlwu extends PeripheralWithState {
          llwuModuleInputsVar.setValue(sb.toString());
          llwuModuleInputsVar.setDerived(true);
          fDeviceInfo.addOrReplaceVariable(llwuModuleInputsVar.getKey(), llwuModuleInputsVar);
+      }
+   }
+   /**
+    * Indicates mode for input
+    * 
+    * @param signal Signal to check
+    * 
+    * @return  Value reflecting sensitivity of pin
+    */
+   public LlwuPinMode getPinMode(Signal signal) {
+      int index = fInfoTable.table.indexOf(signal);
+      if (index<0) {
+         return LlwuPinMode.LlwuPinMode_Disabled;
+      }
+      LlwuPinMode mode = pinMode[index];
+      if (mode == null) {
+         mode = LlwuPinMode.LlwuPinMode_Disabled;
+      }
+      return mode;
+   }
+
+   /**
+    * Set mode of input
+    * 
+    * @param signal Signal to modify
+    * @param value  Value controlling sensitivity of pin
+    */
+   public void setPinMode(Signal signal, LlwuPinMode mode) {
+      int index = fInfoTable.table.indexOf(signal);
+      if (index<0) {
+         return;
+      }
+      setDirty(pinMode[index] != mode);
+      pinMode[index] = mode;
+   }
+
+   @Override
+   public void saveSettings(Settings settings) {
+      super.saveSettings(settings);
+      for (int index=0; index<pinMode.length; index++) {
+         if (pinMode[index] == null) {
+            continue;
+         }
+         if (pinMode[index] == LlwuPinMode.LlwuPinMode_Disabled) {
+            continue;
+         }
+         settings.put(PIN_MODE_KEY+index, pinMode[index].toString());
+      }
+   }
+
+   @Override
+   public void loadSettings(Settings settings) {
+      super.loadSettings(settings);
+      for (int index=0; index<pinMode.length; index++) {
+         String value = settings.get(PIN_MODE_KEY+index);
+         if (value != null) {
+            pinMode[index] = LlwuPinMode.valueOf(value);
+         }
       }
    }
 

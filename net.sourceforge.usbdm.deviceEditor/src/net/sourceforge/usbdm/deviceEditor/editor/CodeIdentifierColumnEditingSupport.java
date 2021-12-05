@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -24,8 +25,11 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
    @Override
    protected boolean canEdit(Object element) {
       if (element instanceof SignalModel) {
-         Signal s = ((SignalModel)element).getSignal();
-         return s.canCreateType() || s.canCreateInstance();
+         Signal signal = ((SignalModel)element).getSignal();
+         if (signal.getMappedPin() == Pin.UNASSIGNED_PIN) {
+            return false;
+         }
+         return signal.canCreateType() || signal.canCreateInstance();
       }
       if (element instanceof PeripheralSignalsModel) { 
          Peripheral p = ((PeripheralSignalsModel) element).getPeripheral();

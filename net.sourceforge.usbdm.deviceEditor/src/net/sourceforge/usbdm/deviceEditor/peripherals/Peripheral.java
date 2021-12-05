@@ -600,18 +600,18 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>}
     *  {// <i><b>error</b></i>}
-    *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>; {// <i><b>trailingComment</b></i>}
+    *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>( <i><b>args</b></i> ); {// <i><b>trailingComment</b></i>}
     *  </pre>
     * @param error            Error message to precede declaration (empty to suppress) 
     * @param description      Comment describing declaration
     * @param cIdentifier      C identifier to use
     * @param cType            C Type to use
+    * @param args             Arguments for declaration
     * @param trailingComment  Trailing comment
     */
-   protected void writeVariableDeclaration(String error, String description, String cIdentifier, String cType, String trailingComment) {
+   protected void writeVariableDeclaration(String error, String description, String cIdentifier, String cType, String args, String trailingComment) {
       cIdentifier = makeCVariableIdentifier(cIdentifier);
       boolean isRepeated = !fUsedNames.add(cIdentifier);
-      
       fHardwareDeclarations.append("\n");
       if (!description.isBlank()) {
          fHardwareDeclarations.append("/// " + description + "\n");
@@ -627,11 +627,31 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      setHardwareIncludeFile();
-      fHardwareDeclarations.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+"extern " + cType, cIdentifier+";", trailingComment));
-      if (error.isBlank()) {
-         fHardwareDefinitions.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+";", trailingComment));
+      if (!args.isBlank()) {
+         args = "{"+args+"}";
       }
+      setHardwareIncludeFile();
+      fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"extern " + cType, cIdentifier+";", trailingComment));
+      if (error.isBlank()) {
+         fHardwareDefinitions.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+args+";", trailingComment));
+      }
+   }
+   /**
+    *  Write variable declaration
+    *  
+    *  <pre> {} = optional
+    *  {/// <i><b>description</b></i>}
+    *  {// <i><b>error</b></i>}
+    *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>; {// <i><b>trailingComment</b></i>}
+    *  </pre>
+    * @param error            Error message to precede declaration (empty to suppress) 
+    * @param description      Comment describing declaration
+    * @param cIdentifier      C identifier to use
+    * @param cType            C Type to use
+    * @param trailingComment  Trailing comment
+    */
+   protected void writeVariableDeclaration(String error, String description, String cIdentifier, String cType, String trailingComment) {
+      writeVariableDeclaration(error, description, cIdentifier, cType, "",  trailingComment);
    }
    
    /**
@@ -640,7 +660,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>} 
     *  {// <i><b>error</b></i>}
-    *  using <i><b>identifier</b></i> = <i><b>type</b></i>; {// <i><b>trailingComment</b></i>}
+    *  typedef <i><b>type</b></i> <i><b>identifier</b></i>; {// <i><b>trailingComment</b></i>}
     *  </pre>
     * @param error            Error message to precede declaration (empty to suppress) 
     * @param description      Comment describing declaration
@@ -665,7 +685,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          trailingComment = "// " + trailingComment;
       }
       setHardwareIncludeFile();
-      fHardwareDeclarations.append(String.format("%-60s %-30s %s\n", (isRepeated?"// ":"")+"typedef "+cType, cIdentifier+";", trailingComment));
+      fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"typedef "+cType, cIdentifier+";", trailingComment));
    }
    
    /**

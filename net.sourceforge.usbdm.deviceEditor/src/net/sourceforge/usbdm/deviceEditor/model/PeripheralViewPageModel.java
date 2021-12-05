@@ -4,8 +4,10 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
-import net.sourceforge.usbdm.deviceEditor.editor.BooleanColumnLabelProvider;
-import net.sourceforge.usbdm.deviceEditor.editor.BooleanEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.InstanceColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.InstanceEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
@@ -77,10 +79,10 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                            new TreeColumnInformation("Code Identifier",         200, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer), 
                                  "C Identifier for code generation\n"+
                                  "If not blank code will be generated for the peripheral or signal"),
-                           new TreeColumnInformation("Polarity",                100, BooleanColumnLabelProvider.getPolarity(),   BooleanEditingSupport.getPolarity(viewer), 
-                                 BooleanColumnLabelProvider.getPolarity().getColumnToolTipText()),
-                           new TreeColumnInformation("Instance",                80,  BooleanColumnLabelProvider.getInstance(),   BooleanEditingSupport.getInstance(viewer), 
-                                 BooleanColumnLabelProvider.getInstance().getColumnToolTipText()),
+                           new TreeColumnInformation("Modifier",                100, new ModifierColumnLabelProvider(),          new ModifierEditingSupport(viewer), 
+                                 ModifierEditingSupport.getColumnToolTipText()),
+                           new TreeColumnInformation("Instance",                80,  new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer), 
+                                 InstanceColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Description",             600, new DescriptionColumnLabelProvider(),       new DescriptionColumnEditingSupport(viewer), 
                                  "Description of use - Appears as comment in user code\n"+
                                  "Default description may be edited"),

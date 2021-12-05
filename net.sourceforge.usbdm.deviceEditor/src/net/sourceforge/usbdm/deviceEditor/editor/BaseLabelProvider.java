@@ -23,6 +23,10 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
    protected static Image greycheckedImage = null;
    protected static Image disabledImage    = null;
    protected static Image emptyImage       = null;
+   protected static Image upArrowImage     = null;
+   protected static Image downArrowImage   = null;
+   protected static Image upDownArrowImage = null;
+   
    private   static int   referenceCount   = 0;
    
    BaseLabelProvider() {
@@ -37,6 +41,9 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
          greycheckedImage   = Activator.getImageDescriptor(Activator.ID_CHECKBOX_GREYED_IMAGE).createImage();
          disabledImage      = Activator.getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
          emptyImage         = Activator.getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
+         upArrowImage       = Activator.getImageDescriptor(Activator.ID_UP_ARROW_IMAGE).createImage();
+         downArrowImage     = Activator.getImageDescriptor(Activator.ID_DOWN_ARROW_IMAGE).createImage();
+         upDownArrowImage   = Activator.getImageDescriptor(Activator.ID_UP_DOWN_ARROW_IMAGE).createImage();
       }
    }
 
@@ -161,6 +168,18 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
       if (emptyImage != null) {
          emptyImage.dispose();
          emptyImage = null;
+      }
+      if (upArrowImage != null) {
+         upArrowImage.dispose();
+         upArrowImage = null;
+      }
+      if (downArrowImage != null) {
+         downArrowImage.dispose();
+         downArrowImage = null;
+      }
+      if (upDownArrowImage != null) {
+         upDownArrowImage.dispose();
+         upDownArrowImage = null;
       }
    }
 

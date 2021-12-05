@@ -36,13 +36,13 @@ public class WriteFamilyCpp {
    private final static String INCLUDE_DIRECTORY = "Project_Headers";
 
    /** Source directory ion C project */
-   private final static String SOURCE_DIRECTORY = "Sources";
+//   private final static String SOURCE_DIRECTORY = "Sources";
 
    /** Base name for pin mapping file */
    private final static String PIN_MAPPING_BASEFILENAME = "pin_mapping";
 
    /** Base name for C++ files */
-   private final static String HARDWARE_BASEFILENAME = "hardware";
+//   private final static String HARDWARE_BASEFILENAME = "hardware";
 
    /** Key for include files needed in hardware.h **/
    private final static String HARDWARE_FILE_INCLUDES_FILE_KEY = "/HARDWARE_H/IncludeFiles";
@@ -314,7 +314,7 @@ public class WriteFamilyCpp {
 
       // Save #include files for any user objects needed by peripherals in hardware.h
       if (hardwareIncludeFiles.isEmpty()) {
-         // None  delete variable
+         // None - delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_INCLUDES_FILE_KEY);
       }
       else {
@@ -581,7 +581,7 @@ public class WriteFamilyCpp {
     */
    public void writeCppFiles(IProject project, DeviceInfo deviceInfo, IProgressMonitor monitor) throws Exception {
       final String pinMappingFile = INCLUDE_DIRECTORY+"/"+PIN_MAPPING_BASEFILENAME+".h";
-      final String hardwareFile   = SOURCE_DIRECTORY+"/"+HARDWARE_BASEFILENAME+".cpp";
+//      final String hardwareFile   = SOURCE_DIRECTORY+"/"+HARDWARE_BASEFILENAME+".cpp";
       
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100); 
       subMonitor.subTask("Generating device header file");
@@ -605,14 +605,14 @@ public class WriteFamilyCpp {
          System.err.println("WARNING: Failed to refresh" + pinMappingFile);
       }
       
-      try {
-         IFile file = project.getFile(hardwareFile);
-//         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
-         file.setDerived(true, subMonitor.newChild(10));
-      } catch (Exception e) {
-         // Ignore
-         System.err.println("WARNING: Failed to refresh" + hardwareFile);
-      }
+//      try {
+//         IFile file = project.getFile(hardwareFile);
+////         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
+//         file.setDerived(true, subMonitor.newChild(10));
+//      } catch (Exception e) {
+//         // Ignore
+//         System.err.println("WARNING: Failed to refresh" + hardwareFile);
+//      }
    }
 
 }

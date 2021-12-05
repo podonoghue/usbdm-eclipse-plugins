@@ -90,8 +90,8 @@ public class TabbedEditor implements IEditor {
                         new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer), 
                               "C Identifier for code generation\n"+
                               "If not blank code will be generated for the signal or peripheral"),
-                        new TreeColumnInformation("Instance",                80,  BooleanColumnLabelProvider.getInstance(),   BooleanEditingSupport.getInstance(viewer), 
-                              BooleanColumnLabelProvider.getInstance().getColumnToolTipText()),
+                        new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer), 
+                              InstanceColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer), 
                               "Property Description or\n"+
                               "User description of use - Appears as comment in user code (Periperals and signals only)"),

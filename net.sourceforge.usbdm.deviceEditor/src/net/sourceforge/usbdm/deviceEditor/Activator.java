@@ -90,6 +90,14 @@ public class Activator extends AbstractUIPlugin {
       registry.put(ID_LOCKED_NODE_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/peripheral.png"), null));
       registry.put(ID_PERIPHERAL_IMAGE, imageDescriptor);
+
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/Arrow_Up.png"), null));
+      registry.put(ID_UP_ARROW_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/Arrow_Down.png"), null));
+      registry.put(ID_DOWN_ARROW_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/Arrow_UpDown.png"), null));
+      registry.put(ID_UP_DOWN_ARROW_IMAGE, imageDescriptor);
+
    }
 
    public final static String ID_EMPTY_IMAGE               = "empty";
@@ -104,6 +112,9 @@ public class Activator extends AbstractUIPlugin {
    public final static String ID_WARNING_NODE_IMAGE        = "warning";
    public final static String ID_LOCKED_NODE_IMAGE         = "locked";
    public final static String ID_PERIPHERAL_IMAGE          = "peripheral-image";
+   public final static String ID_UP_ARROW_IMAGE            = "up-arrow";
+   public final static String ID_DOWN_ARROW_IMAGE          = "down-arrow";
+   public final static String ID_UP_DOWN_ARROW_IMAGE       = "up-down-arrow";
 
    /**
     * Returns an image descriptor based on an key

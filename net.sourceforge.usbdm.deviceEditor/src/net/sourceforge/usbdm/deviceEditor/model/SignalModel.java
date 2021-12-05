@@ -25,7 +25,6 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    
    public SignalModel(BaseModel parent, Signal signal) {
       super(parent, signal.getName());
-
 //      if (getName().contains(watchedName)) {
 //         System.err.println("SignalModel(" + getName() + "):"+this.hashCode() + ", parent = " + parent + ": " + parent.hashCode() );
 //         System.err.flush();
@@ -192,10 +191,10 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       if (tip==null) {
          MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
          if ((currentMapping != null) && (currentMapping != MappingInfo.UNASSIGNED_MAPPING)) {
-            tip = getAvailablePins();
+            tip = "Available mappings: " + getAvailablePins();
          }
          else {
-            tip = "Select pin mapping";
+            tip = "Select pin mapping: " + getAvailablePins();
          }
       }
       return tip;

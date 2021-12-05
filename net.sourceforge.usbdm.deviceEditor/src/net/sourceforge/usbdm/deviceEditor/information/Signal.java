@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 
 /**
  * Describes a peripheral signal that may be mapped to a pin<br>
@@ -77,12 +78,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** User identifier to use in code generation */
    private String fCodeIdentifier = "";
    
-   /** Indicates whether GPIO signal is active-low */
-   private boolean fIsActiveLow = false;
-
    /** Indicates that code for a user instance of the signal class should be created */ 
    private boolean fCreateInstance;
-   
+
    private static final String getCreateInstanceKey(String name) {
       return "$signal$"+name+"_createInstance";
    }
@@ -98,28 +96,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    private static final String getPolarityIndentifierKey(String name) {
       return "$signal$"+name+"_polarity";
    }
-
-   /**
-    * Checks whether the GPIO signal is active-low
-    *  
-    * @param isActiveLow
-    */
-   public boolean isActiveLow() {
-      return fIsActiveLow;
-   }
-   
-   /**
-    * Sets whether the GPIO signal is active-low
-    *  
-    * @param isActiveLow
-    */
-   public void setActiveLow(boolean isActiveLow) {
-      if (fIsActiveLow != isActiveLow) {
-         fIsActiveLow = isActiveLow;
-         setDirty(true);
-      }
-   }
-   
+ 
    /**
     * 
     * @param name          Name of signal e.g. FTM0_CH3 
@@ -222,9 +199,13 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (value != null) {
          setUserDescription(value);
       }
-      value = settings.get(getPolarityIndentifierKey(fName));
-      if (value != null) {
-         setActiveLow(Boolean.parseBoolean(value));
+      if (fPeripheral instanceof WriterForGpio) {
+         // Migrate old setting
+         value = settings.get(getPolarityIndentifierKey(fName));
+         if (value != null) {
+            WriterForGpio gpio = (WriterForGpio)fPeripheral;
+            gpio.setActiveLow(this, Boolean.parseBoolean(value));
+         }
       }
    }
 
@@ -247,10 +228,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       String desc = getUserDescription();
       if ((desc != null) && !desc.isEmpty()) {
          settings.put(getUserDescriptionKey(fName), desc);
-      }
-      Boolean polarity = isActiveLow();
-      if (polarity) {
-         settings.put(getPolarityIndentifierKey(fName), polarity.toString());
       }
    }
 
@@ -585,5 +562,5 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public boolean canCreateType() {
       return getPeripheral().canCreateType(this);
    }
-
-}
+   
+ }
