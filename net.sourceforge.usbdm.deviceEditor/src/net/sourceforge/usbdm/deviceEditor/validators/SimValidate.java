@@ -291,12 +291,18 @@ public class SimValidate extends PeripheralValidator {
                }
             }
          }
+         // Update USBD clock
          LongVariable system_usbfs_clockVar = getLongVariable("system_usbfs_clock");
+         
+         long usbClockFreq; 
+         Status usbStatus;  
+         String usbOrigin;  
+         
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
             // Using USB_CLKIN
-            system_usbfs_clockVar.setValue(system_usb_clkin_clockVar.getValueAsLong());
-            system_usbfs_clockVar.setStatus(system_usb_clkin_clockVar.getStatus());
-            system_usbfs_clockVar.setOrigin(system_usb_clkin_clockVar.getOrigin());
+            usbClockFreq = system_usb_clkin_clockVar.getValueAsLong();
+            usbStatus    = system_usb_clkin_clockVar.getStatus();
+            usbOrigin    = system_usb_clkin_clockVar.getOrigin();
          }
          else {
             // Using internal clock
@@ -307,17 +313,23 @@ public class SimValidate extends PeripheralValidator {
                int  usbdiv   = (usbValue>>1)&0x7;
                long usbPostDiv2 = peripheralClockVar.getValueAsLong()*(usbfrac+1)/(usbdiv+1);
 
-               system_usbfs_clockVar.setValue(usbPostDiv2);
-               system_usbfs_clockVar.setStatus(peripheralClockVar.getStatus());
-               system_usbfs_clockVar.setOrigin(peripheralClockVar.getOrigin()+" after /CLKDIV2");
+               usbClockFreq = usbPostDiv2;
+               usbStatus    = peripheralClockVar.getStatus();
+               usbOrigin    = peripheralClockVar.getOrigin()+" after /CLKDIV2";
             }
             else {
                // Directly using peripheral clock
-               system_usbfs_clockVar.setValue(peripheralClockVar.getValueAsLong());
-               system_usbfs_clockVar.setStatus(peripheralClockVar.getStatus());
-               system_usbfs_clockVar.setOrigin(peripheralClockVar.getOrigin());
+               usbClockFreq = peripheralClockVar.getValueAsLong();
+               usbStatus    = peripheralClockVar.getStatus();
+               usbOrigin    = peripheralClockVar.getOrigin();
             }
          }
+         if (usbClockFreq != 48000000) {
+            usbStatus = new Status("Illegal clock frequecy for USB");
+         }
+         system_usbfs_clockVar.setValue(usbClockFreq);
+         system_usbfs_clockVar.setStatus(usbStatus);
+         system_usbfs_clockVar.setOrigin(usbOrigin);
       }
    }
 

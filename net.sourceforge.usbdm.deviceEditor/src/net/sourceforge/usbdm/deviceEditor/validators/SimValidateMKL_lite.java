@@ -229,19 +229,31 @@ public class SimValidateMKL_lite extends PeripheralValidator {
       //============================
       ChoiceVariable sim_sopt2_usbsrcVar = safeGetChoiceVariable("sim_sopt2_usbsrc");
       if (sim_sopt2_usbsrcVar != null) {
+         // Update USBD clock
          LongVariable system_usbfs_clockVar = getLongVariable("system_usbfs_clock");
+         
+         long usbClockFreq; 
+         Status usbStatus;  
+         String usbOrigin;  
+         
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
             // Using USB_CLKIN
-            system_usbfs_clockVar.setValue(system_usb_clkin_clockVar.getValueAsLong());
-            system_usbfs_clockVar.setStatus(system_usb_clkin_clockVar.getStatus());
-            system_usbfs_clockVar.setOrigin(system_usb_clkin_clockVar.getOrigin());
+            usbClockFreq = system_usb_clkin_clockVar.getValueAsLong();
+            usbStatus    = system_usb_clkin_clockVar.getStatus();
+            usbOrigin    = system_usb_clkin_clockVar.getOrigin();
          }
          else {
             // MCGPCLK
-            system_usbfs_clockVar.setValue(system_mcgpclk_clockVar.getValueAsLong());
-            system_usbfs_clockVar.setStatus(system_mcgpclk_clockVar.getStatus());
-            system_usbfs_clockVar.setOrigin(system_mcgpclk_clockVar.getOrigin());
+            usbClockFreq = system_mcgpclk_clockVar.getValueAsLong();
+            usbStatus    = system_mcgpclk_clockVar.getStatus();
+            usbOrigin    = system_mcgpclk_clockVar.getOrigin();
          }
+         if (usbClockFreq != 48000000) {
+            usbStatus = new Status("Illegal clock frequecy for USB");
+         }
+         system_usbfs_clockVar.setValue(usbClockFreq);
+         system_usbfs_clockVar.setStatus(usbStatus);
+         system_usbfs_clockVar.setOrigin(usbOrigin);
       }
    }
    
