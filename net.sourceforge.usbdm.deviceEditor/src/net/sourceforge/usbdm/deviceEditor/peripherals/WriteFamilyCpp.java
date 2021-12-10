@@ -25,6 +25,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 
 public class WriteFamilyCpp {
@@ -394,15 +395,61 @@ public class WriteFamilyCpp {
    private final String TABLE_OPEN = 
          "///\n" + 
          "/// @section %s %s\n" + "///\n" + 
-         "///   Pin Name      |  Functions                                         |  Location                 |  Description\n" + 
-         "///  -------------- | -------------------------------------------------- | ------------------------- | ----------------------------------------------------\n";
+         "///   Pin Name      | C Identifier                |  Functions                                         |  Location                 |  Description\n" + 
+         "///  -------------- | ----------------------------|--------------------------------------------------- | ------------------------- | ----------------------------------------------------\n";
 
-   private final String DOCUMENTATION_TEMPLATE = "///  %-14s | %-50s | %-25s | %s\n";
+   private final String DOCUMENTATION_TEMPLATE = "///  %-14s | %-30s| %-50s | %-25s | %s\n";
 
    private final String TABLE_CLOSE = "///\n";
 
    private final String DOCUMENTATION_CLOSE = "///\n";
 
+   /**
+    * Write documentation as previously sorted
+    *  
+    * @param writer           Where to write
+    * @param allMappingInfo   Sorted data
+    * 
+    * @throws IOException     
+    */
+   private void writeDocumentation(DocumentUtilities writer, ArrayList<MappingInfo> allMappingInfo) throws IOException {
+      
+      // Write documentation in pin order
+      // No need to sort as already in pin order
+      for (MappingInfo mappingInfo : allMappingInfo) {
+         
+         String pinName        = mappingInfo.getPin().getName();
+         String pinLocation    = mappingInfo.getPin().getLocation();
+
+         // List user variables or types
+         boolean userDeclaration = false;
+         for (Signal signal:mappingInfo.getSignals()) {
+            String cIdentifier = signal.getCodeIdentifier();
+            if (cIdentifier.isBlank()) {
+               continue;
+            }
+            String userDescription = signal.getUserDescription();
+            if (userDescription.isBlank()) {
+               userDescription = "-";
+            }
+            writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, signal.getCodeIdentifier(), signal.getName(), pinLocation, userDescription));
+            userDeclaration = true;
+         }
+         if (userDeclaration) {
+            // Skip documentation if there is already a user declaration
+            continue;
+         }
+         String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
+         if (useDescription.isBlank()) {
+            // Only document if there is a description
+            continue;
+         }
+         String signalList = mappingInfo.getSignalList();
+         writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, "-", signalList, pinLocation, useDescription));
+      }
+
+   }
+   
    /**
     * Write pin mapping documentation
     * 
@@ -414,11 +461,8 @@ public class WriteFamilyCpp {
    private void writeDocumentation(DocumentUtilities writer) throws IOException {
 
       ArrayList<MappingInfo> allMappingInfo = new ArrayList<MappingInfo>();
-      
-      writer.write(DOCUMENTATION_OPEN);
 
-      // Write documentation in pin order and accumulate location and function(symbol) information
-      writer.write(String.format(TABLE_OPEN, "PinsByPinName", "Pins by Pin Name"));
+      // Accumulate pin-mapping information to document
       for (String pinName : fDeviceInfo.getPins().keySet()) {
 
          Pin pin = fDeviceInfo.getPins().get(pinName);
@@ -427,24 +471,44 @@ public class WriteFamilyCpp {
             continue;
          }
          Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
-         // Document enabled mappings
+         
+         // Add enabled mappings
          for (MuxSelection muxSelection:mappableSignals.keySet()) {
             MappingInfo mappingInfo = mappableSignals.get(muxSelection);
             if (!mappingInfo.isSelected()) {
                continue;
             }
-            String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
-            if (useDescription.isBlank()) {
-               useDescription = "-";
+            // Expand pin mappings so only 1 signal->pin
+            for (Signal signal:mappingInfo.getSignals()) {
+               String cIdentifier = signal.getCodeIdentifier();
+               String userDesription = signal.getUserDescription();
+               if (cIdentifier.isBlank() && userDesription.isBlank()) {
+                  continue;
+               }
+               // Create dummy pin mapping information
+               MappingInfo mi = new MappingInfo(pin, MuxSelection.unassigned);
+               mi.addSignal(signal);
+               allMappingInfo.add(mi);
             }
-            String signalList  = mappingInfo.getSignalList();
-            String pinLocation = pin.getLocation();
-            writer.write(String.format(DOCUMENTATION_TEMPLATE, pin.getName(), signalList, pinLocation, useDescription));
-            allMappingInfo.add(mappingInfo);
          }
       }
-      writer.write(TABLE_CLOSE);
       
+      writer.write(DOCUMENTATION_OPEN);
+
+      /*
+       *  Write documentation in pin order
+       */
+      // No need to sort as already in pin name order
+      
+      // Write documentation
+      writer.write(String.format(TABLE_OPEN, "PinsByPinName", "Pins by Pin Name"));
+      writeDocumentation(writer, allMappingInfo);
+      writer.write(TABLE_CLOSE);
+
+      /*
+       * Write documentation in location order (pin number or grid location)
+       */
+      // Sort by pin number or grid location
       Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
          final Pattern pattern = Pattern.compile("^p(\\d+)$"); 
          
@@ -461,19 +525,15 @@ public class WriteFamilyCpp {
          }
       });
       
+      // Write documentation
       writer.write(String.format(TABLE_OPEN, "PinsByLocation", "Pins by Location"));
-      for (MappingInfo mappingInfo : allMappingInfo) {
-         String pinName        = mappingInfo.getPin().getName();
-         String signalList     = mappingInfo.getSignalList();
-         String pinLocation    = mappingInfo.getPin().getLocation();
-         String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
-         if (useDescription.isEmpty()) {
-            useDescription = "-";
-         }
-         writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, signalList, pinLocation, useDescription));
-      }
+      writeDocumentation(writer, allMappingInfo);
       writer.write(TABLE_CLOSE);
       
+      /*
+       * Write documentation ordered by function
+       */
+      // Sort by function
       Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
          @Override
          public int compare(MappingInfo o1, MappingInfo o2) {
@@ -481,18 +541,11 @@ public class WriteFamilyCpp {
          }
       });
       
-      writer.write(String.format(TABLE_OPEN, "PinsByFunction", "Pins by Function"));
-      for (MappingInfo mappingInfo : allMappingInfo) {
-         String pinName        = mappingInfo.getPin().getName();
-         String signalList     = mappingInfo.getSignalList();
-         String pinLocation    = mappingInfo.getPin().getLocation();
-         String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
-         if (useDescription.isEmpty()) {
-            useDescription = "-";
-         }
-         writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, signalList, pinLocation, useDescription));
-      }
+      // Write documentation
+      writer.write(String.format(TABLE_OPEN, "PinsByFunction", "Pins by Peripheral"));
+      writeDocumentation(writer, allMappingInfo);
       writer.write(TABLE_CLOSE);
+
       writer.write(DOCUMENTATION_CLOSE);
       writer.flush();
    }
@@ -500,8 +553,7 @@ public class WriteFamilyCpp {
    /**
     * Writes pin mapping header file
     * 
-    * @param filePath
-    *           Header file to write to
+    * @param filePath Header file to write to
     * 
     * @throws IOException
     */
@@ -521,6 +573,7 @@ public class WriteFamilyCpp {
       headerFile.write("\n");
       writer.writeHeaderFileInclude("derivative.h");
       writer.writeHeaderFileInclude("pcr.h");
+      writer.writeHeaderFileInclude("error.h");
       headerFile.write("\n");
 
       writePeripheralInformationClasses(writer);
