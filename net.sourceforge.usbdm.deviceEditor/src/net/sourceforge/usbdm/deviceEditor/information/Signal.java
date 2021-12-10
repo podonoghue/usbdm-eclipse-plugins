@@ -481,14 +481,15 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @param mappingInfo Mapping being selected for signal
     */
    public void setMappedPin(MappingInfo mappingInfo) {
+      boolean changed = false;
       for (MappingInfo mapping:fPinMappings) {
          if (mapping == mappingInfo) {
             continue;
          }
-         mapping.select(Origin.signal, false);
+         changed = changed || mapping.select(Origin.signal, false);
       }
-      mappingInfo.select(Origin.signal, true);
-      setDirty(true);
+      changed = changed || mappingInfo.select(Origin.signal, true);
+      setDirty(changed);
       notifyListeners();
    }
 

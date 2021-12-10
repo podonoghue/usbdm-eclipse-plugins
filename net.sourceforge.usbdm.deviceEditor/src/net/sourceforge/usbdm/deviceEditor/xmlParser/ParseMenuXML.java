@@ -860,19 +860,19 @@ public class ParseMenuXML extends XML_BaseParser {
           * namespace:
           *    class - Template is available in 
           */
-         String name      = element.getAttribute("name");
-         String namespace = element.getAttribute("namespace");
+         String nameAttr      = element.getAttribute("name");
+         String namespaceAttt = element.getAttribute("namespace");
          
-         if (namespace.isEmpty()) {
-            throw new Exception("Template is missing namespace, name='" + name + "'");
+         if (namespaceAttt.isEmpty()) {
+            throw new Exception("Template is missing namespace, name='" + nameAttr + "'");
          }
-         if (!name.isEmpty() && !namespace.equals("all")) {
-            throw new Exception("Named templates must have 'all' namespace, name='" + name + "'");
+         if (!nameAttr.isEmpty() && !namespaceAttt.equals("all")) {
+            throw new Exception("Named templates must have 'all' namespace, name='" + nameAttr + "'");
          }
          element.getNodeValue();
          long dimension = getLongAttributeWithSubstitution(element, "dim");
          
-         TemplateInformation templateInfo = new TemplateInformation(name, namespace, (int)dimension);
+         TemplateInformation templateInfo = new TemplateInformation(nameAttr, namespaceAttt, (int)dimension);
          addTemplate(templateInfo);
          for (Node node = element.getFirstChild();
                node != null;

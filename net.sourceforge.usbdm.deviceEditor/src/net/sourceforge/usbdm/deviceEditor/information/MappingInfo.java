@@ -110,15 +110,17 @@ public class MappingInfo extends ObservableModel {
     * If changed then listeners are notified
     * 
     * @param selected
+    * 
+    * @return True if the selection changed
     */
-   public void select(Origin origin, boolean selected) {
+   public boolean select(Origin origin, boolean selected) {
       if (this == MappingInfo.UNASSIGNED_MAPPING) {
-         return;
+         return false;
       }
 //      System.err.println("MappingIofo.select("+selected+") == "+fSelected);
       if (fSelected == selected) {
 //         System.err.println(toString() + " No Change");
-         return;
+         return false;
       }
       fSelected = selected;
       if (fBusy) {
@@ -128,6 +130,7 @@ public class MappingInfo extends ObservableModel {
       for (Signal signal:getSignals()) {
          signal.modelElementChanged(this);
       }
+      return true;
    }
 
    /**

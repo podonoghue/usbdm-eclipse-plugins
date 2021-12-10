@@ -539,17 +539,18 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       MappingInfo activatedMuxSetting = fMappableSignals.get(newMuxValue);
       
       // Update selection
+      boolean changed = false;
       for (MuxSelection muxKey : fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxKey);
          if (mappingInfo == activatedMuxSetting) {
-            mappingInfo.select(Origin.pin, true);
+            changed = changed || mappingInfo.select(Origin.pin, true);
          }
          else {
-            mappingInfo.select(Origin.pin, false);
+            changed = changed || mappingInfo.select(Origin.pin, false);
          }
       }
       notifyListeners();
-      setDirty(true);
+      setDirty(changed);
    }
 
    /**
