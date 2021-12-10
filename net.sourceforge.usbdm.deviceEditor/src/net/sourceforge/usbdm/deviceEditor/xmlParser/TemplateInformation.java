@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 
 /**
@@ -57,6 +56,8 @@ public class TemplateInformation {
       fEnumeration = enumeration.trim();
    }
    
+   enum State { Text, DiscardAfterNewline, Escape, InString, InCharacter };
+
    /**
     * Append text to template.
     * The text is processed \n => newline char etc.
@@ -64,10 +65,70 @@ public class TemplateInformation {
     * @param contents Text to append
     */
    public void addText(String contents) {
-      fBuilder.append(contents.
-            replaceAll("^\n\\s*","").
-            replaceAll("(\\\\n|\\n)\\s*", "\n").
-            replaceAll("\\\\t","   "));
+      
+      contents = contents.trim();  // Discard leading and trailing white space
+
+      StringBuilder sb = new StringBuilder();
+      State state = State.Text;
+      
+      for(int index = 0; index<contents.length(); index++) {
+         char ch = contents.charAt(index);
+         
+         switch (state) {
+         case DiscardAfterNewline:
+            if (" \t".indexOf(ch)>=0) {
+               break;
+            }
+            state = State.Text;
+         case Text:
+            if (ch == '"') {
+               sb.append(ch);
+               state = State.InString;
+            }
+            else if (ch == '\'') {
+               sb.append(ch);
+               state = State.InCharacter;
+            }
+            else if (ch == '\n') {
+               sb.append(ch);
+               state = State.DiscardAfterNewline;
+            }
+            else if (ch == '\\') {
+               state = State.Escape;
+            }
+            else {
+               sb.append(ch);
+            }
+            break;
+         case InString:
+            sb.append(ch);
+            if (ch == '"') {
+               state = State.Text;
+            }
+            break;
+         case InCharacter:
+            sb.append(ch);
+            if (ch == '\'') {
+               state = State.Text;
+            }
+            break;
+
+         case Escape:
+            state = State.Text;
+            if (ch == 't') {
+               sb.append("   ");
+            }
+            else if (ch == 'n') {
+               sb.append("\n");
+            }
+            else {
+               sb.append('\\');
+               sb.append(ch);
+            }
+            break;
+         }
+      }
+      fBuilder.append(sb.toString());
       fText = null;
    }
 
