@@ -291,11 +291,6 @@ public class WriterForGpio extends PeripheralWithState {
    }
    
    @Override
-   public boolean isPcrTableNeeded() {
-      return false;
-   }
-
-   @Override
    public int getSignalIndex(Signal signal) {
       // No tables for GPIO
       return Integer.parseInt(signal.getSignalName());

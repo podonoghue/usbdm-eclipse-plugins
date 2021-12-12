@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -342,7 +341,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return Mapped signal or null if multiple mapped.
     */
    public Signal getUniqueMappedSignal() {
-      ArrayList<MappingInfo> mappedSignals = getMappedSignals();
+      ArrayList<MappingInfo> mappedSignals = getActiveMappings();
       if (mappedSignals.size() == 1) {
          ArrayList<Signal> signals = mappedSignals.get(0).getSignals();
          if (signals.size() == 1) {
@@ -425,11 +424,36 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Get the currently mapped signal(s) for this pin.
+    * Get String listing all signals mapped to this pin<br>
+    * e.g. "GPIOE_6/LLWU_P16, FTM3_CH1"
+    * 
+    * @return
+    */
+   public String getMappedSignalNames() {
+      
+      StringBuilder sb = new StringBuilder();
+      boolean doSeparator = false;
+      
+      for (MuxSelection muxSelection:fMappableSignals.keySet()) {
+         MappingInfo mappingInfo = fMappableSignals.get(muxSelection);
+         if (!mappingInfo.isSelected()) {
+            continue;
+         }
+         if (doSeparator) {
+            sb.append(", ");
+         }
+         doSeparator = true;
+         sb.append(mappingInfo.getSignalNames());
+      }
+      return sb.toString();
+   }
+
+   /**
+    * Get information about the currently mapped signal(s) for this pin.
     * 
     * @return List of mapped signals (which may be empty)
     */
-   public ArrayList<MappingInfo> getMappedSignals() {
+   public ArrayList<MappingInfo> getActiveMappings() {
       ArrayList<MappingInfo> rv = new ArrayList<MappingInfo>();
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxSelection);
@@ -483,7 +507,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    Status getAssociatedSignalsStatus() {
       Status status = null;
-      for (MappingInfo mappingInfo:getMappedSignals()) {
+      for (MappingInfo mappingInfo:getActiveMappings()) {
          ArrayList<Signal> signals = mappingInfo.getSignals();
          if (!signals.isEmpty()) {
             status = signals.get(0).getSignalStatus();
@@ -538,19 +562,21 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       MappingInfo activatedMuxSetting = fMappableSignals.get(newMuxValue);
       
-      // Update selection
+      // Clear other selections
       boolean changed = false;
       for (MuxSelection muxKey : fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxKey);
-         if (mappingInfo == activatedMuxSetting) {
-            changed = changed || mappingInfo.select(Origin.pin, true);
-         }
-         else {
-            changed = changed || mappingInfo.select(Origin.pin, false);
+         if (mappingInfo != activatedMuxSetting) {
+            changed = mappingInfo.select(this, false) || changed;
          }
       }
-      notifyListeners();
+      if (activatedMuxSetting != null) {
+         // Activate new selection
+         activatedMuxSetting.select(this, true);
+      }
+      fStatus = checkMappingConflicted();
       setDirty(changed);
+      notifyListeners();
    }
 
    /**
@@ -573,7 +599,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          fResetMuxValue = MuxSelection.fixed;
          setMuxSelection(MuxSelection.fixed);
       }
-      signal.addListener(this);
       return mapInfo;
    }
 
@@ -584,10 +609,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    private  final String getMuxKey() {
       return "$pin$"+fName+"_muxSetting";
    }
-
-//   private  final String getOldUserDescriptionKey() {
-//      return "$signal$"+fName+"_descriptionSetting";
-//   }
 
    private  final String getPCRKey() {
       return "$signal$"+fName+"_pcrSetting";
@@ -608,38 +629,41 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          setMuxSelection(muxValue);
       }
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
+         MappingInfo info = fMappableSignals.get(muxSelection);
+         /*
+          * Migrate old settings
+          */
          String muxValue = settings.get(getMuxKey()+"_" +muxSelection.getShortName());
          if (muxValue != null) {
-            fMappableSignals.get(muxSelection).select(Origin.pin, true);
+            info.select(null, true);
+         }
+         /*
+          * Load new style setting
+          */
+         String propString = settings.get(getPCRKey()+"_"+muxSelection.getShortName()); 
+         if (propString != null) {
+            long properties = Long.parseUnsignedLong(propString, 16);
+            info.select(null, true);
+            info.setProperties(properties);
          }
       }
       String pcrValue = settings.get(getPCRKey());
-      if (pcrValue != null) {
-         setProperties(Long.parseLong(pcrValue, 16));
+      try {
+         if (pcrValue != null) {
+            setProperties(Long.parseUnsignedLong(pcrValue, 16));
+         }
+      } catch (NumberFormatException e) {
+         e.printStackTrace();
       }
-      /**
+      /*
        * Migrate old settings
        */
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
          String muxValue = settings.get(getMuxKey()+"_" +muxSelection.toString());
          if (muxValue != null) {
-            fMappableSignals.get(muxSelection).select(Origin.pin, true);
+            fMappableSignals.get(muxSelection).select(null, true);
          }
       }
-//      Map<MuxSelection, MappingInfo> mappedSignals = getMappableSignals();
-//      if (mappedSignals.isEmpty()) {
-//         // Only migrate if mapped to a signal
-//         return;
-//      }
-//      final String descriptionValue = settings.get(getOldUserDescriptionKey());
-//      if (descriptionValue != null) {
-//         mappedSignals.get(MuxSelection.mux0).getSignals().forEach(new Consumer<Signal>() {
-//            @Override
-//            public void accept(Signal signal) {
-//               signal.setUserDescription(descriptionValue);
-//            }
-//         });
-//      }
    }
 
    /**
@@ -651,30 +675,17 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (this == UNASSIGNED_PIN) {
          return;
       }
-//      if ((fMuxValue != MuxSelection.unassigned) && (fMuxValue != MuxSelection.fixed)) {
-//         settings.put(getOldMuxKey(fName), fMuxValue.name());
-//      }
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
-         if (muxSelection == MuxSelection.fixed) {
+         if (!muxSelection.isMappedValue()) {
             continue;
          }
-         if (muxSelection == MuxSelection.unassigned) {
-            continue;
-         }
-         if (fMappableSignals.get(muxSelection).isSelected()) {
-            settings.put(getMuxKey()+"_" +muxSelection.getShortName(), "selected");
+         MappingInfo info = fMappableSignals.get(muxSelection);
+         if (info.isSelected()) {
+            settings.put(getPCRKey()+"_"+muxSelection.getShortName(), Long.toHexString(info.getProperties()));
          }
       }
-//      String desc = getUserDescription();
-//      if ((desc != null) && !desc.isEmpty()) {
-//         settings.put(getUserDescriptionKey(fName), desc);
-//      }
-//      String ident = getCodeIdentifier();
-//      if ((ident != null) && !ident.isEmpty()) {
-//         settings.put(getCodeIndentifierKey(fName), ident);
-//      }
       if (getProperties() != 0) {
-         settings.put(getPCRKey(), Long.toHexString(getProperties()));
+         settings.put(getPCRKey(), Long.toHexString(0x00FFFF&getProperties()));
       }
    }
 
@@ -695,7 +706,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          changed = true;
          fStatus = checkMappingConflicted();
       }
-      if (model instanceof Signal) {
+      else if (model instanceof Signal) {
          Status status = getAssociatedSignalsStatus();
          if (fAssociatedStatus != status) {
             fAssociatedStatus = status;
@@ -780,81 +791,105 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /**
     * Class representing Pin Interrupt/DMA functions
     */
-   public enum PinIntDmaValue {
+   public enum PinIrqDmaValue {
+      
       disabled(   0,  "Disabled"),
       dmaRising(  1,  "DMA rising edge"),
       dmaFalling( 2,  "DMA falling edge"),
       dmaEither(  3,  "DMA either edge"),
-      intLow(     8,  "INT when low"),
-      intRising(  9,  "INT rising edge"),
-      intFalling( 10, "INT falling edge"),
-      intEither(  11, "INT either edge"),
-      intHigh(    12, "INT when high");
+      irqLow(     8,  "IRQ when low"),
+      irqRising(  9,  "IRQ rising edge"),
+      irqFalling( 10, "IRQ falling edge"),
+      irqEither(  11, "IRQ either edge"),
+      irqHigh(    12, "IRQ when high");
 
       static final String[] choices = {
-            disabled.getName(),
-            dmaRising.getName(),
-            dmaFalling.getName(),
-            dmaEither.getName(),
-            intLow.getName(),
-            intRising.getName(),
-            intFalling.getName(),
-            intEither.getName(),
-            intHigh.getName(),
+            disabled.getDescription(),
+            dmaRising.getDescription(),
+            dmaFalling.getDescription(),
+            dmaEither.getDescription(),
+            irqLow.getDescription(),
+            irqRising.getDescription(),
+            irqFalling.getDescription(),
+            irqEither.getDescription(),
+            irqHigh.getDescription(),
       };
 
       private final int     value;
-      private final String  name;
+      private final String  description;
 
-      private PinIntDmaValue(int value, String name) {
-         this.value  = value;
-         this.name   = name;
-      }
       /**
-       * Maps an integer into a PinIntDmaValue value
+       * Constructor
+       * 
+       * @param value         PCR.IRQC field value
+       * @param description   Display name for enum value (pretty name)
+       */
+      private PinIrqDmaValue(int value, String description) {
+         this.value        = value;
+         this.description  = description;
+      }
+      
+      /**
+       * Maps a PCR.IRQC field value (integer) into a PinIntDmaValue value
        * 
        * @param value Value to map
        * 
        * @return Corresponding PinIntDmaValue value
        */
-      public static PinIntDmaValue valueOf(int value) {
+      public static PinIrqDmaValue valueOf(int value) {
          switch(value) {
          case 0  : return disabled;
          case 1  : return dmaRising;
          case 2  : return dmaFalling;
          case 3  : return dmaEither;
-         case 8  : return intLow;
-         case 9  : return intRising;
-         case 10 : return intFalling;
-         case 11 : return intEither;
-         case 12 : return intHigh;
+         case 8  : return irqLow;
+         case 9  : return irqRising;
+         case 10 : return irqFalling;
+         case 11 : return irqEither;
+         case 12 : return irqHigh;
          default : return disabled;
          }
       }
 
       /**
-       * Maps an integer into a PinIntDmaValue value
+       * Constructs a PinIntDmaValue value from an enum name
        * 
        * @param fValue Value to map
        * 
        * @return Corresponding PinIntDmaValue value
        */
-      public static PinIntDmaValue getNameFromDescription(String description) {
+      public static PinIrqDmaValue getNameFromDescription(String description) {
          for (int index=0; index<choices.length; index++) {
             if (choices[index].equalsIgnoreCase(description)) {
-               return PinIntDmaValue.values()[index];
+               return PinIrqDmaValue.values()[index];
             }
          }
          throw new RuntimeException("No matching enum for " + description);
       }
-      public String getName() {
-         return name;
+      
+      /**
+       * Get description of enum value
+       * 
+       * @return Description e.g. "DMA either edge"
+       */
+      public String getDescription() {
+         return description;
       }
 
+      /**
+       * Get array of choices for display
+       * 
+       * @return Array of choices
+       */
       public static String[] getChoices() {
          return choices;
       }
 
+      /**
+       *  Get PCR.IRQC field value (integer)
+       *  
+       * @return Value
+       */
       public int getValue() {
          return value;
       }
@@ -865,8 +900,8 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @return function
     */
-   public PinIntDmaValue getInterruptDmaSetting() {
-      return PinIntDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
+   public PinIrqDmaValue getInterruptDmaSetting() {
+      return PinIrqDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
    }
 
    /**
@@ -874,7 +909,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @param value Function to set
     */
-   public void setInterruptDmaSetting(PinIntDmaValue value) {
+   public void setInterruptDmaSetting(PinIrqDmaValue value) {
       if (this == UNASSIGNED_PIN) {
          return;
       }
@@ -885,25 +920,33 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * Class representing Pin Interrupt/DMA functions
     */
    public enum PinPullValue {
+      
       none(  0,  "None"),
       down(  2,  "Down"),
       up(    3,  "Up");
 
       static final String[] choices = {
-            none.getName(),
-            down.getName(),
-            up.getName(),
+            none.getDecription(),
+            down.getDecription(),
+            up.getDecription(),
       };
 
       private final int     value;
-      private final String  name;
+      private final String  description;
 
-      private PinPullValue(int value, String name) {
-         this.value  = value;
-         this.name   = name;
-      }
       /**
-       * Maps an integer into a PinIntDmaValue value
+       * Constructor
+       * 
+       * @param value         PCR.PULL field value
+       * @param description   Display name for enum value (pretty name)
+       */
+      private PinPullValue(int value, String description) {
+         this.value        = value;
+         this.description  = description;
+      }
+      
+      /**
+       * Maps a PCR.PULL field value (integer) into a PinPullValue value
        * 
        * @param value Value to map
        * 
@@ -925,22 +968,38 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
        * 
        * @return Corresponding PinIntDmaValue value
        */
-      public static PinIntDmaValue getNameFromDescription(String description) {
+      public static PinIrqDmaValue getNameFromDescription(String description) {
          for (int index=0; index<choices.length; index++) {
             if (choices[index].equalsIgnoreCase(description)) {
-               return PinIntDmaValue.values()[index];
+               return PinIrqDmaValue.values()[index];
             }
          }
          throw new RuntimeException("No matching enum for " + description);
       }
-      public String getName() {
-         return name;
+
+      /**
+       * Get description of enum value
+       * 
+       * @return Description e.g. "None"
+       */
+      public String getDecription() {
+         return description;
       }
 
+      /**
+       * Get array of choices for display
+       * 
+       * @return Array of choices
+       */
       public static String[] getChoices() {
          return choices;
       }
 
+      /**
+       *  Get PCR.PULL field value (integer)
+       *  
+       * @return Value
+       */
       public int getValue() {
          return value;
       }

@@ -3,25 +3,22 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
-import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TreeViewer;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 
-public class PinInterruptDmaEditingSupport extends EditingSupport {
+public class PinInterruptDmaEditingSupport extends PinPropertyEditingSupport {
 
    public PinInterruptDmaEditingSupport(ColumnViewer viewer) {
-      super(viewer);
+      super(viewer, Pin.PORT_PCR_IRQC_MASK, Pin.PORT_PCR_IRQC_SHIFT);
    }
 
    @Override
    protected CellEditor getCellEditor(Object model) {
-      if (!(model instanceof PinModel)) {
-         return null;
-      }
-      ComboBoxCellEditor editor = new ComboBoxCellEditor(((TreeViewer)getViewer()).getTree(), Pin.PinIntDmaValue.getChoices());
+      ComboBoxCellEditor editor = new ComboBoxCellEditor(
+            ((TreeViewer)getViewer()).getTree(), 
+            Pin.PinIrqDmaValue.getChoices());
+      
       editor.setActivationStyle(
             ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
             ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
@@ -29,30 +26,12 @@ public class PinInterruptDmaEditingSupport extends EditingSupport {
    }
 
    @Override
-   protected boolean canEdit(Object model) {
-      if (!(model instanceof BaseModel)) {
-         return false;
-      }
-      BaseModel baseModel = (BaseModel)model;
-      return baseModel.canEdit();
-   }
-
-   @Override
    protected Object getValue(Object model) {
-      if (!(model instanceof PinModel)) {
-         return null;
-      }
-      Pin pin = ((PinModel) model).getPin();
-      return pin.getInterruptDmaSetting().ordinal();
+      return Pin.PinIrqDmaValue.valueOf(getValueAsLong(model).intValue()).ordinal();
    }
 
    @Override
    protected void setValue(Object model, Object value) {
-      if (!(model instanceof PinModel)) {
-         return;
-      }
-      Pin pin = ((PinModel) model).getPin();
-      pin.setInterruptDmaSetting(Pin.PinIntDmaValue.values()[(Integer)value]);
-      getViewer().update(model, null);
+      setValueAsLong(model, (long) Pin.PinIrqDmaValue.values()[(((Integer)value))].getValue());
    }
 }

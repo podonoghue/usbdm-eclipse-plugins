@@ -92,9 +92,17 @@ public class TabbedEditor implements IEditor {
                               "If not blank code will be generated for the signal or peripheral"),
                         new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer), 
                               InstanceColumnLabelProvider.getColumnToolTipText()),
-                        new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer), 
-                              "Property Description or\n"+
-                              "User description of use - Appears as comment in user code (Periperals and signals only)"),
+                        new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
+                              DescriptionColumnLabelProvider.getColumnToolTipText()),
+                        new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),
+                              PinInterruptDmaColumnLabelProvider.getColumnToolTipText()),
+                        new TreeColumnInformation("LK",                   40, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer)),
+                        new TreeColumnInformation("DSE",                  40, PinBooleanColumnLabelProvider.getDse(),      PinBooleanEditingSupport.getDse(viewer)),
+                        new TreeColumnInformation("ODE",                  40, PinBooleanColumnLabelProvider.getOde(),      PinBooleanEditingSupport.getOde(viewer)),
+                        new TreeColumnInformation("PFE",                  40, PinBooleanColumnLabelProvider.getPfe(),      PinBooleanEditingSupport.getPfe(viewer)),
+                        new TreeColumnInformation("SRE",                  40, PinBooleanColumnLabelProvider.getSre(),      PinBooleanEditingSupport.getSre(viewer)),
+                        new TreeColumnInformation("Pull",                 60, new PinPullColumnLabelProvider(),            new PinPullEditingSupport(viewer),
+                              PinPullColumnLabelProvider.getColumnToolTipText()),
                   };
                   return fColumnInformation;
                }

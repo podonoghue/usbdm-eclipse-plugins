@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -60,7 +59,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Indicates the signal is a power signal e.g. VDD, VSS */ 
    private final boolean fIsPowerSignal;
    
-   /** Set of pin mappings for this signal */
+   /** Set of pin mappings available for this signal */
    private TreeSet<MappingInfo> fPinMappings = new TreeSet<MappingInfo>(new PinMappingComparator());
 
    /** Reset mapping for this signal */
@@ -96,8 +95,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    private static final String getPolarityIndentifierKey(String name) {
       return "$signal$"+name+"_polarity";
    }
- 
-   /**
+
+  /**
     * 
     * @param name          Name of signal e.g. FTM0_CH3 
     * @param peripheral    Peripheral that signal belongs to 
@@ -111,7 +110,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       String t = signal.toUpperCase();
       fIsPowerSignal = t.startsWith("VDD") || t.startsWith("VSS") || t.startsWith("VCC") || t.startsWith("GND");
    }
-
 
    /**
     * Set editor dirty via deviceInfo
@@ -200,7 +198,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          setUserDescription(value);
       }
       if (fPeripheral instanceof WriterForGpio) {
-         // Migrate old setting
+         /*
+          * Migrate old setting
+          */
          value = settings.get(getPolarityIndentifierKey(fName));
          if (value != null) {
             WriterForGpio gpio = (WriterForGpio)fPeripheral;
@@ -303,7 +303,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get ordered set of possible pin mappings for this signal 
+    * Get ordered set of available pin mappings for this signal 
     * 
     * @return
     */
@@ -400,7 +400,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
    
    /**
-    * Get current pin mapped for this signal
+    * Get current pin mapped for this signal<br>
+    * 
+    * If more than one pin is mapped for this signal then the first found is returned. 
     * 
     * @return Mapped pin (may be Pin.UNASSIGNED_PIN)
     */
@@ -486,9 +488,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          if (mapping == mappingInfo) {
             continue;
          }
-         changed = changed || mapping.select(Origin.signal, false);
+         changed = mapping.select(this, false) || changed;
       }
-      changed = changed || mappingInfo.select(Origin.signal, true);
+      changed = mappingInfo.select(this, true) || changed;
       setDirty(changed);
       notifyListeners();
    }
@@ -563,5 +565,140 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public boolean canCreateType() {
       return getPeripheral().canCreateType(this);
    }
+
+   /**
+    * Get PCR value (excluding MUX)
+    * 
+    * @return PCR value (excluding MUX)
+    */
+   public long getProperties() {
+      if (!hasDigitalFeatures()) {
+         return 0;
+      }
+      MappingInfo mapInfo = getFirstMappedPinInformation();
+      
+      if (mapInfo == MappingInfo.UNASSIGNED_MAPPING) {
+         return 0;
+      }
+      return mapInfo.getProperties();
+   }
+
+   /**
+    * Get property (field within properties value)
+    * 
+    * @param mask    Mask to extract field 
+    * @param offset  Offset to shift after extraction
+    * 
+    * @return Extracted field from property
+    */
+   public long getProperty(long mask, long offset) {
+      if (!hasDigitalFeatures()) {
+         return 0;
+      }
+      MappingInfo mapInfo = getFirstMappedPinInformation();
+      
+      if (mapInfo == MappingInfo.UNASSIGNED_MAPPING) {
+         return 0;
+      }
+      return mapInfo.getProperty(mask, offset);
+   }
+
+   /**
+    * Set PCR value (excluding MUX)
+    * 
+    * @param properties PCR value (excluding MUX)
+    * 
+    * @return True is value changed
+    */
+   public boolean setProperties(long properties) {
+      if (this == DISABLED_SIGNAL) {
+         return false;
+      }
+      if (!hasDigitalFeatures()) {
+         return false;
+      }
+      MappingInfo mapInfo = getFirstMappedPinInformation();
+      
+      if (mapInfo == MappingInfo.UNASSIGNED_MAPPING) {
+         return false;
+      }
+      boolean changed = mapInfo.setProperties(properties);
+      setDirty(changed);
+      if (changed) {
+         notifyListeners();
+      }
+      return changed;
+   }
+
+   /**
+    * Set property (field within properties value)
+    * 
+    * @param mask    Mask to extract field 
+    * @param offset  Offset to shift after extraction
+    * 
+    * @return Extracted field from property
+    */
+   public boolean setProperty(long mask, long offset, long property) {
+      if (this == DISABLED_SIGNAL) {
+         return false;
+      }
+      if (!hasDigitalFeatures()) {
+         return false;
+      }
+      MappingInfo mapInfo = getFirstMappedPinInformation();
+      
+      if (mapInfo == MappingInfo.UNASSIGNED_MAPPING) {
+         return false;
+      }
+      boolean changed = mapInfo.setProperty(mask, offset, property);
+      setDirty(changed);
+      if (changed) {
+         notifyListeners();
+      }
+      return changed;
+   }
    
+   /**
+    * Get PCR value for signal when mapped to current pin
+    * 
+    * @return PCR value
+    */
+   public long getPcrValue() {
+      return getProperties();
+   }
+
+   /**
+    * Indicate if the signal has digital features when mapped to a pin
+    * 
+    * @return
+    */
+   public boolean hasDigitalFeatures() {
+      MappingInfo info = getFirstMappedPinInformation();
+      if ((info == null) ||
+            (!info.getMux().isMappedValue()) || 
+            (info.getMux() == MuxSelection.ANALOGUE)) {
+         return false;
+      }
+      return fPeripheral.hasDigitalFeatures(this);
+   }
+   
+   /**
+    * Get mask indicating forced bits in PCR value for this signal
+    * 
+    * @return mask
+    */
+   public long getPcrForcedBitsMask() {
+      return fPeripheral.getPcrForcedBitsMask(this);
+   }
+
+   /**
+    * Get mask indicating the value of forced bits in PCR value for this signal
+    * 
+    * @return mask
+    */
+   public long getPcrForcedBitsValueMask() {
+      return fPeripheral.getPcrForcedBitsValueMask(this);
+   }
+   
+
  }

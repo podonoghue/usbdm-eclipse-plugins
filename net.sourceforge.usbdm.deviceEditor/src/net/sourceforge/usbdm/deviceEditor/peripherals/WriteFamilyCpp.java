@@ -141,34 +141,36 @@ public class WriteFamilyCpp {
       DocumentationGroups groups = new DocumentationGroups(writer);
 
       // Write these classes in order as they declare dependent information etc.
-      ArrayList<String> priorityClasses = new ArrayList<String>();
-      priorityClasses.add("GPIOA");
-      priorityClasses.add("GPIOB");
-      priorityClasses.add("GPIOC");
-      priorityClasses.add("GPIOD");
-      priorityClasses.add("GPIOE");
-      priorityClasses.add("GPIOF");
-      priorityClasses.add("GPIOG");
-      priorityClasses.add("OSC");
-      priorityClasses.add("OSC0");
-      priorityClasses.add("OSC_RF0");
-      priorityClasses.add("SCG");
-      priorityClasses.add("PCC");
-      priorityClasses.add("RTC");
-      priorityClasses.add("MCG");
-      priorityClasses.add("SIM");
-      priorityClasses.add("PMC");
-      for (String key : priorityClasses) {
-         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         if (peripheral != null) {
-            writePeripheralInformationClass(writer, groups, peripheral);
+      ArrayList<Pattern> priorityClasses = new ArrayList<Pattern>();
+      priorityClasses.add(Pattern.compile("GPIO.*"));
+      priorityClasses.add(Pattern.compile("OSC.*"));
+      priorityClasses.add(Pattern.compile("SCG"));
+      priorityClasses.add(Pattern.compile("PCC"));
+      priorityClasses.add(Pattern.compile("RTC"));
+      priorityClasses.add(Pattern.compile("MCG.*"));
+      priorityClasses.add(Pattern.compile("SIM"));
+      priorityClasses.add(Pattern.compile("PMC"));
+      
+      for (Pattern pattern : priorityClasses) {
+         for (String peripheralName : fDeviceInfo.getPeripherals().keySet()) {
+            if (pattern.matcher(peripheralName).matches()) {
+               Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
+               writePeripheralInformationClass(writer, groups, peripheral);
+            }
          }
       }
-      for (String key : fDeviceInfo.getPeripherals().keySet()) {
-         if (priorityClasses.contains(key)) {
-            continue;
+      for (String peripheralName : fDeviceInfo.getPeripherals().keySet()) {
+         boolean excluded = false;
+         for (Pattern pattern : priorityClasses) {
+            if (pattern.matcher(peripheralName).matches()) {
+               excluded = true;
+               break;
+            }
          }
-         writePeripheralInformationClass(writer, groups, fDeviceInfo.getPeripherals().get(key));
+         if (!excluded) {
+            Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
+            writePeripheralInformationClass(writer, groups, peripheral);
+         }
       }
       groups.closeGroup();
       writer.closeDocumentationGroup();
@@ -378,7 +380,10 @@ public class WriteFamilyCpp {
 
       for (String pinName : fDeviceInfo.getPins().keySet()) {
          Pin pin = fDeviceInfo.getPins().get(pinName);
-         pcrInitialiser.addPin(pin);
+         String errorMsg = pcrInitialiser.addPin(pin); 
+         if (errorMsg != null) {
+            sb.append(String.format("// PCR Not initialised for %-10s : %s\n", pinName, errorMsg));
+         }
       }
       sb.append(pcrInitialiser.getInitPortClocksStatement(""));
       sb.append(pcrInitialiser.getPcrInitStatements(""));

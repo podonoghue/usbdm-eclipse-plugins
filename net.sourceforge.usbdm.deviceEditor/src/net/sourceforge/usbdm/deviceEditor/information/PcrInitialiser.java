@@ -22,72 +22,26 @@ public class PcrInitialiser {
    }
    
    /**
-    * Adds information required to set up the PCR associated with the given signal
+    * Adds information required to set up the PCR associated with the given signal<br>
+    * Note that only the lower 16-bits of the PCR value are used.
     * 
     * @param signal     Signal to process
-    * @param pcrValue   PCR value to append to
     */
-   public void addSignal(Signal signal, String pcrValue) {
+   public void addSignal(Signal signal) {
 
       MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
-
-      Pin pin = mappingInfo.getPin();
-      if (!pin.isAvailableInPackage()) {
-         // Discard unmapped signals on this package 
+      if (mappingInfo == MappingInfo.UNASSIGNED_MAPPING) {
          return;
       }
+      if (!mappingInfo.getMux().isMappedValue()) {
+         return;
+      }
+      Pin pin = mappingInfo.getPin();
       if (pin.getPort() == null) {
          // Fixed port mapping
          return;
       }
-      pcrValue = pcrValue+"|PORT_PCR_MUX("+mappingInfo.getMux().value+")";
-      if (mappingInfo.isSelected()) {
-         portClockMasks.add(pin.getPort());
-         String bitNums = pin.getGpioBitNum();
-         if (bitNums != null) {
-            long bitNum = Long.parseLong(bitNums);
-            TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPort());
-            if (pcrValueToBitsMap == null) {
-               pcrValueToBitsMap = new TreeMap<String, Long>();
-               portToPcrValuesMap.put(pin.getPort(), pcrValueToBitsMap);
-            }
-            Long bitMask = pcrValueToBitsMap.get(pcrValue);
-            if (bitMask == null) {
-               bitMask = (long) 0;
-            }
-            bitMask |= 1<<bitNum;
-            pcrValueToBitsMap.put(pcrValue, bitMask);
-         }
-      }
-   }
-   
-   String longTo4Hex(long value) {
-      return String.format("0x%04XUL", value);
-   }
-   /**
-    * Adds information required to set up the PCR associated with the given pin
-    * 
-    * @param pin
-    * 
-    * @throws Exception 
-    */
-   public void addPin(Pin pin) {
-
-      if (!pin.isAvailableInPackage()) {
-         // Discard unmapped signals on this package 
-         return;
-      }
-      ArrayList<MappingInfo> mappedSignals = pin.getMappedSignals();
-      if ((mappedSignals.size()==0) || (mappedSignals.size()>1)) {
-         // Unmapped or multiply mapped
-         return;
-      }
-      MuxSelection mux = mappedSignals.get(0).getMux();
-      if (!mux.isMappedValue()) {
-         // Not mappable
-         return;
-      }
-      String pcrValue = longTo4Hex(pin.getPcrValue(mux));
+      String pcrValue = longTo4Hex(mappingInfo.getProperties());
       portClockMasks.add(pin.getPort());
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {
@@ -104,6 +58,96 @@ public class PcrInitialiser {
          bitMask |= 1<<bitNum;
          pcrValueToBitsMap.put(pcrValue, bitMask);
       }
+   }
+   
+   public static String longTo4Hex(long value) {
+      return String.format("0x%04XUL", 0xFFFFL&value);
+   }
+   
+   /**
+    * Adds information required to set up the PCR associated with the given pin mapping.<br>
+    * Note that only the lower 16-bits of the PCR value are used.
+    * 
+    * @param pin  Pin mapping to examine
+    */
+   public void addPinMapping(MappingInfo mappingInfo) {
+      if (mappingInfo == MappingInfo.UNASSIGNED_MAPPING) {
+         return;
+      }
+      if (!mappingInfo.getMux().isMappedValue()) {
+         // No PCR for this mapping
+         return;
+      }
+      String pcrValue = longTo4Hex(mappingInfo.getProperties());
+      Pin pin = mappingInfo.getPin();
+      
+      portClockMasks.add(pin.getPort());
+      String bitNumString = pin.getGpioBitNum();
+      if (bitNumString != null) {
+         long bitNum = Long.parseLong(bitNumString);
+         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPort());
+         if (pcrValueToBitsMap == null) {
+            pcrValueToBitsMap = new TreeMap<String, Long>();
+            portToPcrValuesMap.put(pin.getPort(), pcrValueToBitsMap);
+         }
+         Long bitMask = pcrValueToBitsMap.get(pcrValue);
+         if (bitMask == null) {
+            bitMask = (long) 0;
+         }
+         bitMask |= 1<<bitNum;
+         pcrValueToBitsMap.put(pcrValue, bitMask);
+      }
+   }
+   
+   /**
+    * Adds information required to set up the PCR associated with the given pin.<br>
+    * Note that only the lower 16-bits of the PCR value are used.<br>
+    * It obtains information from the associated MappingInfos and hence signals.<br>
+    * If more than one signal has been mapped to the pin then no setting is created for that pin.
+    *  
+    * @param pin  Pin to examine
+    * 
+    * @return Error description if the pin was not added due to multiple definition
+    */
+   public String addPin(Pin pin) {
+
+      if (!pin.isAvailableInPackage()) {
+         // Discard unmapped signal on this package 
+         return null;
+      }
+      ArrayList<MappingInfo> mappedSignals = pin.getActiveMappings();
+      if (mappedSignals.size()==0) {
+         // No signals mapped to pin
+         return null;
+      }
+      if (mappedSignals.size()>1) {
+         // Multiply signals on mapped to this pin
+         return "Multiple signals mapped to pin - " + pin.getMappedSignalNames();
+      }
+      MappingInfo mappingInfo = mappedSignals.get(0);
+      if (!mappingInfo.getMux().isMappedValue()) {
+         // No PCR for this mapping
+         return null;
+      }
+      String pcrValue = longTo4Hex(mappingInfo.getProperties());
+
+      portClockMasks.add(pin.getPort());
+      String bitNums = pin.getGpioBitNum();
+      if (bitNums != null) {
+         long bitNum = Long.parseLong(bitNums);
+         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPort());
+         if (pcrValueToBitsMap == null) {
+            pcrValueToBitsMap = new TreeMap<String, Long>();
+            portToPcrValuesMap.put(pin.getPort(), pcrValueToBitsMap);
+         }
+         Long bitMask = pcrValueToBitsMap.get(pcrValue);
+         if (bitMask == null) {
+            bitMask = (long) 0;
+         }
+         bitMask |= 1<<bitNum;
+         pcrValueToBitsMap.put(pcrValue, bitMask);
+      }
+      return null;
    }
    
    /**

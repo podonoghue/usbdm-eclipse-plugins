@@ -42,5 +42,12 @@ public class DescriptionColumnLabelProvider extends BaseLabelProvider {
       }
       return super.getToolTipText(element);
    }
+
+   public static String getColumnToolTipText() {
+      return 
+            "Property Description or\n" +
+            "Description of use (Peripherals and signals only)\n"+
+            "Appears as comment in user code";
+   }
    
 }

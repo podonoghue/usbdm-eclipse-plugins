@@ -109,25 +109,25 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * - Has only static methods (or are overloaded by same) 
     * - This means that an instance need not be created
     */
-   private boolean fIsConstType = true;
+   protected boolean fIsConstType = true;
    
    /** Indicates the peripheral as synthetic i.e. no hardware is associated - default false */
-   private boolean fIsSynthetic = false;
+   protected boolean fIsSynthetic = false;
 
    /** Indicates that code for a user instance of the peripheral class should be created */ 
-   private boolean fCreateInstance = false;
+   protected boolean fCreateInstance = false;
    
    /** Most peripheral have a useful type declaration or enum/const value */
-   boolean fCanCreateType           = true;
+   protected boolean fCanCreateType           = true;
    
    /** Most peripheral don't have a useful instance */
-   boolean fCanCreateInstance       = false;
+   protected boolean fCanCreateInstance       = false;
    
    /** Most signals don't have a useful type */
-   boolean fcanCreateSignalType     = false;
+   protected boolean fcanCreateSignalType     = false;
    
    /** Most signals don't have a useful instance */
-   boolean fCanCreateSignalInstance = false;
+   protected boolean fCanCreateSignalInstance = false;
 
    /**
     * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM 
@@ -463,6 +463,17 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
       public String getName() {
          return fName;
+      }
+      
+      /**
+       * Get index of signal in table
+       * 
+       * @param signal To check
+       * 
+       * @return Index or -1 if not found
+       */
+      public int indexOf(Signal signal) {
+         return table.indexOf(signal);
       }
    }
    
@@ -946,10 +957,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return rv;
    }
    
-   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, INVALID_PCR,  0                                },\n";
-   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, UNMAPPED_PCR, 0                                },\n";
-   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, FIXED_NO_PCR, 0                                },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %-25s PORT_PCR_MUX(%d)|"+ DEFAULT_PCR_VALUE_NAME +"  },\n";
+   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, INVALID_PCR,  (PcrValue)0          },\n";
+   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, UNMAPPED_PCR, (PcrValue)0          },\n";
+   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, FIXED_NO_PCR, (PcrValue)0          },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %-25s (PcrValue)%-10s },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-20s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
@@ -982,7 +993,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
                   INFO_TABLE_NAME
             ));
       pinMappingHeaderFile.write(String.format(
-            indent+HEADING_TEMPLATE, "Signal", "Pin","    portInfo    gpioBit       PCR value"));
+            indent+HEADING_TEMPLATE, "Signal", "Pin","    portInfo    gpioBit                 PCR value"));
       // Signal information table
       int index = -1;
       for (Signal signal:signalTable.table) {
@@ -1012,9 +1023,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
                mappedPin = mappingInfo;
                String pinInfoInitString = SignalTemplate.getPinInfoInitString(mappingInfo.getPin());
                pinMappingHeaderFile.write(
-                     String.format(indent+USED_TEMPLATE, index, 
-                           signal.getName(), mappingInfo.getPin().getNameWithLocation(), pinInfoInitString, mappingInfo.getMux().value));
-
+                     String.format(indent+USED_TEMPLATE, index, signal.getName(), 
+                           mappingInfo.getPin().getNameWithLocation(), pinInfoInitString, PcrInitialiser.longTo4Hex(mappingInfo.getProperties())));
             }
          } while(false);
          if (mappedPin == null) {
@@ -1149,7 +1159,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             indent+"    * \n"+
             indent+"    * @param pcrValue PCR value controlling pin options\n"+
             indent+"    */\n"+
-            indent+"   static void initPCRs(uint32_t pcrValue="+DEFAULT_PCR_VALUE_NAME+") {\n";
+            indent+"   static void initPCRs() {\n";
 
       final String CLEAR_PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
@@ -1164,7 +1174,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          if (signal == null) {
             continue;
          }
-         pcrInitialiser.addSignal(signal, "pcrValue");
+         pcrInitialiser.addSignal(signal);
       }
       
       String initClocksBuffer = pcrInitialiser.getInitPortClocksStatement(indent);
@@ -1172,12 +1182,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
       String pcrInitStatements = pcrInitialiser.getPcrInitStatements(indent);
-      if (pcrInitStatements.isEmpty()) {
-         pinMappingHeaderFile.write(indent+"      (void)pcrValue;\n");
-      }
-      else {
-         pinMappingHeaderFile.write(pcrInitStatements);
-      }
+      pinMappingHeaderFile.write(pcrInitStatements);
       pinMappingHeaderFile.write(indent+"   }\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
@@ -1590,4 +1595,37 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void addLinkedSignals() {
    }
 
+   /**
+    * Indicate if the signal has digital features when mapped to a pin
+    * 
+    * @param signal  Signal to check
+    * 
+    * @return  True if a digital function
+    */
+   public boolean hasDigitalFeatures(Signal signal) {
+      return true;
+   }
+   
+   /**
+    * Get mask indicating forced bits in PCR value for the given signal
+    * 
+    * @param signal Signal to check
+    * 
+    * @return mask
+    */
+   public long getPcrForcedBitsMask(Signal signal) {
+      return 0;
+   }
+
+   /**
+    * Get mask indicating the value of forced bits in PCR value for the given signal
+    * 
+    * @param signal Signal to check
+    * 
+    * @return mask
+    */
+   public long getPcrForcedBitsValueMask(Signal signal) {
+      return 0;
+   }
+   
 }

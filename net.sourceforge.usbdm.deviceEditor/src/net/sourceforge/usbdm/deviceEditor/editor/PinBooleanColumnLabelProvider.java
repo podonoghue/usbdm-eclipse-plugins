@@ -4,7 +4,6 @@ import org.eclipse.swt.graphics.Image;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 
 public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLabelProvider {
 
@@ -28,7 +27,7 @@ public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLab
 
    @Override
    public String getText(BaseModel baseModel) {
-      Long value = super.getValue(baseModel);
+      Long value = getValue(baseModel);
       if (value == null) {
          return null;
       }
@@ -37,10 +36,7 @@ public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLab
 
    @Override
    public Image getImage(BaseModel baseModel) {      
-      if (!(baseModel instanceof PinModel)) {
-         return null;
-      }
-      Long value = super.getValue(baseModel);
+      Long value = getValue(baseModel);
       if (value == null) {
          return null;
       }

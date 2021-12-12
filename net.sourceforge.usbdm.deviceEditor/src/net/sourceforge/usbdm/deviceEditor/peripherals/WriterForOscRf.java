@@ -35,5 +35,4 @@ public class WriterForOscRf extends PeripheralWithState {
    public String getPcrValue(Signal y) {
       return null;
    }
-
 }

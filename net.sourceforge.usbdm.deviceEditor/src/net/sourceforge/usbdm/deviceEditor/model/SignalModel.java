@@ -88,7 +88,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          }
          isFirst = false;
          sb.append(pin.getName());
-         if (pin.getMappedSignals().isEmpty()) {
+         if (pin.getActiveMappings().isEmpty()) {
             // Pin is not currently mapped
             sb.append("*");
          }

@@ -15,12 +15,16 @@ public class PinInterruptDmaColumnLabelProvider extends PinPropertyColumnLabelPr
       if (value == null) {
          return null;
       }
-      return Pin.PinIntDmaValue.valueOf(value.intValue()).getName();
+      return Pin.PinIrqDmaValue.valueOf(value.intValue()).getDescription();
    }
 
    @Override
    public String getToolTipText(Object element) {
       return "Interrupt/DMA option select";
+   }
+
+   public static String getColumnToolTipText() {
+      return "Pin triggered Interrupt or DMA operation";
    }
    
 }

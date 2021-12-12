@@ -150,5 +150,4 @@ public class WriterForCmp extends PeripheralWithState {
          fDeviceInfo.addOrReplaceVariable(cmpInputsVar.getKey(), cmpInputsVar);
       }
    }
-   
 }

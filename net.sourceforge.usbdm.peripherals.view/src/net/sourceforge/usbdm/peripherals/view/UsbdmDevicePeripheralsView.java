@@ -753,11 +753,11 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                return;
             }
             if (peripheralsModel == null) {
-               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - periperalsModel == null");
+               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - peripheralsModel == null");
                return;
             }
             if (peripheralsModel != model) {
-               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - periperalsModel != aPeriperalsModel");
+               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - peripheralsModel != aPeripheralsModel");
                return;
             }
             fPeripheralsTreeViewer.setInput(null);
@@ -797,11 +797,11 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                return;
             }
             if (peripheralsModel == null) {
-               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - periperalsModel == null");
+               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - peripheralsModel == null");
                return;
             }
             if (peripheralsModel != model) {
-               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - periperalsModel != aPeriperalsModel");
+               //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - peripheralsModel != aPeripheralsModel");
                return;
             }
             Object[] visibleObjects = fPeripheralsTreeViewer.getExpandedElements();

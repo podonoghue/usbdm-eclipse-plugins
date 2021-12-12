@@ -1,16 +1,43 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin.PinIrqDmaValue;
+import net.sourceforge.usbdm.deviceEditor.information.Pin.PinPullValue;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 /**
  * Describes the set of peripheral signals that are mapped to a pin for a particular mux value<br>
  */
 public class MappingInfo extends ObservableModel {
-   
-   /** Source of change */
-   public static enum Origin {pin, signal};
-   
+
+   public final static long PORT_PCR_PULL_SHIFT  =  0;                             
+   public final static long PORT_PCR_PULL_MASK   =  (0x03L << PORT_PCR_PULL_SHIFT);  
+   public final static long PORT_PCR_SRE_SHIFT   =  2;                             
+   public final static long PORT_PCR_SRE_MASK    =  (0x01L << PORT_PCR_SRE_SHIFT); 
+   public final static long PORT_PCR_PFE_SHIFT   =  4;                             
+   public final static long PORT_PCR_PFE_MASK    =  (0x01L << PORT_PCR_PFE_SHIFT); 
+   public final static long PORT_PCR_ODE_SHIFT   =  5;                             
+   public final static long PORT_PCR_ODE_MASK    =  (0x01L << PORT_PCR_ODE_SHIFT); 
+   public final static long PORT_PCR_DSE_SHIFT   =  6;                             
+   public final static long PORT_PCR_DSE_MASK    =  (0x01L << PORT_PCR_DSE_SHIFT); 
+   public final static long PORT_PCR_MUX_SHIFT   =  8;                             
+   public final static long PORT_PCR_MUX_MASK    =  (0x07L << PORT_PCR_MUX_SHIFT); 
+   public final static long PORT_PCR_LK_SHIFT    =  15;                            
+   public final static long PORT_PCR_LK_MASK     =  (0x01L << PORT_PCR_LK_SHIFT);  
+   public final static long PORT_PCR_IRQC_SHIFT  =  16;                            
+   public final static long PORT_PCR_IRQC_MASK   =  (0x0FL << PORT_PCR_IRQC_SHIFT); 
+   public final static long PORT_PCR_ISF_SHIFT   =  24;                            
+   public final static long PORT_PCR_ISF_MASK    =  (0x01L << PORT_PCR_ISF_SHIFT);
+
+   // This is a dummy mask used internally
+//   public final static long PORT_POLARITY_SHIFT  =  30;                            
+//   public final static long PORT_POLARITY_MASK   =  (0x01L << PORT_POLARITY_SHIFT); 
+   public final static long PCR_MASK        =  
+         PORT_PCR_PULL_MASK|PORT_PCR_SRE_MASK|PORT_PCR_PFE_MASK|PORT_PCR_ODE_MASK|
+         PORT_PCR_DSE_MASK|PORT_PCR_LK_MASK|PORT_PCR_IRQC_MASK; 
+
+   public final static long PROPERTIES_MASK        = PCR_MASK; 
+
    /** List of peripheral signals that are mapped  by this selection */
    private final ArrayList<Signal> fSignals = new ArrayList<Signal>();
    
@@ -23,12 +50,16 @@ public class MappingInfo extends ObservableModel {
    /** Indicates if the current mapping is selected */
    private boolean fSelected;
 
-   private boolean fBusy = false;
+//   private boolean fBusy = false;
    
    public boolean marked = false;
+
+   /** PCR value (excluding MUX) */
+   private long fProperties;
    
    /** Indicate mapping does not correspond to a pin i.e. unassigned */
    public static MappingInfo UNASSIGNED_MAPPING = new MappingInfo(Pin.UNASSIGNED_PIN, MuxSelection.unassigned);
+   
    /**
     * Associates a peripheral signal and a pin<br>
     * 
@@ -39,7 +70,6 @@ public class MappingInfo extends ObservableModel {
    public MappingInfo(Pin pin, MuxSelection muxValue)  {
       fPin       = pin;
       fMuxValue  = muxValue;
-      addListener(pin);
    }
    
    /**
@@ -83,7 +113,6 @@ public class MappingInfo extends ObservableModel {
     */
    public void addSignal(Signal signal) {
       fSignals.add(signal);
-      addListener(signal);
    }
    
    
@@ -109,11 +138,12 @@ public class MappingInfo extends ObservableModel {
     * Sets selection state i.e. whether mux setting is current for a pin<br>
     * If changed then listeners are notified
     * 
-    * @param selected
+    * @param origin     Originating object (Pin or Signal)
+    * @param selected   Selected state to set
     * 
     * @return True if the selection changed
     */
-   public boolean select(Origin origin, boolean selected) {
+   public boolean select(Object origin, boolean selected) {
       if (this == MappingInfo.UNASSIGNED_MAPPING) {
          return false;
       }
@@ -123,12 +153,16 @@ public class MappingInfo extends ObservableModel {
          return false;
       }
       fSelected = selected;
-      if (fBusy) {
-         throw new RuntimeException("Loop!!!");
+//      if (fBusy) {
+//         throw new RuntimeException("Loop!!!");
+//      }
+      if (fPin != origin) {
+         fPin.modelElementChanged(this);
       }
-      fPin.modelElementChanged(this);
       for (Signal signal:getSignals()) {
-         signal.modelElementChanged(this);
+         if (signal != origin) {
+            signal.modelElementChanged(this);
+         }
       }
       return true;
    }
@@ -184,5 +218,114 @@ public class MappingInfo extends ObservableModel {
       return sb.toString();
    }
 
+   /**
+    * Get Pin Interrupt/DMA functions
+    * 
+    * @return function
+    */
+   public PinIrqDmaValue getInterruptDmaSetting() {
+      return PinIrqDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
+   }
+
+   /**
+    * Set Pin Interrupt/DMA functions
+    * 
+    * @param value Function to set
+    */
+   public void setInterruptDmaSetting(PinIrqDmaValue value) {
+      setProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT, value.getValue());
+   }
+
+   /**
+    * Get Pin Interrupt/DMA functions
+    * 
+    * @return function
+    */
+   public PinPullValue getPullSetting() {
+      return PinPullValue.valueOf((int)getProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT));
+   }
+
+   /**
+    * Set Pin Interrupt/DMA functions
+    * 
+    * @param value Function to set
+    */
+   public void setPullSetting(PinPullValue value) {
+      setProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT, value.getValue());
+   }
+
+   /**
+    * Get PCR value (including MUX for convenience)
+    * 
+    * @return PCR value
+    */
+   public long getProperties() {
+      
+      long value = (fProperties & PROPERTIES_MASK);
+      value = (value&~fSignals.get(0).getPcrForcedBitsMask())|fSignals.get(0).getPcrForcedBitsValueMask();
+      
+      if (fMuxValue.isMappedValue()) {
+         value |= fMuxValue.value<<PORT_PCR_MUX_SHIFT;
+      }
+      return value;
+   }
+
+   /**
+    * Set PCR value (excluding MUX)
+    * 
+    * @param properties PCR value (excluding MUX)
+    * 
+    * @return  True if value changed
+    */
+   public boolean setProperties(long properties) {
+      
+      properties &= PROPERTIES_MASK;
+      properties = (properties&~fSignals.get(0).getPcrForcedBitsMask())|fSignals.get(0).getPcrForcedBitsValueMask();
+      
+      if (fProperties == properties) {
+         return false;
+      }
+//      System.err.println("setProperties("+Long.toHexString(properties)+")");
+      fProperties = properties;
+      fPin.modelElementChanged(this);
+      for (Signal signal:getSignals()) {
+         signal.modelElementChanged(this);
+      }
+      return true;
+   }
+
+   /**
+    * Get property (field from getProperties())
+    * 
+    * @param mask    Mask to extract field 
+    * @param offset  Offset to shift after extraction
+    * 
+    * @return Extracted field from property
+    */
+   public long getProperty(long mask, long offset) {
+      return (getProperties()&mask)>>offset;
+   }
+
+   public boolean setProperty(long mask, long offset, long property) {
+      return setProperties((getProperties()&~mask)|((property<<offset)&mask));
+   }
+
+   /**
+    * Get String describing signals mapped by this entry<br>
+    * e.g. "GPIOE_6/LLWU_P16"
+    * @return List
+    */
+   public String getSignalNames() {
+      boolean doSeparator = false;
+      StringBuilder sb = new StringBuilder();
+      for (Signal s:getSignals()) {
+         if (doSeparator) {
+            sb.append("/");
+         }
+         sb.append(s.getName());
+         doSeparator = true;
+      }
+      return sb.toString();
+   }
 
 };

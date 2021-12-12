@@ -52,7 +52,7 @@ import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvide
  */
 public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
 
-   private DevicePeripheralsProviderInterface devicePeriperalsProviderInterface = null;
+   private DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = null;
    private SVDIdentifier                      fSvdIdentifier                    = null;
 
    // Details of interfaces selected by comboManufacturerSelect
@@ -78,7 +78,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       super(parentShell);
       //      this.devicePeripherals = null;
       fSvdIdentifier  = svdIdentifier;
-      devicePeriperalsProviderInterface = new DevicePeripheralsProviderInterface();
+      devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
    }
 
    /* (non-Javadoc)
@@ -151,7 +151,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
          return;
       }
       try {
-         IPeripheralDescriptionProvider peripheralDescriptionProvider = devicePeriperalsProviderInterface.getProvider(providerId);
+         IPeripheralDescriptionProvider peripheralDescriptionProvider = devicePeripheralsProviderInterface.getProvider(providerId);
          comboManufacturerSelect.setToolTipText(peripheralDescriptionProvider.getDescription());
          Vector<String> deviceNames = peripheralDescriptionProvider.getDeviceNames();
          for (String s:deviceNames) {
@@ -199,9 +199,9 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       comboManufacturerSelect = new Combo(grpInternal, SWT.BORDER|SWT.READ_ONLY);
       comboManufacturerSelect.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
       new Label(grpInternal, SWT.NONE);
-      providerIds = devicePeriperalsProviderInterface.getProviderIDs();
+      providerIds = devicePeripheralsProviderInterface.getProviderIDs();
       for(String pd:providerIds) {
-         comboManufacturerSelect.add(devicePeriperalsProviderInterface.getProviderName(pd));
+         comboManufacturerSelect.add(devicePeripheralsProviderInterface.getProviderName(pd));
       }
       comboManufacturerSelect.select(0);
       comboManufacturerSelect.addSelectionListener(new SelectionListener() {
@@ -241,7 +241,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
                // Map device name to SVD file name
                String message = null;
                try {
-                  IPeripheralDescriptionProvider provider = devicePeriperalsProviderInterface.getProvider(UsbdmPeripheralDescriptionProvider.ID);
+                  IPeripheralDescriptionProvider provider = devicePeripheralsProviderInterface.getProvider(UsbdmPeripheralDescriptionProvider.ID);
                   String mappedName = provider.getMappedDeviceName(ds.getText());
                   if (mappedName == null) {
                      message = "Cannot locate SVD file for device";
@@ -343,7 +343,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       }
       else {
          // Set up internal device
-         String providerName = devicePeriperalsProviderInterface.getProviderName(fSvdIdentifier.getproviderId());
+         String providerName = devicePeripheralsProviderInterface.getProviderName(fSvdIdentifier.getproviderId());
          comboManufacturerSelect.setText(providerName);
          populateDeviceList();
          try {

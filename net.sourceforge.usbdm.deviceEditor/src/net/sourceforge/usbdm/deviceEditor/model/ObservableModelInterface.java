@@ -22,12 +22,21 @@ public interface ObservableModelInterface {
     * @param listener to remove
     */
    public void removeListener(IModelChangeListener listener);
+   
    /**
     * Notify all listeners<br>
     * Clears RefreshPending
     */
    public void notifyListeners();
    
+//   /**
+//    * Notify all listeners apart from origin<br>
+//    * Clears RefreshPending
+//    * 
+//    * @param origin Listener to exclude
+//    */
+//   public void notifyListeners(Object origin);
+
    /**
     * Notify all listeners<br>
     * Clears RefreshPending

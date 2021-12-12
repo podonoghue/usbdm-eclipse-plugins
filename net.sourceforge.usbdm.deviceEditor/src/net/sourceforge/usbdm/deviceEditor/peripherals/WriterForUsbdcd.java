@@ -22,7 +22,10 @@ public class WriterForUsbdcd extends PeripheralWithState {
    @Override
    public int getSignalIndex(Signal function) {
       return -1;
-//      final String signalNames[] = {"CLKIN", "DM", "DP", "SOF_OUT", "ID",};
-//      return getSignalIndex(function, signalNames);
+   }
+
+   @Override
+   public boolean hasDigitalFeatures(Signal signal) {
+      return false;
    }
 }

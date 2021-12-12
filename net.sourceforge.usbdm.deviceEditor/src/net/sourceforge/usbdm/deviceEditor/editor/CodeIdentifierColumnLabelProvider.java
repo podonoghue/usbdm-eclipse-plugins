@@ -58,5 +58,10 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
       }
       return super.getToolTipText(element);
    }
+
+   public static String getColumnToolTipText() {
+      return "C Identifier for code generation\n"+
+            "If not blank, code will be generated for the peripheral or signal";
+   }
    
 }

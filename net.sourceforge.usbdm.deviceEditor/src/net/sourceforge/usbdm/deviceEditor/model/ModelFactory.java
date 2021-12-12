@@ -356,7 +356,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    void report() {
       for (String key:fDeviceInfo.getPins().keySet()) {
          Pin pin= fDeviceInfo.getPins().get(key);
-         System.err.println(String.format("Pin:%-15s => %-15s %s", pin.getName(), pin.getMappedSignals()));
+         System.err.println(String.format("Pin:%-15s => %-15s %s", pin.getName(), pin.getActiveMappings()));
       }
       for (String key:fDeviceInfo.getSignals().keySet()) {
          Signal signal = fDeviceInfo.getSignals().get(key);

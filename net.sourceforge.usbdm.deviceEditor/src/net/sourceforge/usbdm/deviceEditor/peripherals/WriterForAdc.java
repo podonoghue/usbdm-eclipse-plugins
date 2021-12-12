@@ -271,4 +271,10 @@ public class WriterForAdc extends PeripheralWithState {
          return rv;
       }
 
+      @Override
+      public boolean hasDigitalFeatures(Signal signal) {
+         // Analogue function
+         return false;
+      }
+
    }

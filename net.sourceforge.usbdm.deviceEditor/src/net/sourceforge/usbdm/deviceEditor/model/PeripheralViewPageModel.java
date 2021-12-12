@@ -4,15 +4,21 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
-import net.sourceforge.usbdm.deviceEditor.editor.InstanceColumnLabelProvider;
-import net.sourceforge.usbdm.deviceEditor.editor.InstanceEditingSupport;
-import net.sourceforge.usbdm.deviceEditor.editor.ModifierColumnLabelProvider;
-import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.InstanceColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.InstanceEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.NameColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinBooleanColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinBooleanEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.PinInterruptDmaColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinInterruptDmaEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.PinPullColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinPullEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
@@ -71,21 +77,33 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Peripherals and Signals", 200, new NameColumnLabelProvider(),              null, 
+                           new TreeColumnInformation("Peripherals and Signals", 160, new NameColumnLabelProvider(),              null, 
                                  "Signals grouped by peripheral"),
-                           new TreeColumnInformation("Mux:Pin",                 200, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer), 
+                           new TreeColumnInformation("Mux:Pin",                 120, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer), 
                                  "Mapping of peripheral signal\n"+
                                  "Blue bold text is used if multiple incompatible signals are mapped to a pin"),
-                           new TreeColumnInformation("Code Identifier",         200, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer), 
-                                 "C Identifier for code generation\n"+
-                                 "If not blank code will be generated for the peripheral or signal"),
+                           new TreeColumnInformation("Code Identifier",         120, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer), 
+                                 CodeIdentifierColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Modifier",                100, new ModifierColumnLabelProvider(),          new ModifierEditingSupport(viewer), 
                                  ModifierEditingSupport.getColumnToolTipText()),
-                           new TreeColumnInformation("Instance",                80,  new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer), 
+                           new TreeColumnInformation("Instance",                 80, new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer), 
                                  InstanceColumnLabelProvider.getColumnToolTipText()),
-                           new TreeColumnInformation("Description",             600, new DescriptionColumnLabelProvider(),       new DescriptionColumnEditingSupport(viewer), 
-                                 "Description of use - Appears as comment in user code\n"+
-                                 "Default description may be edited"),
+                           new TreeColumnInformation("Interrupt/DMA",           115, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),
+                                 PinInterruptDmaColumnLabelProvider.getColumnToolTipText()),
+                           new TreeColumnInformation("LK",                       35, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer),
+                                 "Lock PCR register after 1st write"),
+                           new TreeColumnInformation("DSE",                      40, PinBooleanColumnLabelProvider.getDse(),      PinBooleanEditingSupport.getDse(viewer),
+                                 "High drive strength enable"),
+                           new TreeColumnInformation("ODE",                      40, PinBooleanColumnLabelProvider.getOde(),      PinBooleanEditingSupport.getOde(viewer),
+                                 "Open Drain enable"),
+                           new TreeColumnInformation("PFE",                      40, PinBooleanColumnLabelProvider.getPfe(),      PinBooleanEditingSupport.getPfe(viewer),
+                                 "Pin filter enable"),
+                           new TreeColumnInformation("SRE",                      40, PinBooleanColumnLabelProvider.getSre(),      PinBooleanEditingSupport.getSre(viewer),
+                                 "Slew rate limit enable"),
+                           new TreeColumnInformation("Pull",                     45, new PinPullColumnLabelProvider(),            new PinPullEditingSupport(viewer),
+                                 PinPullColumnLabelProvider.getColumnToolTipText()),
+                           new TreeColumnInformation("Description",             600, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer),
+                                 DescriptionColumnLabelProvider.getColumnToolTipText()),
                      };
                      return fColumnInformation;
                   }

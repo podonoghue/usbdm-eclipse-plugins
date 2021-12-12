@@ -12,6 +12,8 @@ public enum MuxSelection {
    mux6(6,"6"),
    mux7(7,"7");
 
+   public static final MuxSelection ANALOGUE = MuxSelection.mux0;
+   
    public final int     value;
    public final String  shortName;
 
@@ -45,15 +47,13 @@ public enum MuxSelection {
    /**
     * Gets a short name for the mux values e.g. R = reset
     * 
-    * @param fValue
-    * @param shortName
     */
    public String getShortName() {
       return shortName;
    }
    /**
     * Indicates if the mux value is a mapped value i.e. 0...7<br>
-    * rather than one of the sentinel values
+    * rather than one of the special values fixed or unassigned
     * 
     * @return
     */

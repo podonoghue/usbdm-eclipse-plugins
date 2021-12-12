@@ -15,12 +15,16 @@ public class PinPullColumnLabelProvider extends PinPropertyColumnLabelProvider {
       if (value == null) {
          return null;
       }
-      return Pin.PinPullValue.valueOf(value.intValue()).getName();
+      return Pin.PinPullValue.valueOf(value.intValue()).getDecription();
    }
 
    @Override
    public String getToolTipText(Object element) {
       return "Pin pull-up/down select";
+   }
+   
+   public static String getColumnToolTipText() {
+      return "Enables pullup/down resistor on pin ";
    }
    
 }

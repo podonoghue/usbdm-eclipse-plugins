@@ -59,5 +59,10 @@ public class WriterForPower extends PeripheralWithState {
    public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
       // No PCR functions
    }
+
+   @Override
+   public boolean hasDigitalFeatures(Signal signal) {
+      return false;
+   }
    
 }
