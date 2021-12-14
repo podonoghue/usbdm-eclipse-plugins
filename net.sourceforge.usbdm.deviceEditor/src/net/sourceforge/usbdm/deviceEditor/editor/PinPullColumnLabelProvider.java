@@ -1,12 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
 public class PinPullColumnLabelProvider extends PinPropertyColumnLabelProvider {
 
    public PinPullColumnLabelProvider() {
-      super(Pin.PORT_PCR_PULL_MASK, Pin.PORT_PCR_PULL_SHIFT);
+      super(MappingInfo.PORT_PCR_PULL_MASK, MappingInfo.PORT_PCR_PULL_SHIFT);
    }
 
    @Override

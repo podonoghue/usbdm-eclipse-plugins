@@ -25,9 +25,4 @@ public class WriterForVref extends PeripheralWithState {
       final String signalNames[] = {"OUT"};
       return getSignalIndex(function, signalNames);
    }
-
-   @Override
-   public boolean hasDigitalFeatures(Signal signal) {
-      return false;
-   }
 }

@@ -50,4 +50,8 @@ public class WriterForNull extends Peripheral {
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
+
+   @Override
+   public void writeClassTemplate() {
+   }
 }

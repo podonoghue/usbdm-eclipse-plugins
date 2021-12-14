@@ -219,16 +219,48 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Get Pin Interrupt/DMA functions
+    * Get PCR value (including MUX for convenience)<br>
+    * Unavailable properties are returned as 0 (No PCR or Analogue)
     * 
-    * @return function
+    * @return PCR value
     */
-   public PinIrqDmaValue getInterruptDmaSetting() {
-      return PinIrqDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
+   public long getPcr() {
+      if (!hasPcr()) {
+         return 0;
+      }
+      
+      long value = (fProperties & PROPERTIES_MASK);
+
+      // Force bits as necessary
+      value = (value&~fSignals.get(0).getPcrForcedBitsMask())|fSignals.get(0).getPcrForcedBitsValueMask();
+      
+      if (!hasDigitalFeatures()) {
+         // Clear bits not available
+         value &= PORT_PCR_LK_MASK;
+      }
+      
+      if (fMuxValue.isMappedValue()) {
+         value |= fMuxValue.value<<PORT_PCR_MUX_SHIFT;
+      }
+      return value;
    }
 
    /**
-    * Set Pin Interrupt/DMA functions
+    * Get Pin Interrupt/DMA property field
+    * 
+    * @return PinIrq property or null if unavailable (No PCR or Analogue)
+    */
+   public PinIrqDmaValue getInterruptDmaSetting() {
+      Long value = getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT);
+      if (value == null) {
+         return null;
+      }
+      return PinIrqDmaValue.valueOf(value.intValue());
+   }
+
+   /**
+    * Set Pin Interrupt/DMA functions<br>
+    * Changes to unavailable properties are ignored (No PCR or Analogue).
     * 
     * @param value Function to set
     */
@@ -239,14 +271,19 @@ public class MappingInfo extends ObservableModel {
    /**
     * Get Pin Interrupt/DMA functions
     * 
-    * @return function
+    * @return PinPullValue property or null if unavailable (No PCR or Analogue)
     */
    public PinPullValue getPullSetting() {
-      return PinPullValue.valueOf((int)getProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT));
+      Long value = getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT);
+      if (value == null) {
+         return null;
+      }
+      return PinPullValue.valueOf(value.intValue());
    }
 
    /**
-    * Set Pin Interrupt/DMA functions
+    * Set Pin Interrupt/DMA functions<br>
+    * Changes to unavailable properties are ignored (No PCR or Analogue).
     * 
     * @param value Function to set
     */
@@ -255,42 +292,59 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Get PCR value (including MUX for convenience)
+    * Get PCR value (excluding MUX)<br>
+    * Unavailable properties are returned as 0 (Analogue)
     * 
-    * @return PCR value
+    * @return PCR value or null if properties doesn't exist (No PCR)
     */
-   public long getProperties() {
-      
+   public Long getProperties() {
+      if (!hasPcr()) {
+         return null;
+      }
       long value = (fProperties & PROPERTIES_MASK);
+
+      // Force bits as necessary
       value = (value&~fSignals.get(0).getPcrForcedBitsMask())|fSignals.get(0).getPcrForcedBitsValueMask();
       
-      if (fMuxValue.isMappedValue()) {
-         value |= fMuxValue.value<<PORT_PCR_MUX_SHIFT;
+      if (!hasDigitalFeatures()) {
+         // Clear bits not available
+         value &= PORT_PCR_LK_MASK;
       }
       return value;
    }
 
    /**
-    * Set PCR value (excluding MUX)
+    * Set PCR value (excluding MUX)<br>
+    * Changes to unavailable properties are ignored. 
     * 
     * @param properties PCR value (excluding MUX)
     * 
-    * @return  True if value changed
+    * @return  True if properties changed
     */
    public boolean setProperties(long properties) {
-      
+      if (!hasPcr()) {
+         return false;
+      }
       properties &= PROPERTIES_MASK;
+      
+      // Force bits as necessary
       properties = (properties&~fSignals.get(0).getPcrForcedBitsMask())|fSignals.get(0).getPcrForcedBitsValueMask();
       
+      if (!hasDigitalFeatures()) {
+         // Clear bits not available
+         properties &= PORT_PCR_LK_MASK;
+      }
+
       if (fProperties == properties) {
          return false;
       }
-//      System.err.println("setProperties("+Long.toHexString(properties)+")");
       fProperties = properties;
       fPin.modelElementChanged(this);
       for (Signal signal:getSignals()) {
          signal.modelElementChanged(this);
       }
+      fPin.modelElementChanged(this);
+      fPin.setDirty(true);
       return true;
    }
 
@@ -300,14 +354,28 @@ public class MappingInfo extends ObservableModel {
     * @param mask    Mask to extract field 
     * @param offset  Offset to shift after extraction
     * 
-    * @return Extracted field from property
+    * @return Extracted field from property or null if doesn't exist (no PCR or Analogue)
     */
-   public long getProperty(long mask, long offset) {
-      return (getProperties()&mask)>>offset;
+   public Long getProperty(long mask, long offset) {
+      Long value = getProperties();
+      if (value == null) {
+         return null;
+      }
+      if ((offset != PORT_PCR_LK_SHIFT) && !hasDigitalFeatures()) {
+         return null;
+      }
+      return (value&mask)>>offset;
    }
 
+   /**
+    * Set PCR value (excluding MUX)
+    * 
+    * @param properties PCR value (excluding MUX)
+    * 
+    * @return  True if value changed
+    */
    public boolean setProperty(long mask, long offset, long property) {
-      return setProperties((getProperties()&~mask)|((property<<offset)&mask));
+      return setProperties((getPcr()&~mask)|((property<<offset)&mask));
    }
 
    /**
@@ -327,5 +395,39 @@ public class MappingInfo extends ObservableModel {
       }
       return sb.toString();
    }
+
+   /**
+    * Indicates if this mapping uses a PCR i.e. it is not fixed
+    * 
+    * @return
+    */
+   public boolean hasPcr() {
+      return (fMuxValue.isMappedValue());
+   }
+
+   /**
+    * Indicates if this mapping has digital features i.e. has a PCR and is not Analogue function
+    * 
+    * @return
+    */
+   public boolean hasDigitalFeatures() {
+      return hasPcr() && (fMuxValue != MuxSelection.ANALOGUE);
+   }
+   
+// public static String getPcrValueAsString(long pcrValue) {
+// StringBuilder sb = new StringBuilder();
+// sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
+// sb.append("PORT_PCR_DSE(" +((pcrValue & PORT_PCR_DSE_MASK) >> PORT_PCR_DSE_SHIFT)+")|");
+// sb.append("PORT_PCR_IRQC("+((pcrValue & PORT_PCR_IRQC_MASK)>> PORT_PCR_IRQC_SHIFT)+")|");
+// sb.append("PORT_PCR_ISF(" +((pcrValue & PORT_PCR_ISF_MASK) >> PORT_PCR_ISF_SHIFT)+")|");
+// sb.append("PORT_PCR_LK("  +((pcrValue & PORT_PCR_LK_MASK) >> PORT_PCR_LK_SHIFT)+")|");
+// sb.append("PORT_PCR_ODE(" +((pcrValue & PORT_PCR_ODE_MASK) >> PORT_PCR_ODE_SHIFT)+")|");
+// sb.append("PORT_PCR_PFE(" +((pcrValue & PORT_PCR_PFE_MASK) >> PORT_PCR_PFE_SHIFT)+")|");
+// sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
+// sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
+// sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
+//
+// return sb.toString();
+//}
 
 };

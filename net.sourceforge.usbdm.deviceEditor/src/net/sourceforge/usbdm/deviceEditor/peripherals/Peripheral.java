@@ -1024,7 +1024,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
                String pinInfoInitString = SignalTemplate.getPinInfoInitString(mappingInfo.getPin());
                pinMappingHeaderFile.write(
                      String.format(indent+USED_TEMPLATE, index, signal.getName(), 
-                           mappingInfo.getPin().getNameWithLocation(), pinInfoInitString, PcrInitialiser.longTo4Hex(mappingInfo.getProperties())));
+                           mappingInfo.getPin().getNameWithLocation(), pinInfoInitString, PcrInitialiser.longTo5Hex(mappingInfo.getPcr())));
             }
          } while(false);
          if (mappedPin == null) {
@@ -1115,7 +1115,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       
       // Additional, peripheral specific, information
       writeInfoConstants(pinMappingHeaderFile);
-
+      
+      writeClassTemplate();
+      
       // Write PCR Table
       writeInfoTables(pinMappingHeaderFile);
       
@@ -1125,6 +1127,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       // Close class
       pinMappingHeaderFile.write(String.format("};\n\n"));
    }
+
+   public abstract void writeClassTemplate();
 
    /**
     * Indicate if the peripheral has some pins that <i><b>may be</b></i> mapped to a package location<br>
@@ -1155,15 +1159,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
       final String INIT_PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
-            indent+"    * Initialise pins used by peripheral\n"+
-            indent+"    * \n"+
-            indent+"    * @param pcrValue PCR value controlling pin options\n"+
+            indent+"    * Initialise pins used by peripheral\n\n"+
+            indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
             indent+"    */\n"+
             indent+"   static void initPCRs() {\n";
 
       final String CLEAR_PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
-            indent+"    * Resets pins used by peripheral\n"+
+            indent+"    * Resets pins used by peripheral\n\n"+
+            indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
             indent+"    */\n"+
             indent+"   static void clearPCRs() {\n";
 
@@ -1177,7 +1181,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          pcrInitialiser.addSignal(signal);
       }
       
-      String initClocksBuffer = pcrInitialiser.getInitPortClocksStatement(indent);
+      String initClocksBuffer = pcrInitialiser.getEnablePortClocksStatement(indent);
 
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
@@ -1595,17 +1599,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void addLinkedSignals() {
    }
 
-   /**
-    * Indicate if the signal has digital features when mapped to a pin
-    * 
-    * @param signal  Signal to check
-    * 
-    * @return  True if a digital function
-    */
-   public boolean hasDigitalFeatures(Signal signal) {
-      return true;
-   }
-   
    /**
     * Get mask indicating forced bits in PCR value for the given signal
     * 

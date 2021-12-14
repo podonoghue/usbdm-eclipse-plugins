@@ -5,12 +5,13 @@ import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 
 public class PinPullEditingSupport extends PinPropertyEditingSupport {
 
    public PinPullEditingSupport(ColumnViewer viewer) {
-      super(viewer, Pin.PORT_PCR_PULL_MASK, Pin.PORT_PCR_PULL_SHIFT);
+      super(viewer, MappingInfo.PORT_PCR_PULL_MASK, MappingInfo.PORT_PCR_PULL_SHIFT);
    }
 
    @Override

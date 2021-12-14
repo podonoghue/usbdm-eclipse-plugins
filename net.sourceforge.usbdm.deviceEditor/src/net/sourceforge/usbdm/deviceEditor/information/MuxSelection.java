@@ -53,7 +53,7 @@ public enum MuxSelection {
    }
    /**
     * Indicates if the mux value is a mapped value i.e. 0...7<br>
-    * rather than one of the special values fixed or unassigned
+    * rather than one of the special values fixed or unassigned.
     * 
     * @return
     */

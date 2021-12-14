@@ -1,10 +1,14 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 
 public abstract class PinPropertyEditingSupport extends EditingSupport {
@@ -18,23 +22,48 @@ public abstract class PinPropertyEditingSupport extends EditingSupport {
       fMask   = mask;
    }
 
-   @Override
-   protected boolean canEdit(Object model) {
+   public static MappingInfo getMappingInfo(Object model) {
+      MappingInfo mappingInfo = null;
+
       if (model instanceof SignalModel) {
          Signal signal = ((SignalModel) model).getSignal();
-         return (signal.getMappedPin() != Pin.UNASSIGNED_PIN) && signal.hasDigitalFeatures();
+         mappingInfo = signal.getFirstMappedPinInformation();
       }
-      return false;
+      else if (model instanceof PinModel) {
+         Pin pin = ((PinModel)model).getPin();
+         ArrayList<MappingInfo> mappedSignals = pin.getActiveMappings();
+         if ((mappedSignals.size()==0) || (mappedSignals.size()>1)) {
+            // Unmapped or multiply mapped signals
+            return null;
+         }
+         mappingInfo = mappedSignals.get(0);
+      }
+      return mappingInfo;
+   }
+   
+   @Override
+   protected boolean canEdit(Object model) {
+      MappingInfo mappingInfo = getMappingInfo(model);
+      if (mappingInfo == null) {
+         return false;
+      }
+      return mappingInfo.getProperty(fMask, fOffset) != null;
    }
 
-   protected Long getValueAsLong(Object model) {
-      Signal signal = ((SignalModel) model).getSignal();
-      return signal.getProperty(fMask, fOffset);
+   public Long getValueAsLong(Object model) {
+      MappingInfo mappingInfo = getMappingInfo(model);
+      if (mappingInfo == null) {
+         return null;
+      }
+      return mappingInfo.getProperty(fMask, fOffset);
    }
 
    protected void setValueAsLong(Object model, Long value) {
-      Signal signal = ((SignalModel) model).getSignal();
-      signal.setProperty(fMask, fOffset, value.longValue());
+      MappingInfo mappingInfo = getMappingInfo(model);
+      if (mappingInfo == null) {
+         return;
+      }
+      mappingInfo.setProperty(fMask, fOffset, value.longValue());
       getViewer().update(model, null);
    }
 }

@@ -17,6 +17,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
@@ -108,7 +109,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Writes template-based definitions to be included in the information class describing the peripheral<br>
+    * Writes template-based C code to be included in the information class describing the peripheral<br>
     * 
     * <b>Example:</b>
     * <pre>
@@ -116,17 +117,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     *
     *    //! Hardware base address as uint32_t 
     *    static constexpr uint32_t baseAddress = USB0_BasePtr;
-    *    
-    *   __attribute__((always_inline)) static volatile USB_Type &usb() {
-    *      return *(USB_Type *)baseAddress;
-    *   }
-    *
-    *    //! Number of IRQs for hardware
-    *    static constexpr uint32_t irqCount  = 1;
-    * 
-    *    //! IRQ numbers for hardware
-    *    static constexpr IRQn_Type irqNums[]  = {
-    *       USB0_IRQn, };
+    *    ...
     * </pre>
     * 
     * @param pinMappingHeaderFile   Where to write definitions
@@ -145,6 +136,36 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       String template = fMenuData.getTemplate("info", "");
       if (template != null) {
          pinMappingHeaderFile.write(substitute(template));
+      }
+   }
+   
+   /**
+    * Create variable containing the template-based C code to be included in<br>
+    * the peripheral class describing the peripheral<br>
+    * 
+    * <b>Example:</b>
+    * <pre>
+    *    // Template:usb0_mk
+    *    ...
+    * </pre>
+    * 
+    * @throws IOException 
+    * @throws Exception 
+    */
+   @Override
+   public void writeClassTemplate() {
+      if (fMenuData == null) {
+//         System.err.println("No fData for " + getName());
+         return;
+      }
+//      System.err.println("fData for " + getName());
+      // Get default template for info class
+      String template = fMenuData.getTemplate("class", "");
+      if (!template.isBlank()) {
+         // Create or replace variable
+         StringVariable hardwareDefinitionsVar = new StringVariable("Class Info", "/"+getBaseName()+"/classInfo", substitute(template));
+         hardwareDefinitionsVar.setDerived(true);
+         fDeviceInfo.addOrReplaceVariable(hardwareDefinitionsVar.getKey(), hardwareDefinitionsVar);
       }
    }
    
@@ -222,7 +243,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    /**
-    * Create a variable
+    * Adds a variable with this as listener
     * 
     * @param variable  Variable to add
     * 
@@ -246,6 +267,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       map.put(makeKey("_name"),       getName());
       map.put(makeKey("_class"),      getClassName());
       map.put(makeKey("_base_class"), getClassBaseName());
+      map.put(makeKey("_base_name"),  getBaseName());
       return substitute(input, map);
    }
    

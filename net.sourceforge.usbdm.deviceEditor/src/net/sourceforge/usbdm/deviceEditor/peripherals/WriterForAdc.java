@@ -8,12 +8,19 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
  */
 public class WriterForAdc extends PeripheralWithState {      
+
+   @Override
+   public MenuData loadModels() throws Exception {
+      // TODO Auto-generated method stub
+      return super.loadModels();
+   }
 
    /** Signals that use this writer */
    protected InfoTable fDmFunctions = new InfoTable("InfoDM");
@@ -269,12 +276,6 @@ public class WriterForAdc extends PeripheralWithState {
          rv.add(fDpFunctions);
          rv.add(fDmFunctions);
          return rv;
-      }
-
-      @Override
-      public boolean hasDigitalFeatures(Signal signal) {
-         // Analogue function
-         return false;
       }
 
    }

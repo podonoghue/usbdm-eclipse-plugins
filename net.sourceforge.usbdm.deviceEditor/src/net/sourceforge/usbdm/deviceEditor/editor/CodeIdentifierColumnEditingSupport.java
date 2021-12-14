@@ -40,11 +40,7 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof SignalModel) ||
-          (element instanceof PeripheralSignalsModel)) {
-         return new StringCellEditor(viewer.getTree());
-      }
-      return null;
+      return new StringCellEditor(viewer.getTree());
    }
 
    @Override

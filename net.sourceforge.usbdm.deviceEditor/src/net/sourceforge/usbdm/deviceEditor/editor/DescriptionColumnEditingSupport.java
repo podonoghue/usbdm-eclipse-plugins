@@ -35,12 +35,7 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof PinModel) ||
-            (element instanceof SignalModel) ||
-            (element instanceof PeripheralSignalsModel)) {
-         return new StringCellEditor(viewer.getTree());
-      }
-      return null;
+      return new StringCellEditor(viewer.getTree());
    }
 
    @Override
@@ -86,19 +81,18 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
          this(parent, SWT.SINGLE);
       }
 
-      @Override
-      protected Object doGetValue() {
-         Object item = super.doGetValue();
-//         System.err.println("StringCellEditor.doGetValue value = " + item + ", " + item.getClass());
-         return item;
-      }
-
-      @Override
-      protected void doSetValue(Object value) {
-//         System.err.println("StringCellEditor.doSetValue value = " + value + ", " + value.getClass());
-         super.doSetValue(value);
-      }
+//      @Override
+//      protected Object doGetValue() {
+//         Object item = super.doGetValue();
+////         System.err.println("StringCellEditor.doGetValue value = " + item + ", " + item.getClass());
+//         return item;
+//      }
+//
+//      @Override
+//      protected void doSetValue(Object value) {
+////         System.err.println("StringCellEditor.doSetValue value = " + value + ", " + value.getClass());
+//         super.doSetValue(value);
+//      }
+      
    }
-  
-
 }

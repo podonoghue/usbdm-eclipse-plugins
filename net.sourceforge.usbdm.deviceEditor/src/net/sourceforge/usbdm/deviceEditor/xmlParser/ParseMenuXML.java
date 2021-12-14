@@ -157,7 +157,8 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @param namespace  Namespace "info", "class", "usbdm", "all"
        * @param key        Key for template (may be "")
-       * @return
+       * 
+       * @return template value or empty string
        */
       public String getTemplate(String namespace, String key) {
          key = makeKey(key, namespace);

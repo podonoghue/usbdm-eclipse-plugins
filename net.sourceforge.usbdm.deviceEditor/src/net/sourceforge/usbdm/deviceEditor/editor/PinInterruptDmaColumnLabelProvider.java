@@ -1,12 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
 public class PinInterruptDmaColumnLabelProvider extends PinPropertyColumnLabelProvider {
 
    public PinInterruptDmaColumnLabelProvider() {
-      super(Pin.PORT_PCR_IRQC_MASK, Pin.PORT_PCR_IRQC_SHIFT);
+      super(MappingInfo.PORT_PCR_IRQC_MASK, MappingInfo.PORT_PCR_IRQC_SHIFT);
    }
 
    @Override

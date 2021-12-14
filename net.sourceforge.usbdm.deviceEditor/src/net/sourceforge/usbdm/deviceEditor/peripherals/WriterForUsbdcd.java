@@ -23,9 +23,4 @@ public class WriterForUsbdcd extends PeripheralWithState {
    public int getSignalIndex(Signal function) {
       return -1;
    }
-
-   @Override
-   public boolean hasDigitalFeatures(Signal signal) {
-      return false;
-   }
 }

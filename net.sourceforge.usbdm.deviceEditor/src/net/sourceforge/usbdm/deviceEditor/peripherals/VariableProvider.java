@@ -84,7 +84,7 @@ public class VariableProvider {
     * @param name
     * 
     * @return key for the name<br>
-    * If the name is relative then the key will be prefixed with the provider path (e.g. ClockFreq => /PDB/ClockFreq)<br>
+    * If the name is relative then the key will be prefixed with the provider path (e.g. ClockFreq => /PDB0/ClockFreq)<br>
     * Otherwise the original name is returned as the key unchanged (e.g. /SIM/system_bus_clock would be unchanged)
     */
    public String makeKey(String name) {

@@ -368,9 +368,8 @@ public class WriteFamilyCpp {
     *    ...
     *    PORTE->GPCHR = 0x0500UL|PORT_GPCHR_GPWE(0x0300UL);
     * </pre>
-    * @return StringVariable containing statements
     * 
-    * @throws Exception
+    * @return StringVariable containing statements
     */
    private StringVariable writePinMappingStatements() {
       
@@ -378,15 +377,24 @@ public class WriteFamilyCpp {
 
       PcrInitialiser pcrInitialiser = new PcrInitialiser();
 
+      boolean warningDone = false;
       for (String pinName : fDeviceInfo.getPins().keySet()) {
          Pin pin = fDeviceInfo.getPins().get(pinName);
          String errorMsg = pcrInitialiser.addPin(pin); 
          if (errorMsg != null) {
-            sb.append(String.format("// PCR Not initialised for %-10s : %s\n", pinName, errorMsg));
+            warningDone = true;
+            sb.append(String.format("#warning \"PCR Not initialised for %-10s : %s\"\n", pinName, errorMsg));
          }
       }
-      sb.append(pcrInitialiser.getInitPortClocksStatement(""));
-      sb.append(pcrInitialiser.getPcrInitStatements(""));
+      if (warningDone) {
+         sb.append("\n");
+      }
+      sb.append(pcrInitialiser.getEnablePortClocksStatement("   "));
+      sb.append(pcrInitialiser.getGlobalPcrInitStatements("   "));
+      sb.append("\n" + 
+                "   if constexpr (ForceLockoutUnbondedPins) {\n");
+      sb.append(pcrInitialiser.getGlobalPcrLockoutStatements("      "));
+      sb.append("   }\n");
       
       StringVariable portInitialisationVariable = new StringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY);
       portInitialisationVariable.setValue(sb.toString());

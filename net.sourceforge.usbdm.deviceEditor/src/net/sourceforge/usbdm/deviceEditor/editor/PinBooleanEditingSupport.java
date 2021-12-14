@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 
-import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 
 public class PinBooleanEditingSupport extends PinPropertyEditingSupport {
 
@@ -31,22 +31,22 @@ public class PinBooleanEditingSupport extends PinPropertyEditingSupport {
    }
    
    public static PinBooleanEditingSupport getLk(ColumnViewer viewer) {
-      return new PinBooleanEditingSupport(viewer, Pin.PORT_PCR_LK_MASK, Pin.PORT_PCR_LK_SHIFT);
+      return new PinBooleanEditingSupport(viewer, MappingInfo.PORT_PCR_LK_MASK, MappingInfo.PORT_PCR_LK_SHIFT);
    }
    
    public static PinBooleanEditingSupport getDse(ColumnViewer viewer) {
-      return new PinBooleanEditingSupport(viewer, Pin.PORT_PCR_DSE_MASK, Pin.PORT_PCR_DSE_SHIFT);
+      return new PinBooleanEditingSupport(viewer, MappingInfo.PORT_PCR_DSE_MASK, MappingInfo.PORT_PCR_DSE_SHIFT);
    }
    
    public static PinBooleanEditingSupport getOde(ColumnViewer viewer) {
-      return new PinBooleanEditingSupport(viewer, Pin.PORT_PCR_ODE_MASK, Pin.PORT_PCR_ODE_SHIFT);
+      return new PinBooleanEditingSupport(viewer, MappingInfo.PORT_PCR_ODE_MASK, MappingInfo.PORT_PCR_ODE_SHIFT);
    }
    
    public static PinBooleanEditingSupport getPfe(ColumnViewer viewer) {
-      return new PinBooleanEditingSupport(viewer, Pin.PORT_PCR_PFE_MASK, Pin.PORT_PCR_PFE_SHIFT);
+      return new PinBooleanEditingSupport(viewer, MappingInfo.PORT_PCR_PFE_MASK, MappingInfo.PORT_PCR_PFE_SHIFT);
    }
    
    public static PinBooleanEditingSupport getSre(ColumnViewer viewer) {
-      return new PinBooleanEditingSupport(viewer, Pin.PORT_PCR_SRE_MASK, Pin.PORT_PCR_SRE_SHIFT);
+      return new PinBooleanEditingSupport(viewer, MappingInfo.PORT_PCR_SRE_MASK, MappingInfo.PORT_PCR_SRE_SHIFT);
    }
 }

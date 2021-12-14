@@ -5,12 +5,13 @@ import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 
 public class PinInterruptDmaEditingSupport extends PinPropertyEditingSupport {
 
    public PinInterruptDmaEditingSupport(ColumnViewer viewer) {
-      super(viewer, Pin.PORT_PCR_IRQC_MASK, Pin.PORT_PCR_IRQC_SHIFT);
+      super(viewer, MappingInfo.PORT_PCR_IRQC_MASK, MappingInfo.PORT_PCR_IRQC_SHIFT);
    }
 
    @Override

@@ -35,8 +35,8 @@ public class TemplateInformation {
    public TemplateInformation(String key, String nameSpace, int dimension) {
       fKey        = key;
       fNameSpace  = nameSpace;
-      fBuilder    = new StringBuilder(100); 
       fDimension  = dimension;
+      fBuilder    = new StringBuilder(100); 
    }
    
    /**

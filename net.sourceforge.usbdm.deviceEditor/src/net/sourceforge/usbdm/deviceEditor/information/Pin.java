@@ -45,9 +45,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    private MuxSelection fResetMuxValue = MuxSelection.unassigned;
 
-   /** PCR value (excluding MUX) */
-   private long fProperties = 0;
-
    /** Status indicating if multiple Signals are mapped to this pin */ 
    private Status fStatus = null;
 
@@ -610,8 +607,12 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return "$pin$"+fName+"_muxSetting";
    }
 
-   private  final String getPCRKey() {
+   private  final String getOldPCRKey() {
       return "$signal$"+fName+"_pcrSetting";
+   }
+
+   private  final String getPCRKey() {
+      return "$pin$"+fName+"_pcrSetting";
    }
 
    /**
@@ -638,22 +639,23 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             info.select(null, true);
          }
          /*
-          * Load new style setting
+          * Migrate old style setting
           */
-         String propString = settings.get(getPCRKey()+"_"+muxSelection.getShortName()); 
+         String propString = settings.get(getOldPCRKey()+"_"+muxSelection.getShortName()); 
          if (propString != null) {
             long properties = Long.parseUnsignedLong(propString, 16);
             info.select(null, true);
             info.setProperties(properties);
          }
-      }
-      String pcrValue = settings.get(getPCRKey());
-      try {
-         if (pcrValue != null) {
-            setProperties(Long.parseUnsignedLong(pcrValue, 16));
+         /*
+          * Load new style setting
+          */
+         propString = settings.get(getPCRKey()+"_"+muxSelection.getShortName()); 
+         if (propString != null) {
+            long properties = Long.parseUnsignedLong(propString, 16);
+            info.select(null, true);
+            info.setProperties(properties);
          }
-      } catch (NumberFormatException e) {
-         e.printStackTrace();
       }
       /*
        * Migrate old settings
@@ -681,11 +683,8 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          }
          MappingInfo info = fMappableSignals.get(muxSelection);
          if (info.isSelected()) {
-            settings.put(getPCRKey()+"_"+muxSelection.getShortName(), Long.toHexString(info.getProperties()));
+            settings.put(getPCRKey()+"_"+muxSelection.getShortName(), Long.toHexString(info.getPcr()));
          }
-      }
-      if (getProperties() != 0) {
-         settings.put(getPCRKey(), Long.toHexString(0x00FFFF&getProperties()));
       }
    }
 
@@ -895,26 +894,26 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
 
-   /**
-    * Get Pin Interrupt/DMA functions
-    * 
-    * @return function
-    */
-   public PinIrqDmaValue getInterruptDmaSetting() {
-      return PinIrqDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
-   }
-
-   /**
-    * Set Pin Interrupt/DMA functions
-    * 
-    * @param value Function to set
-    */
-   public void setInterruptDmaSetting(PinIrqDmaValue value) {
-      if (this == UNASSIGNED_PIN) {
-         return;
-      }
-      setProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT, value.getValue());
-   }
+//   /**
+//    * Get Pin Interrupt/DMA functions
+//    * 
+//    * @return function
+//    */
+//   public PinIrqDmaValue getInterruptDmaSetting() {
+//      return PinIrqDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
+//   }
+//
+//   /**
+//    * Set Pin Interrupt/DMA functions
+//    * 
+//    * @param value Function to set
+//    */
+//   public void setInterruptDmaSetting(PinIrqDmaValue value) {
+//      if (this == UNASSIGNED_PIN) {
+//         return;
+//      }
+//      setProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT, value.getValue());
+//   }
 
    /**
     * Class representing Pin Interrupt/DMA functions
@@ -1005,99 +1004,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
 
-   /**
-    * Get Pin Interrupt/DMA functions
-    * 
-    * @return function
-    */
-   public PinPullValue getPullSetting() {
-      return PinPullValue.valueOf((int)getProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT));
-   }
-
-   /**
-    * Set Pin Interrupt/DMA functions
-    * 
-    * @param value Function to set
-    */
-   public void setPullSetting(PinPullValue value) {
-      if (this == UNASSIGNED_PIN) {
-         return;
-      }
-      setProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT, value.getValue());
-   }
-
-   public final static long PORT_PCR_PULL_SHIFT  =  0;                             
-   public final static long PORT_PCR_PULL_MASK   =  (0x03L << PORT_PCR_PULL_SHIFT);  
-   public final static long PORT_PCR_SRE_SHIFT   =  2;                             
-   public final static long PORT_PCR_SRE_MASK    =  (0x01L << PORT_PCR_SRE_SHIFT); 
-   public final static long PORT_PCR_PFE_SHIFT   =  4;                             
-   public final static long PORT_PCR_PFE_MASK    =  (0x01L << PORT_PCR_PFE_SHIFT); 
-   public final static long PORT_PCR_ODE_SHIFT   =  5;                             
-   public final static long PORT_PCR_ODE_MASK    =  (0x01L << PORT_PCR_ODE_SHIFT); 
-   public final static long PORT_PCR_DSE_SHIFT   =  6;                             
-   public final static long PORT_PCR_DSE_MASK    =  (0x01L << PORT_PCR_DSE_SHIFT); 
-   public final static long PORT_PCR_MUX_SHIFT   =  8;                             
-   public final static long PORT_PCR_MUX_MASK    =  (0x07L << PORT_PCR_MUX_SHIFT); 
-   public final static long PORT_PCR_LK_SHIFT    =  15;                            
-   public final static long PORT_PCR_LK_MASK     =  (0x01L << PORT_PCR_LK_SHIFT);  
-   public final static long PORT_PCR_IRQC_SHIFT  =  16;                            
-   public final static long PORT_PCR_IRQC_MASK   =  (0x0FL << PORT_PCR_IRQC_SHIFT); 
-   public final static long PORT_PCR_ISF_SHIFT   =  24;                            
-   public final static long PORT_PCR_ISF_MASK    =  (0x01L << PORT_PCR_ISF_SHIFT);
-   // This is a dummy mask used internally
-//   public final static long PORT_POLARITY_SHIFT  =  30;                            
-//   public final static long PORT_POLARITY_MASK   =  (0x01L << PORT_POLARITY_SHIFT); 
-   public final static long PCR_MASK        =  
-         PORT_PCR_PULL_MASK|PORT_PCR_SRE_MASK|PORT_PCR_PFE_MASK|PORT_PCR_ODE_MASK|
-         PORT_PCR_DSE_MASK|PORT_PCR_LK_MASK|PORT_PCR_IRQC_MASK; 
-   public final static long PROPERTIES_MASK        = PCR_MASK; 
-
-   /**
-    * Get PCR value (excluding MUX)
-    * 
-    * @return PCR value (excluding MUX)
-    */
-   public long getProperties() {
-      return fProperties & PROPERTIES_MASK;
-   }
-
-   /**
-    * Set PCR value (excluding MUX)
-    * 
-    * @param properties PCR value (excluding MUX)
-    */
-   public boolean setProperties(long properties) {
-      if (this == UNASSIGNED_PIN) {
-         return false;
-      }
-      properties &= PROPERTIES_MASK;
-      if (fProperties == properties) {
-         return false;
-      }
-      fProperties = properties;
-      setDirty(true);
-      return true;
-   }
-
-   /**
-    * Get property (field from getProperties())
-    * 
-    * @param mask    Mask to extract field 
-    * @param offset  Offset to shift after extraction
-    * 
-    * @return Extracted field from property
-    */
-   public long getProperty(long mask, long offset) {
-      return (getProperties()&mask)>>offset;
-   }
-
-   public boolean setProperty(long mask, long offset, long property) {
-      if (this == UNASSIGNED_PIN) {
-         return false;
-      }
-      return setProperties((getProperties()&~mask)|((property<<offset)&mask));
-   }
-
    @Override
    public void modelStructureChanged(ObservableModel model) {
       if (this == UNASSIGNED_PIN) {
@@ -1114,35 +1020,4 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       notifyStatusListeners();
    }
 
-   /**
-    * Get PCR value for pin combined with mux value given
-    * 
-    * @param muxValue Mux value to combine with PCR values for pin
-    * 
-    * @return PCR value
-    */
-   public long getPcrValue(MuxSelection muxValue) {
-      return (getProperties()&PCR_MASK) | ((muxValue.value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
-   }
-
-//   public String getPcrValueAsString() {
-//      long pcrValue = getProperties() | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
-//      return getPcrValueAsString(pcrValue);
-//   }
-//
-//   public static String getPcrValueAsString(long pcrValue) {
-//      StringBuilder sb = new StringBuilder();
-//      sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
-//      sb.append("PORT_PCR_DSE(" +((pcrValue & PORT_PCR_DSE_MASK) >> PORT_PCR_DSE_SHIFT)+")|");
-//      sb.append("PORT_PCR_IRQC("+((pcrValue & PORT_PCR_IRQC_MASK)>> PORT_PCR_IRQC_SHIFT)+")|");
-//      sb.append("PORT_PCR_ISF(" +((pcrValue & PORT_PCR_ISF_MASK) >> PORT_PCR_ISF_SHIFT)+")|");
-//      sb.append("PORT_PCR_LK("  +((pcrValue & PORT_PCR_LK_MASK) >> PORT_PCR_LK_SHIFT)+")|");
-//      sb.append("PORT_PCR_ODE(" +((pcrValue & PORT_PCR_ODE_MASK) >> PORT_PCR_ODE_SHIFT)+")|");
-//      sb.append("PORT_PCR_PFE(" +((pcrValue & PORT_PCR_PFE_MASK) >> PORT_PCR_PFE_SHIFT)+")|");
-//      sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
-//      sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
-//      sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
-//
-//      return sb.toString();
-//   }
 }
