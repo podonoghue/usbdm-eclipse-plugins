@@ -13,19 +13,19 @@ import org.eclipse.swt.widgets.Display;
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
-abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider {
+public abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider {
 
-   protected static Image errorImage       = null;
-   protected static Image warningImage     = null;
-   protected static Image lockedImage      = null;
-   protected static Image checkedImage     = null;
-   protected static Image uncheckedImage   = null;
-   protected static Image greycheckedImage = null;
-   protected static Image disabledImage    = null;
-   protected static Image emptyImage       = null;
-   protected static Image upArrowImage     = null;
-   protected static Image downArrowImage   = null;
-   protected static Image upDownArrowImage = null;
+   public static Image errorImage       = null;
+   public static Image warningImage     = null;
+   public static Image lockedImage      = null;
+   public static Image checkedImage     = null;
+   public static Image uncheckedImage   = null;
+   public static Image greycheckedImage = null;
+   public static Image disabledImage    = null;
+   public static Image emptyImage       = null;
+   public static Image upArrowImage     = null;
+   public static Image downArrowImage   = null;
+   public static Image upDownArrowImage = null;
    
    private   static int   referenceCount   = 0;
    

@@ -67,7 +67,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
     * 
     * @return String listing mappable pins
     */
-   private String getAvailablePins() {
+   public String getAvailablePins() {
       TreeSet<MappingInfo> mappingInfoSet = fSignal.getPinMapping();
       
       // Create list of values to choose from and corresponding mappingInfos

@@ -30,6 +30,16 @@ public class ObservableModel implements ObservableModelInterface {
    }
 
    @Override
+   public void notifyModelListeners() {
+      for (IModelChangeListener listener:fListeners) {
+         if (listener instanceof BaseModel) {
+            listener.modelElementChanged(this);
+         }
+      }
+      fRefreshPending = false;
+   }
+   
+   @Override
    public void notifyListeners() {
       for (IModelChangeListener listener:fListeners) {
          listener.modelElementChanged(this);
@@ -37,16 +47,16 @@ public class ObservableModel implements ObservableModelInterface {
       fRefreshPending = false;
    }
    
-//   @Override
-//   public void notifyListeners(Object origin) {
-//      for (IModelChangeListener listener:fListeners) {
-//         if (listener != origin) {
-//            listener.modelElementChanged(this);
-//         }
-//      }
-//      fRefreshPending = false;
-//   }
-//   
+   @Override
+   public void notifyListeners(Object origin) {
+      for (IModelChangeListener listener:fListeners) {
+         if (listener != origin) {
+            listener.modelElementChanged(this);
+         }
+      }
+      fRefreshPending = false;
+   }
+   
    @Override
    public void notifyStatusListeners() {
       for (IModelChangeListener listener:fListeners) {

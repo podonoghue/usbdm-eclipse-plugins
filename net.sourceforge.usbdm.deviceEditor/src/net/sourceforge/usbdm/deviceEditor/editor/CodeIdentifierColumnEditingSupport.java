@@ -7,9 +7,9 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
+import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
@@ -22,51 +22,79 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
       this.viewer = viewer;
    }
 
-   @Override
-   protected boolean canEdit(Object element) {
-      if (element instanceof SignalModel) {
-         Signal signal = ((SignalModel)element).getSignal();
-         if (signal.getMappedPin() == Pin.UNASSIGNED_PIN) {
-            return false;
+   /**
+    * Get editable C code identifier
+    * 
+    * @param model
+    * 
+    * @return Text to edit (may be blank) or null if not possible to edit
+    */
+   public static String getEditableCodeIdentifier(Object model) {
+      if (model instanceof PinModel) {
+         Signal signal = ((PinModel)model).getPin().getUniqueMappedSignal();
+         if (signal == null) {
+            // Not editable as multiple sources for code identifier
+            return null;
          }
-         return signal.canCreateType() || signal.canCreateInstance();
-      }
-      if (element instanceof PeripheralSignalsModel) { 
-         Peripheral p = ((PeripheralSignalsModel) element).getPeripheral();
-         return p.canCreateType() || p.canCreateInstance();
-      }
-      return false;
-   }
-
-   @Override
-   protected CellEditor getCellEditor(Object element) {
-      return new StringCellEditor(viewer.getTree());
-   }
-
-   @Override
-   protected Object getValue(Object element) {
-      if (element instanceof SignalModel) {
-         Signal signal = ((SignalModel) element).getSignal();
+         if (!signal.canCreateType() && !signal.canCreateInstance()) {
+            // Cannot create C identifier for this signal
+            return null;
+         }
          return signal.getCodeIdentifier();
       }
-      if (element instanceof PeripheralSignalsModel) {
-         Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
+      else if (model instanceof SignalModel) {
+         Signal signal = ((SignalModel) model).getSignal();
+         if (!signal.canCreateType() && !signal.canCreateInstance()) {
+            // Cannot create C identifier for this signal
+            return null;
+         }
+         return signal.getCodeIdentifier();
+      }
+      else if (model instanceof PeripheralSignalsModel) {
+         Peripheral peripheral = ((PeripheralSignalsModel)model).getPeripheral();
+         if (!peripheral.canCreateType() && !peripheral.canCreateInstance()) {
+            // Cannot create C identifier for this peripheral
+            return null;
+         }
          return peripheral.getCodeIdentifier();
       }
       return null;
    }
+   
+   @Override
+   protected boolean canEdit(Object model) {
+      return getEditableCodeIdentifier(model) != null;
+   }
 
    @Override
-   protected void setValue(Object element, Object value) {
-      if (element instanceof SignalModel) {
-         Signal signal = ((SignalModel) element).getSignal();
-         signal.setCodeIdentifier((String) value);
-         viewer.update(element, null);
+   protected CellEditor getCellEditor(Object model) {
+      return new StringCellEditor(viewer.getTree());
+   }
+
+   @Override
+   protected Object getValue(Object model) {
+      return getEditableCodeIdentifier(model);
+   }
+
+   @Override
+   protected void setValue(Object model, Object value) {
+      if (model instanceof PinModel) {
+         Signal signal = ((PinModel)model).getPin().getUniqueMappedSignal();
+         if (signal == null) {
+            return;
+         }
+         signal.setCodeIdentifier((String)value);
+         viewer.update(model, null);
       }
-      if (element instanceof PeripheralSignalsModel) {
-         Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
+      if (model instanceof SignalModel) {
+         Signal signal = ((SignalModel) model).getSignal();
+         signal.setCodeIdentifier((String) value);
+         viewer.update(model, null);
+      }
+      if (model instanceof PeripheralSignalsModel) {
+         Peripheral peripheral = ((PeripheralSignalsModel)model).getPeripheral();
          peripheral.setCodeIdentifier((String) value);
-         viewer.update(element, null);
+         viewer.update(model, null);
       }
    }
 
@@ -80,20 +108,5 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
       public StringCellEditor(Composite parent) {
          this(parent, SWT.SINGLE);
       }
-
-      @Override
-      protected Object doGetValue() {
-         Object item = super.doGetValue();
-//         System.err.println("StringCellEditor.doGetValue value = " + item + ", " + item.getClass());
-         return item;
-      }
-
-      @Override
-      protected void doSetValue(Object value) {
-//         System.err.println("StringCellEditor.doSetValue value = " + value + ", " + value.getClass());
-         super.doSetValue(value);
-      }
    }
-  
-
 }

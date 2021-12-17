@@ -13,6 +13,12 @@ public class WriterForSpi extends PeripheralWithState {
    
    public WriterForSpi(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can (usually do) create instances of this class 
+      fCanCreateInstance = true;
+      
+      // Instance has internal state
+      clearConstType();
    }
 
    @Override

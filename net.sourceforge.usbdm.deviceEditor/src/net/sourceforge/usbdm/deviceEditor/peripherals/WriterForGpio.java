@@ -4,12 +4,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.graphics.Image;
+
+import net.sourceforge.usbdm.deviceEditor.editor.BaseLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -17,7 +25,7 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * Class encapsulating the code for writing an instance of GPIO
  */
 public class WriterForGpio extends PeripheralWithState {
-   
+
    /** Key used to save/restore identifier used for code generation */
    private final String POLARITY_KEY  = "$peripheral$"+getName()+"_polarity";
 
@@ -25,13 +33,13 @@ public class WriterForGpio extends PeripheralWithState {
 
    public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
-      
+
       // Can't create instances of this peripheral 
       super.setCanCreateInstance(false);
-      
+
       // Can create type declarations for signals belonging to this peripheral
       super.setCanCreateSignalType(true);
-      
+
       // Can create instances for signals belonging to this peripheral
       super.setCanCreateSignalInstance(true);
    }
@@ -42,7 +50,7 @@ public class WriterForGpio extends PeripheralWithState {
    }
 
    class GpioPinInformation {
-      
+
       private final ArrayList<Integer> fListOfBits    = new ArrayList<Integer>();
       private final ArrayList<Pin>     fListOfPins    = new ArrayList<Pin>();
       private final ArrayList<Signal>  fListOfSignals = new ArrayList<Signal>();
@@ -52,7 +60,7 @@ public class WriterForGpio extends PeripheralWithState {
       private int     fLastBitAdded;
       private int     fPolarity;
       private boolean fCreateInstance;
-      
+
       /**
        * Constructor. Creates entry for first (only) bit.
        * 
@@ -68,7 +76,7 @@ public class WriterForGpio extends PeripheralWithState {
          fDescription       = description;
          fCreateInstance    = signal.getCreateInstance();
       }
-      
+
       /**
        * Add new bit.
        * 
@@ -88,10 +96,10 @@ public class WriterForGpio extends PeripheralWithState {
          fIsMixedPolarity = 
                fIsMixedPolarity || 
                (((fPolarity == 0) && isActiveLow(signal)) || 
-               ((fPolarity != 0) && !isActiveLow(signal)));
+                     ((fPolarity != 0) && !isActiveLow(signal)));
          fPolarity     |= isActiveLow(signal)?(1<<bitNum):0;
       }
-      
+
       /**
        * Get array of bits associated with this identifier
        * 
@@ -100,7 +108,7 @@ public class WriterForGpio extends PeripheralWithState {
       public final ArrayList<Integer> getListOfBits() {
          return fListOfBits;
       }
-      
+
       /**
        * Get list of pins associated with each bit
        * 
@@ -109,7 +117,7 @@ public class WriterForGpio extends PeripheralWithState {
       public final ArrayList<Pin> getPins() {
          return fListOfPins;
       }
-      
+
       /**
        * Get list of signals associated with each bit
        * 
@@ -118,7 +126,7 @@ public class WriterForGpio extends PeripheralWithState {
       public final ArrayList<Signal> getSignals() {
          return fListOfSignals;
       }
-      
+
       /**
        * Check polarity of the given bit.
        * 
@@ -136,7 +144,7 @@ public class WriterForGpio extends PeripheralWithState {
       public int getFieldPolarity() {
          return fPolarity>>fListOfBits.get(0);
       }
-      
+
       /**
        * Indicates if should be created as an instance
        * 
@@ -145,7 +153,7 @@ public class WriterForGpio extends PeripheralWithState {
       public boolean getCreateInstance() {
          return fCreateInstance;
       }
-      
+
       /**
        * Indicates if there is an inconsistency in the bit polarities
        * 
@@ -154,7 +162,7 @@ public class WriterForGpio extends PeripheralWithState {
       public boolean isMixedPolarity() {
          return fIsMixedPolarity;
       }
-      
+
       /**
        * Indicates if the bits are consecutive
        * 
@@ -173,14 +181,14 @@ public class WriterForGpio extends PeripheralWithState {
          return fDescription;
       }
    }
-   
+
    @Override
    protected void writeDeclarations() {
-      
+
       if (!getCodeIdentifier().isBlank()) {
          writeDefaultPeripheralDeclaration("Port"+getInstance());
       }
-      
+
       // Information about each unique identifier in GPIO
       HashMap<String, GpioPinInformation> variablesToCreate = new HashMap<String, GpioPinInformation>();
 
@@ -195,7 +203,7 @@ public class WriterForGpio extends PeripheralWithState {
             continue;
          }
          Pin pin = pinMapping.getPin();
-         
+
          String[] descriptions = signal.getUserDescription().split("/", -2);
          String[] identifiers  = signal.getCodeIdentifier().split("/", -2);
          for (int variableIndex=0; variableIndex<identifiers.length; variableIndex++) {
@@ -220,10 +228,10 @@ public class WriterForGpio extends PeripheralWithState {
             }
          }
       }
-      
+
       // Process the identifiers
       for (String mainIdentifier:variablesToCreate.keySet()) {
-         
+
          GpioPinInformation gpioPinInformation = variablesToCreate.get(mainIdentifier);
          final ArrayList<Integer> bitNums = gpioPinInformation.getListOfBits();
          final ArrayList<Pin>     pins    = gpioPinInformation.getPins();
@@ -282,7 +290,7 @@ public class WriterForGpio extends PeripheralWithState {
             }
             // GpioFieldTable_T<GpioEInfo, 7, 0, ActiveHigh>
             String type = String.format("const GpioFieldTable_T<%s, %d, %d%s>", getClassName()+"Info", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
-            
+
             if (gpioPinInformation.getCreateInstance()) {
                writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
             }
@@ -292,7 +300,7 @@ public class WriterForGpio extends PeripheralWithState {
          }
       }
    }
-   
+
    @Override
    public int getSignalIndex(Signal signal) {
       // No tables for GPIO
@@ -309,7 +317,7 @@ public class WriterForGpio extends PeripheralWithState {
          e.printStackTrace();
       }
    }
-   
+
    /**
     * Indicates whether the signal is active-low
     * 
@@ -330,18 +338,21 @@ public class WriterForGpio extends PeripheralWithState {
     * 
     * @param signal Signal to modify
     * @param value  true to set signal active-low, false otherwise
+    * 
+    * @return True is value changed
     */
-   public void setActiveLow(Signal signal, boolean value) {
+   public boolean setActiveLow(Signal signal, boolean value) {
       int index = fInfoTable.table.indexOf(signal);
       if (index<0) {
-         return;
+         return false;
       }
       boolean currentValue = (fPolarity & (1<<index)) != 0;
       if (currentValue == value) {
-         return;
+         return false;
       }
       fPolarity ^= (1<<index);
-      setDirty(currentValue != value);
+      setDirty(true);
+      return true;
    }
 
    @Override
@@ -361,4 +372,58 @@ public class WriterForGpio extends PeripheralWithState {
       }
    }
 
+   /**
+    * Editor support for GPIO polarity 
+    */
+   public class ModifierEditingSupport implements ModifierEditorInterface {
+
+      @Override
+      public boolean canEdit(SignalModel model) {
+         return model.getSignal().getMappedPin() != Pin.UNASSIGNED_PIN;
+      }
+
+      @Override
+      public CellEditor getCellEditor(TreeViewer viewer) {
+         return new CheckboxCellEditor(viewer.getTree());
+      }
+
+      @Override
+      public Object getValue(SignalModel model) {
+         if (model.getSignal().getMappedPin() == Pin.UNASSIGNED_PIN) {
+            return null;
+         }
+         return isActiveLow(model.getSignal());
+      }
+
+      @Override
+      public String getText(SignalModel model) {
+         if (model.getSignal().getMappedPin() == Pin.UNASSIGNED_PIN) {
+            return null;
+         }
+         return isActiveLow(model.getSignal())?"ActiveLow":"ActiveHigh";
+      }
+
+      @Override
+      public boolean setValue(SignalModel model, Object value) {
+         return setActiveLow(model.getSignal(), (Boolean)value);
+      }
+
+      @Override
+      public Image getImage(SignalModel model) {
+       return isActiveLow(model.getSignal())?BaseLabelProvider.checkedImage:BaseLabelProvider.uncheckedImage;
+      }
+      
+      @Override
+      public String getModifierHint(SignalModel model) {
+         return "Polarity of Gpio or bit within GpioField";
+      }
+   }
+
+   private ModifierEditingSupport modifierEditingSupport =  new ModifierEditingSupport();
+   
+   @Override
+   public ModifierEditorInterface getModifierEditor() {
+      return modifierEditingSupport;
+   }
+   
 }

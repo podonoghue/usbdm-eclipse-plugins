@@ -22,51 +22,69 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
       this.viewer = viewer;
    }
 
-   @Override
-   protected boolean canEdit(Object element) {
-      if ((element instanceof SignalModel)) {
-         return true;
+   /**
+    * Get editable description text
+    * 
+    * @param model
+    * 
+    * @return Text to edit (may be blank) or null if not possible to edit
+    */
+   public static String getEditableDescription(Object model) {
+      if (model instanceof PinModel) {
+         Signal signal = ((PinModel)model).getPin().getUniqueMappedSignal();
+         if (signal == null) {
+            // Not editable as multiple sources for description
+            return null;
+         }
+         return signal.getUserDescription();
       }
-      if (element instanceof PeripheralSignalsModel) {
-           return true;
-        }
-      return false;
+      else if (model instanceof SignalModel) {
+         SignalModel signalModel = (SignalModel)model;
+         return signalModel.getSignal().getUserDescription();
+      }
+      else if (model instanceof PeripheralSignalsModel) {
+         PeripheralSignalsModel peripheralSignalsModel = ((PeripheralSignalsModel)model);
+         return peripheralSignalsModel.getPeripheral().getUserDescription();
+      }
+      // No editable description for this type
+      return null;
    }
-
+   
    @Override
-   protected CellEditor getCellEditor(Object element) {
+   protected boolean canEdit(Object model) {
+      return getEditableDescription(model) != null;
+   }
+   
+   @Override
+   protected CellEditor getCellEditor(Object model) {
       return new StringCellEditor(viewer.getTree());
    }
 
    @Override
-   protected Object getValue(Object element) {
-      if (element instanceof PinModel) {
-         Signal signal = ((PinModel)element).getPin().getUniqueMappedSignal();
-         return signal.getUserDescription();
-      }
-      if (element instanceof SignalModel) {
-         SignalModel signalModel = (SignalModel)element;
-         return signalModel.getSignal().getUserDescription();
-      }
-      if (element instanceof PeripheralSignalsModel) {
-         PeripheralSignalsModel peripheralSignalsModel = ((PeripheralSignalsModel)element);
-         return peripheralSignalsModel.getPeripheral().getUserDescription();
-      }
-      return null;
+   protected Object getValue(Object model) {
+      return getEditableDescription(model);
    }
 
    @Override
-   protected void setValue(Object element, Object value) {
-      if (element instanceof SignalModel) {
-         SignalModel signalModel = (SignalModel)element;
+   protected void setValue(Object model, Object value) {
+      if (model instanceof PinModel) {
+         Signal signal = ((PinModel)model).getPin().getUniqueMappedSignal();
+         if (signal == null) {
+            return;
+         }
+         signal.setUserDescription((String)value);
+         viewer.update(model, null);
+      }
+      if (model instanceof SignalModel) {
+         SignalModel signalModel = (SignalModel)model;
          signalModel.getSignal().setUserDescription((String) value);
          //         signalModel.getSignal().getMappedPin().setUserDescription((String) value);
-         viewer.update(element, null);
+         viewer.update(model, null);
       }
-      if (element instanceof PeripheralSignalsModel) {
-         Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
+      if (model instanceof PeripheralSignalsModel) {
+         Peripheral peripheral = ((PeripheralSignalsModel)model).getPeripheral();
          peripheral.setUserDescription((String) value);
-         viewer.update(element, null);
+         viewer.update(model, null);
       }
    }
 
@@ -80,19 +98,5 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
       public StringCellEditor(Composite parent) {
          this(parent, SWT.SINGLE);
       }
-
-//      @Override
-//      protected Object doGetValue() {
-//         Object item = super.doGetValue();
-////         System.err.println("StringCellEditor.doGetValue value = " + item + ", " + item.getClass());
-//         return item;
-//      }
-//
-//      @Override
-//      protected void doSetValue(Object value) {
-////         System.err.println("StringCellEditor.doSetValue value = " + value + ", " + value.getClass());
-//         super.doSetValue(value);
-//      }
-      
    }
 }

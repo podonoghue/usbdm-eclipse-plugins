@@ -312,7 +312,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
       Job job = new Job("Regenerate code files") {
 
-         protected IStatus run(IProgressMonitor monitor) {
+         protected synchronized IStatus run(IProgressMonitor monitor) {
             SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
             if (fFactory == null) {

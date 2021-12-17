@@ -84,7 +84,7 @@ public class FamilyXmlWriter {
          }
          MappingInfo mInfo = mappingInfo.get(selection);
          StringBuffer name = new StringBuffer();
-         name.append(mInfo.getSignalList());
+         name.append(mInfo.getSignalNames());
          if (alternativeHint.length() != 0) {
             alternativeHint.append(", ");
          }
@@ -97,7 +97,7 @@ public class FamilyXmlWriter {
       for (MuxSelection selection:sortedSelectionIndexes) {
          MappingInfo mInfo = mappingInfo.get(selection);
          StringBuffer name = new StringBuffer();
-         name.append(mInfo.getSignalList());
+         name.append(mInfo.getSignalNames());
 
          for (Signal fn:mInfo.getSignals()) {
             documentUtilities.openTag("mux");

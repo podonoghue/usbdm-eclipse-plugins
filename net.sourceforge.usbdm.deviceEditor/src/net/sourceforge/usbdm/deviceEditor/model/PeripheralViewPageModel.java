@@ -85,7 +85,7 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                            new TreeColumnInformation("Code Identifier",         120, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer), 
                                  CodeIdentifierColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Modifier",                100, new ModifierColumnLabelProvider(),          new ModifierEditingSupport(viewer), 
-                                 ModifierEditingSupport.getColumnToolTipText()),
+                                 ModifierColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Instance",                 80, new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer), 
                                  InstanceColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Interrupt/DMA",           115, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),

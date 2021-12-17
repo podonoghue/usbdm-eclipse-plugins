@@ -4,7 +4,6 @@ public class Status {
 
    public enum Severity {
       OK, INFO, WARNING, ERROR;
-
       /**
        * Checks if the level is less than the given level
        * 
@@ -33,13 +32,23 @@ public class Status {
    private final String   fText;
    private final String   fHint;
    
-   @Override
-   public boolean equals(Object obj) {
-      if (!(obj instanceof Status)) {
+   static public boolean equals(Object op1, Object op2) {
+      if (op1 == op2) {
+         return true;
+      }
+      if (!(op1 instanceof Status)) {
          return false;
       }
+      return op1.equals(op2);
+   }
+   
+   @Override
+   public boolean equals(Object obj) {
       if (obj == this) {
          return true;
+      }
+      if (!(obj instanceof Status)) {
+         return false;
       }
       Status other = (Status) obj;
       return (fSeverity == other.fSeverity) && (fText.equalsIgnoreCase(other.fText));

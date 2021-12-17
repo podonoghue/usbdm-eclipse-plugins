@@ -92,10 +92,9 @@ public class WriterForFlexio extends PeripheralWithState {
             }
             String trailingComment  = pin.getNameWithLocation();
             String pinName = enumName+prettyPinName(pin.getName());
-            String cIdentifier = signal.getCodeIdentifier().trim();
+            String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             String inputIdentifier = "";
             if (!cIdentifier.isBlank()) {
-               cIdentifier     = makeCTypeIdentifier(cIdentifier);
                inputIdentifier =  enumName+cIdentifier;
 //               String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Pin", index);
 //               writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, pin.getLocation());

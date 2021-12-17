@@ -98,11 +98,10 @@ public class WriterForCmp extends PeripheralWithState {
             String trailingComment  = pin.getNameWithLocation();
             String description = signal.getUserDescription();
             String pinName = enumName+prettyPinName(pin.getName());
-            String cIdentifier = signal.getCodeIdentifier().trim();
+            String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             String inputIdentifier = "";
             String mapName = "Input_"+index;
             if (!cIdentifier.isBlank()) {
-               cIdentifier     = makeCTypeIdentifier(cIdentifier);
                inputIdentifier =  enumName+cIdentifier;
                String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", getClassName()+"::"+pinName);
                if (signal.getCreateInstance()) {

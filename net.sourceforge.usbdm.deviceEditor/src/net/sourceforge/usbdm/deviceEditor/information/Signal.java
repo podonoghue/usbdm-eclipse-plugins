@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -32,7 +33,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          if (rc == 0) {
             rc = Pin.comparator.compare(o1.getPin().getName(), o2.getPin().getName());
             if (rc == 0) {
-               rc = o1.getSignalList().compareTo(o2.getSignalList());
+               rc = o1.getSignalNames().compareTo(o2.getSignalNames());
             }
          }
          return rc;
@@ -65,10 +66,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Reset mapping for this signal */
    private MappingInfo fResetMapping = MappingInfo.UNASSIGNED_MAPPING;
 
-   /** Status indicating if multiple pins are mapped to this signal */ 
+   /** Status indicating if this signal is mapped to multiple pins (Error) */ 
    private Status fStatus = null;
 
-   /** Status of associated signals i.e. if multiple the mapped pins is also mapped to another signal */ 
+   /** Status of associated signals i.e. if the mapped pin is also mapped to another signal (Error) */ 
    private Status fAssociatedStatus = null;
 
    /** User description of pin use */
@@ -138,10 +139,16 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
    /** 
     * Get identifier to use in code generation
+    * 
+    * @return Code identifier (which may be blank) or null if code identifier not applicable to this signal
     */
    public String getCodeIdentifier() {
       if (this == DISABLED_SIGNAL) {
-         return "DISABLED_SIGNAL!";
+         return null;
+      }
+      if (!canCreateType() && !canCreateInstance()) {
+         // Cannot create C identifier for this signal
+         return null;
       }
       return fCodeIdentifier;
    }
@@ -294,7 +301,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          }
       }
       fPinMappings.add(mapInfo);
-      mapInfo.getPin().addListener(this);
+      addListener(mapInfo.getPin());
+//      mapInfo.getPin().addListener(this);
    }
 
    /**
@@ -409,7 +417,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /**
     * Checks if this signal is mapped to more than one pin.
     * 
-    * @return String describing conflict or null if no conflict
+    * @return Status indicating if this signal is mapped to multiple pins (Warning) 
     */
    public Status checkMappingConflicted() {
       
@@ -439,17 +447,16 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
    
    /**
-    * Get status of this signal and mapped pin
-    * (Cached value)
+    * Get status of this signal
     * 
-    * @return Status 
+    * @return Status indicating if this signal is mapped to multiple pins (Error)
     */
    Status getSignalStatus() {
       return fStatus;
    }
    
    /**
-    * Get status of associated pins
+    * Get status of associated pin i.e. do associated pins have other signals mapped to them (Warning)
     * 
     * @return
     */
@@ -464,12 +471,15 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @return Status 
     */
    public Status getStatus() {
-   
       if (fStatus != null) {
-         // signal -> multiple pins
+         // this signal -> multiple pins - Error
          return fStatus;
       }
-      return getAssociatedStatus();
+      if (fAssociatedStatus != null) {
+         // multiple signal (one of which is this one) -> a pin - Warning
+         return fAssociatedStatus;
+      }
+      return null;
    }
    
    /**
@@ -498,17 +508,25 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    
    @Override
    public void modelElementChanged(ObservableModel model) {
+
       if (model instanceof MappingInfo) {
-         fStatus = checkMappingConflicted();
          notifyListeners();
       }
-      if (model instanceof Pin) {
-         Status status = getAssociatedStatus();
-         if (fAssociatedStatus != status) {
-            fAssociatedStatus = status;
-            notifyListeners();
-         }
+      boolean changed = false;
+      Status status = checkMappingConflicted();
+      if (!Status.equals(fStatus, status)) {
+         fStatus = status;
+         changed = true;
       }
+      status = getAssociatedStatus();
+      if (!Status.equals(fAssociatedStatus, status)) {
+         fAssociatedStatus = status;
+         changed = true;
+      }
+      if (changed) {
+         notifyListeners(model);
+      }
+      notifyModelListeners();
    }
 
    @Override
@@ -587,6 +605,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public long getPcrForcedBitsValueMask() {
       return fPeripheral.getPcrForcedBitsValueMask(this);
    }
-   
 
+   public ModifierEditorInterface getModifierEditor() {
+      return fPeripheral.getModifierEditor();
+   }
+   
  }

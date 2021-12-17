@@ -30,7 +30,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       MappingInfo fixedMapping = mappingInfoMap.get(MuxSelection.fixed);
       if (fixedMapping != null) {
          // Fixed mapping for pin
-         fChoices      = new String[] {fixedMapping.getSignalList()};
+         fChoices      = new String[] {fixedMapping.getSignalNames()};
          fMappingInfos = null;
          return;
       }
@@ -46,7 +46,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       for (MuxSelection muxSelection:mappingInfoMap.keySet()) {
          MappingInfo mappingInfo = mappingInfoMap.get(muxSelection);
          mappingInfos.add(mappingInfo);
-         values.add(muxSelection.getShortName()+": "+mappingInfo.getSignalList());
+         values.add(muxSelection.getShortName()+": "+mappingInfo.getSignalNames());
          if (mappingInfo.isSelected()) {
             fSelection = values.size()-1;
          }
@@ -55,7 +55,12 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
    }
 
-   String getAvailableSignals() {
+   /**
+    * Get String describing the signals available for mapping to this pin
+    * 
+    * @return
+    */
+   public String getAvailableSignals() {
       Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappableSignals();
 
       StringBuilder sb = new StringBuilder("[");
@@ -67,7 +72,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          }
          isFirst = false;
          ArrayList<Signal> signals = mappingInfo.getSignals();
-         String signalList         = mappingInfo.getSignalList();
+         String signalList         = mappingInfo.getSignalNames();
          if (signals.get(0).getMappedPin() == Pin.UNASSIGNED_PIN) {
             signalList = signalList.replaceAll("\\/", "*/") + "*";
          }
@@ -174,7 +179,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       for (MuxSelection muxSelection:fPin.getMappableSignals().keySet()) {
          MappingInfo mappingInfo = fPin.getMappableSignals().get(muxSelection);
          if (mappingInfo.isSelected()) {
-            sb.append(mappingInfo.getSignalList() + " ");
+            sb.append(mappingInfo.getSignalNames() + " ");
          }
       }
       return sb.toString();

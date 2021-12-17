@@ -56,6 +56,9 @@ public class WriteFamilyCpp {
 
    /** Key for user object definitions needed in hardware.cpp **/
    private final static String HARDWARE_FILE_PORT_INIT_KEY = "/HARDWARE_CPP/PortInitialisations";
+   
+   /** Key for user object definitions needed in hardware.cpp **/
+   private final static String HARDWARE_FILE_PORT_INIT_ERRORS_KEY = "/HARDWARE_CPP/PortInitialisationsErrors";
    /*
     * Macros
     * ==========================================================================
@@ -361,6 +364,10 @@ public class WriteFamilyCpp {
    /**
     * Create central pin mapping statements in variable <b>/HARDWARE/portInit</b>
     * 
+    * Adds two variables for code substitution:
+    *   HARDWARE_FILE_PORT_INIT_KEY          Contains PCR initialisation statements
+    *   HARDWARE_FILE_PORT_INIT_ERRORS_KEY   Contains PCR initialisation statement errors or warnings
+    *   
     * <pre>
     *    enablePortClocks(PORTA_CLOCK_MASK|...);
     * 
@@ -371,23 +378,16 @@ public class WriteFamilyCpp {
     * 
     * @return StringVariable containing statements
     */
-   private StringVariable writePinMappingStatements() {
+   private void writePinMappingStatements() {
       
       StringBuilder sb = new StringBuilder();
 
       PcrInitialiser pcrInitialiser = new PcrInitialiser();
 
-      boolean warningDone = false;
+      // Accumulate mappings in pcrInitialiser 
       for (String pinName : fDeviceInfo.getPins().keySet()) {
          Pin pin = fDeviceInfo.getPins().get(pinName);
-         String errorMsg = pcrInitialiser.addPin(pin); 
-         if (errorMsg != null) {
-            warningDone = true;
-            sb.append(String.format("#warning \"PCR Not initialised for %-10s : %s\"\n", pinName, errorMsg));
-         }
-      }
-      if (warningDone) {
-         sb.append("\n");
+         pcrInitialiser.addPin(pin); 
       }
       sb.append(pcrInitialiser.getEnablePortClocksStatement("   "));
       sb.append(pcrInitialiser.getGlobalPcrInitStatements("   "));
@@ -396,11 +396,16 @@ public class WriteFamilyCpp {
       sb.append(pcrInitialiser.getGlobalPcrLockoutStatements("      "));
       sb.append("   }\n");
       
-      StringVariable portInitialisationVariable = new StringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY);
-      portInitialisationVariable.setValue(sb.toString());
-      portInitialisationVariable.setDerived(true);
-      fDeviceInfo.addOrReplaceVariable(portInitialisationVariable.getKey(), portInitialisationVariable);
-      return portInitialisationVariable;
+      StringVariable variable = new StringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY);
+      variable.setValue(sb.toString());
+      variable.setDerived(true);
+      fDeviceInfo.addOrReplaceVariable(variable.getKey(), variable);
+
+      // Write error messages as needed
+      variable = new StringVariable("Port Initialisation Errors", HARDWARE_FILE_PORT_INIT_ERRORS_KEY);
+      variable.setValue(pcrInitialiser.getErrorMessages());
+      variable.setDerived(true);
+      fDeviceInfo.addOrReplaceVariable(variable.getKey(), variable);
    }
 
    private final String DOCUMENTATION_OPEN = "///\n" + "/// @page PinSummary Pin Mapping\n";
@@ -408,8 +413,8 @@ public class WriteFamilyCpp {
    private final String TABLE_OPEN = 
          "///\n" + 
          "/// @section %s %s\n" + "///\n" + 
-         "///   Pin Name      | C Identifier                |  Functions                                         |  Location                 |  Description\n" + 
-         "///  -------------- | ----------------------------|--------------------------------------------------- | ------------------------- | ----------------------------------------------------\n";
+         "///   Pin Name      | C Identifier                  |  Functions                                         |  Location                 |  Description\n" + 
+         "///  -------------- | ------------------------------|--------------------------------------------------- | ------------------------- | ----------------------------------------------------\n";
 
    private final String DOCUMENTATION_TEMPLATE = "///  %-14s | %-30s| %-50s | %-25s | %s\n";
 
@@ -427,8 +432,6 @@ public class WriteFamilyCpp {
     */
    private void writeDocumentation(DocumentUtilities writer, ArrayList<MappingInfo> allMappingInfo) throws IOException {
       
-      // Write documentation in pin order
-      // No need to sort as already in pin order
       for (MappingInfo mappingInfo : allMappingInfo) {
          
          String pinName        = mappingInfo.getPin().getName();
@@ -457,7 +460,7 @@ public class WriteFamilyCpp {
             // Only document if there is a description
             continue;
          }
-         String signalList = mappingInfo.getSignalList();
+         String signalList = mappingInfo.getSignalNames();
          writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, "-", signalList, pinLocation, useDescription));
       }
 
@@ -493,9 +496,9 @@ public class WriteFamilyCpp {
             }
             // Expand pin mappings so only 1 signal->pin
             for (Signal signal:mappingInfo.getSignals()) {
-               String cIdentifier = signal.getCodeIdentifier();
-               String userDesription = signal.getUserDescription();
-               if (cIdentifier.isBlank() && userDesription.isBlank()) {
+               String cIdentifier     = signal.getCodeIdentifier();
+               String userDescription = signal.getUserDescription();
+               if ((cIdentifier == null) || cIdentifier.isBlank() && userDescription.isBlank()) {
                   continue;
                }
                // Create dummy pin mapping information
@@ -523,18 +526,29 @@ public class WriteFamilyCpp {
        */
       // Sort by pin number or grid location
       Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
-         final Pattern pattern = Pattern.compile("^p(\\d+)$"); 
+         final Pattern pattern = Pattern.compile("^(\\D+)(\\d+)(.*)$"); 
          
          @Override
          public int compare(MappingInfo o1, MappingInfo o2) {
-            Matcher matcher1 = pattern.matcher(o1.getPin().getLocation());
-            Matcher matcher2 = pattern.matcher(o2.getPin().getLocation());
+            String s1 = o1.getPin().getLocation();
+            String s2 = o2.getPin().getLocation();
+            Matcher matcher1 = pattern.matcher(s1);
+            Matcher matcher2 = pattern.matcher(s2);
             if (!matcher1.matches() || !matcher2.matches()) {
-               return o1.getPin().getLocation().compareTo(o2.getPin().getLocation());
+               return s1.compareTo(s2);
             }
-            int i1 = Integer.parseInt(matcher1.group(1));
-            int i2 = Integer.parseInt(matcher2.group(1));
-            return i1-i2;
+            String r1 = matcher1.group(1);
+            String r2 = matcher2.group(1);
+            int res = r1.compareTo(r2);
+            if (res != 0) {
+               return res;
+            }
+            int i1 = Integer.parseInt(matcher1.group(2));
+            int i2 = Integer.parseInt(matcher2.group(2));
+            if (i1 != i2) {
+               return i1-i2;
+            }
+            return matcher1.group(3).compareTo(matcher2.group(3));
          }
       });
       
@@ -548,9 +562,29 @@ public class WriteFamilyCpp {
        */
       // Sort by function
       Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
+         final Pattern pattern = Pattern.compile("^(\\D+)(\\d+)(.*)$"); 
+         
          @Override
          public int compare(MappingInfo o1, MappingInfo o2) {
-            return o1.getSignalList().compareTo(o2.getSignalList()); 
+            String s1 = o1.getSignalNames();
+            String s2 = o2.getSignalNames();
+            Matcher matcher1 = pattern.matcher(s1);
+            Matcher matcher2 = pattern.matcher(s2);
+            if (!matcher1.matches() || !matcher2.matches()) {
+               return s1.compareTo(s2);
+            }
+            String r1 = matcher1.group(1);
+            String r2 = matcher2.group(1);
+            int res = r1.compareTo(r2);
+            if (res != 0) {
+               return res;
+            }
+            int i1 = Integer.parseInt(matcher1.group(2));
+            int i2 = Integer.parseInt(matcher2.group(2));
+            if (i1 != i2) {
+               return i1-i2;
+            }
+            return matcher1.group(3).compareTo(matcher2.group(3));
          }
       });
       

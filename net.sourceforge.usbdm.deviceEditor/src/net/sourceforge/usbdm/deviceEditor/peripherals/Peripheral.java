@@ -8,7 +8,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
-
+ 
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -71,7 +72,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    private final String USER_DESCRIPTION_KEY = "$peripheral$"+getName()+"_userDescription";
 
    /** User description of peripheral use */
-   private String fUserDescription;
+   private String fUserDescription = "";
 
    /** IRQ handler name */
    private String fIrqHandler;
@@ -548,9 +549,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @return Valid C identifier
     */
    String makeCIdentifier(String identifier) {
-      if (identifier.isBlank()) {
+      if ((identifier == null) || identifier.isBlank()) {
          return "";
       }
+      identifier = identifier.trim();
       identifier = identifier.replaceAll("[^a-zA-Z0-9]", "_");
       if (!identifier.matches("^[a-zA-Z].*")) {
          identifier = "X_" + identifier;
@@ -566,12 +568,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * @param identifier String to convert
     * 
-    * @return Valid C identifier
+    * @return Valid C identifier or empty string
     */
    String makeCTypeIdentifier(String identifier) {
-      if (identifier.isBlank()) {
+      if ((identifier == null) || identifier.isBlank()) {
          return "";
       }
+      identifier = identifier.trim();
       identifier = makeCIdentifier(identifier);
       identifier = Character.toUpperCase(identifier.charAt(0))+identifier.substring(1);
       return identifier;
@@ -585,7 +588,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * @param identifier String to convert
     * 
-    * @return Valid C identifier
+    * @return Valid C identifier or empty string
     */
    String makeCVariableIdentifier(String identifier) {
       if (identifier.isBlank()) {
@@ -757,9 +760,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             }
             Pin pin = pinMapping.getPin();
             String trailingComment  = pin.getNameWithLocation();
-            String cIdentifier = signal.getCodeIdentifier().trim();
+            String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             if (!cIdentifier.isBlank()) {
-               cIdentifier     = makeCTypeIdentifier(cIdentifier);
                String type = String.format("const PcrTable_T<%sInfo,%d>", getClassBaseName(), infoTableIndex);
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
@@ -1048,14 +1050,14 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     *  Writes pin information tables
     *  
     * <pre>
-    *      //! Information for each signal of peripheral
-    *      static constexpr PinInfo  info[] = {
-    *            //      Signal         Pin                 portInfo    gpioAddress     gpioBit       PCR value
-    *            /*   0: UART0_TX     = PTB17 (ConTx) &#42;/  { PortBInfo,  GPIOB_BasePtr,  17,           PORT_PCR_MUX(3)|defaultPcrValue  },
-    *            /*   1: UART0_RX     = PTB16 (ConRx) &#42;/  { PortBInfo,  GPIOB_BasePtr,  16,           PORT_PCR_MUX(3)|defaultPcrValue  },
-    *            /*   2: UART0_RTS_b  = --            &#42;/  { NoPortInfo, 0,              UNMAPPED_PCR, 0 },
-    *      ...
-    *      };
+    * //! Information for each signal of peripheral
+    * static constexpr PinInfo  info[] = {
+    *   //      Signal         Pin                 portInfo    gpioBit                 PCR value
+    *   /*   0: UART0_TX     = PTB17 (ConTx) &#42;/  { PortCInfo,  6,            (PcrValue)0x00000UL  },
+    *   /*   1: UART0_RX     = PTB16 (ConRx) &#42;/  { NoPortInfo, UNMAPPED_PCR, (PcrValue)0          },
+    *   /*   2: UART0_RTS_b  = --            &#42;/  { NoPortInfo, FIXED_NO_PCR, (PcrValue)0          },
+    *   ...
+    * };
     * </pre>
 
     * @param pinMappingHeaderFile
@@ -1078,13 +1080,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * <pre>
     *  class Lpuart0Info {
     *  public:
-    *     //! Hardware base address as uint32_t 
-    *     static constexpr uint32_t baseAddress = LPUART0_BasePtr;
-    *
-    *     //! Hardware base pointer
-    *     static volatile LPUART_Type &lpuart() {
-    *        return *(LPUART_Type *)baseAddress;
-    *     }
     *   ...
     *   };
     * </pre>
@@ -1451,8 +1446,18 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    @Override
+   public void notifyModelListeners() {
+      fProxy.notifyModelListeners();
+   }
+   
+   @Override
    public void notifyListeners() {
       fProxy.notifyListeners();
+   }
+
+   @Override
+   public void notifyListeners(Object obj) {
+      fProxy.notifyListeners(obj);
    }
 
    @Override
@@ -1620,5 +1625,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public long getPcrForcedBitsValueMask(Signal signal) {
       return 0;
    }
-   
+
+   public String getModifierHint(Signal signal) {
+      return null;
+   }
+
+   public ModifierEditorInterface getModifierEditor() {
+      return null;
+   }
 }

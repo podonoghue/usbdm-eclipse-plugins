@@ -45,15 +45,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    private MuxSelection fResetMuxValue = MuxSelection.unassigned;
 
-   /** Status indicating if multiple Signals are mapped to this pin */ 
+   /** Status indicating if multiple Signals are mapped to this Pin (Warning) */ 
    private Status fStatus = null;
 
-   /** Status of associated signals i.e. if multiple the mapped signal is also mapped to another pin */ 
+   /** Status of associated signals i.e. if a mapped signal is also mapped to another pin (Warning) */ 
    private Status fAssociatedStatus = null;
-
-   private String fMappedSignalsCodeIdentifiers="";
-
-   private String fMappedSignalsUserDescriptions="";
 
    /** 
     * Split a description or code identifier. <br>
@@ -307,7 +303,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       for (MuxSelection muxValue:fMappableSignals.keySet()) {
          MappingInfo mappingInfo= fMappableSignals.get(muxValue);
-         if (mappingInfo.getSignalList().equalsIgnoreCase(resetSignals) && (mappingInfo.getMux() != MuxSelection.unassigned)) {
+         if (mappingInfo.getSignalNames().equalsIgnoreCase(resetSignals) && (mappingInfo.getMux() != MuxSelection.unassigned)) {
             setResetValue(mappingInfo.getMux());
             break;
          }
@@ -350,20 +346,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    
    /**
     * Get user description from associated signals.
-    * Cached.
     * 
     * @return
     */
    public String getMappedSignalsUserDescriptions( ) {
-      return fMappedSignalsUserDescriptions;
-   }
-   
-   /**
-    * Determine user description from associated signals.
-    * 
-    * @return
-    */
-   public String determineMappedSignalsUserDescriptions( ) {
       StringBuilder sb = new StringBuilder();
       boolean doSeparator = false;
       for (MuxSelection muxSel:fMappableSignals.keySet()) {
@@ -382,23 +368,13 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return sb.toString();
    }
-
+   
    /**
     * Get user description (from mapped signals).
-    * Cached.
     * 
     * @return
     */
    public String getMappedSignalsCodeIdentifiers() {
-      return fMappedSignalsCodeIdentifiers;
-   }
-   
-   /**
-    * Determine user description for mapped signals.
-    * 
-    * @return
-    */
-   public String determineMappedSignalsCodeIdentifiers() {
       StringBuilder sb = new StringBuilder();
       boolean doSeparator = false;
       for (MuxSelection muxSelection:fMappableSignals.keySet()) {
@@ -407,19 +383,20 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             continue;
          }
          for (Signal signal:mappingInfo.getSignals()) {
-            if ((signal.getCodeIdentifier() == null) || signal.getCodeIdentifier().isBlank()) {
+            String identifier = signal.getCodeIdentifier();
+            if ((identifier == null) || identifier.isBlank()) {
                continue;
             }
             if (doSeparator) {
                sb.append('/');
             }
-            sb.append(signal.getCodeIdentifier());
+            sb.append(identifier);
             doSeparator = true;
          }
       }
       return sb.toString();
    }
-
+   
    /**
     * Get String listing all signals mapped to this pin<br>
     * e.g. "GPIOE_6/LLWU_P16, FTM3_CH1"
@@ -477,7 +454,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             if (mappingsFound>0) {
                sb.append(", ");
             }
-            sb.append(mappingInfo.getSignalList());
+            sb.append(mappingInfo.getSignalNames());
             mappingsFound++;
          }
       }
@@ -491,7 +468,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /**
     * Get status of this pin
     * 
-    * @return Status 
+    * @return Status indicating if multiple Signals are mapped to this Pin (Warning)
     */
    public Status getPinStatus() {
       return fStatus;
@@ -500,7 +477,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /**
     * Get status of associated signals
     * 
-    * @return
+    * @return Status indicating if a mapped signal is mapped to multiple pins (Error)
     */
    Status getAssociatedSignalsStatus() {
       Status status = null;
@@ -522,12 +499,15 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return Status 
     */
    public Status getStatus() {
+      if (fAssociatedStatus != null) {
+         // signal -> multiple pins (one of which is this one)
+         return fAssociatedStatus;
+      }
       if (fStatus != null) {
-         // signal -> multiple pins
+         // multiple signal -> this pin (Warning)
          return fStatus;
       }
-      fAssociatedStatus = getAssociatedSignalsStatus();
-      return fAssociatedStatus;
+      return null;
    }
    
    /**
@@ -569,7 +549,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       if (activatedMuxSetting != null) {
          // Activate new selection
-         activatedMuxSetting.select(this, true);
+         changed = activatedMuxSetting.select(this, true) || changed;
       }
       fStatus = checkMappingConflicted();
       setDirty(changed);
@@ -596,6 +576,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          fResetMuxValue = MuxSelection.fixed;
          setMuxSelection(MuxSelection.fixed);
       }
+      addListener(signal);
       return mapInfo;
    }
 
@@ -699,33 +680,30 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    
    @Override
    public void modelElementChanged(ObservableModel model) {
-      //      System.err.println("Pin["+fName+"].modelElementChanged("+model+")");
-      boolean changed = false;
+
+//      if (model instanceof Signal) {
+//         notifyListeners(model);
+//         return;
+//      }
+
       if (model instanceof MappingInfo) {
-         changed = true;
-         fStatus = checkMappingConflicted();
-      }
-      else if (model instanceof Signal) {
-         Status status = getAssociatedSignalsStatus();
-         if (fAssociatedStatus != status) {
-            fAssociatedStatus = status;
-            changed = true;
-         }
-         String mappedSignalsCodeIdentifiers = determineMappedSignalsCodeIdentifiers();
-         if (fMappedSignalsCodeIdentifiers != mappedSignalsCodeIdentifiers) {
-            fMappedSignalsCodeIdentifiers = mappedSignalsCodeIdentifiers;
-            changed = true;
-         }
-         String mappedSignalsUserDescriptions = determineMappedSignalsUserDescriptions();
-         if (fMappedSignalsUserDescriptions != mappedSignalsUserDescriptions) {
-            fMappedSignalsUserDescriptions = mappedSignalsUserDescriptions;
-            changed = true;
-         }
-      }
-      if (changed) {
          notifyListeners();
       }
-      //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
+      boolean changed = false;
+      Status status = checkMappingConflicted();
+      if (!Status.equals(fStatus, status)) {
+         fStatus = status;
+         changed = true;
+      }
+      status = getAssociatedSignalsStatus();
+      if (!Status.equals(fAssociatedStatus, status)) {
+         fAssociatedStatus = status;
+         changed = true;
+      }
+      if (changed) {
+         notifyListeners(model);
+      }
+      notifyModelListeners();
    }
 
    public void setPort(Signal signal) throws Exception {

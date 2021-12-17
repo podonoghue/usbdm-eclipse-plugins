@@ -78,25 +78,9 @@ public class MappingInfo extends ObservableModel {
     * @return Description
     */
    String getDescription() {
-      return String.format("%s => %s @ %s", fPin.getName(), getSignalList(), fMuxValue);
+      return String.format("%s => %s @ %s", fPin.getName(), getSignalNames(), fMuxValue);
    }
    
-   /**
-    * Returns a list of peripheral signals mapped by this selection as a string e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
-    * 
-    * @return List of mapped signals as string
-    */
-   public String getSignalList() {
-      StringBuffer name = new StringBuffer();
-      for (Signal signal:fSignals) {
-         if (name.length() != 0) {
-            name.append("/");
-         }
-         name.append(signal.getName());
-      }
-      return name.toString();
-   }
-
    /**
     * Get list of peripheral signals that are mapped by this selection 
     * 
@@ -379,21 +363,20 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Get String describing signals mapped by this entry<br>
-    * e.g. "GPIOE_6/LLWU_P16"
-    * @return List
+    * Returns a list of peripheral signals mapped by this selection as a string 
+    * e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
+    * 
+    * @return List of mapped signals as string
     */
    public String getSignalNames() {
-      boolean doSeparator = false;
-      StringBuilder sb = new StringBuilder();
-      for (Signal s:getSignals()) {
-         if (doSeparator) {
-            sb.append("/");
+      StringBuffer names = new StringBuffer();
+      for (Signal signal:fSignals) {
+         if (names.length() != 0) {
+            names.append("/");
          }
-         sb.append(s.getName());
-         doSeparator = true;
+         names.append(signal.getName());
       }
-      return sb.toString();
+      return names.toString();
    }
 
    /**

@@ -5,6 +5,15 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+
+import net.sourceforge.usbdm.deviceEditor.editor.BaseLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
@@ -12,6 +21,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -124,7 +134,7 @@ public class WriterForLlwu extends PeripheralWithState {
 
             // Found fixed or mapped pin
             String trailingComment  = pin.getNameWithLocation();
-            String cIdentifier      = signal.getCodeIdentifier();
+            String cIdentifier      = makeCTypeIdentifier(signal.getCodeIdentifier());
             String pinName = enumName+"_"+prettyPinName(pin.getName());
             String mapName = enumName+"_"+index;
             if (mappingInfo.getMux() == MuxSelection.fixed) {
@@ -148,7 +158,7 @@ public class WriterForLlwu extends PeripheralWithState {
                else {
                   writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
                }
-               String enumIdentifier      = makeCTypeIdentifier(enumName+"_"+cIdentifier);
+               String enumIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
                boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
                if (inUse) {
                   // Repeated value comment out
@@ -234,14 +244,20 @@ public class WriterForLlwu extends PeripheralWithState {
     * 
     * @param signal Signal to modify
     * @param value  Value controlling sensitivity of pin
+    * 
+    * @return True if value changed 
     */
-   public void setPinMode(Signal signal, LlwuPinMode mode) {
+   public boolean setPinMode(Signal signal, LlwuPinMode mode) {
       int index = fInfoTable.table.indexOf(signal);
       if (index<0) {
-         return;
+         return false;
       }
-      setDirty(pinMode[index] != mode);
+      if (pinMode[index] == mode) {
+         return false;
+      }
       pinMode[index] = mode;
+      setDirty(true);
+      return true;
    }
 
    @Override
@@ -267,6 +283,93 @@ public class WriterForLlwu extends PeripheralWithState {
             pinMode[index] = LlwuPinMode.valueOf(value);
          }
       }
+   }
+   
+   static class ChoiceCellEditor extends ComboBoxCellEditor {
+      
+      private static final String[] llwuPinModes = {
+            LlwuPinMode.LlwuPinMode_Disabled.getName(),
+            LlwuPinMode.LlwuPinMode_RisingEdge.getName(),
+            LlwuPinMode.LlwuPinMode_FallingEdge.getName(),
+            LlwuPinMode.LlwuPinMode_EitherEdge.getName(),
+      };
+      
+      public ChoiceCellEditor(Composite tree) {
+         super(tree, llwuPinModes, SWT.READ_ONLY);
+
+         setActivationStyle(
+               ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
+               ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
+         setValueValid(true);
+      }
+   }
+
+   /**
+    * Editor support for LLWU sensitivity
+    */
+   public class ModifierEditingSupport implements ModifierEditorInterface {
+
+      @Override
+      public boolean canEdit(SignalModel model) {
+         return model.getSignal().getMappedPin() != Pin.UNASSIGNED_PIN;
+      }
+
+      @Override
+      public CellEditor getCellEditor(TreeViewer viewer) {
+         return new ChoiceCellEditor(viewer.getTree());
+      }
+
+      @Override
+      public Object getValue(SignalModel model) {
+         if (model.getSignal().getMappedPin() == Pin.UNASSIGNED_PIN) {
+            return null;
+         }
+         return getPinMode(model.getSignal()).getValue();
+      }
+
+      @Override
+      public String getText(SignalModel model) {
+         Signal signal = model.getSignal();
+         if (signal.getMappedPin() == Pin.UNASSIGNED_PIN) {
+            return null;
+         }
+         if (signal.getCreateInstance()) {
+            return getPinMode(model.getSignal()).getName();
+         }
+         return null;
+      }
+      
+      @Override
+      public boolean setValue(SignalModel model, Object value) {
+         return setPinMode(model.getSignal(), LlwuPinMode.convertFromInt((int)value));
+      }
+
+      @Override
+      public Image getImage(SignalModel model) {
+         Signal signal = model.getSignal();
+         if (signal.getCreateInstance()) {
+            switch(getPinMode(signal)) {
+            case LlwuPinMode_Disabled:    return BaseLabelProvider.disabledImage;
+            case LlwuPinMode_EitherEdge:  return BaseLabelProvider.upDownArrowImage;
+            case LlwuPinMode_FallingEdge: return BaseLabelProvider.downArrowImage;
+            case LlwuPinMode_RisingEdge:  return BaseLabelProvider.upArrowImage;
+            }
+         }
+         return null;
+      }
+      
+      @Override
+      public String getModifierHint(SignalModel model) {
+         return "Sensitivity of LLWU input";
+      }
+
+   }
+
+   private ModifierEditingSupport modifierEditingSupport =  new ModifierEditingSupport();
+   
+   @Override
+   public ModifierEditorInterface getModifierEditor() {
+      return modifierEditingSupport;
    }
 
 }

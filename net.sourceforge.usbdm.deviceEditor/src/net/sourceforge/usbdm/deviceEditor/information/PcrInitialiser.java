@@ -18,6 +18,9 @@ public class PcrInitialiser {
    /** HashMap of Ports to pins that are not in use for locking out */
    private TreeMap<String, Long> portToUnusedPinsMap  = new TreeMap<String, Long>();
 
+   /** Accumulates error messages as pins are added */
+   private StringBuilder fErrorMessages = new StringBuilder();
+   
    /**
     * Constructor
     */
@@ -162,7 +165,9 @@ public class PcrInitialiser {
       }
       if (mappedSignals.size()>1) {
          // Multiply signals on mapped to this pin
-         return "Multiple signals mapped to pin - " + pin.getMappedSignalNames();
+         String errorMessage = "Multiple signals mapped to pin - " + pin.getMappedSignalNames();
+         fErrorMessages.append(String.format("#warning \"PCR Not initialised for %-10s : %s\"\n", pin.getName(), errorMessage));
+         return errorMessage;
       }
       MappingInfo mappingInfo = mappedSignals.get(0);
       if (!mappingInfo.getMux().isMappedValue()) {
@@ -288,7 +293,7 @@ public class PcrInitialiser {
     * <pre>
     *       PORTB->GPCLR = 0x0500UL|PORT_GPCLR_GPWE(0x0FCFUL);
     *       ...
-    *       PORTD->GPCLR = 0x0500UL|PORT_GPCLR_GPWE(0x00BCUL);
+    *       PORTD->GPCHR = 0x0500UL|PORT_GPCHR_GPWE(0x00BCUL);
     * </pre>
     * 
     * @param indent Indenting to use
@@ -306,7 +311,7 @@ public class PcrInitialiser {
     * <pre>
     *       PORTB->GPCLR = ForceLockedPins|0x0500UL|PORT_GPCLR_GPWE(0x0FCFUL);
     *       ...
-    *       PORTD->GPCLR = ForceLockedPins|0x0500UL|PORT_GPCLR_GPWE(0x00BCUL);
+    *       PORTD->GPCHR = ForceLockedPins|0x0500UL|PORT_GPCHR_GPWE(0x00BCUL);
     *       ...
     * </pre>
     * 
@@ -323,7 +328,7 @@ public class PcrInitialiser {
     * 
     * Example:
     * <pre>
-    *       PORTB->GPCHR = PinLock_Locked |0x0000UL|PORT_GPCHR_GPWE(0xC0F0UL); // Lockout unavailable pins
+    *       PORTB->GPCLR = PinLock_Locked |0x0000UL|PORT_GPCLR_GPWE(0xC0F0UL); // Lockout unavailable pins
     *       ...
     *       PORTE->GPCHR = PinLock_Locked |0x0000UL|PORT_GPCHR_GPWE(0xFF00UL); // Lockout unavailable pins
     * </pre>
@@ -342,7 +347,7 @@ public class PcrInitialiser {
          Long unusedPinsInPort = portToUnusedPinsMap.get(port);
          if ((unusedPinsInPort&0xFFFFL) != 0) {
             sb.append(String.format(indent+"%s = %s|PORT_GPCLR_GPWE(%s); // Lockout unavailable pins\n", 
-                  port+"->GPCHR", "PinLock_Locked |0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)));
+                  port+"->GPCLR", "PinLock_Locked |0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)));
          }
          unusedPinsInPort = Long.rotateRight(unusedPinsInPort, 16);
          if ((unusedPinsInPort&0xFFFFL) != 0) {
@@ -456,6 +461,15 @@ public class PcrInitialiser {
       sb.append("#endif\n");
       
       return sb.toString();
+   }
+
+   /**
+    * Get error messages about pins or signals added
+    * 
+    * @return String suitable for inclusion in C code
+    */
+   public String getErrorMessages() {
+      return fErrorMessages.toString();
    }
 
 }

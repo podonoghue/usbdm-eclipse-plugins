@@ -80,11 +80,10 @@ public class WriterForTsi extends PeripheralWithState {
             
             String trailingComment  = pin.getNameWithLocation();
             String pinName = enumName+prettyPinName(pin.getName());
-            String cIdentifier = signal.getCodeIdentifier().trim();
+            String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier().trim());
             String inputIdentifier = "";
             String mapName = "TsiInput_"+index;
             if (!cIdentifier.isBlank()) {
-               cIdentifier     = makeCTypeIdentifier(cIdentifier);
                inputIdentifier =  enumName+cIdentifier;
                String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);

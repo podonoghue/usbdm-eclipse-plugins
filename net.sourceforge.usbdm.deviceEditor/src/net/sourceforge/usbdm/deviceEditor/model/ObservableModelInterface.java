@@ -29,13 +29,19 @@ public interface ObservableModelInterface {
     */
    public void notifyListeners();
    
-//   /**
-//    * Notify all listeners apart from origin<br>
-//    * Clears RefreshPending
-//    * 
-//    * @param origin Listener to exclude
-//    */
-//   public void notifyListeners(Object origin);
+   /**
+    * Notify BaseModel listeners<br>
+    * Clears RefreshPending
+    */
+   public void notifyModelListeners();
+   
+   /**
+    * Notify all listeners apart from origin<br>
+    * Clears RefreshPending
+    * 
+    * @param origin Listener to exclude
+    */
+   public void notifyListeners(Object origin);
 
    /**
     * Notify all listeners<br>

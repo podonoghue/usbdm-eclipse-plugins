@@ -319,8 +319,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
       final String headerFileName = getBaseName().toLowerCase()+".h";
       boolean classMemberHandlerSet = false;
-      String p = irqVariable.getPattern();
-      String ch = irqVariable.getClassHandler();
+      String p  = substitute(irqVariable.getPattern());
+      String ch = substitute(irqVariable.getClassHandler());
       String patterns[]      = p.split(";");
       String classHandlers[] = ch.split(";");
       if (patterns.length != classHandlers.length) {

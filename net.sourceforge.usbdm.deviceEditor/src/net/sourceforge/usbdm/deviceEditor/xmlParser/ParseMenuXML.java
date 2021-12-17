@@ -353,6 +353,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>derived
     * <li>derivedFrom
     * <li>origin
+    * <li>hidden
     * 
     * @param parent        Parent for model
     * @param varElement    Element obtain attributes from
