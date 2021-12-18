@@ -131,6 +131,13 @@ public class MappingInfo extends ObservableModel {
       if (this == MappingInfo.UNASSIGNED_MAPPING) {
          return false;
       }
+      if (!fPin.isAvailableInPackage()) {
+//         if (fMuxValue == MuxSelection.fixed) {
+//            return false;
+//         }
+//         System.err.println("Selected unavailable pin!!!" + fPin);
+         return false;
+      }
 //      System.err.println("MappingIofo.select("+selected+") == "+fSelected);
       if (fSelected == selected) {
 //         System.err.println(toString() + " No Change");

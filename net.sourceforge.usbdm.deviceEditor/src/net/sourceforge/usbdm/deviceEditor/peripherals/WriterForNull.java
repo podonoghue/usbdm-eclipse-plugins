@@ -18,8 +18,8 @@ public class WriterForNull extends Peripheral {
    public WriterForNull(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       
-      // Not sensible to make a instance of the console
-      setCanCreateInstance(false);
+      // Not sensible to make a null type
+      fCanCreateType = false;
 
       // Not real hardware
       setSynthetic();

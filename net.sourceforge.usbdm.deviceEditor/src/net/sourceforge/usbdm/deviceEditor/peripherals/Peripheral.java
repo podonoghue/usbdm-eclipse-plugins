@@ -118,16 +118,16 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Indicates that code for a user instance of the peripheral class should be created */ 
    protected boolean fCreateInstance = false;
    
-   /** Most peripheral have a useful type declaration or enum/const value */
+   /** Can create type declarations for this peripheral - most can */
    protected boolean fCanCreateType           = true;
    
-   /** Most peripheral don't have a useful instance */
+   /** Can create instances of this peripheral - most can't */
    protected boolean fCanCreateInstance       = false;
    
-   /** Most signals don't have a useful type */
+   /** Can create type declarations for signals belonging to this peripheral - Most can't */
    protected boolean fcanCreateSignalType     = false;
    
-   /** Most signals don't have a useful instance */
+   /** Can create instances for signals belonging to this peripheral - Most can't */
    protected boolean fCanCreateSignalInstance = false;
 
    /**
@@ -1524,16 +1524,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return fCreateInstance;
    }
    
-   /**
-    * Set whether peripheral has a useful type declaration or enum/const value
-    * 
-    * @param value
-    */
-   void setCanCreateType(boolean value) {
-      fCanCreateType = value;
-   }
-   
-   /**
+  /**
     * Indicates whether code for a user declaration of the peripheral type can be generated.
     * This also includes enums or constant values e.g. CMP input selectors
     * 
@@ -1543,16 +1534,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return !isSynthetic() && fCanCreateType;
    }
 
-   /**
-    * Set whether code for a user declaration of the signal type can be generated
-    * This also includes enums or constant values e.g. CMP input selectors
-    * 
-    * @param value
-    */
-   void setCanCreateSignalType(boolean value) {
-      fcanCreateSignalType = value;
-   }
-   
    /**
     * Indicates whether code for a user declaration of the signal type can be generated
     * This also includes enums or constant values e.g. CMP input selectors
@@ -1564,15 +1545,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Set whether code for a user instance of the peripheral can be created
-    * 
-    * @param value
-    */
-   void setCanCreateInstance(boolean value) {
-      fCanCreateInstance = value;
-   }
-   
-   /**
     * Indicates whether code for a user instance of the peripheral can be created
     * 
     * @return true to indicate an instance can be created
@@ -1582,15 +1554,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return fCanCreateInstance;
    }
 
-   /**
-    * Set whether code for a user instance of the peripheral can be created
-    * 
-    * @param value
-    */
-   public final void setCanCreateSignalInstance(boolean value) {
-      fCanCreateSignalInstance = value;
-   }
-   
    /**
     * Indicates whether code for a user instance of the signal related class can be created
     * 

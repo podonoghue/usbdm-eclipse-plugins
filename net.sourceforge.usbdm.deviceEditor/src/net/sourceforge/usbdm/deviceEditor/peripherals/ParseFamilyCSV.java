@@ -303,9 +303,19 @@ public class ParseFamilyCSV {
 		}
 		for (PackageColumnInfo pkgIndex:fPackageIndexes){
 			String pinNum = line[pkgIndex.index];
-			if (pinNum.equals("*")) {
-				continue;
-			}
+         if (pinNum.equals("*")) {
+            continue;
+         }
+         if (pinNum.isBlank()) {
+            System.err.println("Warning Pin has blank location: " + pinName);
+            pinNum = pinName;
+            if (pinNum.startsWith("VDD")) {
+               pinNum = "VDD";
+            }
+            if (pinNum.startsWith("VSS")) {
+               pinNum = "VSS";
+            }
+         }
 			DevicePackage devicePackage = fDeviceInfo.findDevicePackage(pkgIndex.name);
 
 			if (devicePackage == null) {

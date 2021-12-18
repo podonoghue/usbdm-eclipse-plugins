@@ -35,13 +35,13 @@ public class WriterForGpio extends PeripheralWithState {
       super(basename, instance, deviceInfo);
 
       // Can't create instances of this peripheral 
-      super.setCanCreateInstance(false);
+      fCanCreateInstance = false;
 
       // Can create type declarations for signals belonging to this peripheral
-      super.setCanCreateSignalType(true);
+      fcanCreateSignalType = true;
 
       // Can create instances for signals belonging to this peripheral
-      super.setCanCreateSignalInstance(true);
+      fCanCreateSignalInstance = true;
    }
 
    @Override

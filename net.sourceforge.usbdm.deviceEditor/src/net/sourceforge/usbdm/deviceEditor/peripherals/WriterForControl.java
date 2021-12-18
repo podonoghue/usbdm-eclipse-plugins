@@ -20,8 +20,8 @@ public class WriterForControl extends PeripheralWithState {
       super(basename, instance, deviceInfo);
       setSynthetic();
       
-      // Can create a PCR for the signals
-      setCanCreateSignalType(true);
+      // Can create type declarations for signals belonging to this peripheral (PCR)
+      fcanCreateSignalType = true;
    }
 
    @Override

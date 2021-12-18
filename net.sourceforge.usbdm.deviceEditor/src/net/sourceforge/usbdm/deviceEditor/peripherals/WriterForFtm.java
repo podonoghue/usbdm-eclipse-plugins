@@ -28,15 +28,15 @@ public class WriterForFtm extends PeripheralWithState {
 
    public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
-      
+
       // Can create type instances of this peripheral
-      super.setCanCreateInstance(true);
+      fCanCreateInstance = true;
       
       // Can create type declarations for signals belonging to this peripheral
-      super.setCanCreateSignalType(true);
-      
+      fcanCreateSignalType = true;
+
       // Can create instances for signals belonging to this peripheral
-      super.setCanCreateSignalInstance(true);
+      fCanCreateSignalInstance = true;
    }
 
    @Override

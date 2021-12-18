@@ -25,8 +25,8 @@ public class WriterForTsi extends PeripheralWithState {
    public WriterForTsi(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       
-      // Can create type declarations for signals belonging to this peripheral (actually enums)
-      super.setCanCreateSignalType(true);
+      // Can create type declarations for signals belonging to this peripheral
+      fcanCreateSignalType = true;
    }
 
    /**

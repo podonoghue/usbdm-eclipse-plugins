@@ -15,7 +15,7 @@ public class WriterForLpuart extends PeripheralWithState {
       super(basename, instance, deviceInfo);
       
       // Can (usually do) create instances of this class 
-      super.setCanCreateInstance(true);
+      fCanCreateInstance = true;
       
       // Instance has internal state
       clearConstType();

@@ -830,34 +830,34 @@
          <placement pin="VSSA"          location="F3" />
       </package>
       <package name="FRDM_KL43Z">
-         <placement pin="PTA0"          location="" />
+         <placement pin="PTA0"          location="PTA0" />
          <placement pin="PTA1"          location="D0" />
          <placement pin="PTA12"         location="D3" />
          <placement pin="PTA13"         location="D8" />
-         <placement pin="PTA18"         location="" />
-         <placement pin="PTA19"         location="" />
+         <placement pin="PTA18"         location="PTA18" />
+         <placement pin="PTA19"         location="PTA19" />
          <placement pin="PTA2"          location="D1" />
-         <placement pin="PTA20"         location="" />
-         <placement pin="PTA3"          location="" />
+         <placement pin="PTA20"         location="PTA20" />
+         <placement pin="PTA3"          location="PTA3" />
          <placement pin="PTA4"          location="D4" />
          <placement pin="PTA5"          location="D5" />
          <placement pin="PTB0"          location="A0" />
          <placement pin="PTB1"          location="A1" />
-         <placement pin="PTB16"         location="" />
-         <placement pin="PTB17"         location="" />
-         <placement pin="PTB18"         location="" />
-         <placement pin="PTB19"         location="" />
+         <placement pin="PTB16"         location="PTB16" />
+         <placement pin="PTB17"         location="PTB17" />
+         <placement pin="PTB18"         location="PTB18" />
+         <placement pin="PTB19"         location="PTB19" />
          <placement pin="PTB2"          location="A2" />
          <placement pin="PTB3"          location="A3" />
-         <placement pin="PTC0"          location="" />
+         <placement pin="PTC0"          location="PTC0" />
          <placement pin="PTC1"          location="A5" />
          <placement pin="PTC2"          location="A4" />
-         <placement pin="PTC3"          location="" />
-         <placement pin="PTC4"          location="" />
+         <placement pin="PTC3"          location="PTC3" />
+         <placement pin="PTC4"          location="PTC4" />
          <placement pin="PTC5"          location="ACCEL_INT1/MAG_INT" />
-         <placement pin="PTC6"          location="" />
-         <placement pin="PTC7"          location="" />
-         <placement pin="PTD0"          location="" />
+         <placement pin="PTC6"          location="PTC6" />
+         <placement pin="PTC7"          location="PTC7" />
+         <placement pin="PTD0"          location="PTD0" />
          <placement pin="PTD1"          location="ACCEL_INT2" />
          <placement pin="PTD2"          location="D9" />
          <placement pin="PTD3"          location="D2" />
@@ -867,10 +867,10 @@
          <placement pin="PTD7"          location="D12" />
          <placement pin="PTE0"          location="D14" />
          <placement pin="PTE1"          location="D15" />
-         <placement pin="PTE20"         location="" />
-         <placement pin="PTE21"         location="" />
+         <placement pin="PTE20"         location="PTE20" />
+         <placement pin="PTE21"         location="PTE21" />
          <placement pin="PTE22"         location="LIGHT_SENS" />
-         <placement pin="PTE23"         location="" />
+         <placement pin="PTE23"         location="PTE23" />
          <placement pin="PTE24"         location="ONBOARD_SCL" />
          <placement pin="PTE25"         location="ONBOARD_SDA" />
          <placement pin="PTE29"         location="D6" />
@@ -878,22 +878,22 @@
          <placement pin="PTE31"         location="LED_RED" />
          <placement pin="USB0_DM"       location="USB0_DM" />
          <placement pin="USB0_DP"       location="USB0_DP" />
-         <placement pin="VCAP1"         location="" />
-         <placement pin="VCAP2"         location="" />
-         <placement pin="VDD1"          location="" />
-         <placement pin="VDD2"          location="" />
-         <placement pin="VDD3"          location="" />
+         <placement pin="VCAP1"         location="VCAP1" />
+         <placement pin="VCAP2"         location="VCAP2" />
+         <placement pin="VDD1"          location="VDD" />
+         <placement pin="VDD2"          location="VDD" />
+         <placement pin="VDD3"          location="VDD" />
          <placement pin="VDDA"          location="VDDA" />
-         <placement pin="VLL1"          location="" />
-         <placement pin="VLL2"          location="" />
-         <placement pin="VLL3"          location="" />
+         <placement pin="VLL1"          location="VLL1" />
+         <placement pin="VLL2"          location="VLL2" />
+         <placement pin="VLL3"          location="VLL3" />
          <placement pin="VOUT33"        location="VOUT33" />
          <placement pin="VREFH"         location="VREFH/VREF0_OUT" />
          <placement pin="VREFL"         location="VREFL" />
          <placement pin="VREGIN"        location="VREGIN" />
-         <placement pin="VSS1"          location="" />
-         <placement pin="VSS2"          location="" />
-         <placement pin="VSS3"          location="" />
+         <placement pin="VSS1"          location="VSS" />
+         <placement pin="VSS2"          location="VSS" />
+         <placement pin="VSS3"          location="VSS" />
          <placement pin="VSSA"          location="VSSA" />
       </package>
       <package name="LQFP_64">

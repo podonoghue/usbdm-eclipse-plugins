@@ -441,14 +441,14 @@ public class WriteFamilyCpp {
          boolean userDeclaration = false;
          for (Signal signal:mappingInfo.getSignals()) {
             String cIdentifier = signal.getCodeIdentifier();
-            if (cIdentifier.isBlank()) {
-               continue;
+            if (cIdentifier == null) {
+               cIdentifier = "-";
             }
             String userDescription = signal.getUserDescription();
             if (userDescription.isBlank()) {
                userDescription = "-";
             }
-            writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, signal.getCodeIdentifier(), signal.getName(), pinLocation, userDescription));
+            writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, cIdentifier, signal.getName(), pinLocation, userDescription));
             userDeclaration = true;
          }
          if (userDeclaration) {
@@ -482,13 +482,17 @@ public class WriteFamilyCpp {
       for (String pinName : fDeviceInfo.getPins().keySet()) {
 
          Pin pin = fDeviceInfo.getPins().get(pinName);
-         if (!pin.isAvailableInPackage()) {
-            // Discard pins without package location
+         if (pin.getLocation() == null) {
+            // Discard unmapped pins
+            continue;
+         }
+         if (pin.getLocation().isBlank()) {
+            // Discard unmapped pins
             continue;
          }
          Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
          
-         // Add enabled mappings
+         // Add enabled mappings that have description or C identifier
          for (MuxSelection muxSelection:mappableSignals.keySet()) {
             MappingInfo mappingInfo = mappableSignals.get(muxSelection);
             if (!mappingInfo.isSelected()) {
@@ -498,7 +502,7 @@ public class WriteFamilyCpp {
             for (Signal signal:mappingInfo.getSignals()) {
                String cIdentifier     = signal.getCodeIdentifier();
                String userDescription = signal.getUserDescription();
-               if ((cIdentifier == null) || cIdentifier.isBlank() && userDescription.isBlank()) {
+               if (((cIdentifier == null) || cIdentifier.isBlank()) && userDescription.isBlank()) {
                   continue;
                }
                // Create dummy pin mapping information

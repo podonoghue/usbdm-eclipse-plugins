@@ -19,9 +19,6 @@ public class WriterForPower extends PeripheralWithState {
    public WriterForPower(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       
-      // Not sensible to make a instance of the console
-      setCanCreateInstance(false);
-
       // Not real hardware
       setSynthetic();
 

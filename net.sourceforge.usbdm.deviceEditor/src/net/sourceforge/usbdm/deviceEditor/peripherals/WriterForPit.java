@@ -16,13 +16,13 @@ public class WriterForPit extends PeripheralWithState {
       super(basename, instance, deviceInfo);
       
       // Can create instances for signals belonging to this peripheral
-      super.setCanCreateInstance(true);
+      fCanCreateInstance = true;
 
       // Can create type declarations for signals belonging to this peripheral
-      super.setCanCreateSignalType(true);
+      fcanCreateSignalType = true;
 
       // Can create instances for signals belonging to this peripheral
-      super.setCanCreateSignalInstance(true);
+      fCanCreateSignalInstance = true;
    }
 
    @Override
