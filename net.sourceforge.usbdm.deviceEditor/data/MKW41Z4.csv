@@ -44,7 +44,7 @@ Pin,ADC0_DM0,A0/Therm-,A0/Therm-,p25,H1,ADC0_DM0/CMP0_IN1,,,,,,,,,27
 Pin,VSSA,*,*,p26,G1,VSSA,,,,,,,,,28
 Pin,VSSA,*,*,*,G2,VSSA,,,,,,,,,28
 Pin,VREFH/VREF_OUT,*,*,p27,F2,VREFH/VREF_OUT,,,,,,,,,29
-Pin,VDDA,*,*,p28,F1,VDDA,VDDA,,,,,,,,30
+Pin,VDDA,*,*,p28,F1,VDDA,,,,,,,,,30
 Pin,RF_XTAL_OUT,*,*,p29,E1,RF_XTAL_OUT,,,,,,,,,31
 Pin,RF_EXTAL,RF_EXTAL,RF_EXTAL,p30,D1,RF_EXTAL,,,,,,,,,32
 Pin,RF_XTAL,RF_XTAL,RF_XTAL,p31,C1,RF_XTAL,,,,,,,,,33

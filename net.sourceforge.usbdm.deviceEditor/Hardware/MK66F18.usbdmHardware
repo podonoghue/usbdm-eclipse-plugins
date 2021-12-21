@@ -532,9 +532,9 @@
          <mux sel="fixed"         signal="RESET_b" />
          <reset sel="fixed" />
       </pin>
-      <pin name="RTC_WAKEUP_b">
-         <mux sel="mux0"          signal="RTC_WAKEUP_b" />
-         <reset sel="mux0" />
+      <pin name="RTC_WAKEUP_b" isFixed="true">
+         <mux sel="fixed"         signal="RTC_WAKEUP_b" />
+         <reset sel="fixed" />
       </pin>
       <pin name="TEMP_SENSOR"  isFixed="true">
          <mux sel="fixed"         signal="ADC0_SE26" />

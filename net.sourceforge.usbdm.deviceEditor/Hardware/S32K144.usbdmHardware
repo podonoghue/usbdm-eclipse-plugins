@@ -150,10 +150,6 @@
          <dma source="AlwaysEnabled62"      num="62" />
          <dma source="AlwaysEnabled63"      num="63" />
       </peripheral>
-      <peripheral baseName="ENET"     instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-         <clock clockEnable="PCC->PCC_ENET |= PCC_PCCn_CGC_MASK" clockDisable="PCC->PCC_ENET &amp;= ~PCC_PCCn_CGC_MASK" />
-      </peripheral>
       <peripheral baseName="EWM"      instance=""         version="ewm_int_pr">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm" />
          <clock clockEnable="PCC->PCC_EWM |= PCC_PCCn_CGC_MASK" clockDisable="PCC->PCC_EWM &amp;= ~PCC_PCCn_CGC_MASK" />
@@ -307,10 +303,6 @@
       </peripheral>
       <peripheral baseName="POWER"    instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower" />
-      </peripheral>
-      <peripheral baseName="QSPI"     instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-         <clock clockEnable="PCC->PCC_QSPI |= PCC_PCCn_CGC_MASK" clockDisable="PCC->PCC_QSPI &amp;= ~PCC_PCCn_CGC_MASK" />
       </peripheral>
       <peripheral baseName="RTC"      instance=""         version="rtc_s32k14x">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc" />
@@ -1026,49 +1018,49 @@
          <mux sel="mux7"          signal="TRGMUX_OUT7" />
          <reset sel="unassigned" />
       </pin>
-      <pin name="VDD">
-         <mux sel="mux0"          signal="VDD" />
-         <reset sel="mux0" />
+      <pin name="VDD"          isFixed="true">
+         <mux sel="fixed"         signal="VDD" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VDD1">
-         <mux sel="mux0"          signal="VDD" />
-         <reset sel="mux0" />
+      <pin name="VDD1"         isFixed="true">
+         <mux sel="fixed"         signal="VDD" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VDD2">
-         <mux sel="mux0"          signal="VDD" />
-         <reset sel="mux0" />
+      <pin name="VDD2"         isFixed="true">
+         <mux sel="fixed"         signal="VDD" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VDD3">
-         <mux sel="mux0"          signal="VDD" />
-         <reset sel="mux0" />
+      <pin name="VDD3"         isFixed="true">
+         <mux sel="fixed"         signal="VDD" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VDDA">
-         <mux sel="mux0"          signal="VDDA" />
-         <reset sel="mux0" />
+      <pin name="VDDA"         isFixed="true">
+         <mux sel="fixed"         signal="VDDA" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VREFH">
-         <mux sel="mux0"          signal="VREFH" />
-         <reset sel="mux0" />
+      <pin name="VREFH"        isFixed="true">
+         <mux sel="fixed"         signal="VREFH" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VREFL">
-         <mux sel="mux0"          signal="VREFL" />
-         <reset sel="mux0" />
+      <pin name="VREFL"        isFixed="true">
+         <mux sel="fixed"         signal="VREFL" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VSS">
-         <mux sel="mux0"          signal="VSS" />
-         <reset sel="mux0" />
+      <pin name="VSS"          isFixed="true">
+         <mux sel="fixed"         signal="VSS" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VSS1">
-         <mux sel="mux0"          signal="VSS" />
-         <reset sel="mux0" />
+      <pin name="VSS1"         isFixed="true">
+         <mux sel="fixed"         signal="VSS" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VSS2">
-         <mux sel="mux0"          signal="VSS" />
-         <reset sel="mux0" />
+      <pin name="VSS2"         isFixed="true">
+         <mux sel="fixed"         signal="VSS" />
+         <reset sel="fixed" />
       </pin>
-      <pin name="VSS3">
-         <mux sel="mux0"          signal="VSS" />
-         <reset sel="mux0" />
+      <pin name="VSS3"         isFixed="true">
+         <mux sel="fixed"         signal="VSS" />
+         <reset sel="fixed" />
       </pin>
    </pins>
    <packages>

@@ -142,6 +142,10 @@
          <clock clockEnable="SIM->SCGC5 |= SIM_SCGC5_LPUART0_MASK;" clockDisable="SIM->SCGC5 &amp;= ~SIM_SCGC5_LPUART0_MASK;" />
          <irq num="LPUART0_IRQn" />
       </peripheral>
+      <peripheral baseName="LTC"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo" />
+         <clock clockEnable="SIM->SCGC5 |= SIM_SCGC5_LTC_MASK;" clockDisable="SIM->SCGC5 &amp;= ~SIM_SCGC5_LTC_MASK;" />
+      </peripheral>
       <peripheral baseName="MCG"      instance=""         version="mcg_nopll_mkw41z4">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg" />
          <irq num="MCG_IRQn" />
@@ -164,7 +168,7 @@
       </peripheral>
       <peripheral baseName="RADIO"    instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio" />
-         <clock clockEnable="SIM->SCGC5 |= SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 |= SIM_SCGC5_GEN_FSK_MASK;\nSIM->SCGC5 |= SIM_SCGC5_LTC_MASK;\nSIM->SCGC5 |= SIM_SCGC5_PHYDIG_MASK;\nSIM->SCGC5 |= SIM_SCGC5_RSIM_MASK;\nSIM->SCGC5 |= SIM_SCGC5_ZIGBEE_MASK;" clockDisable="SIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;" />
+         <clock clockEnable="SIM->SCGC5 |= SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 |= SIM_SCGC5_GEN_FSK_MASK;\nSIM->SCGC5 |= SIM_SCGC5_PHYDIG_MASK;\nSIM->SCGC5 |= SIM_SCGC5_RSIM_MASK;\nSIM->SCGC5 |= SIM_SCGC5_ZIGBEE_MASK;" clockDisable="SIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;\nSIM->SCGC5 &amp;= ~SIM_SCGC5_BTLL_MASK;" />
       </peripheral>
       <peripheral baseName="RCM"      instance=""         version="rcm_mkw41z4">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm" />
@@ -279,9 +283,9 @@
          <mux sel="fixed"         signal="VDCDC_IN" />
          <reset sel="fixed" />
       </pin>
-      <pin name="VDDA">
-         <mux sel="mux0"          signal="VDDA" />
-         <reset sel="mux0" />
+      <pin name="VDDA"         isFixed="true">
+         <mux sel="fixed"         signal="VDDA" />
+         <reset sel="fixed" />
       </pin>
       <pin name="VDD_0"        isFixed="true">
          <mux sel="fixed"         signal="VDD_0" />

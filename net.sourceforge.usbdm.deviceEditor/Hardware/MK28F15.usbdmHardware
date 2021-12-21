@@ -441,26 +441,32 @@
    <pins>
       <pin name="ADC0_DM0"     isFixed="true">
          <mux sel="fixed"         signal="ADC0_DM0" />
+         <mux sel="fixed"         signal="ADC0_SE17" />
          <reset sel="fixed" />
       </pin>
       <pin name="ADC0_DM1"     isFixed="true">
          <mux sel="fixed"         signal="ADC0_DM1" />
+         <mux sel="fixed"         signal="ADC0_SE18" />
          <reset sel="fixed" />
       </pin>
       <pin name="ADC0_DM3"     isFixed="true">
          <mux sel="fixed"         signal="ADC0_DM3" />
+         <mux sel="fixed"         signal="ADC0_SE20" />
          <reset sel="fixed" />
       </pin>
       <pin name="ADC0_DP0"     isFixed="true">
          <mux sel="fixed"         signal="ADC0_DP0" />
+         <mux sel="fixed"         signal="ADC0_SE0" />
          <reset sel="fixed" />
       </pin>
       <pin name="ADC0_DP1"     isFixed="true">
          <mux sel="fixed"         signal="ADC0_DP1" />
+         <mux sel="fixed"         signal="ADC0_SE1" />
          <reset sel="fixed" />
       </pin>
       <pin name="ADC0_DP3"     isFixed="true">
          <mux sel="fixed"         signal="ADC0_DP3" />
+         <mux sel="fixed"         signal="ADC0_SE3" />
          <reset sel="fixed" />
       </pin>
       <pin name="ADC0_SE16"    isFixed="true">

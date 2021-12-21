@@ -13,12 +13,12 @@ Pin,PIT_CH0,Internal,Internal,Internal,PIT_CH0,,,,,,,,,
 Pin,PIT_CH1,Internal,Internal,Internal,PIT_CH1,,,,,,,,,
 Pin,PIT_CH2,Internal,Internal,Internal,PIT_CH2,,,,,,,,,
 Pin,PIT_CH3,Internal,Internal,Internal,PIT_CH3,,,,,,,,,
-Pin,ADC0_DM0,*,L2,N13,ADC0_DM0,,,,,,,,,39
-Pin,ADC0_DM1,ADC0_DM1,L1,*,ADC0_DM1,,,,,,,,,49
-Pin,ADC0_DM3,*,N2,P13,ADC0_DM3,,,,,,,,,41
-Pin,ADC0_DP0,*,M2,N14,ADC0_DP0,,,,,,,,,38
-Pin,ADC0_DP1,ADC0_DP1,M1,*,ADC0_DP1,,,,,,,,,48
-Pin,ADC0_DP3,*,N1,P14,ADC0_DP3,,,,,,,,,40
+Pin,ADC0_DM0,*,L2,N13,ADC0_DM0/ADC0_SE17,,,,,,,,,39
+Pin,ADC0_DM1,ADC0_DM1,L1,*,ADC0_DM1/ADC0_SE18,,,,,,,,,49
+Pin,ADC0_DM3,*,N2,P13,ADC0_DM3/ADC0_SE20,,,,,,,,,41
+Pin,ADC0_DP0,*,M2,N14,ADC0_DP0/ADC0_SE0,,,,,,,,,38
+Pin,ADC0_DP1,ADC0_DP1,M1,*,ADC0_DP1/ADC0_SE1,,,,,,,,,48
+Pin,ADC0_DP3,*,N1,P14,ADC0_DP3/ADC0_SE3,,,,,,,,,40
 Pin,ADC0_SE16,Light,N4,M11,ADC0_SE16,,,,,,,,,53
 Pin,DAC0_OUT/CMP1_IN3/ADC0_SE23,DAC0_OUT,M4,P12,DAC0_OUT/CMP1_IN3/ADC0_SE23,,,,,,,,,51
 Pin,EXTAL32,EXTAL_32kHz,N6,P10,EXTAL32,,,,,,,,,56
@@ -309,3 +309,12 @@ Param,FTFE,pflash_phrase_size,8,,,,,,,,,,,
 Param,FTFE,dflash_phrase_size,8,,,,,,,,,,,
 Param,LLWU,device_list,LPTMR0/LPTMR1;CMP0;CMP1;;;RTC_Alarm;;RTC_Seconds,,,,,,,,,,,
 Param,FLEXIO,trigger_list,External;CMP0;CMP1;;PIT0;PIT1;PIT2;PIT3;FTM0;FTM1;FTM2;FTM3;RTC_Alarm;RTC_Seconds;LPTMR0;,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,DAC Mapping,,,,,,,,,,,,,
+,ADC0 DIFF,ADC0 SE,Result,,,,,,,,,,,
+,ADC0_DM0/,ADC0_SE17,ADC0_DM0/ADC0_SE17,,,,,,,,,,,
+,ADC0_DM1/,ADC0_SE18,ADC0_DM1/ADC0_SE18,,,,,,,,,,,
+,ADC0_DM3/,ADC0_SE20,ADC0_DM3/ADC0_SE20,,,,,,,,,,,
+,ADC0_DP0/,ADC0_SE0,ADC0_DP0/ADC0_SE0,,,,,,,,,,,
+,ADC0_DP1/,ADC0_SE1,ADC0_DP1/ADC0_SE1,,,,,,,,,,,
+,ADC0_DP3/,ADC0_SE3,ADC0_DP3/ADC0_SE3,,,,,,,,,,,
