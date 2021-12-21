@@ -148,7 +148,7 @@ public abstract class Validator {
     * 
     * @param key  Key to lookup variable
     * 
-    * @return
+    * @return variable or null if not found
     */
    protected Variable safeGetVariable(String key) {
       Variable variable = fProvider.safeGetVariable(fProvider.makeKey(key)+"["+fIndex+"]");

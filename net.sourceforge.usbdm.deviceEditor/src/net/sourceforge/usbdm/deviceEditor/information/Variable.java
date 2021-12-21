@@ -29,25 +29,48 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public enum Units {None, Hz, s};
 
    /**
-    * Class to hold the Name/Value pair
+    * Class to hold the data for choices
     */
-   public static class Pair {
+   public static class ChoiceData {
       
       /** Name used by GUI/model */
       public final String name;
       
       /** Value used by substitution */
       public final String value;
+
+      /** Whether this choice is hidden in display */
+      private boolean fHidden = false;
       
       /**
        * 
        * @param name  Name used by GUI/model
        * @param value Value used by data
        */
-      public Pair(String name, String value) {
+      public ChoiceData(String name, String value) {
          this.name  = name;
          this.value = value;
       }
+      
+      /**
+       * Whether this choice is hidden in display
+       * 
+       * @return True if hidden
+       */
+      public boolean isHidden() {
+         return fHidden;
+      }
+      
+      /**
+       * Set whether this choice is hidden in display
+       * 
+       * 
+       * @param hidden True to hide choice
+       */
+      public void setHidden(boolean hidden) {
+         this.fHidden = hidden;
+      }
+      
    }
 
    /** Name of variable visible to user */
@@ -82,6 +105,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    private String fForEnumeration;
 
    private String fForVariable;
+
+   private boolean fHidden;
 
    /**
     * Constructor
@@ -520,8 +545,26 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @return {@link VariableModel}
     */
-   public abstract VariableModel createModel(BaseModel parent);
+   protected abstract VariableModel privateCreateModel(BaseModel parent);
 
+   /**
+    * Creates model for displaying this variable
+    * 
+    * @param parent Parent for the new model
+    * 
+    * @return {@link VariableModel}
+    */
+   public VariableModel createModel(BaseModel parent) {
+      if (isHidden()) {
+         parent = null;
+      }
+      VariableModel model = privateCreateModel(parent);
+      if (isHidden()) {
+         model.setHidden(true);
+      }
+      return model;
+   }
+   
    /**
     * Print string if debugging on
     * 
@@ -647,5 +690,13 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    
    public String getForVariable() {
       return fForVariable;
+   }
+
+   public void setHidden(boolean b) {
+      fHidden = b;
+   }
+   
+   public boolean isHidden() {
+      return fHidden;
    }
 }

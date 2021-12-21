@@ -54,7 +54,7 @@ public class DoubleVariable extends Variable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new DoubleVariableModel(parent, this);
    }
    

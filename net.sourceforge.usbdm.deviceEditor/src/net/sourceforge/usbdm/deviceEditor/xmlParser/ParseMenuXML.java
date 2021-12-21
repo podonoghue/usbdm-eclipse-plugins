@@ -28,7 +28,7 @@ import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.AliasPlaceholderModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
@@ -187,8 +187,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /** Name of model (filename) */
-   @SuppressWarnings("unused")
-   private static String fName;
+   private static String fPeripheralName;
 
    /** Provider providing the variables used by the menu */
    private final VariableProvider  fProvider;
@@ -250,7 +249,7 @@ public class ParseMenuXML extends XML_BaseParser {
          String varName = element.getAttribute(name);
          Variable var = safeGetVariable(varName);
          if (var == null) {
-            throw new Exception("Variable not found " + varName);
+            throw new Exception("Variable not found, peripheral = " + fPeripheralName + ", var = " + varName);
          }
          value = var.getValueAsLong();
       }
@@ -396,9 +395,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("hidden")) {
          // Value is used as default and initial value
-         if (Boolean.valueOf(varElement.getAttribute("hidden"))) {
-            parent = null;
-         }
+         variable.setHidden(Boolean.valueOf(varElement.getAttribute("hidden")));
       }
       if (varElement.hasAttribute("derived")) {
          variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
@@ -548,31 +545,28 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private void parseIndexedCategoryOption(BaseModel parent, Element varElement) throws Exception {
 
-      IndexedCategoryVariable variable = (IndexedCategoryVariable) createVariable(varElement, IndexedCategoryVariable.class);
-      IndexedCategoryModel    model    = (IndexedCategoryModel) parseCommonAttributes(parent, varElement, variable);
+      IndexedCategoryVariable indexedCategoryVariable = (IndexedCategoryVariable) createVariable(varElement, IndexedCategoryVariable.class);
+      IndexedCategoryModel    indexedCategoryModel    = (IndexedCategoryModel)    parseCommonAttributes(parent, varElement, indexedCategoryVariable);
       
-      variable.setValue(varElement.getAttribute("value"));
-
+      indexedCategoryVariable.setValue(varElement.getAttribute("value"));
       long dimension = getLongAttributeWithSubstitution(varElement, "dim");
       
       if ((dimension<0) || (dimension>10)) {
          throw new Exception("Dimension variable has illegal value "+dimension);
       }
-//      int dimension = getIntAttribute(varElement, "dim");
-
-      model.setDimension((int)dimension);
+      indexedCategoryModel.setDimension((int)dimension);
       
-      parseChildModels(model, varElement);
+      parseChildModels(indexedCategoryModel, varElement);
 
       for (int index=1; index<dimension; index++) {
-         IndexedCategoryModel newModel = model.clone(parent, fProvider, index);
-         if (newModel.getName() == model.getName()) {
-            newModel.setName(model.getName()+"["+index+"]");
+         IndexedCategoryModel newModel = indexedCategoryModel.clone(parent, fProvider, index);
+         if (newModel.getName() == indexedCategoryModel.getName()) {
+            newModel.setName(indexedCategoryModel.getName()+"["+index+"]");
          }
          IndexedCategoryVariable newVariable = newModel.getVariable();
          newVariable.setValue(newVariable.getValueAsString().replaceAll("\\.$", Integer.toString(index)));
       }
-      variable.setValue(variable.getValueAsString().replaceAll("\\.$", Integer.toString(0)));
+      indexedCategoryVariable.setValue(indexedCategoryVariable.getValueAsString().replaceAll("\\.$", Integer.toString(0)));
    }
 
    /**
@@ -1142,7 +1136,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseChoices(Variable variable, Element menuElement) throws Exception {
       
-      ArrayList<Pair> entries = new ArrayList<Pair>();
+      ArrayList<ChoiceData> entries = new ArrayList<ChoiceData>();
       String defaultValue = null;
       NodeList choiceNodes = menuElement.getElementsByTagName("choice");
       for(int index=0; index<choiceNodes.getLength(); index++) {
@@ -1151,7 +1145,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-         Pair entry = new Pair(element.getAttribute("name"), element.getAttribute("value"));
+         ChoiceData entry = new ChoiceData(element.getAttribute("name"), element.getAttribute("value"));
          entries.add(entry);
          if (defaultValue == null) {
             // Assume 1st entry is default
@@ -1200,7 +1194,7 @@ public class ParseMenuXML extends XML_BaseParser {
             var.setTrueValue(entries.get(1));
          }
          else if (variable instanceof ChoiceVariable) {      
-            Pair theEntries[] = entries.toArray(new Pair[entries.size()]);
+            ChoiceData theEntries[] = entries.toArray(new ChoiceData[entries.size()]);
             ChoiceVariable var = (ChoiceVariable)variable;
             var.setData(theEntries);
          }
@@ -1620,7 +1614,7 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Parses document from top element
     * 
-    * @param name         Name of peripheral (used for peripheral file name e.g. adc0_diff_a => adc0_diff_a.xml
+    * @param peripheralName         Name of peripheral (used for peripheral file name e.g. adc0_diff_a => adc0_diff_a.xml
     * @param peripheral   Provides the variables. New variables will be added to this peripheral
     * 
     * @return Data from model
@@ -1630,20 +1624,21 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>Relative path : Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     * <li>Relative path : "USBDM Resource Path"/Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
-   public static MenuData parsePeriperalFile(String name, PeripheralWithState peripheral) throws Exception {
-      fName = name;
+   public static MenuData parsePeriperalFile(String peripheralName, PeripheralWithState peripheral) throws Exception {
+      fPeripheralName = peripheralName;
       MenuData fData;
       try {
+         System.out.println("Parsing " + fPeripheralName);
          // For debug try local directory
-         Path path = locateFile(name+".xml");
+         Path path = locateFile(peripheralName+".xml");
          fData = parse(XML_BaseParser.parseXmlFile(path), peripheral, peripheral);
-         fData.fRootModel.setToolTip(name);
+         fData.fRootModel.setToolTip(peripheralName);
       } catch (FileNotFoundException e) {
          // Some peripherals don't have templates yet - just warn
-         throw new Exception("Failed to find peripheral file for "+name, e);
+         throw new Exception("Failed to find peripheral file for "+peripheralName, e);
       } catch (Exception e) {
          e.printStackTrace();
-         throw new Exception("Failed to process peripheral file for "+name, e);
+         throw new Exception("Failed to process peripheral file for "+peripheralName, e);
       }
       for (ValidatorInformation v:fData.getValidators()) {
          try {
@@ -1681,7 +1676,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>Relative path : "USBDM Resource Path"/Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
    public static MenuData parseMenuFile(String name, VariableProvider variableProvider) throws Exception {
-      fName = name;
+      fPeripheralName = name;
       MenuData fData;
       try {
          // For debug try local directory

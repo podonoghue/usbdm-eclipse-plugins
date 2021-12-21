@@ -10,7 +10,7 @@ public class IndexedCategoryVariable extends StringVariable {
    }
 
    @Override
-   public IndexedCategoryModel createModel(BaseModel parent) {
+   protected IndexedCategoryModel privateCreateModel(BaseModel parent) {
       return new IndexedCategoryModel(parent, this);
    }
 

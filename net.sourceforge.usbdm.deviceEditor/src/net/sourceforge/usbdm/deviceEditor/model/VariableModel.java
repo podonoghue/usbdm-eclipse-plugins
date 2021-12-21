@@ -128,5 +128,4 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       model.fVariable.addListener(model);
       return model;
    }
-
 }

@@ -6,8 +6,8 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
  
 public class BooleanVariable extends Variable {
    
-   private Pair fTrue  = new Pair("true",  "true");
-   private Pair fFalse = new Pair("false", "false");
+   private ChoiceData fTrue  = new ChoiceData("true",  "true");
+   private ChoiceData fFalse = new ChoiceData("false", "false");
    
    /** Current value (user format i.e name) */
    private boolean fValue = false;
@@ -34,7 +34,7 @@ public class BooleanVariable extends Variable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new BooleanVariableModel(parent, this);
    }
    
@@ -180,7 +180,7 @@ public class BooleanVariable extends Variable {
     * 
     * @return name/value for TRUE value
     */
-   public Pair getTrueValue() {
+   public ChoiceData getTrueValue() {
       return fTrue;
    }
 
@@ -189,7 +189,7 @@ public class BooleanVariable extends Variable {
     * 
     * @param trueValue name/value for TRUE value
     */
-   public void setTrueValue(Pair trueValue) {
+   public void setTrueValue(ChoiceData trueValue) {
       this.fTrue = trueValue;
    }
 
@@ -198,7 +198,7 @@ public class BooleanVariable extends Variable {
     * 
     * @return the name/value for FALSE value
     */
-   public Pair getFalseValue() {
+   public ChoiceData getFalseValue() {
       return fFalse;
    }
 
@@ -207,7 +207,7 @@ public class BooleanVariable extends Variable {
     * 
     * @param name/value for FALSE value
     */
-   public void setFalseValue(Pair falseValue) {
+   public void setFalseValue(ChoiceData falseValue) {
       this.fFalse = falseValue;
    }
 

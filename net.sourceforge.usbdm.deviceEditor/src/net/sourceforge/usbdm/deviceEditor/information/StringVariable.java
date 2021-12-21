@@ -93,7 +93,7 @@ public class StringVariable extends Variable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new StringVariableModel(parent, this);
    }
 

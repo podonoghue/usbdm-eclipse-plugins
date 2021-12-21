@@ -231,11 +231,31 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       // Determine MCG external reference clock [mcg_erc_clock]
       //========================================================
       ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
-      Variable mcg_erc_clockVar                 = getVariable("mcg_erc_clock");
+      Variable mcg_erc_clockVar       = getVariable("mcg_erc_clock");
 
       int mcg_c7_oscsel = (int)mcg_c7_oscselVar.getValueAsLong();
-      if ((osc32k_osc_clockVar == null) && (mcg_c7_oscsel == 1)) {
-         mcg_c7_oscsel = 0;
+      switch(mcg_c7_oscsel) {
+      case 0:
+         break;
+      case 1:
+         // Only available if osc32k_osc present
+         if (osc32k_osc_clockVar == null) {
+            mcg_c7_oscselVar.setValue(0);
+            mcg_c7_oscselVar.hideByIndex(1, true);
+            return;
+         }
+         break;
+      case 2:
+         // Only available if irc48m present
+         if (system_irc48m_clockVar == null) {
+            mcg_c7_oscselVar.setValue(0);
+            mcg_c7_oscselVar.hideByIndex(2, true);
+            return;
+         }
+         break;
+      default:
+         mcg_c7_oscselVar.setValue(0);
+         return;
       }
       switch (mcg_c7_oscsel) {
       default:

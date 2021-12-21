@@ -39,7 +39,7 @@ public class PinListVariable extends StringVariable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new PinListVariableModel(parent, this);
    }
 

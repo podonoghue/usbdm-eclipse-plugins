@@ -1050,7 +1050,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       createPeripheralTemplateInformation(
             "RADIO", "", "$0",
-            "^(RF_NOT_ALLOWED|RF_RESET|ANT|BLE_RF_ACTIVE|BTLL|GANT|DTM_.*|ANT_(a|b)|DIAG(\\d+)|TX_SWITCH|RX_SWITCH|BSM_.*|GEN_FSK|LTC|PHYDIG|RSIM|ZIGBEE)$",
+            "^(RF_NOT_ALLOWED|RF_RESET|ANT|BLE_RF_ACTIVE|BTLL|GANT|DTM_.*|ANT_(a|b)|DIAG(\\d+)|TX_SWITCH|RX_SWITCH|BSM_.*|GEN_FSK|PHYDIG|RSIM|ZIGBEE)$",
             getDeviceFamily(),
             WriterForRadio.class);
       
@@ -1371,6 +1371,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "(MCM)",
                getDeviceFamily(),
                WriterForMcm.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(EMVSIM)(\\d)?_(.*)",
+               getDeviceFamily(),
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "$1", "$3", "$4",
+               "(LTC)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForToDo.class);
       }
       createPeripheralTemplateInformation(
             "$1", "$2", "$3",

@@ -60,7 +60,7 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new LongVariableModel(parent, this);
    }
    

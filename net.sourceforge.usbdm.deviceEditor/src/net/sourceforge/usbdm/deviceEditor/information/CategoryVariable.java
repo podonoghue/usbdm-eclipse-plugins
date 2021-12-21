@@ -12,7 +12,7 @@ public class CategoryVariable extends StringVariable {
    }
 
    @Override
-   public CategoryVariableModel createModel(BaseModel parent) {
+   protected CategoryVariableModel privateCreateModel(BaseModel parent) {
       return new CategoryVariableModel(parent, this);
    }
 }

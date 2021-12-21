@@ -15,8 +15,8 @@ public class IrqVariable extends BooleanVariable {
 
    public IrqVariable(String name, String key) {
       super(name, key);
-      setTrueValue(new Pair("Installed", "$"+Mode.ClassMethod.name()));
-      setFalseValue(new Pair("Not installed", "$"+Mode.NotInstalled.name()));
+      setTrueValue(new ChoiceData("Installed", "$"+Mode.ClassMethod.name()));
+      setFalseValue(new ChoiceData("Not installed", "$"+Mode.NotInstalled.name()));
    }
 
    /* (non-Javadoc)
@@ -42,7 +42,7 @@ public class IrqVariable extends BooleanVariable {
    }
    
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new IrqVariableModel(parent, this);
    }
 

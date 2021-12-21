@@ -27,7 +27,7 @@ public class NumericListVariable extends StringVariable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new NumericListVariableModel(parent, this);
    }
 

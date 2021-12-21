@@ -9,7 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 public class ChoiceVariable extends Variable {
 
    /** Name/choice pairs */
-   private Pair[] fData = null;
+   private ChoiceData[] fData = null;
    
    /** List of choices */
    private String[] fChoices = null;
@@ -39,7 +39,7 @@ public class ChoiceVariable extends Variable {
    }
 
    @Override
-   public VariableModel createModel(BaseModel parent) {
+   protected VariableModel privateCreateModel(BaseModel parent) {
       return new ChoiceVariableModel(parent, this);
    }
    
@@ -68,7 +68,7 @@ public class ChoiceVariable extends Variable {
       else {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable " + getName());
       }
-      if ((index<0) || (index>=fChoices.length)) {
+      if ((index<0) || (index>=getChoices().length)) {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
       }
       return fData[index].name;
@@ -89,7 +89,7 @@ public class ChoiceVariable extends Variable {
       }
       if (isValid(value) != null) {
          System.err.println("Warning value is not valid "+this+", "+value);
-         value = fChoices[0];
+         value = getChoices()[0];
       }
       if (value.equalsIgnoreCase("Reserved") ||
           value.equalsIgnoreCase("Default")) {
@@ -291,7 +291,12 @@ public class ChoiceVariable extends Variable {
       if (fChoices == null) {
          fChoices = new String[fData.length];
          for (int index=0; index<fData.length; index++) {
-            fChoices[index] = fData[index].name;
+            if (fData[index].isHidden()) {
+               fChoices[index] = "Unavailable";
+            }
+            else {
+               fChoices[index] = fData[index].name;
+            }
          }
          if (fValue == null) {
             // Value not set yet - set default
@@ -310,16 +315,44 @@ public class ChoiceVariable extends Variable {
    }
 
    /**
+    * Hide or show a choice
+    * 
+    * @param value   Value to change
+    * 
+    * @param hide True to hide
+    */
+   public void hideByValue(String value, boolean hide) {
+      for (ChoiceData choice:fData) {
+         if (choice.value.equalsIgnoreCase(value)) {
+            choice.setHidden(hide);
+            fChoices = null;
+         }
+      }
+   }
+   
+   /**
+    * Hide or show a choice
+    * 
+    * @param index   Index of item to change
+    * 
+    * @param hide True to hide
+    */
+   public void hideByIndex(int index, boolean hide) {
+      fData[index].setHidden(hide);
+      fChoices = null;
+   }
+   
+   /**
     * @return the choices
     */
-   public Pair[] getData() {
+   public ChoiceData[] getData() {
       return fData;
    }
 
    /**
     * @param entries The name/value entries to set
     */
-   public void setData(Pair[] entries) {
+   public void setData(ChoiceData[] entries) {
       this.fData = entries;
    }
 

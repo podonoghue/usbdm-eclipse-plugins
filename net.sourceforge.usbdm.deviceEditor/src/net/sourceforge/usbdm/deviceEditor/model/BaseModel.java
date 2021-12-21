@@ -18,6 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.ListModel;
 public abstract class BaseModel implements Cloneable {
    
    static final String watchedName = "OSC"; 
+   protected boolean fHidden;
 
    /** Factory owning these models */
    static private ModelFactory fFactory = null;
@@ -196,6 +197,9 @@ public abstract class BaseModel implements Cloneable {
     * @param model
     */
    public void addChild(BaseModel model) {
+      if (model.isHidden()) {
+         return;
+      }
       if (model instanceof ListModel) {
          ListModel listModel = (ListModel) model;
          listModel.addChildrenToParent(this);
@@ -560,4 +564,12 @@ public abstract class BaseModel implements Cloneable {
       return fIndex;
    }
 
+
+   public void setHidden(boolean hide) {
+      fHidden = hide;
+   }
+
+   public boolean isHidden() {
+      return fHidden;
+   }
 }

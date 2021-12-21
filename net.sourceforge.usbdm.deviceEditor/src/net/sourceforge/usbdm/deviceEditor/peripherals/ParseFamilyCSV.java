@@ -255,6 +255,7 @@ public class ParseFamilyCSV {
 			throw new Exception("No pin name");
 		}
 		pinName = fixSignalName(pinName);
+		
 		// Use first name on pin as Pin name e.g. PTC4/LLWU_P8 => PTC4
 		Pattern p = Pattern.compile("(.+?)/.*");
 		Matcher m = p.matcher(pinName);
@@ -265,26 +266,34 @@ public class ParseFamilyCSV {
 
 		sb.append(String.format("%-10s => ", pin.getName()));
 
-		boolean pinIsMapped = false;
-		for (int col=fAltStartIndex; col<=fAltEndIndex; col++) {
-			if (col>=line.length) {
-				break;
-			}
-			ArrayList<Signal> signals = createSignalsFromString(line[col], true);
-			for (Signal signal:signals) {
-				sb.append(signal.getName()+", ");
-				if ((signal != null)) {
-					MuxSelection muxValue = MuxSelection.valueOf(col-fAltStartIndex);
-					fDeviceInfo.createMapping(signal, pin, muxValue);
-					pinIsMapped = true;
-				}
-			}
-		}
+      int numberOfPinMappings = 0; 
+      int firstMapping        = -1; 
+      for (int col=fAltStartIndex; col<=fAltEndIndex; col++) {
+         if (col>=line.length) {
+            break;
+         }
+         ArrayList<Signal> signals = createSignalsFromString(line[col], true);
+         boolean doneMap = false;
+         for (Signal signal:signals) {
+            sb.append(signal.getName()+", ");
+            if ((signal != null)) {
+               MuxSelection muxValue = MuxSelection.valueOf(col-fAltStartIndex);
+               fDeviceInfo.createMapping(signal, pin, muxValue);
+               doneMap = true;
+            }
+         }
+         if (doneMap) {
+            if (numberOfPinMappings == 0) {
+               firstMapping = col - fAltStartIndex;
+            }
+            numberOfPinMappings++;
+         }
+      }
 
 		if ((line.length>fResetIndex) && (line[fResetIndex] != null) && (!line[fResetIndex].isEmpty())) {
 			String resetName  = line[fResetIndex];
 			ArrayList<Signal> resetSignals = createSignalsFromString(resetName, true);
-			if (!pinIsMapped) {
+			if (numberOfPinMappings == 0) {
 				for (Signal resetSignal:resetSignals) {
 					sb.append("R:" + resetSignal.getName() + ", ");
 					// Pin is not mapped to this signal in the ALT columns - must be a non-mappable pin
@@ -293,6 +302,9 @@ public class ParseFamilyCSV {
 						signal.setResetPin(mapping);
 					}
 				}
+			}
+			if ((numberOfPinMappings == 1) && (firstMapping == 0)) {
+			   System.err.println("Warning: only a single mapping for pin (should be fixed?) " + pinName +  ", Mapped=" + firstMapping);
 			}
 			pin.setResetSignals(fDeviceInfo, resetName);
 		}

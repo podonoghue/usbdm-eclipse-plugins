@@ -35,7 +35,7 @@ public class BitmaskVariable extends LongVariable {
    }
 
    @Override
-   public BitmaskVariableModel createModel(BaseModel parent) {
+   protected BitmaskVariableModel privateCreateModel(BaseModel parent) {
       return new BitmaskVariableModel(parent, this);
    }
 
