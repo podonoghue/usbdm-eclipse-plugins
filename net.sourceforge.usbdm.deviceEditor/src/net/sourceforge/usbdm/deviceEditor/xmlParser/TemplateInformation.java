@@ -133,9 +133,20 @@ public class TemplateInformation {
    }
 
    /**
-    * Add child template
+    * Get unexpanded text contents of template.
+    * 
+    * @return Unexpanded text contents of template
+    */
+   public String getUnexpandedText() {
+      return fBuilder.toString();
+   }
+   
+   /**
+    * Add child template<br>
+    * The text is expanded.
     * 
     * @param template Template to add
+    * 
     * @throws Exception 
     */
    public void addChild(TemplateInformation template) throws Exception {

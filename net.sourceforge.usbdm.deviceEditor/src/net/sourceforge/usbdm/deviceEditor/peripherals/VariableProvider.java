@@ -166,7 +166,8 @@ public class VariableProvider {
    }
 
    /**
-    * Does variable substitution in a string
+    * Does variable substitution in a string<br>
+    * Keymaker from provider is used i.e. prefix is this.getName()
     * 
     * @param input   String to process
     * @param map     Map of key->replacement values

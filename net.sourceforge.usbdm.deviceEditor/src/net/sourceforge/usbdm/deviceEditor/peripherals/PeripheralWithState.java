@@ -43,7 +43,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /** Map of parameters for peripheral */
    protected HashMap<String, String> fParamMap = new HashMap<String,String>();
 
-   /** Map of parameters for peripheral */
+   /** Map of constants for peripheral */
    protected HashMap<String, String> fConstantMap = new HashMap<String,String>();
 
    /** Status of the peripheral */
@@ -327,7 +327,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          throw new Exception(getClassName() + ": Pattern and classHandler have different lengths in irqOption");
       }
       for (int index=0; index<patterns.length; index++) {
-         String pattern = patterns[index].replaceAll("%b", getBaseName());
+         String pattern = patterns[index];
+         pattern = pattern.replaceAll("%b", getBaseName());
          pattern = pattern.replaceAll("%i", getInstance());
          pattern = pattern.replaceAll("%c", className);
          String classHandler = classHandlers[index];
@@ -337,10 +338,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             if (entry != null) {
                Matcher m = px.matcher(entry.getName());
                if (m.matches()) {
-                  //               String modifier = "";
-                  //               if (m.groupCount() > 0) {
-                  //                  modifier = m.group(1);
-                  //               }
                   String handlerName;
                   switch (irqVariable.getMode()) {
                   case ClassMethod:

@@ -15,6 +15,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
@@ -799,7 +800,9 @@ public class ParseMenuXML extends XML_BaseParser {
       key  = fProvider.makeKey(key);
       key  = substituteKey(key);
       name = substituteKey(name);
+      
       Variable var = safeGetVariable(key);
+      value = ReplacementParser.substitute(value, fPeripheral.getConstantMap());
       if (var != null) {
          if (isWeak) {
             // Ignore constant

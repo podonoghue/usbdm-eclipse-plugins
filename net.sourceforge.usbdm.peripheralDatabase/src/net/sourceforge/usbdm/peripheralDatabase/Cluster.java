@@ -411,7 +411,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * @return dimension as string e.g. "3" or "CAN_FILTER_COUNT*4" or null if not set (not an array)
     */
    public String getDimAsExpressionForC() {
-      return ReplacementParser.substituteWithSymbols(fDim, fOwner.getHeaderStructName());
+      return ReplacementParser.addPrefixToKeys(fDim, fOwner.getHeaderStructName());
    }
 
    /**
