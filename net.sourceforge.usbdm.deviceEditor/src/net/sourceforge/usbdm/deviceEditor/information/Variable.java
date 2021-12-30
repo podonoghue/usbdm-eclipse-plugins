@@ -70,7 +70,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       public void setHidden(boolean hidden) {
          this.fHidden = hidden;
       }
-      
    }
 
    /** Name of variable visible to user */

@@ -187,9 +187,6 @@ public class ParseMenuXML extends XML_BaseParser {
       
    }
 
-   /** Name of model (filename) */
-   private static String fPeripheralName;
-
    /** Provider providing the variables used by the menu */
    private final VariableProvider  fProvider;
 
@@ -217,7 +214,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param peripheral 
     */
    private ParseMenuXML(VariableProvider provider, PeripheralWithState peripheral) {
-      fProvider = provider;
+      fProvider   = provider;
       fPeripheral = peripheral;
       fProjectActionList = new ProjectActionList(provider.getName()+" Action list");
    }
@@ -250,7 +247,7 @@ public class ParseMenuXML extends XML_BaseParser {
          String varName = element.getAttribute(name);
          Variable var = safeGetVariable(varName);
          if (var == null) {
-            throw new Exception("Variable not found, peripheral = " + fPeripheralName + ", var = " + varName);
+            throw new Exception("Variable not found, peripheral = " + fProvider.getName() + ", var = " + varName);
          }
          value = var.getValueAsLong();
       }
@@ -1121,7 +1118,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (peripheral == null) {
          if (!optional) {
-            throw new UsbdmException("Unable to find peripheral '"+peripheralName+"' for <signals>");
+            throw new UsbdmException("Unable to find <signals> for peripheral '"+peripheralName+"'");
          }
          return;
       }
@@ -1149,6 +1146,14 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          ChoiceData entry = new ChoiceData(element.getAttribute("name"), element.getAttribute("value"));
+         String requiredPeripheral = element.getAttribute("requiresPeripheral").toUpperCase();
+         // Check if entry requires a peripheral to be present to be used
+         if (!requiredPeripheral.isBlank()) {
+            Peripheral p = fPeripheral.getDeviceInfo().getPeripherals().get(requiredPeripheral);
+            if (p == null) {
+               continue;
+            }
+         }
          entries.add(entry);
          if (defaultValue == null) {
             // Assume 1st entry is default
@@ -1565,12 +1570,12 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private static MenuData parse(Document document, VariableProvider provider, PeripheralWithState peripheral) throws Exception {
+      System.out.println("Loading document:" + document.getBaseURI());
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
       }
       ParseMenuXML parser = new ParseMenuXML(provider, peripheral);
-//      document.getDocumentElement();
       for (Node child = document.getFirstChild(); child != null; child = child.getNextSibling()) {
          if (child.getNodeType() != Node.ELEMENT_NODE) {
             continue;
@@ -1617,8 +1622,8 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Parses document from top element
     * 
-    * @param peripheralName         Name of peripheral (used for peripheral file name e.g. adc0_diff_a => adc0_diff_a.xml
-    * @param peripheral   Provides the variables. New variables will be added to this peripheral
+    * @param peripheralName   Name of peripheral (used for peripheral file name e.g. adc0_diff_a => adc0_diff_a.xml
+    * @param peripheral       Provides the variables. New variables will be added to this peripheral
     * 
     * @return Data from model
     * @throws Exception 
@@ -1628,10 +1633,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>Relative path : "USBDM Resource Path"/Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
    public static MenuData parsePeriperalFile(String peripheralName, PeripheralWithState peripheral) throws Exception {
-      fPeripheralName = peripheralName;
       MenuData fData;
       try {
-         System.out.println("Parsing " + fPeripheralName);
          // For debug try local directory
          Path path = locateFile(peripheralName+".xml");
          fData = parse(XML_BaseParser.parseXmlFile(path), peripheral, peripheral);
@@ -1679,7 +1682,6 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>Relative path : "USBDM Resource Path"/Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
    public static MenuData parseMenuFile(String name, VariableProvider variableProvider) throws Exception {
-      fPeripheralName = name;
       MenuData fData;
       try {
          // For debug try local directory

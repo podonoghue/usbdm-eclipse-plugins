@@ -227,9 +227,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /**
     * Set clock information
     * 
-    * @param clockReg   Clock register name e.g. SCGC5
-    * @param clockMask  Clock register mask e.g. SIM_SCGC5_PORTB_MASK
-    * @throws Exception 
+    * @param clockEnable      Clock enable C code e.g. <b><i>SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_FTM0_MASK;</b></i>
+    * @param clockDisable     Clock disable C code e.g. <b><i>SIM->SCGC6 = SIM->SCGC6 & ~SIM_SCGC6_FTM0_MASK;</b></i>
+    * 
+    * @throws Exception
     */
    public void setClockControlInfo(String clockEnable, String clockDisable) throws Exception {
       if ((clockEnable.length()==0) || (clockDisable.length()==0)) {

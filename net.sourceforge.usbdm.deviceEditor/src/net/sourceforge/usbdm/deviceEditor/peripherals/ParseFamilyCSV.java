@@ -342,9 +342,6 @@ public class ParseFamilyCSV {
 	static final int CLOCK_REG_COL       = 2;
    static final int CLOCK_MASK_COL      = 3;
 	
-	static final int CLOCK_ENABLE_COL    = 2;
-	static final int CLOCK_DISABLE_COL   = 3;
-
 	/**
 	 * Parse line containing Peripheral information
 	 * 
@@ -352,62 +349,65 @@ public class ParseFamilyCSV {
 	 * @throws Exception 
 	 */
 	private void parsePeripheralInfoLine(String[] line) throws Exception {
-		if (!line[0].equals("Peripheral")) {
-			return;
-		}
-		if (line.length < 2) {
-			throw new RuntimeException("Illegal Peripheral Mapping line");
-		}
-		String peripheralName = line[PERIPHERAL_NAME_COL];
-		Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
-		if (peripheral == null) {
-			throw new RuntimeException("Unable to find peripheral "+peripheralName);
-		}
-		if (line.length < 3) {
-			// No parameters
-			return;
-		}
+	   if (!line[0].equals("Peripheral")) {
+	      return;
+	   }
+	   if (line.length < 2) {
+	      throw new RuntimeException("Illegal Peripheral Mapping line");
+	   }
+	   String peripheralName = line[PERIPHERAL_NAME_COL];
+	   Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
+	   if (peripheral == null) {
+	      throw new RuntimeException("Unable to find peripheral "+peripheralName);
+	   }
+	   if (line.length < 3) {
+	      // No parameters
+	      return;
+	   }
+	   
+      if (line.length > (CLOCK_MASK_COL+1)) {
+         throw new RuntimeException("Unexpected clock information in line for " + line[1]);
+      }
 
-		if ((line[CLOCK_ENABLE_COL] != null) && !line[CLOCK_ENABLE_COL].isEmpty()) {
-			String clockEnable  = line[CLOCK_ENABLE_COL];
-			String clockDisable = null;
-			if (clockEnable.matches("SIM->(SCGC\\d?)")) {
-				// Old format - convert
-				String peripheralClockReg  = line[CLOCK_REG_COL];
-				String peripheralClockMask = null;
-				if (line.length > CLOCK_MASK_COL) {
-					peripheralClockMask = line[CLOCK_MASK_COL];
-				}
-				if ((peripheralClockMask==null) || peripheralClockMask.isEmpty()) {
-					peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
-				}
-				if ((peripheralClockReg != null) && !peripheralClockReg.isEmpty()) {
-					Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
-					Matcher matcher = pattern.matcher(peripheralClockReg);
-					if (!matcher.matches()) {
-						throw new RuntimeException("Unexpected Peripheral Clock Register " + peripheralClockReg + " for " + peripheralName);
-					}
-					//               peripheralClockReg = matcher.group(1);
-					if (!peripheralClockMask.contains(matcher.group(1))) {
-						throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
-					}
-					clockEnable  = peripheralClockReg + " |= " + peripheralClockMask + ";";
-					clockDisable = peripheralClockReg + " &= ~" + peripheralClockMask + ";";
-					peripheral.setClockControlInfo(clockEnable, clockDisable);
-				}
-			}
-			else {
-			   // New format
-				clockEnable = clockEnable.replaceAll("\\%", peripheral.getName());
-				if (line.length > CLOCK_DISABLE_COL) {
-					clockDisable = line[CLOCK_DISABLE_COL];
-				}
-				if ((clockDisable == null) || clockDisable.isEmpty()) {
-					clockDisable = clockEnable.replaceAll("\\|=\\s", "&= ~");
-				}
-				peripheral.setClockControlInfo(clockEnable, clockDisable);
-			}
-		}
+	   String clockRegister = line[CLOCK_REG_COL];
+	   if ((clockRegister != null) && !clockRegister.isEmpty()) {
+	      String peripheralClockMask = null;
+
+	      if (clockRegister.matches("SIM->(SCGC\\d?)")) {
+
+	         // Old format - Register (e.g. SIM->SCGC4) + optional mask (e.g. SIM_SCGC4_USBOTG_MASK)
+
+	         if (line.length > CLOCK_MASK_COL) {
+	            peripheralClockMask = line[CLOCK_MASK_COL];
+	         }
+	         if ((peripheralClockMask==null) || peripheralClockMask.isEmpty()) {
+	            // Construct mask from clock register and peripheral name
+	            peripheralClockMask = clockRegister.replace("->", "_")+"_"+peripheralName+"_MASK";
+	         }
+	         else {
+	            // Mask provided - do sanity check
+	            Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
+	            Matcher matcher = pattern.matcher(clockRegister);
+	            if (!matcher.matches() || !peripheralClockMask.contains(matcher.group(1))) {
+	               // Mask indicates different SCGC register number
+	               throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + clockRegister);
+	            }
+	         }
+	      }
+	      else if (clockRegister.startsWith("PCC")) {
+
+	         // New format - Register (e.g. PCC->PCC_%) with implied mask (always PCC_PCCn_CGC_MASK)
+
+	         peripheralClockMask = "PCC_PCCn_CGC_MASK";
+	         clockRegister       = clockRegister.replaceAll("\\%", peripheral.getName());
+	      }
+	      else {
+	         throw new RuntimeException("Unexpected clock information " + clockRegister);
+	      }
+	      String clockEnable  = clockRegister + " = " + clockRegister + " | "  + peripheralClockMask + ";";
+	      String clockDisable = clockRegister + " = " + clockRegister + " & ~" + peripheralClockMask + ";";
+	      peripheral.setClockControlInfo(clockEnable, clockDisable);
+	   }
 	}
 
 	/**
