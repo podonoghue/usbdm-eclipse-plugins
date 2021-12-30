@@ -67,8 +67,8 @@ public class AddTargetFiles {
       }
       if (fileAction.doMacroReplace()) {
          // Assume UTF-8
-         String chars =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(fileContents)).toString();
-         fileContents = ReplacementParser.substitute(chars, variableMap).getBytes();
+         String chars = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(fileContents)).toString();
+         fileContents = ReplacementParser.substituteFinal(chars, variableMap).getBytes();
       }
       try {
          if (projectHandle == null) {
