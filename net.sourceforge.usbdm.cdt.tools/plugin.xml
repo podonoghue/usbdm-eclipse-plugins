@@ -1011,40 +1011,60 @@
                      name="System default">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="Support all ISO C90 programs (-std=c90)"
+                  command="-std=c90"
                   id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c90"
-                  command="-std=c90">
+                  name="ISO C90 (-std=c90)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="ISO C90 as modified in amendment 1 (-std=iso9899:199409)"
+                  command="-std=iso9899:199409"
                   id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.iso9899"
-                  command="-std=iso9899:199409">
+                  name="ISO C90 as modified in amendment 1 (-std=iso9899:199409)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                     command="-std=c99"
-                     id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c99"
-                     name="ISO C99 (-std=c99)">
+                  command="-std=c99"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c99"
+                  name="ISO C99 (-std=c99)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                     command="-std=c11"
-                     id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c11"
-                     isDefault="true"
-                     name="ISO C11, the 2011 revision of the ISO C standard (-std=c11)">
+                  command="-std=c11"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c11"
+                  name="ISO C11 (-std=c11)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="GNU dialect of ISO C90 (-std=gnu90)"
+                  isDefault="true"
+                  command="-std=c17"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c17"
+                  name="ISO C17/18 (-std=c17)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=c2x"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c2x"
+                  name="Still under development - experimental (-std=c2x)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu90"
                   id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.gnu90"
-                  command="-std=gnu90">
+                  name="GNU dialect of ISO C90 (-std=gnu90)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="GNU dialect of ISO C99 (-std=gnu99)"
+                  command="-std=gnu99"
                   id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.gnu99"
-                  command="-std=gnu99">
+                  name="GNU dialect of ISO C99 (-std=gnu99)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="GNU dialect of ISO C11 (-std=gnu11)"
+                  command="-std=gnu11"
                   id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.gnu11"
-                  command="-std=gnu11">
+                  name="GNU dialect of ISO C11 (-std=gnu11)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu17"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.gnu17"
+                  name="GNU dialect of ISO C17 (-std=gnu17)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu2x"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c2x"
+                  name="GNU dialect of c2x - experimental (-std=gnu2x)">
                </enumeratedOptionValue>
             </option>
             <option
@@ -1523,28 +1543,18 @@
                useByScannerDiscovery="true"
                valueType="enumerated">
                <enumeratedOptionValue
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.systemDefault"
-                     name="System default">
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.systemDefault"
+                  name="System default">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                     command="-std=c++98"
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp98"
-                     name="1998 ISO C++ standard plus amendments (-std=c++98)">
+                  command="-std=c++98"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp98"
+                  name="1998 ISO C++ standard plus amendments (-std=c++98)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="GNU dialect of C++98 (-std=gnu++98)"
-                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp98"
-                  command="-std=gnu++98">
-               </enumeratedOptionValue>
-               <enumeratedOptionValue
-                     command="-std=c++11"
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp11"
-                     name="2011 ISO C++ standard plus amendments (-std=c++11)">
-               </enumeratedOptionValue>
-               <enumeratedOptionValue
-                     command="-std=gnu++11"
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp11"
-                     name="GNU dialect of C++11 (-std=gnu++11)">
+                  command="-std=c++11"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp11"
+                  name="2011 ISO C++ standard plus amendments (-std=c++11)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                      command="-std=c++14"
@@ -1552,20 +1562,40 @@
                      name="2014 ISO C++ standard plus amendments (-std=c++14)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                     command="-std=gnu++14"
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp14"
-                     name="GNU dialect of C++14 (-std=gnu++14)">
-               </enumeratedOptionValue>
-               <enumeratedOptionValue
                      command="-std=c++17"
                      id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp17"
+                     isDefault="true"
                      name="2017 ISO C++ standard plus amendments (-std=c++17)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                     command="-std=gnu++17"
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp17"
-                     isDefault="true"
-                     name="GNU dialect of C++17 (-std=gnu++17)">
+                  command="-std=c++20"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp20"
+                  name="2020 ISO C++ standard plus amendments - experimental (-std=c++20)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu++98"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp98"
+                  name="GNU dialect of C++98 (-std=gnu++98)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu++11"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp11"
+                  name="GNU dialect of C++11 (-std=gnu++11)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu++14"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp14"
+                  name="GNU dialect of C++14 (-std=gnu++14)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu++17"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp17"
+                  name="GNU dialect of C++17 (-std=gnu++17)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu++20"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp20"
+                  name="GNU dialect of C++20 - experimental (-std=gnu++20)">
                </enumeratedOptionValue>
             </option>
             <option
