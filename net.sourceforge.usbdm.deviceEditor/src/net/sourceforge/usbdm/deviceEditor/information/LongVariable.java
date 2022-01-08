@@ -31,6 +31,9 @@ public class LongVariable extends Variable {
    /** Disabled value of variable */
    private long fDisabledValue = 0;
    
+   /** Radix for displaying numbers */
+   private int fRadix = 10;
+   
    /**
     * Construct a variable representing a long value
     * 
@@ -83,6 +86,9 @@ public class LongVariable extends Variable {
             return (long)(Integer) value;
          }
          if (value instanceof String) {
+            if (((String) value).isEmpty()) {
+               value = getDefault().toString();
+            }
             return EngineeringNotation.parseAsLong((String) value);
          }
          if ((value instanceof Boolean) && (fOffset == 0)) {
@@ -148,6 +154,9 @@ public class LongVariable extends Variable {
       switch(getUnits()) {
       default:
       case None:
+         if (fRadix == 16) {
+            return "0x"+Long.toString(value, fRadix) + " (" + Long.toString(value) + ')';
+         }
          return Long.toString(value);
       case s:
       case Hz:
@@ -177,6 +186,9 @@ public class LongVariable extends Variable {
 
    @Override
    public String getSubstitutionValue() {
+      if (fRadix == 16) {
+         return "0x"+Long.toString(getValueAsLong()+fOffset, fRadix);
+      }
       return Long.toString(getValueAsLong()+fOffset);
    }
 
@@ -403,5 +415,13 @@ public class LongVariable extends Variable {
     */
    public Units getUnits() {
       return fUnits;
+   }
+
+   public int getRadix() {
+      return fRadix;
+   }
+
+   public void setRadix(int radix) {
+      fRadix = radix;
    }
 }
