@@ -84,18 +84,19 @@ public class AddTargetFiles {
                ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), subMonitor.newChild(25));
                remainder -= 25;
             }
-            // Replace existing, more specific, file
             if (iFile.exists()) {
+               // Replace existing, more specific, file
                if (fileAction.doFileOverwrite()) {
-                  //             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
-                  iFile.delete(true, subMonitor.newChild(25));               
-                  remainder -= 25;
+//                  System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
+                  iFile.setContents(new ByteArrayInputStream(fileContents), true, false, subMonitor.newChild(remainder-25));;
                }
                else {
                   throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
                }
             }
-            iFile.create(new ByteArrayInputStream(fileContents), true, subMonitor.newChild(remainder-25));
+            else {
+               iFile.create(new ByteArrayInputStream(fileContents), true, subMonitor.newChild(remainder-25));
+            }
             iFile.setDerived(fileAction.isDerived(), subMonitor.newChild(25));
          }
       } catch (CoreException e) {
