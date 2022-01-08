@@ -114,6 +114,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param key  Key for variable
     */
    public Variable(String name, String key) {
+      if (name == null) {
+         String[] pathNames = key.split("/");
+         name = pathNames[pathNames.length-1];
+      }
       fName = name;
       fKey  = key;
    }
