@@ -9,8 +9,8 @@ Require-Bundle: net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
  net.sourceforge.usbdm.jni;bundle-version="5.0.0",
  net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  org.eclipse.core.runtime,
- org.eclipse.swt,
- org.eclipse.ui
+ org.eclipse.ui,
+ org.eclipse.swt
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.cdt.tools,
  net.sourceforge.usbdm.cdt.utilties,

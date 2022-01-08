@@ -173,7 +173,7 @@
       <peripheral baseName="RCM"      instance=""         version="rcm_mkw41z4">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm" />
       </peripheral>
-      <peripheral baseName="RTC"      instance=""         version="rtc_osc">
+      <peripheral baseName="RTC"      instance=""         version="rtc_wps_mkl03z4">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc" />
          <clock clockEnable="SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_RTC_MASK;" clockDisable="SIM->SCGC6 = SIM->SCGC6 &amp; ~SIM_SCGC6_RTC_MASK;" />
          <irq num="RTC_Alarm_IRQn" />

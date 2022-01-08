@@ -7,7 +7,7 @@ Device,MK22FN512VLL12,K22P121M120SF7RM,LQFP_100,,,,,,,,,,,,,,,,,,
 Device,MK22FN512VLH12,K22P121M120SF7RM,LQFP_64,,,,,,,,,,,,,,,,,,
 Device,MK22FN512VMP12,K22P121M120SF7RM,BGA_64,,,,,,,,,,,,,,,,,,
 Device,FRDM_K22F,K22P121M120SF7RM,FRDM_K22F,,,,,,,,,,,,,,,,,,
-Device,MK22F_Module,K22P121M120SF7RM,MK22F_DIPModule,,,,,,,,,,,,,,,,,,
+Device,MK22F_MODULE,K22P121M120SF7RM,MK22F_DIPModule,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,
 Key,Pin Name,pkg BGA_121,pkg LQFP_100,pkg LQFP_64,pkg BGA_64,Pkg FRDM_K22F,Pkg MK22F_DIPModule,Reset,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,121 BGA,100 LQFP,64 LQFP,64 BGA
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,Internal,Internal,ADC0_SE26/ADC1_SE26,,,,,,,,,-2,TempSensor,TempSensor,TempSensor,TempSensor
