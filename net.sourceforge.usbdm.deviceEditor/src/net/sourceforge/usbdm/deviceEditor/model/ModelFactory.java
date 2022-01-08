@@ -406,7 +406,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @throws Exception 
     */
    public static ModelFactory createModels(Path path, boolean loadSettings) throws Exception {
-      return new ModelFactory(DeviceInfo.create(path));
+      return new ModelFactory(DeviceInfo.createFromSettingsFile(null, path));
    }
 
    @Override

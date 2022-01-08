@@ -212,12 +212,19 @@ public abstract class BaseModel implements Cloneable {
       }
    }
 
-   public void removeChild(BaseModel model) throws Exception {
-      if (!fChildren.remove(model)) {
-         throw new Exception("Model not present "+ model.getName());
+   /**
+    * Remove child model node
+    * 
+    * @param model   Model node to remove
+    * 
+    * @return  true if this model contained the specified model node as a child
+    */
+   public boolean removeChild(BaseModel model) {
+      if (fChildren == null) {
+         return false;
       }
+      return fChildren.remove(model);
    }
-
 
    /**
     * Indicates if the node has children
@@ -571,5 +578,14 @@ public abstract class BaseModel implements Cloneable {
 
    public boolean isHidden() {
       return fHidden;
+   }
+
+   /**
+    * Indicates if this model should display a lock symbol
+    * 
+    * @return True if lock is to be displayed
+    */
+   public boolean showAsLocked() {
+      return (this instanceof EditableModel) && !canEdit();
    }
 }

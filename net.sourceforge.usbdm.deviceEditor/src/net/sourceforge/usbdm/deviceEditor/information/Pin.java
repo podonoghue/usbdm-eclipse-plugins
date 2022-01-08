@@ -217,7 +217,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public String getLocation() {
       String location = null;
       if (fDeviceInfo != null) {
-         location = fDeviceInfo.getVariant().getPackage().getLocation(this);
+         DeviceVariantInformation variant = fDeviceInfo.getVariant();
+         if (variant != null) {
+            location = variant.getPackage().getLocation(this);
+         }
       }
       return location;
    }

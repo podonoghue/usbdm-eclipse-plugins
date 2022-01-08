@@ -148,7 +148,6 @@ public class FileUtility {
 
    /**
     * Copy file<br>
-    * For testing
     * 
     * @param project       Project being modified (if any)
     * @param source        Source file path

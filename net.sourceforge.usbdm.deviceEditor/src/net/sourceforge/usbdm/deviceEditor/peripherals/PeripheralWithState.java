@@ -23,6 +23,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
@@ -91,6 +92,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return null;
    }
 
+   /** Owning model for signal models belonging to this peripheral */
+   PeripheralSignalsModel fSignalsModel = null;
+   
    @Override
    public void getModels(BaseModel parent) {
       if (fMenuData == null) {
@@ -99,8 +103,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       BaseModel rootModel = fMenuData.getRootModel();
       if (rootModel != null) {
          rootModel.setParent(parent);
+      }    
+      if (fSignalsModel != null) {
+         fSignalsModel.removeChildren();
+         removeListener(fSignalsModel);
+         rootModel.removeChild(fSignalsModel);
       }
-      createPeripheralSignalsModel(rootModel);
+      fSignalsModel = createPeripheralSignalsModel(rootModel);
    }
 
    @Override
@@ -192,7 +201,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return;
       }
-      Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getSimpleSymbolMap());
+      Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getVariablesSymbolMap());
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, monitor);
    }
 
@@ -262,7 +271,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified string or original if no changes
     */
    String substitute(String input) {
-      Map<String, String> map = fDeviceInfo.getSimpleSymbolMap();
+      Map<String, String> map = fDeviceInfo.getVariablesSymbolMap();
       map.put(makeKey("_instance"),   getInstance());
       map.put(makeKey("_name"),       getName());
       map.put(makeKey("_class"),      getClassName());

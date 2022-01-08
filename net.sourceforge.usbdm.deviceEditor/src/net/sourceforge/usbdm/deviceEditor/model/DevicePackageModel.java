@@ -37,5 +37,10 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    @Override
    public void elementStatusChanged(ObservableModel observableModel) {
    }
+
+   @Override
+   public boolean showAsLocked() {
+      return true;
+   }
    
 }

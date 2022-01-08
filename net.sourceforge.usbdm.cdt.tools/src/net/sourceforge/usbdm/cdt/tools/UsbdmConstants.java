@@ -56,6 +56,8 @@ public class UsbdmConstants {
    public final static String C_VECTOR_TABLE_INCLUDES_KEY           = "VectorsIncludeFiles";       //$NON-NLS-1$
    public final static String USE_FLOATINGPOINT_IN_SCANF_KEY        = "useFloatingpointInScanf";   //$NON-NLS-1$
    public final static String USE_FLOATINGPOINT_IN_PRINTF_KEY       = "useFloatingpointInPrintf";  //$NON-NLS-1$
+   public final static String LINKER_FILENAME                       = "linkerFilename";            //$NON-NLS-1$
+   public final static String LINKER_MAP_FILENAME                   = "linkerMapFilename";         //$NON-NLS-1$
    
    public final static String EXCLUDED_FILES_PATTERN_KEY            = "excludedFilesPattern";      //$NON-NLS-1$
    public final static String LINKER_FILE_KEY                       = "linkerFile";                //$NON-NLS-1$

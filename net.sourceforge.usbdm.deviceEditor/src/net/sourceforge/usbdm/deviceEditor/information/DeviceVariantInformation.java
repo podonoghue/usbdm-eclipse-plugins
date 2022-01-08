@@ -25,9 +25,9 @@ public class DeviceVariantInformation {
     * @param manual           Manual reference e.g. K20P64M50SF0RM
     */
    public DeviceVariantInformation(String variantName, DevicePackage devicePackage, String manual) {
-      fVariantName    = variantName;
-      fPackage = devicePackage;
-      fManual  = manual;
+      fVariantName   = variantName;
+      fPackage       = devicePackage;
+      fManual        = manual;
    }
    
    /**

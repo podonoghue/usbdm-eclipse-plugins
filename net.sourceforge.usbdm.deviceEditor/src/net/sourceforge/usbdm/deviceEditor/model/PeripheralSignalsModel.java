@@ -33,13 +33,12 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
       fPeripheral = peripheral;
       fPeripheral.createSignalModels(this);
       watchChildren();
-      fPeripheral.addListener(this);
    }
    
    /**
     * Add listeners to watch changes in children(signals)
     */
-   void watchChildren() {
+   public void watchChildren() {
       if (fChildren == null) {
          return;
       }

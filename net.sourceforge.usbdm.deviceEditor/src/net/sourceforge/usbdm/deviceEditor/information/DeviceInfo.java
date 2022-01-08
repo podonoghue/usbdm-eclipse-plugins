@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -21,6 +23,7 @@ import org.eclipse.core.runtime.SubMonitor;
 
 import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.DeviceInformationModel;
@@ -231,16 +234,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return deviceInfo;
    }
    /**
-    * Create device hardware description from given file<br>
-    * An associated settings file may be opened if a <b>.usbdmHardware</b> file is provided
+    * Create device hardware description from settings file
+    * @param device 
     * 
-    * @param filePath   Path to <b>.usbdmProject</b> or <b>.usbdmHardware</b> file
+    * @param filePath   Path to <b>.usbdmProject</b>  file
     * 
     * @return Create hardware description for device
     * 
     * @throws Exception
     */
-   public static DeviceInfo createFromSettingsFile(Path filePath) throws Exception {
+   public static DeviceInfo createFromSettingsFile(Device device, Path filePath) throws Exception {
       
       String filename  = filePath.getFileName().toString();
       if (!filename.endsWith(PROJECT_FILE_EXTENSION)) {
@@ -281,7 +284,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          throw new Exception("Cannot locate file "+ hardwarePath);
       }
       deviceInfo.parse(hardwarePath);
-      deviceInfo.loadSettings(projectSettings);
+      deviceInfo.loadSettings(device, projectSettings);
       return deviceInfo;
    }
 
@@ -303,9 +306,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       else if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
          return createFromHardwareFile(filePath);
-      }
-      else if (filename.endsWith(PROJECT_FILE_EXTENSION)) {
-         return createFromSettingsFile(filePath);
       }
       else {
          throw new RuntimeException("Unknown file type " + filePath);
@@ -1414,6 +1414,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             throw new UsbdmException("Illegal device variant name "+ variantName);
          }
       }
+      DeviceLinkerInformation.addLinkerMemoryMap(getDeviceName(fVariantName), fVariables);
       setDirty(true);
    }
    
@@ -1446,13 +1447,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws UsbdmException 
     */
    public DeviceVariantInformation createDeviceInformation(String variantName, String manual, String packageName) throws UsbdmException {
-      DeviceVariantInformation deviceInformation = new DeviceVariantInformation(variantName, findOrCreateDevicePackage(packageName), manual);
+      DeviceVariantInformation deviceInformation = 
+            new DeviceVariantInformation(variantName, findOrCreateDevicePackage(packageName), manual);
       fVariantInformationTable.put(variantName, deviceInformation);
 
-      if (fVariantName == null) {
-         // Set default device to first variant
-         setVariantName(variantName);
-      }
+      // TODO - check this
+//      if (fVariantName == null) {
+//         // Set default device to first variant
+//         setVariantName(variantName);
+//      }
       return deviceInformation;
    };
 
@@ -1480,9 +1483,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * DmaInfo =============================================================================================
     */
 
-   //   /** List of DMA channels */
-   //   private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
-
    /**
     * Create DMA information entry
     * 
@@ -1498,18 +1498,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return dmaInfo;
    }
 
-   //   /**
-   //    * Get list of DMA entries
-   //    *  
-   //    * @return
-   //    */
-   //   public ArrayList<DmaInfo> getDmaList() {
-   //      return fDmaInfoList;
-   //   }
-
    private final static HashMap<String, Integer> exceptions = new  HashMap<String, Integer>();
 
-   private static boolean checkOkException(DeviceFamily deviceFamily, Pin pin) {
+   /**
+    * Used to check if the pin mapping appears sensible
+    *  
+    * @param deviceFamily  Device family
+    * @param pin           Pin to check
+    * 
+    * @return
+    */
+   private static boolean checkOkExceptionalMapping(DeviceFamily deviceFamily, Pin pin) {
+      
       if (deviceFamily == DeviceFamily.mke) {
          return true;
       }
@@ -1568,6 +1568,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       return ok;
    }
+   
    /**
     * Does some basic consistency checks on the data
     */
@@ -1575,7 +1576,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       // Every pin should have a reset entry
       for (String pName:getPins().keySet()) {
          Pin pin = getPins().get(pName);
-         if (!checkOkException(this.fDeviceFamily, pin)) {
+         if (!checkOkExceptionalMapping(this.fDeviceFamily, pin)) {
             // Unusual mapping - report
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
          }
@@ -1595,9 +1596,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * ==============================================================
     */
    /**
-    * Get name of the pin with alias 
+    * Get string describing the pin with alias in braces<br>
     * 
-    * @return Pin name
+    * @return Pin name e.g. PTA1 (p23)
     */
    public String getPinNameWithAlias(Pin pin) {
       String alias = "";
@@ -1615,20 +1616,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Load persistent settings
-    * @throws IOException 
+    * Looks in for a file in 'HARDWARE' location
+    * 
+    * @param name
+    * 
+    * @return
     */
-   public Settings getSettings(Path path) throws Exception {
-      Activator.log("Loading settings from" + path.toAbsolutePath() + ")");
-      fProjectSettingsPath = path;
-      if (path.toFile().isFile()) {
-         Settings settings = new Settings("USBDM");
-         settings.load(path.toAbsolutePath());
-         return settings;
-      }
-      return null;
-   }
-
    Path locateFile(String name) {
       // Try local (debug) directory first
       Path path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+name);
@@ -1646,12 +1639,39 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       return path;
    }
+   
    /**
     * Load persistent settings
+    * @throws IOException 
     */
-   public void loadSettings(Settings settings) {
+   public Settings getSettings(Path path) throws Exception {
+      Activator.log("Loading settings from" + path.toAbsolutePath() + ")");
+      fProjectSettingsPath = path;
+      if (path.toFile().isFile()) {
+         Settings settings = new Settings("USBDM");
+         settings.load(path.toAbsolutePath());
+         return settings;
+      }
+      return null;
+   }
+   /**
+    * Load persistent settings
+    * 
+    * @param device     Associated device (only used if settings are incomplete)
+    * @param settings   Settings to load from
+    */
+   public void loadSettings(Device device, Settings settings) {
       try {
          String variantName = settings.get(USBDMPROJECT_VARIANT_SETTING_KEY);
+         if ((variantName == null) && (device != null)) {
+            for (String variant:getDeviceVariants().keySet()) {
+               String deviceName = getDeviceName(variant);
+               if (deviceName.equalsIgnoreCase(device.getName())) {
+                  // Found compatible variant
+                  variantName = variant;
+               }
+            }
+         }
          setVariantName(variantName);
          Path path = locateFile("/peripherals/symbols/"+variantName+".xml");
          if (path != null) {
@@ -1662,6 +1682,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             subFamilyName = settings.get(USBDMPROJECT_OLD_SUBFAMILY_SETTING_KEY);
          }
          setDeviceSubFamily(subFamilyName);
+         
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
             pin.loadSettings(settings);
@@ -1778,6 +1799,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       saveSettingsAs(fProjectSettingsPath);
    }
 
+   static class DeviceNamePattern {
+      String fPattern;
+      String fSubstitution;
+      
+      DeviceNamePattern(String pattern, String substitution) {
+         fPattern      = pattern;
+         fSubstitution = substitution;         
+      }
+   };
+   
    /**
     * Save persistent settings to the given path
     */
@@ -1808,6 +1839,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for (String key:fVariables.keySet()) {
          Variable var = fVariables.get(key);
          if (!var.isDerived() && !var.isDefault()) {
+            if (var.getKey().contains("linkerFlashSize")) {
+               System.err.println("saveSettingsAs() " + var);
+            }
             settings.put(key, var.getPersistentValue());
          }
       }
@@ -1839,23 +1873,24 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Create device hardware description from Eclipse project files<br>
+    * Create device hardware description from Eclipse project file<br>
     * 
     * @param project    Project to load files from
+    * @param device 
     * @param monitor
     * 
     * @return Created hardware description for device
     * 
     * @throws Exception
     */
-   public static DeviceInfo create(IProject project, IProgressMonitor monitor) throws Exception {
+   public static DeviceInfo create(IProject project, Device device, IProgressMonitor monitor) throws Exception {
       SubMonitor subMonitor = SubMonitor.convert(monitor);
       subMonitor.subTask("Opening Project");
       IFile projectFile = project.getFile(USBDM_PROJECT_FILENAME+PROJECT_FILE_EXTENSION);
       if (projectFile.exists()) {
          // Load configuration
          Path filePath = Paths.get(projectFile.getLocation().toPortableString());
-         return DeviceInfo.create(filePath);
+         return createFromSettingsFile(device, filePath);
       }
       return null;
    }
@@ -1863,13 +1898,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Creates vector table information and add to variable map
     * 
-    * @param variableMap         
+    * @param fVariables2         
     * @param devicePeripherals
     * @param monitor
     * 
     * @throws Exception
     */
-   private void generateVectorTable(Map<String, String> variableMap, DevicePeripherals devicePeripherals, IProgressMonitor monitor) throws Exception {
+   private void generateVectorTable(DevicePeripherals devicePeripherals, IProgressMonitor monitor) throws Exception {
       // Get description of all peripherals for this device
       SubMonitor progress = SubMonitor.convert(monitor, getPeripherals().size()*100); 
       progress.subTask("Modifying vector table");
@@ -1880,9 +1915,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          getPeripherals().get(peripheralName).modifyVectorTable(vectorTable);
          progress.worked(100);
       }
-      // Add information to variable map
-      variableMap.put(UsbdmConstants.C_VECTOR_TABLE_INCLUDES_KEY, vectorTable.getCIncludeFiles());
-      variableMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, vectorTable.getCVectorTableEntries());
+      // Add vector information to variable map
+      addOrUpdateVariable(UsbdmConstants.C_VECTOR_TABLE_INCLUDES_KEY, vectorTable.getCIncludeFiles());
+      addOrUpdateVariable(UsbdmConstants.C_VECTOR_TABLE_KEY,          vectorTable.getCVectorTableEntries());
    }
    
    /**
@@ -1906,9 +1941,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       writer.writeCppFiles(folder, "", this);
 
       // Regenerate vectors.cpp
-      Map<String, String> variableMap = getSimpleSymbolMap();
-      generateVectorTable(variableMap, devicePeripherals, new NullProgressMonitor());
-      FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
+      generateVectorTable(devicePeripherals, new NullProgressMonitor());
+//      FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
       
       StringBuilder actionRecord = new StringBuilder();
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
@@ -1921,7 +1955,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       Activator.log(actionRecord.toString());
    }
-
    /**
     * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project
     * 
@@ -1946,10 +1979,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       WriteFamilyCpp writer = new WriteFamilyCpp();
       writer.writeCppFiles(project, this, subMonitor.newChild(10));
       
-      // Regenerate vectors.cpp
-      Map<String, String> variableMap = new HashMap<String, String>();
-      generateVectorTable(variableMap, devicePeripherals, subMonitor.newChild(10));
-      FileUtility.refreshFile(project, UsbdmConstants.PROJECT_VECTOR_CPP_PATH, variableMap, subMonitor.newChild(10));
+      // Regenerate information for vectors.cpp
+      generateVectorTable(devicePeripherals, subMonitor.newChild(10));
       
       StringBuilder actionRecord = new StringBuilder();
       actionRecord.append("Actions for regenerating project files\n\n");
@@ -1958,7 +1989,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
-            ((PeripheralWithState) p).regenerateProjectFiles(actionRecord, processProjectActions, project, subMonitor.newChild(10));
+            PeripheralWithState periph = ((PeripheralWithState) p);
+            periph.regenerateProjectFiles(actionRecord, processProjectActions, project, subMonitor.newChild(10));
          }
       }
       Activator.log(actionRecord.toString());
@@ -1969,17 +2001,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Used during initial project creation
     * 
     * @param project       Eclipse C++ project 
+    * @param device 
     * @param monitor
     * 
     * @throws Exception
     */
-   static public void generateFiles(IProject project, IProgressMonitor monitor) {
+   static public void generateFiles(IProject project, Device device, IProgressMonitor monitor) {
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
       // Load hardware project
       DeviceInfo deviceInfo;
       try {
-         deviceInfo = DeviceInfo.create(project, subMonitor.newChild(10));
+         deviceInfo = DeviceInfo.create(project, device, subMonitor.newChild(10));
          if (deviceInfo != null) {
             // Generate C++ code
             deviceInfo.generateCppFiles(project, subMonitor.newChild(90));
@@ -2070,6 +2103,22 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
    
    /**
+    * Adds or updates a variable based on a string constant<br>
+    * If the variable doesn't exist a new StringVariable is created
+    * 
+    * @param key       Key used to identify variable
+    * @param value     Value for variable to add/create
+    */
+   public void addOrUpdateVariable(String key, String value) {
+      Variable variable = fVariables.get(key);
+      if (variable == null) {
+         variable = new StringVariable(key, key);
+         fVariables.put(key, variable);
+      }
+      variable.setValue(value);
+   }
+   
+   /**
     * Removes a variable.<br>
     * If the variable doesn't exist it is ignored.
     * 
@@ -2130,6 +2179,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void setVariableValue(String key, String value) {
       Variable variable = fVariables.get(key);
+      if ("/LINKER/linkerRamSize".equals(key)) {
+         System.err.println("setVariableValue() /LINKER/linkerRamSize <= " + variable);
+      }
       if (variable == null) {
          System.err.println(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
          throw new RuntimeException(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
@@ -2138,15 +2190,17 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Get Simple map of variables
+    * Creates a map from variable keys to values
     * 
-    * @return Map of Variables
+    * @return Map of key->value pairs
     */
-   public Map<String, String> getSimpleSymbolMap() {
+   public Map<String, String> getVariablesSymbolMap() {
       HashMap<String, String>map = new HashMap<String, String>();
       for (String key:fVariables.keySet()) {
          map.put(key, fVariables.get(key).getSubstitutionValue());
       }
+//      String check = map.get("/LINKER/linkerRamSize");
+//      System.err.println("getVariablesSymbolMap() check " + check);
       return map;
    }
 
@@ -2176,7 +2230,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return Modified string or original if no changes
     */
    private String substitute(String input) {
-      Map<String, String> map = getSimpleSymbolMap();
+      Map<String, String> map = getVariablesSymbolMap();
       return fVariableProvider.substitute(input, map);
    }
    
@@ -2213,7 +2267,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (fMenuData == null) {
          return;
       }
-      Map<String, String> symbolMap = getSimpleSymbolMap();
+      Map<String, String> symbolMap = getVariablesSymbolMap();
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
    }
 
@@ -2250,4 +2304,50 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       return devicePeripherals;
    }
+   
+   /**
+    * Get device name e.g. MK20DN32M5 for use with DeviceDatabase lookup<br> 
+    * This is deduced from the variant name e.g. MK20DN32VLF5
+    * 
+    * @return Device name
+    */
+   public static String getDeviceName(String variantName) {
+      final String packageSuffixes = "(VLF|VFT|VDC|VLH|VLL|VMP|VMP|VMC|VFK|VLC|VFM)";
+      DeviceNamePattern patterns[] = {
+            new DeviceNamePattern("^(MK(L)?\\d+(Z|DN|DX|FN|FX)\\d+(M\\d+)?)"+packageSuffixes+"(\\d+)$", "$1M$6"), // MK20DN32VLF5 -> MK20D5
+      };
+      
+      for (DeviceNamePattern pattern:patterns) {
+         Pattern p = Pattern.compile(pattern.fPattern);
+         Matcher m = p.matcher(variantName);
+         if (m.matches()) {
+            String deviceName = m.replaceAll(pattern.fSubstitution);
+            return deviceName;
+         }
+      }
+      System.err.println("Unable to find device name for '" + variantName + "'");
+      return variantName;
+   }
+
+//   /**
+//    * Test main
+//    * 
+//    * @param args
+//    */
+//   public static void main(String[] args) {
+//      String variantNames[] = {
+//            "MK20DN32VLF5",   "MK20DX32VLF5",   "MK20DN64VLF5",    "MK20DX64VLF5",   "MK20DN128VLF5",
+//            "MK20DX128VLF5",  "MK20DN32VFT5",   "MK20DX32VFT5",    "MK20DN64VFT5",   "MK20DX64VFT5",
+//            "MK20DN128VFT5",  "MK20DX128VFT5",  "MK22FN512VDC12",  "MK22FN512VLL12", "MK22FN512VLH12",
+//            "MK22FN512VMP12", "MK22FX512VMC12", "MK22FN1M0VMC12",  "MKL05Z8VFK4",    "MKL05Z16VFK4",
+//            "MKL05Z32VFK4",   "MKL05Z8VLC4",    "MKL05Z16VLC4",    "MKL05Z32VLC4",   "MKL05Z8VFM4",
+//            "MKL05Z16VFM4",   "MKL05Z32VFM4",   "MKL05Z16VLF4",    "MKL05Z32VLF4",   
+//      };
+//      
+//      for (String variantName:variantNames) {
+//            System.err.println("'" + variantName + "' => '" + getDeviceName(variantName) + "'");
+//      }
+//   
+//   }
+
 }

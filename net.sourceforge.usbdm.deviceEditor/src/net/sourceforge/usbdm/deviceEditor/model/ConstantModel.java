@@ -14,4 +14,10 @@ public final class ConstantModel extends StringModel {
    @Override
    protected void removeMyListeners() {
    }
+
+   @Override
+   public boolean showAsLocked() {
+      return true;
+   }
+   
 }

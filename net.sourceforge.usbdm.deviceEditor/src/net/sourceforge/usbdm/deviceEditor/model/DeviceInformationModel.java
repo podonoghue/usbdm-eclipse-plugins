@@ -28,12 +28,13 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
    public DeviceInformationModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Project", "Project Settings");
 
-      new ConstantModel(this, "Device", "", deviceInfo.getVariantName());
+      new ConstantModel(this, "Device Sub-family", "", deviceInfo.getDeviceSubFamily());
       new ConstantModel(this, "Hardware File", "", deviceInfo.getSourceFilename());
       new DeviceVariantModel(this, deviceInfo);
       new DevicePackageModel(this, deviceInfo);
-      MenuData menuData = deviceInfo.getData();
 
+      // Add information from XML menu file
+      MenuData menuData = deviceInfo.getData();
       BaseModel model = menuData.getRootModel();
       if (model != null) {
          model.setParent(this);

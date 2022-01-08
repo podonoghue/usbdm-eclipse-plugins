@@ -187,7 +187,7 @@ public class VariableProvider {
     * @return Modified string or original if no changes
     */
    String substitute(String input) {
-      Map<String, String> map = fDeviceInfo.getSimpleSymbolMap();
+      Map<String, String> map = fDeviceInfo.getVariablesSymbolMap();
       map.put(makeKey("_name"),     getName());
       return substitute(input, map);
    }

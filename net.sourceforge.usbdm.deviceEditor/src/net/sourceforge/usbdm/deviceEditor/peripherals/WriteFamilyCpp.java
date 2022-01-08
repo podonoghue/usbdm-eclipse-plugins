@@ -685,7 +685,6 @@ public class WriteFamilyCpp {
     */
    public void writeCppFiles(IProject project, DeviceInfo deviceInfo, IProgressMonitor monitor) throws Exception {
       final String pinMappingFile = INCLUDE_DIRECTORY+"/"+PIN_MAPPING_BASEFILENAME+".h";
-//      final String hardwareFile   = SOURCE_DIRECTORY+"/"+HARDWARE_BASEFILENAME+".cpp";
       
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100); 
       subMonitor.subTask("Generating device header file");
@@ -702,21 +701,11 @@ public class WriteFamilyCpp {
       
       try {
          IFile file = project.getFile(pinMappingFile);
-//         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
          file.setDerived(true, subMonitor.newChild(10));
       } catch (Exception e) {
          // Ignore
          System.err.println("WARNING: Failed to refresh" + pinMappingFile);
       }
-      
-//      try {
-//         IFile file = project.getFile(hardwareFile);
-////         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
-//         file.setDerived(true, subMonitor.newChild(10));
-//      } catch (Exception e) {
-//         // Ignore
-//         System.err.println("WARNING: Failed to refresh" + hardwareFile);
-//      }
    }
 
 }

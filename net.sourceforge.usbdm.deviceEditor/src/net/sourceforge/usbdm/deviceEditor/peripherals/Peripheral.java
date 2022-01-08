@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
- 
+
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
@@ -1335,7 +1335,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * @return PeripheralSignalsModel containing signals or null if no signals are associated with this peripheral
     */
-   public BaseModel createPeripheralSignalsModel(BaseModel parent) {
+   public PeripheralSignalsModel createPeripheralSignalsModel(BaseModel parent) {
       if (!hasSignal) {
          return null;
       }
@@ -1352,7 +1352,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter) {
       hasSignal = true;
       if (peripheral == this) {
-         // Don't add me!
+         // Don't add to self!
          return;
       }
       if (fSignalPeripherals == null) {
