@@ -29,6 +29,18 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       fVariable.addListener(this);
    }
 
+   @Override
+   public String getName() {
+      boolean modified = !fVariable.isDerived() && !fVariable.isDefault();
+      return super.getName() + (modified?" *":"");
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
+
    /**
     * @return the Variable associated with this model
     */
