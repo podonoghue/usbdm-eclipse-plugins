@@ -308,7 +308,7 @@ public class UsbdmCdtProjectManager {
          ProcessProjectActions.process(project, device, projectActionList, paramMap, monitor.newChild(WORK_SCALE * 20));
 
          // Generate CPP code as needed
-         DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
+         DeviceInfo.generateFiles(project, device, monitor.newChild(WORK_SCALE * 5));
 
          project.refreshLocal(IResource.DEPTH_INFINITE, monitor.newChild(WORK_SCALE));
 

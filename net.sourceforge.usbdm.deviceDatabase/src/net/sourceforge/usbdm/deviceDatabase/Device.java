@@ -50,7 +50,7 @@ public class Device implements Cloneable {
     * Constructor
     * 
     * @param targetType Type of device
-    * @param name       Name of device
+    * @param name       Name of device e.g. "MK20DN32M5", "MK22DX128M5"
     */
    public Device(TargetType targetType, String name) {
       fName         = name;
@@ -255,6 +255,7 @@ public class Device implements Cloneable {
    void setDefault() {
       fDefaultDevice = true;
    }
+   
    /**
     * Indicates if this device is the default
     * 
@@ -265,48 +266,64 @@ public class Device implements Cloneable {
    }
 
    /**
-    * @param name
+    * Set this device as alias of another device
+    * 
+    * @param name Name of device being aliased e.g. "MK20DN32M5", "MK22DX128M5"
     */
    void setAlias(String name) {
       fAlias = name;
    }
    /**
-    * @return
+    * Indicates is this device is an alias of another device.
+    * 
+    * @return True if alias
     */
    public boolean isAlias() {
       return fAlias != null;
    }
    /**
-    * @return
+    * Get device this device is an alias of.
+    * 
+    * @return Aliased device or null if this device is not an alias.
     */
    public String getAlias() {
       return fAlias;
    }
    /**
+    * Get name of device e.g. "MK20DN32M5", "MK22DX128M5"
+    * 
     * @return
     */
    public String getName() {
       return fName;
    }
    /**
+    * Set device family e.g. "CortexM4F", "CortexM0plus"
+    * 
     * @param family
     */
    void setFamily(String family) {
       this.fFamily = family;
    }
    /**
+    * Get device family e.g. "CortexM4F", "CortexM0plus"
+    * 
     * @return
     */
    public String getFamily() {
       return fFamily;
    }
    /**
+    * Set device sub-family e.g. "MKE02Z2", "MK20D5"
+    * 
     * @param subFamily
     */
    void setSubFamily(String subFamily) {
       this.fSubFamily = subFamily;
    }
    /**
+    * Get device sub-family e.g. "MKE02Z2", "MK20D5"
+    * 
     * @return
     */
    public String getSubFamily() {
@@ -321,6 +338,8 @@ public class Device implements Cloneable {
    }
 
    /**
+    * Set associated hardware name
+    * 
     * @param hardware the hardware to set
     */
    void setHardware(String hardware) {

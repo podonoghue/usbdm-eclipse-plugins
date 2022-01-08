@@ -28,7 +28,6 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -38,7 +37,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.ToolInformationData;
@@ -527,7 +525,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * 
     * @return the description
     */
-   String writeRegions(final ArrayList<MemoryRange>  memoryRanges, String pCapName, String pName, String attributes) {
+   static String writeRegions(final ArrayList<MemoryRange> memoryRanges, String pCapName, String pName, String attributes) {
       StringBuilder memoryMap = new StringBuilder();
       int suffix  = 0;
       String capName = pCapName;
@@ -561,14 +559,13 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             
    }
    
-   
    /**
     * Adds the device memory map information to the paramMap
     * 
     * @param device    Device to get memory map for
     * @param paramMap  Map to add memory map to
     */
-   private void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
+   public static void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
 
       int ioRangeCount    = 0;
       int romCount        = 0;
@@ -726,7 +723,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       paramMap.put(UsbdmConstants.LINKER_EXTRA_REGION_KEY, sb.toString());
    }
 
-   private ArrayList<MemoryRange> coalesce(ArrayList<MemoryRange> regions) {
+   private static ArrayList<MemoryRange> coalesce(ArrayList<MemoryRange> regions) {
       if (regions.size() <= 1) {
          // Return unchanged
          return regions;
@@ -918,31 +915,31 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
    }
 
-   /**
-    * Test main
-    * 
-    * @param args
-    */
-   public static void main(String[] args) {
-      Display display = new Display();
-
-      Shell shell = new Shell(display);
-      shell.setText("Project Parameters");
-      shell.setLayout(new FillLayout());
-      shell.setSize(500, 350);
-
-      Composite composite = new Composite(shell, SWT.NONE);
-      composite.setLayout(new FillLayout());
-
-      UsbdmDeviceSelectionPage_2 page = new UsbdmDeviceSelectionPage_2(null, null);
-      page.createControl(composite);
-
-      shell.open();
-      while (!shell.isDisposed()) {
-         if (!display.readAndDispatch())
-            display.sleep();
-      }
-      display.dispose();
-   }
+//   /**
+//    * Test main
+//    * 
+//    * @param args
+//    */
+//   public static void main(String[] args) {
+//      Display display = new Display();
+//
+//      Shell shell = new Shell(display);
+//      shell.setText("Project Parameters");
+//      shell.setLayout(new FillLayout());
+//      shell.setSize(500, 350);
+//
+//      Composite composite = new Composite(shell, SWT.NONE);
+//      composite.setLayout(new FillLayout());
+//
+//      UsbdmDeviceSelectionPage_2 page = new UsbdmDeviceSelectionPage_2(null, null);
+//      page.createControl(composite);
+//
+//      shell.open();
+//      while (!shell.isDisposed()) {
+//         if (!display.readAndDispatch())
+//            display.sleep();
+//      }
+//      display.dispose();
+//   }
 
 }

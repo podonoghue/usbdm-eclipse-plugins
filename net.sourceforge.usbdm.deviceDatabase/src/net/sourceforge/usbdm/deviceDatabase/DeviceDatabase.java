@@ -765,9 +765,10 @@ final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
  }
  
 /**
-* Returns the device with the given name
+* Returns the device with the given name (or alias)
 * 
-* @param name
+* @param name e.g. MK20DN32M5
+* 
 * @return
 */
 public Device getExactDevice(String name) {
