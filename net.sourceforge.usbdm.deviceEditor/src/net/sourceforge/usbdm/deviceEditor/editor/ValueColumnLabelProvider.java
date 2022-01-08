@@ -4,7 +4,6 @@ import org.eclipse.swt.graphics.Image;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 
 public class ValueColumnLabelProvider extends BaseLabelProvider {
    
@@ -22,7 +21,7 @@ public class ValueColumnLabelProvider extends BaseLabelProvider {
       if (!baseModel.isEnabled()) {
          return disabledImage;
       }
-      if ((baseModel instanceof EditableModel) && !baseModel.canEdit()) {
+      if (baseModel.showAsLocked()) {
          return lockedImage;
       }
       if (baseModel instanceof BooleanVariableModel) {
