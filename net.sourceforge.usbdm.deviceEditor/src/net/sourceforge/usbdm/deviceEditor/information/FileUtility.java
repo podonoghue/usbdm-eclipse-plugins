@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
-import net.sourceforge.usbdm.packageParser.ReplacementParser;
 
 public class FileUtility {
 

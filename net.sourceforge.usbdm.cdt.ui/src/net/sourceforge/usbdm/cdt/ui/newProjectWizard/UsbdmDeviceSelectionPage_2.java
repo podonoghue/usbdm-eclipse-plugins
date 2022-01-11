@@ -68,7 +68,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private Boolean               fHasChanged     = true;
 
    private String                fBuildToolId = null;
-   ISubstitutionMap           fPageData    = null;
+   ISubstitutionMap              fPageData    = null;
 
    /**
     * Create page``
@@ -849,8 +849,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * targetDeviceSubFamily  Target device sub-family (e.g. MK50D10)
     * @return 
     */
-   public synchronized ISubstitutionMap getPageData()  {
-      return fPageData;
+   public synchronized void addPageData(SubstitutionMap map)  {
+      map.addAll(fPageData);
    }
 
    private synchronized void createPageData(Device device)  {

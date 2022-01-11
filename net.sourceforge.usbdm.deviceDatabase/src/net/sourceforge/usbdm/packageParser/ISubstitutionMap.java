@@ -104,4 +104,12 @@ public interface ISubstitutionMap {
     * @return      String with substitutions (or original if map is empty)
     */
    public String substituteIgnoreUnknowns(String inputText);
+
+   /**
+    * Add add elements of newData
+    * 
+    * @param newData Data to add
+    */
+   public void addAll(ISubstitutionMap newData);
+
 }

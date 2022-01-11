@@ -7,7 +7,6 @@ import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
-import net.sourceforge.usbdm.packageParser.ReplacementParser;
 
 public abstract class Variable extends ObservableModel implements Cloneable {
    

@@ -116,4 +116,14 @@ public class ExtendedVariableSubstitutionMap implements ISubstitutionMap {
    public String substituteIgnoreUnknowns(String inputText) {
       return ReplacementParser.substituteIgnoreUnknowns(inputText, this);
    }
+
+   @Override
+   public void addAll(ISubstitutionMap newData) {
+      newData.forEach(new BiConsumer<String, String>() {
+         @Override
+         public void accept(String key, String value) {
+            fExtraSymbols.put(key, value);
+         }
+      });
+   }
 }

@@ -62,7 +62,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    /** Base parameters from pages 1 & 2 */
    private Map<String, String>                  fBaseParamMap = null;
    /** Parameters from all Pages */
-   private ISubstitutionMap                  fParamMap = null;
+   private SubstitutionMap                      fParamMap = null;
    private Device                               fDevice = null;
 
    @Override
@@ -201,13 +201,13 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 //      Activator.log("updateParamMap()");
       
       final UsbdmNewProjectWizard wizard = this;
+      fParamMap = new SubstitutionMap(fBaseParamMap);
       if (fUsbdmProjectParametersPage_2 != null) {
-         fParamMap = new SubstitutionMap();
          Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
                if (fUsbdmProjectParametersPage_2 != null) {
-                  fParamMap = fUsbdmProjectParametersPage_2.getPageData();
+                   fUsbdmProjectParametersPage_2.addPageData(fParamMap);
                }
             }
          });

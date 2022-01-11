@@ -21,7 +21,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import net.sourceforge.usbdm.cdt.utilties.Eval;
-import net.sourceforge.usbdm.packageParser.ReplacementParser;
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
 /**

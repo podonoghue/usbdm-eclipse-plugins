@@ -2,12 +2,21 @@ package net.sourceforge.usbdm.packageParser;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class SubstitutionMap implements ISubstitutionMap {
    
    HashMap<String, String> fMap = new HashMap<String, String>();
    
+   public SubstitutionMap(Map<String, String> baseMap) {
+      fMap = new HashMap<String, String>(baseMap);
+   }
+
+   public SubstitutionMap() {
+      fMap = new HashMap<String, String>();
+   }
+
    @Override
    public boolean isEmpty() {
       return fMap.isEmpty();
@@ -56,5 +65,15 @@ public class SubstitutionMap implements ISubstitutionMap {
    @Override
    public String substituteIgnoreUnknowns(String inputText) {
       return ReplacementParser.substituteIgnoreUnknowns(inputText, this);
+   }
+
+   @Override
+   public void addAll(ISubstitutionMap newData) {
+      newData.forEach(new BiConsumer<String, String>() {
+         @Override
+         public void accept(String key, String value) {
+            addValue(key, value);
+         }
+      });
    }
 }
