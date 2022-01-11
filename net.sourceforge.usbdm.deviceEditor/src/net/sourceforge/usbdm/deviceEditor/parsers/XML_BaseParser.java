@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.xmlParser;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

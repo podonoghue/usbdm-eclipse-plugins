@@ -7,13 +7,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
 public class Peripheral extends ModeControl implements Cloneable {
@@ -51,7 +52,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          return o1.compareTo(o2);
       }
    });
-   private Map<String, String>        fSimpleParameterMap  = null;
+   private SubstitutionMap        fSimpleParameterMap  = null;
 
    /** Arbitrary text to add to peripheral C declaration */
    private String                    fTemplate               = null;  
@@ -2374,11 +2375,11 @@ public class Peripheral extends ModeControl implements Cloneable {
     * 
     * @return Map of key => values
     */
-   Map<String, String> getSimpleParameterMap() {
+   ISubstitutionMap getSimpleParameterMap() {
       if (fSimpleParameterMap == null) {
-         fSimpleParameterMap = new HashMap<String, String>();
+         fSimpleParameterMap = new SubstitutionMap();
          for (Entry<String, Parameter> entry:fParameters.entrySet()) {
-            fSimpleParameterMap.put(entry.getKey(), entry.getValue().getValue());
+            fSimpleParameterMap.addValue(entry.getKey(), entry.getValue().getValue());
          }
       }
       return fSimpleParameterMap;

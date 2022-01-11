@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**

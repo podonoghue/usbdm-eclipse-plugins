@@ -11,10 +11,8 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +45,8 @@ import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.MemoryType;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -68,10 +68,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private Boolean               fHasChanged     = true;
 
    private String                fBuildToolId = null;
-   Map<String, String>           fPageData    = null;
+   ISubstitutionMap           fPageData    = null;
 
    /**
-    * Create page
+    * Create page``
     * 
     * @param paramMap               
     * @param usbdmNewProjectWizard
@@ -440,11 +440,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    /**
     * Adds C Device attributes
     * 
-    * @param paramMap         Map to add attributes to
+    * @param fPageData2         Map to add attributes to
     * @param device           Device being used
     * @param deviceSubFamily 
     */
-   private void addDeviceCodeValues(Map<String, String> paramMap, Device device) {
+   private void addDeviceCodeValues(ISubstitutionMap fPageData2, Device device) {
       String parameters = "";
       long soptAddress = device.getSoptAddress();
       String deviceSubFamily = device.getFamily();
@@ -471,7 +471,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             break;      
          }         
       }
-      paramMap.put(UsbdmConstants.C_DEVICE_PARAMETERS_KEY, parameters);
+      fPageData2.addValue(UsbdmConstants.C_DEVICE_PARAMETERS_KEY, parameters);
    }
 
    private final static String MAP_PREFIX = 
@@ -563,9 +563,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * Adds the device memory map information to the paramMap
     * 
     * @param device    Device to get memory map for
-    * @param paramMap  Map to add memory map to
+    * @param fPageData2  Map to add memory map to
     */
-   public static void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
+   public static void addLinkerMemoryMap(Device device, ISubstitutionMap fPageData2) {
 
       int ioRangeCount    = 0;
       int romCount        = 0;
@@ -698,20 +698,20 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       if ((ramHigh != null) && (ramLow != null)) {
          // Assume separate regions for Stack and Heap.
-         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", (ramHigh.end-ramHigh.start+1)/2));
-         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", (ramLow.end-ramLow.start+1)/2));
+         fPageData2.addValue(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", (ramHigh.end-ramHigh.start+1)/2));
+         fPageData2.addValue(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", (ramLow.end-ramLow.start+1)/2));
       }
       else  {
          // Assume single RAM region
-         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
-         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
+         fPageData2.addValue(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
+         fPageData2.addValue(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
       }
       
-      paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
+      fPageData2.addValue(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
 //    System.err.println(memoryMap.toString());
     
-      paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
-      paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
+      fPageData2.addValue(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
+      fPageData2.addValue(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
       
       StringBuilder sb = new StringBuilder();
       if (flexRAMRegions.size()>0) {
@@ -720,7 +720,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       if (flexNVMRegions.size()>0) {
          sb.append(LINKER_FLEXNVM_REGION);
       }
-      paramMap.put(UsbdmConstants.LINKER_EXTRA_REGION_KEY, sb.toString());
+      fPageData2.addValue(UsbdmConstants.LINKER_EXTRA_REGION_KEY, sb.toString());
    }
 
    private static ArrayList<MemoryRange> coalesce(ArrayList<MemoryRange> regions) {
@@ -764,10 +764,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    /**
     * Adds device specific attributes to map
     * 
-    * @param paramMap Map to add attributes to
+    * @param fPageData2 Map to add attributes to
     * @param device   Device needed to obtain attributes
     */
-   private void addDeviceAttributes(Map<String, String> paramMap, Device device) {
+   private void addDeviceAttributes(ISubstitutionMap fPageData2, Device device) {
       if (device == null) {
          return;
       }
@@ -779,8 +779,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       String externalVectorTableFile = getExternalVectorTable(device);
       //      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
 
-      addLinkerMemoryMap(device, paramMap);
-      addDeviceCodeValues(paramMap, device);
+      addLinkerMemoryMap(device, fPageData2);
+      addDeviceCodeValues(fPageData2, device);
 
       //      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
       //      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
@@ -809,22 +809,22 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                   break;      
                }
             }
-            paramMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, cVectorTable);
+            fPageData2.addValue(UsbdmConstants.C_VECTOR_TABLE_KEY, cVectorTable);
          }
       } catch (Exception e) {
          e.printStackTrace();
       }
       String headerFilename = new Path(externalHeaderFile).lastSegment();
 
-      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,     externalHeaderFile);
-      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILENAME_KEY, headerFilename);
-      paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,    externalVectorTableFile);
+      fPageData2.addValue(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,     externalHeaderFile);
+      fPageData2.addValue(UsbdmConstants.EXTERNAL_HEADER_FILENAME_KEY, headerFilename);
+      fPageData2.addValue(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,    externalVectorTableFile);
    }
 
    /**
     * Gets data from this page as a map
     * 
-    * @param paramMap Map to add data to
+    * @param fParamMap Map to add data to
     * 
     * buildToolsBinPath      Build tools path (usually a variable reference e.g. "${usbdm_armLtd_arm_path}"
     * buildToolsId           Build tools Id e.g. "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM"
@@ -847,38 +847,35 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * targetDeviceName       Target device name (lower case mcf51cn18)
     * targetDeviceFamily     Target device family (e.g. CortexM4)
     * targetDeviceSubFamily  Target device sub-family (e.g. MK50D10)
+    * @return 
     */
-   public synchronized void getPageData(Map<String, String> paramMap)  {
-      if (fPageData != null) {
-         paramMap.putAll(fPageData);
-      }
+   public synchronized ISubstitutionMap getPageData()  {
+      return fPageData;
    }
 
    private synchronized void createPageData(Device device)  {
       
-//      System.err.println("createPageData()");
-
-      fPageData = new HashMap<String, String>();
+      fPageData = new SubstitutionMap();
 
       if (device == null) {
          return;
       }
 
-      fPageData.put(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
+      fPageData.addValue(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
 
       String buildToolsId = getBuildToolsId();
       ToolInformationData toolInfo = ToolInformationData.getToolInformationTable().get(buildToolsId);
       if (toolInfo == null) {
-         fPageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "");    
-         fPageData.put(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
+         fPageData.addValue(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "");    
+         fPageData.addValue(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
       }
       else {
-         fPageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
-         fPageData.put(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
+         fPageData.addValue(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
+         fPageData.addValue(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
       }
-      fPageData.put(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);    
+      fPageData.addValue(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);    
 
-      fPageData.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
+      fPageData.addValue(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
 
       addDeviceAttributes(fPageData, device);
 

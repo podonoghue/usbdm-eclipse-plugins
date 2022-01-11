@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -32,6 +31,7 @@ import org.eclipse.core.variables.VariablesPlugin;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.packageParser.FileAction;
 import net.sourceforge.usbdm.packageParser.FileAction.PathType;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 /**
  * @author pgo
@@ -54,7 +54,7 @@ public class AddTargetFiles {
     * 
     * @throws Exception
     */
-   private void copyFile(Path sourcePath, Path targetPath, FileAction fileAction, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void copyFile(Path sourcePath, Path targetPath, FileAction fileAction, ISubstitutionMap variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
 //      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       SubMonitor subMonitor = SubMonitor.convert(monitor);
       subMonitor.beginTask("Copy File", 100);
@@ -68,7 +68,7 @@ public class AddTargetFiles {
       if (fileAction.doMacroReplace()) {
          // Assume UTF-8
          String chars = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(fileContents)).toString();
-         fileContents = ReplacementParser.substituteFinal(chars, variableMap).getBytes();
+         fileContents = variableMap.substituteFinal(chars).getBytes();
       }
       try {
          if (projectHandle == null) {
@@ -145,7 +145,7 @@ public class AddTargetFiles {
     * 
     * @throws Exception
     */
-   private void copyFiles(Path sourcePath, Path targetPath, FileAction fileInfo, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void copyFiles(Path sourcePath, Path targetPath, FileAction fileInfo, ISubstitutionMap variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
       
       //      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
       //      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
@@ -222,7 +222,7 @@ public class AddTargetFiles {
       }
    }
 
-   public void process(IProject projectHandle, Map<String,String> variableMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
+   public void process(IProject projectHandle, ISubstitutionMap symbolMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
       /*
        * Do macro substitution on path using project wizard variables
        */
@@ -231,9 +231,9 @@ public class AddTargetFiles {
 //         System.err.println("Debug: "+fileInfo);
 //         return;
 //      }
-      String root   = ReplacementParser.substitute(fileInfo.getRoot(),   variableMap);
-      String source = ReplacementParser.substitute(fileInfo.getSource(), variableMap);
-      String target = ReplacementParser.substitute(fileInfo.getTarget(), variableMap);
+      String root   = symbolMap.substitute(fileInfo.getRoot());
+      String source = symbolMap.substitute(fileInfo.getSource());
+      String target = symbolMap.substitute(fileInfo.getTarget());
       
 //      System.err.println("root   = \'" + root.toString() + "\'");
 //      System.err.println("source = \'" + source.toString() + "\'");
@@ -278,7 +278,7 @@ public class AddTargetFiles {
             break;
          }
          case NORMAL : {
-            copyFiles(sourcePath, targetPath, fileInfo, variableMap, projectHandle, monitor);
+            copyFiles(sourcePath, targetPath, fileInfo, symbolMap, projectHandle, monitor);
             break;
          }
       }

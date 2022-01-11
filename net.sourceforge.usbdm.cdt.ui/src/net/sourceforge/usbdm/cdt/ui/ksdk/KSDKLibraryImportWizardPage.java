@@ -12,11 +12,6 @@ package net.sourceforge.usbdm.cdt.ui.ksdk;
 */
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
-
-import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 import org.eclipse.core.resources.IPathVariableManager;
 import org.eclipse.core.resources.IWorkspace;
@@ -28,6 +23,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 /**
  *  USBDM KDS Library Import Wizard page
@@ -119,7 +119,7 @@ public class KSDKLibraryImportWizardPage extends WizardPage {
     *   @param paramMap
     * @throws Exception 
     */
-   public void getPageData(Map<String, String> paramMap) throws Exception {
+   public void getPageData(ISubstitutionMap paramMap) throws Exception {
       if (fKSDKLibraryImportOptionsPanel != null) {
          fKSDKLibraryImportOptionsPanel.getPageData(paramMap);
       }

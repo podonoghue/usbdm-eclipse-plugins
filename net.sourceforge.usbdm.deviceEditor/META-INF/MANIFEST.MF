@@ -29,8 +29,8 @@ Export-Package: net.sourceforge.usbdm.deviceEditor,
  net.sourceforge.usbdm.deviceEditor.editor,
  net.sourceforge.usbdm.deviceEditor.information,
  net.sourceforge.usbdm.deviceEditor.model,
+ net.sourceforge.usbdm.deviceEditor.parsers,
  net.sourceforge.usbdm.deviceEditor.peripherals,
  net.sourceforge.usbdm.deviceEditor.validators,
- net.sourceforge.usbdm.deviceEditor.xmlParser,
  tests.internal;x-internal:=true
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

@@ -10,7 +10,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -120,10 +119,8 @@ public class WriterForTsi extends PeripheralWithState {
                }
             }
          }
-         StringVariable cmpInputsVar = new StringVariable("InputMapping", makeKey("InputMapping"));
-         cmpInputsVar.setValue(inputsStringBuilder.toString());
-         cmpInputsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(cmpInputsVar.getKey(), cmpInputsVar);
+         // Create or replace Input Mapping variable as needed
+         fDeviceInfo.addOrUpdateStringVariable("Input Mapping", makeKey("InputMapping"), inputsStringBuilder.toString(), true);
       }
    }
 

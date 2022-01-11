@@ -32,8 +32,11 @@ import net.sourceforge.usbdm.deviceEditor.model.DeviceVariantModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyXML;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
-import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ProcessProjectActions;
@@ -96,11 +99,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhsdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForWdog;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -144,7 +145,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    private DeviceVariantInformation fVariantInformation = null;
 
    /** Map of variables for all peripherals */
-   private final TreeMap<String, Variable> fVariables = new TreeMap<String, Variable>();
+   private final VariableMap fVariables = new VariableMap();
 
    /** Indicates if the data has changed since being loaded */
    private boolean fIsDirty = false;
@@ -152,7 +153,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /** Data obtained from the Menu description file */
    private MenuData fMenuData;
 
-   /** Variable provider for project */
+   /** Variable provider for project variable (does not include peripherals) */
    private VariableProvider fVariableProvider = null;
 
    /** File name extension for project file */
@@ -1696,7 +1697,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             peripheral.loadSettings(settings);
          }
          for (String key:settings.getKeys()) {
-            Variable var = fVariables.get(key);
+            Variable var   = fVariables.safeGet(key);
             String   value = settings.get(key);
             if (var != null) {
                if (!var.isDerived()) {
@@ -1712,7 +1713,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             else if (key.startsWith("/")) {
                // Shouldn't be any unmatched peripheral settings
                System.err.println("WARNING: Discarding unmatched peripheral settings "+key+"("+value+")");
-               // Indicate state will change opn save
+               // Indicate state will change on save
                setDirty(true);
             }
             else {
@@ -1721,7 +1722,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                var = new StringVariable(key, key);
                var.setPersistentValue(value);
                var.setDerived(true);
-               addVariable(key, var);
+               addVariable(var);
             }
          }
          // Create dependencies between peripherals
@@ -1839,9 +1840,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for (String key:fVariables.keySet()) {
          Variable var = fVariables.get(key);
          if (!var.isDerived() && !var.isDefault()) {
-            if (var.getKey().contains("linkerFlashSize")) {
-               System.err.println("saveSettingsAs() " + var);
-            }
             settings.put(key, var.getPersistentValue());
          }
       }
@@ -1916,8 +1914,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          progress.worked(100);
       }
       // Add vector information to variable map
-      addOrUpdateVariable(UsbdmConstants.C_VECTOR_TABLE_INCLUDES_KEY, vectorTable.getCIncludeFiles());
-      addOrUpdateVariable(UsbdmConstants.C_VECTOR_TABLE_KEY,          vectorTable.getCVectorTableEntries());
+      addOrUpdateStringVariable("Include files needed for vector table", UsbdmConstants.C_VECTOR_TABLE_INCLUDES_KEY, vectorTable.getCIncludeFiles(),       true);
+      addOrUpdateStringVariable("Vector table entries",                  UsbdmConstants.C_VECTOR_TABLE_KEY,          vectorTable.getCVectorTableEntries(), true);
    }
    
    /**
@@ -2070,15 +2068,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Get variable map
-    * 
-    * @return Map of VariableKey -> Value
-    */
-   public Map<String, Variable> getVariableMap() {
-      return fVariables;
-   }
-   
-   /**
     * Adds a variable
     * 
     * @param key       Key used to identify variable
@@ -2086,36 +2075,23 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception if variable is already present
     */
-   public void addVariable(String key, Variable variable) {
-      if (fVariables.put(key, variable) != null) {
-         throw new RuntimeException("Variable already present \'"+key+"\'");
+   public void addVariable(Variable variable) {
+      if (fVariables.put(variable.getKey(), variable) != null) {
+         throw new RuntimeException("Variable already present \'"+variable.getKey()+"\'");
       }
-   }
-   
-   /**
-    * Adds or replaces a variable
-    * 
-    * @param key       Key used to identify variable
-    * @param variable  Variable to add
-    */
-   public void addOrReplaceVariable(String key, Variable variable) {
-      fVariables.put(key, variable);
    }
    
    /**
     * Adds or updates a variable based on a string constant<br>
     * If the variable doesn't exist a new StringVariable is created
     * 
-    * @param key       Key used to identify variable
+    * @param name      Display name for variable if created.
+    * @param key       Key used to identify variable.
     * @param value     Value for variable to add/create
+    * @param isDerived Indicates whether the variable (if added) is derived (calculated) for user controlled
     */
-   public void addOrUpdateVariable(String key, String value) {
-      Variable variable = fVariables.get(key);
-      if (variable == null) {
-         variable = new StringVariable(key, key);
-         fVariables.put(key, variable);
-      }
-      variable.setValue(value);
+   public void addOrUpdateStringVariable(String name, String key, String value, boolean isDerived) {
+      fVariables.addOrUpdateVariable(name, key, value, isDerived);
    }
    
    /**
@@ -2148,15 +2124,26 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception if variable doesn't exist
     */
+   @Override
    public String getVariableValue(String key) throws Exception {
       return getVariable(key).getValueAsString();
    }
 
    @Override
-   public Variable safeGetVariable(String key) {
-      Variable var = fVariables.get(key);
+   public String safeGetVariableValue(String key) {
+      Variable var = safeGetVariable(key);
       if (var == null) {
-         var = fVariables.get(key+"[0]");
+         return null;
+      }
+      return var.getValueAsString();
+   }
+
+   @Override
+   public Variable safeGetVariable(String key) {
+      Variable var = fVariables.safeGet(key);
+      if (var == null) {
+         // Try 0 index as well
+         var = fVariables.safeGet(key+"[0]");
       }
       return var;
    }
@@ -2179,9 +2166,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void setVariableValue(String key, String value) {
       Variable variable = fVariables.get(key);
-      if ("/LINKER/linkerRamSize".equals(key)) {
-         System.err.println("setVariableValue() /LINKER/linkerRamSize <= " + variable);
-      }
       if (variable == null) {
          System.err.println(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
          throw new RuntimeException(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
@@ -2194,14 +2178,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @return Map of key->value pairs
     */
-   public Map<String, String> getVariablesSymbolMap() {
-      HashMap<String, String>map = new HashMap<String, String>();
-      for (String key:fVariables.keySet()) {
-         map.put(key, fVariables.get(key).getSubstitutionValue());
-      }
-//      String check = map.get("/LINKER/linkerRamSize");
-//      System.err.println("getVariablesSymbolMap() check " + check);
-      return map;
+   public ISubstitutionMap getVariablesSymbolMap() {
+      return fVariables.getSubstitutionMap();
    }
 
    /**
@@ -2230,7 +2208,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return Modified string or original if no changes
     */
    private String substitute(String input) {
-      Map<String, String> map = getVariablesSymbolMap();
+      ISubstitutionMap map = getVariablesSymbolMap();
       return fVariableProvider.substitute(input, map);
    }
    
@@ -2267,7 +2245,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (fMenuData == null) {
          return;
       }
-      Map<String, String> symbolMap = getVariablesSymbolMap();
+      ISubstitutionMap symbolMap = getVariablesSymbolMap();
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
    }
 
@@ -2295,7 +2273,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws UsbdmException
     */
    public DevicePeripherals getDevicePeripherals() throws UsbdmException {
-       
       DevicePeripheralsFactory factory           = new DevicePeripheralsFactory();
       DevicePeripherals        devicePeripherals = factory.getDevicePeripherals(fDeviceSubFamily);
 //      System.out.println("Device sub family = "+fDeviceSubFamily);

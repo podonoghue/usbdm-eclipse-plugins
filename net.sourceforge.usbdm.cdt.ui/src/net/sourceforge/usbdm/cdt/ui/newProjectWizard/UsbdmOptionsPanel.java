@@ -14,23 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.ApplyWhenCondition;
-import net.sourceforge.usbdm.packageParser.ProjectAction;
-import net.sourceforge.usbdm.packageParser.ProjectActionList;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
-import net.sourceforge.usbdm.packageParser.ProjectConstant;
-import net.sourceforge.usbdm.packageParser.ProjectVariable;
-import net.sourceforge.usbdm.packageParser.WizardGroup;
-import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -46,6 +31,20 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ApplyWhenCondition;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.ProjectAction;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
+import net.sourceforge.usbdm.packageParser.ProjectConstant;
+import net.sourceforge.usbdm.packageParser.ProjectVariable;
+import net.sourceforge.usbdm.packageParser.WizardGroup;
+import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 /**
  *  USBDM New Project Wizard page "USBDM Project"
@@ -74,7 +73,7 @@ public class UsbdmOptionsPanel  extends Composite {
    /**
     * Map of options active when dialogue displayed
     */
-   protected Map<String, String>             fOptionMap          = null;
+   protected ISubstitutionMap             fOptionMap          = null;
    /**
     * Groups in the dialogue
     */
@@ -87,7 +86,7 @@ public class UsbdmOptionsPanel  extends Composite {
          IDialogSettings         dialogSettings,
          Device                  device, 
          ProjectActionList       projectActionList,
-         Map<String, String>     optionMap,
+         ISubstitutionMap     fParamMap,
          WizardPageInformation   wizardPageInfo) {
 
       super(parent, style);
@@ -95,7 +94,7 @@ public class UsbdmOptionsPanel  extends Composite {
       fDialogSettings     = dialogSettings;
       fDevice             = device;
       fProjectActionList  = projectActionList;
-      fOptionMap          = optionMap;
+      fOptionMap          = fParamMap;
       fWizardPageInfo     = wizardPageInfo;
    }
 
@@ -122,7 +121,7 @@ public class UsbdmOptionsPanel  extends Composite {
       return fProjectActionList;
    }
 
-   public void getButtonData(final Map<String, String> paramMap) {
+   public void getButtonData(final ISubstitutionMap paramMap) {
       if (fButtonMap == null) {
          // Button not yet created
          return;
@@ -132,7 +131,7 @@ public class UsbdmOptionsPanel  extends Composite {
          Button                button          = entry.getValue();
          ProjectVariable       projectVariable = fVariableMap.get(entry.getKey());
 //         System.err.println(String.format("getButtonData() %s => %s", projectVariable.getId(), button.isEnabled() && button.getSelection()));
-         paramMap.put(projectVariable.getId(), (button.isEnabled() && button.getSelection())?Boolean.TRUE.toString():Boolean.FALSE.toString());
+         paramMap.addValue(projectVariable.getId(), (button.isEnabled() && button.getSelection())?Boolean.TRUE.toString():Boolean.FALSE.toString());
       }
    }
    
@@ -306,7 +305,7 @@ public class UsbdmOptionsPanel  extends Composite {
                }
                group = new Group(comp, SWT.NONE);
                fGroupList.add(group);
-               String groupName = ReplacementParser.substitute(wizardGroup.getName(), fOptionMap);
+               String groupName = fOptionMap.substitute(wizardGroup.getName());
                group.setText(groupName);
                GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
                gd.horizontalSpan = wizardGroup.getSpan();
@@ -370,7 +369,7 @@ public class UsbdmOptionsPanel  extends Composite {
       return value;
    }
 
-   public void getPageData(final Map<String, String> paramMap) {
+   public void getPageData(final ISubstitutionMap paramMap) {
       getPageData(paramMap, fProjectActionList);
    }
    /**
@@ -379,7 +378,7 @@ public class UsbdmOptionsPanel  extends Composite {
     *   @param paramMap 
     *   @throws Exception 
     */
-   public void getPageData(final Map<String, String> paramMap, ProjectActionList projectActionLists) {
+   public void getPageData(final ISubstitutionMap paramMap, ProjectActionList projectActionLists) {
       Visitor visitor = new Visitor() {
          @Override
          public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
@@ -396,12 +395,12 @@ public class UsbdmOptionsPanel  extends Composite {
                   }
                   Boolean value = button.getSelection();
 //                  System.err.println("UsbdmOptionsPanel.getPageData() projectVariable = " + projectVariable.toString() + ", value = " + value);
-                  paramMap.put(projectVariable.getId(), value.toString());
+                  paramMap.addValue(projectVariable.getId(), value.toString());
                }
                else if (action instanceof ProjectConstant) {
                   ProjectConstant projectConstant = (ProjectConstant) action;
 //                System.err.println(String.format("UsbdmOptionsPanel.getPageData(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
-                String value = paramMap.get(projectConstant.getId());
+                String value = paramMap.getSubstitutionValue(projectConstant.getId());
                 if (value != null) {
                    if (projectConstant.isWeak()) {
                       // Ignore - assume constant is a default that has been overwritten
@@ -411,7 +410,7 @@ public class UsbdmOptionsPanel  extends Composite {
                       return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
                    }
                 }
-                paramMap.put(projectConstant.getId(), projectConstant.getValue());
+                paramMap.addValue(projectConstant.getId(), projectConstant.getValue());
              }
                return CONTINUE;
             } catch (Exception e) {

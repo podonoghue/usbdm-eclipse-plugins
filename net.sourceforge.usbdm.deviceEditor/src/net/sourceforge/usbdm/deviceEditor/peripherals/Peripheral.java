@@ -28,7 +28,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 

@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import net.sourceforge.usbdm.cdt.utilties.Eval;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
+import net.sourceforge.usbdm.packageParser.ReplacementParser;
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
 /**
@@ -125,7 +125,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    protected long getIntElement(Node element) throws Exception {
       String text = element.getTextContent();
       if (fCurrentPeripheral != null) {
-         text = ReplacementParser.substitute(text, fCurrentPeripheral.getSimpleParameterMap());
+         text = fCurrentPeripheral.getSimpleParameterMap().substitute(text);
       }
       return getIntFromText(text);
    }
@@ -550,7 +550,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       else {
          register.setDim(dimensionFromTag);
-         dim = Eval.eval(ReplacementParser.substitute(dimensionFromTag, peripheral.getSimpleParameterMap()));
+         dim = Eval.eval(peripheral.getSimpleParameterMap().substitute(dimensionFromTag));
       }
       if (dim==0) {
          // Dimension explicitly set to zero - delete dimension information
@@ -681,7 +681,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       else {
          cluster.setDim(dimensionFromTag);
-         dim = Eval.eval(ReplacementParser.substitute(dimensionFromTag, peripheral.getSimpleParameterMap()));
+         dim = Eval.eval(peripheral.getSimpleParameterMap().substitute(dimensionFromTag));
       }
       if (dim==0) {
          // Dimension explicitly set to zero - delete dimension information

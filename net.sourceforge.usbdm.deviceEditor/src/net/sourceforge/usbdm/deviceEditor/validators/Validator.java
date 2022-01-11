@@ -123,24 +123,6 @@ public abstract class Validator {
       busy = false;
       return false;
    }
-   
-   /**
-    * Get Variable from associated peripheral 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return
-    * @throws Exception 
-    */
-   protected Variable getVariable(String key) throws Exception {
-      Variable variable = null;
-      try {
-         variable = fProvider.getVariable(fProvider.makeKey(key)+"["+fIndex+"]");
-      } catch (Exception e) {
-         variable = fProvider.getVariable(fProvider.makeKey(key));
-      }
-      return variable;
-   }
 
    /**
     * Get Variable from associated peripheral 
@@ -154,6 +136,24 @@ public abstract class Validator {
       Variable variable = fProvider.safeGetVariable(fProvider.makeKey(key)+"["+fIndex+"]");
       if (variable == null) {
          variable = fProvider.safeGetVariable(fProvider.makeKey(key));
+      }
+      return variable;
+   }
+   
+   /**
+    * Get Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable requested
+    * 
+    * @throws Exception if variable not found 
+    */
+   protected Variable getVariable(String key) throws Exception {
+
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         throw new Exception("Varible not  found");
       }
       return variable;
    }
@@ -300,6 +300,7 @@ public abstract class Validator {
     * @param key  Key to lookup variable
     * 
     * @return
+    * 
     * @throws Exception 
     */
    protected StringVariable getStringVariable(String key) throws Exception {

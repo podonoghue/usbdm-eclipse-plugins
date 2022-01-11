@@ -5,7 +5,6 @@ package net.sourceforge.usbdm.cdt.utilties;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -14,6 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
 
 import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 /**
  * @author pgo
@@ -25,21 +25,21 @@ public class DeleteResource {
     * Process action
     * 
     * @param projectHandle       Handle for access to project
-    * @param variableMap         
+    * @param symbolMap         
     * @param deleteAction
     * @param monitor             Progress monitor
     * 
     * @throws Exception 
     */
-   public void process(IProject projectHandle, Map<String,String> variableMap, DeleteResourceAction deleteAction, IProgressMonitor monitor) 
+   public void process(IProject projectHandle, ISubstitutionMap symbolMap, DeleteResourceAction deleteAction, IProgressMonitor monitor) 
       throws Exception {
       if (projectHandle == null) {
          // For debug
          System.err.println("Debug: "+deleteAction);
          return;
       }
-      String root   = ReplacementParser.substitute(deleteAction.getRoot(),   variableMap);
-      String target = ReplacementParser.substitute(deleteAction.getTarget(), variableMap);
+      String root   = symbolMap.substitute(deleteAction.getRoot());
+      String target = symbolMap.substitute(deleteAction.getTarget());
       root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root);
       target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target);
       Path targetPath = Paths.get(target);

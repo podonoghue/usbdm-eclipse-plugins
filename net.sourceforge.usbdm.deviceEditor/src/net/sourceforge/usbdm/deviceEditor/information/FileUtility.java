@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +21,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.ReplacementParser;
 
 public class FileUtility {
 
@@ -34,7 +34,7 @@ public class FileUtility {
     * @param variableMap
     * @throws Exception 
     */
-   private static void copy(Path inFilePath, Path outFilePath, Map<String, String> variableMap) throws Exception {
+   private static void copy(Path inFilePath, Path outFilePath, ISubstitutionMap variableMap) throws Exception {
       Path backupFilePath = null;
       String filename = inFilePath.getFileName().toString();
       boolean areSameFile = Files.isSameFile(inFilePath, outFilePath);
@@ -69,7 +69,7 @@ public class FileUtility {
                }
             }
             if (includeLine) {
-               line = ReplacementParser.substitute(line, variableMap);
+               line = variableMap.substitute(line);
                writer.write(line);
                writer.newLine();
             }
@@ -80,14 +80,14 @@ public class FileUtility {
                includeLine = false;
             }
             if (variable != null) {
-               String value = variableMap.get(variable);
+               String value = variableMap.getSubstitutionValue(variable);
                if (value == null) {
                   throw new Exception(
                         "Variable not defined, \""+variable+"\"\n"+
                               "within file \""+filename+"\""
                         );
                }
-               writer.write(variableMap.get(variable));
+               writer.write(variableMap.getSubstitutionValue(variable));
                variable = null;
             }
          } while (true);
@@ -123,7 +123,7 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   public static void copyFile(IProject project, String source, String target, Map<String, String> variableMap, IProgressMonitor progressMonitor) throws Exception {
+   public static void copyFile(IProject project, String source, String target, ISubstitutionMap variableMap, IProgressMonitor progressMonitor) throws Exception {
       SubMonitor monitor = SubMonitor.convert(progressMonitor, 100);
       
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
@@ -157,7 +157,7 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   private static void copyFile(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+   private static void copyFile(IProject project, Path sourcePath, Path targetPath, ISubstitutionMap variableMap, IProgressMonitor monitor) throws Exception {
       
       try {
          SubMonitor progress = SubMonitor.convert(monitor, 100); 
@@ -195,7 +195,7 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   public static void copyDirectory(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+   public static void copyDirectory(IProject project, Path sourcePath, Path targetPath, ISubstitutionMap variableMap, IProgressMonitor monitor) throws Exception {
       try {
          sourcePath = sourcePath.toAbsolutePath();
          targetPath = targetPath.toAbsolutePath();
@@ -223,7 +223,7 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   public static void copyDirectory(Path sourcePath, Path targetPath, Map<String, String> variableMap) throws Exception {
+   public static void copyDirectory(Path sourcePath, Path targetPath, ISubstitutionMap variableMap) throws Exception {
       copyDirectory(null, sourcePath, targetPath, variableMap, null);
    }
 
@@ -239,7 +239,7 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   public static void copyDirectory(IProject project, String source, String target, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+   public static void copyDirectory(IProject project, String source, String target, ISubstitutionMap variableMap, IProgressMonitor monitor) throws Exception {
       SubMonitor subMonitor = SubMonitor.convert(monitor,100);
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source).toAbsolutePath();
@@ -282,7 +282,7 @@ public class FileUtility {
       }
    }
 
-   public static void refreshFile(Path path, Map<String, String> variableMap) throws Exception {
+   public static void refreshFile(Path path, ISubstitutionMap variableMap) throws Exception {
       try {
          copyFile(null, path, path, variableMap, null);
       } catch (Exception e) {
@@ -301,7 +301,7 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   public static void refreshFile(IProject project, String path, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+   public static void refreshFile(IProject project, String path, ISubstitutionMap variableMap, IProgressMonitor monitor) throws Exception {
       SubMonitor subMonitor = SubMonitor.convert(monitor);
       subMonitor.subTask("Refreshing");
       try {

@@ -7,9 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,10 +36,11 @@ import org.eclipse.ui.dialogs.TwoPaneElementSelector;
 
 import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 
 public class LaunchParameterUtilities {
 
@@ -53,26 +52,26 @@ public class LaunchParameterUtilities {
     * @param device   Device needed to obtain attributes
     * @param binPath  Path to binary (may be null)
     */
-   public static void addLaunchParameters(Map<String, String> variableMap, Device device, IPath binPath) {
+   public static void addLaunchParameters(ISubstitutionMap variableMap, Device device, IPath binPath) {
 
-      variableMap.put(UsbdmConstants.TARGET_DEVICE_KEY,           device.getName());
-      variableMap.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
-      variableMap.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
-      variableMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
+      variableMap.addValue(UsbdmConstants.TARGET_DEVICE_KEY,           device.getName());
+      variableMap.addValue(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
+      variableMap.addValue(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
+      variableMap.addValue(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
 
-      variableMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,    String.valueOf(device.getDefaultClockTrimFreq()));            
-      variableMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY, String.valueOf(device.getDefaultClockTrimNVAddress()));            
-      variableMap.put(UsbdmConstants.ERASE_METHOD_KEY,            device.getPreferredEraseMethod().getOptionName());          
-      variableMap.put(UsbdmConstants.RESET_METHOD_KEY,            device.getPreferredResetMethod().getOptionName());
+      variableMap.addValue(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,    String.valueOf(device.getDefaultClockTrimFreq()));            
+      variableMap.addValue(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY, String.valueOf(device.getDefaultClockTrimNVAddress()));            
+      variableMap.addValue(UsbdmConstants.ERASE_METHOD_KEY,            device.getPreferredEraseMethod().getOptionName());          
+      variableMap.addValue(UsbdmConstants.RESET_METHOD_KEY,            device.getPreferredResetMethod().getOptionName());
 
       if (binPath != null) {
          // Add path to binary
-         variableMap.put(UsbdmConstants.BIN_PATH_KEY,  binPath.toPortableString());            
+         variableMap.addValue(UsbdmConstants.BIN_PATH_KEY,  binPath.toPortableString());            
       }
 //      if (binPath == null) {
 //         // Add default path to binary
 //         String projectName = variableMap.get(UsbdmConstants.PROJECT_NAME_KEY);
-//         variableMap.put(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");            
+//         variableMap.addValue(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");            
 //      }
    }
 
@@ -307,12 +306,12 @@ public class LaunchParameterUtilities {
     * @return
     * @throws Exception
     */
-   private static InputStream getLaunchFile(Map<String, String> variableMap) throws Exception {
+   private static InputStream getLaunchFile(ISubstitutionMap variableMap) throws Exception {
       String launchFilePath = "launchTemplate.xml";
 
       String fileContents;
       fileContents = readFile(launchFilePath);
-      fileContents = ReplacementParser.substitute(fileContents, variableMap);
+      fileContents = variableMap.substitute(fileContents);
       ByteArrayInputStream contents = new ByteArrayInputStream(fileContents.getBytes());
 
       return contents;
@@ -373,10 +372,11 @@ public class LaunchParameterUtilities {
       Device device = deviceSelector.getDevice();
 
       // Map used to hold variable for launch file creation
-      Map<String, String> variableMap = new HashMap<String, String>();
+//      ISimpleSubstitution variableMap = new HashMap<String, String>();
+      ISubstitutionMap variableMap = new SubstitutionMap();
 
       // Add device name to project creation map
-      variableMap.put(UsbdmConstants.PROJECT_NAME_KEY, project.getName());
+      variableMap.addValue(UsbdmConstants.PROJECT_NAME_KEY, project.getName());
 
       // Add launch parameters from device information
       LaunchParameterUtilities.addLaunchParameters(variableMap, device, binPath);

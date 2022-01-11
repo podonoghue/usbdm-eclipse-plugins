@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.packageParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.swt.widgets.Button;
 
@@ -109,7 +108,7 @@ public class ApplyWhenCondition {
     * 
     * @return true/false result of evaluation
     */
-   public boolean applies(Map<String, String> variableMap) {
+   public boolean applies(ISubstitutionMap variableMap) {
       return evaluateCondition(null, variableMap, null);
    }
    
@@ -121,7 +120,7 @@ public class ApplyWhenCondition {
     * 
     * @return true/false result of evaluation
     */
-   public boolean appliesTo(Device device, Map<String, String> variableMap) {
+   public boolean appliesTo(Device device, ISubstitutionMap variableMap) {
       return evaluateCondition(device, variableMap, null);
    }
 
@@ -134,7 +133,7 @@ public class ApplyWhenCondition {
     * 
     * @return true/false result of evaluation
     */
-   public boolean enabled(Device device, Map<String, String> variableMap, HashMap<String, Button> buttonMap) throws Exception {
+   public boolean enabled(Device device, ISubstitutionMap variableMap, HashMap<String, Button> buttonMap) throws Exception {
       boolean result = evaluateCondition(device, variableMap, buttonMap);
       if (fVerbose) {
          System.err.println(String.format("ApplyWhenCondition.enabled => %s", result ));
@@ -149,7 +148,7 @@ public class ApplyWhenCondition {
     * @param buttonMap
     * @return
     */
-   public boolean evaluateCondition(Device device, Map<String, String> variableMap, HashMap<String, Button> buttonMap) {
+   public boolean evaluateCondition(Device device, ISubstitutionMap variableMap, HashMap<String, Button> buttonMap) {
       Button button = null;
       if (fVerbose) {
          System.err.println(String.format("ApplyWhenCondition.evaluateCondition(%s)", toString() ));
@@ -193,7 +192,7 @@ public class ApplyWhenCondition {
          if (variableMap == null) {
             throw new RuntimeException("Evaluation of 'variableRef' without variable map - " + fVariableName);
          }
-         String variableValue = variableMap.get(fVariableName);
+         String variableValue = variableMap.getSubstitutionValue(fVariableName);
          if (fCondition == Condition.isDefined) {
             return variableValue != null;
          }

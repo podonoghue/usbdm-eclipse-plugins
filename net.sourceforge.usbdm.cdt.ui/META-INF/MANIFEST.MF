@@ -16,12 +16,12 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.debug.ui,
  net.sourceforge.usbdm.jni,
  net.sourceforge.usbdm.peripheralDatabase,
- org.eclipse.cdt.managedbuilder.core,
- net.sourceforge.usbdm.deviceEditor
+ org.eclipse.cdt.managedbuilder.core
 Automatic-Module-Name: net.sourceforge.usbdm.cdt.ui2
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: USBDM
-Import-Package: org.eclipse.cdt.build.core.scannerconfig,
+Import-Package: net.sourceforge.usbdm.deviceEditor.information,
+ org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.core.variables,

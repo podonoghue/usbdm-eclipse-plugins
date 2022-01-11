@@ -1,14 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
-import java.util.Map;
-
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
-import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.ReplacementParser;
 
 public abstract class Variable extends ObservableModel implements Cloneable {
    
@@ -110,8 +109,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Constructor
     * 
-    * @param name Name to display to user.
-    * @param key  Key for variable
+    * @param name Name to display to user. If null then default value is derived from key.
+    * @param key  Key for variable.
     */
    public Variable(String name, String key) {
       if (name == null) {
@@ -625,16 +624,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @note All listeners are removed from clone
     */
-   public Variable clone(String name, Map<String,String> symbols) throws CloneNotSupportedException {
+   public Variable clone(String name, ISubstitutionMap symbols) throws CloneNotSupportedException {
       Variable var = null;
       // Create cloned variable
       var = (Variable) super.clone();
       var.removeAllListeners();
-      var.fName         = ReplacementParser.substitute(fName, symbols);
-      var.fKey          = ReplacementParser.substitute(fKey, symbols);
-      var.fToolTip      = ReplacementParser.substitute(fToolTip, symbols);
-      var.fDescription  = ReplacementParser.substitute(fDescription, symbols);
-      var.fOrigin       = ReplacementParser.substitute(fOrigin, symbols);
+      var.fName         = symbols.substitute(fName);
+      var.fKey          = symbols.substitute(fKey);
+      var.fToolTip      = symbols.substitute(fToolTip);
+      var.fDescription  = symbols.substitute(fDescription);
+      var.fOrigin       = symbols.substitute(fOrigin);
       return var;
    }
 

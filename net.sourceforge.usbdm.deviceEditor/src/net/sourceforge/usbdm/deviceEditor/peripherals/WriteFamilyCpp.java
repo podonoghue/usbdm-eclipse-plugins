@@ -26,7 +26,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 
 public class WriteFamilyCpp {
 
@@ -331,33 +330,27 @@ public class WriteFamilyCpp {
             sb.append("" + i.next() + "\n");
          }
          // Create or replace variable
-         StringVariable hardwareIncludeFilesVar = new StringVariable("IncludeFiles", HARDWARE_FILE_INCLUDES_FILE_KEY, sb.toString());
-         hardwareIncludeFilesVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_INCLUDES_FILE_KEY, hardwareIncludeFilesVar);
+         fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", HARDWARE_FILE_INCLUDES_FILE_KEY, sb.toString(), true);
       }         
 
       // Save declarations for any user objects needed by peripherals in hardware.h
       if (hardwareDeclarations.toString().isBlank()) {
-         // None  delete variable
+         // None - delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DECLARATIONS_KEY);
       }
       else {
          // Create or replace variable
-         StringVariable hardwareDefinitionsVar = new StringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDeclarations);
-         hardwareDefinitionsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_DECLARATIONS_KEY, hardwareDefinitionsVar);
+         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DECLARATIONS_KEY, hardwareDeclarations.toString(), true);
       }
       
       // Save actual definitions for any user objects needed by peripherals in hardware.cpp
       if (hardwareDefinitions.toString().isBlank()) {
-         // None  delete variable
+         // None - delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DEFINITIONS_KEY);
       }
       else {
          // Create or replace variable
-         StringVariable hardwareDefinitionsVar = new StringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitions);
-         hardwareDefinitionsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitionsVar);
+         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitions.toString(), true);
       }
    }
 
@@ -396,16 +389,11 @@ public class WriteFamilyCpp {
       sb.append(pcrInitialiser.getGlobalPcrLockoutStatements("      "));
       sb.append("   }\n");
       
-      StringVariable variable = new StringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY);
-      variable.setValue(sb.toString());
-      variable.setDerived(true);
-      fDeviceInfo.addOrReplaceVariable(variable.getKey(), variable);
+      // Create or replace variable describing init. sequence
+      fDeviceInfo.addOrUpdateStringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY, sb.toString(), true);
 
-      // Write error messages as needed
-      variable = new StringVariable("Port Initialisation Errors", HARDWARE_FILE_PORT_INIT_ERRORS_KEY);
-      variable.setValue(pcrInitialiser.getErrorMessages());
-      variable.setDerived(true);
-      fDeviceInfo.addOrReplaceVariable(variable.getKey(), variable);
+      // Create or replace error messages as needed
+      fDeviceInfo.addOrUpdateStringVariable("Port Initialisation Errors", HARDWARE_FILE_PORT_INIT_ERRORS_KEY, pcrInitialiser.getErrorMessages(), true);
    }
 
    private final String DOCUMENTATION_OPEN = "///\n" + "/// @page PinSummary Pin Mapping\n";

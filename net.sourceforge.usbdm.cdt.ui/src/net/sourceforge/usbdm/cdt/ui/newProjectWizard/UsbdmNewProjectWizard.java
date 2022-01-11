@@ -39,12 +39,14 @@ import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
 import net.sourceforge.usbdm.packageParser.ProjectConstant;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 /**
@@ -60,7 +62,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    /** Base parameters from pages 1 & 2 */
    private Map<String, String>                  fBaseParamMap = null;
    /** Parameters from all Pages */
-   private Map<String, String>                  fParamMap = null;
+   private ISubstitutionMap                  fParamMap = null;
    private Device                               fDevice = null;
 
    @Override
@@ -124,7 +126,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
     * @param paramMap            Map to add constants to
     * @param projectActionList   Action list to visit
     */
-   void updateMapConstants(final Map<String, String> paramMap, ProjectActionList projectActionList, final Device device) {
+   void updateMapConstants(final ISubstitutionMap paramMap, ProjectActionList projectActionList, final Device device) {
       Visitor visitor = new Visitor() {
          @Override
          public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
@@ -136,7 +138,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
                else if (action instanceof ProjectConstant) {
                   ProjectConstant projectConstant = (ProjectConstant) action;
                   //                  Activator.log(String.format("updateMapConstants(): Found constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
-                  String value = paramMap.get(projectConstant.getId());
+                  String value = paramMap.getSubstitutionValue(projectConstant.getId());
                   if (value != null) {
                      if (projectConstant.isWeak()) {
                         // Ignore - assume constant is a default that has been overwritten
@@ -146,7 +148,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
                         return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
                      }
                   }
-                  paramMap.put(projectConstant.getId(), projectConstant.getValue());
+                  paramMap.addValue(projectConstant.getId(), projectConstant.getValue());
                }
                return CONTINUE;
             } catch (Exception e) {
@@ -197,14 +199,15 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
     */
    void updateParamMap(WizardPage currentPage) {
 //      Activator.log("updateParamMap()");
-      fParamMap = new HashMap<String, String>(fBaseParamMap);
+      
       final UsbdmNewProjectWizard wizard = this;
       if (fUsbdmProjectParametersPage_2 != null) {
+         fParamMap = new SubstitutionMap();
          Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
                if (fUsbdmProjectParametersPage_2 != null) {
-                  fUsbdmProjectParametersPage_2.getPageData(fParamMap);
+                  fParamMap = fUsbdmProjectParametersPage_2.getPageData();
                }
             }
          });
@@ -348,9 +351,9 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
     * Done as job as time consuming
     * 
     * @param title
-    * @param paramMap
+    * @param fParamMap2
     */
-   private void listParamMap(final String title, final Map<String, String> paramMap) {
+   private void listParamMap(final String title, final ISubstitutionMap fParamMap2) {
       Job job = Job.create("Log paramater map", new IJobFunction() {
          @Override
          public IStatus run(IProgressMonitor pm) {
@@ -358,7 +361,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
             StringBuffer sb = new StringBuffer();
             sb.append(title+"\n");
             sb.append("================================================\n");
-            ArrayList<String> keySet = new ArrayList<String>(paramMap.keySet());
+            ArrayList<String> keySet = new ArrayList<String>(fParamMap2.keySet());
             Collections.sort(keySet);
             for (String key:keySet) {
                if (key.equals(UsbdmConstants.LINKER_EXTRA_REGION_KEY)) {
@@ -373,7 +376,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
                if (key.startsWith("demo.KSDK")) {
                   continue;
                }
-               sb.append(String.format("%-60s => %s\n", key, paramMap.get(key)));
+               sb.append(String.format("%-60s => %s\n", key, fParamMap2.getSubstitutionValue(key)));
             }
             sb.append("================================================\n");
             Activator.log(sb.toString());
@@ -465,7 +468,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return null;
    }
 
-   public Map<String, String> getparamMap() {
+   public ISubstitutionMap getparamMap() {
       return fParamMap;
    }
 

@@ -2,9 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,12 +11,10 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
@@ -26,11 +23,12 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.TemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
+import net.sourceforge.usbdm.deviceEditor.parsers.TemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -42,10 +40,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    protected MenuData fMenuData = null;
    
    /** Map of parameters for peripheral */
-   protected HashMap<String, String> fParamMap = new HashMap<String,String>();
-
-   /** Map of constants for peripheral */
-   protected HashMap<String, String> fConstantMap = new HashMap<String,String>();
+   protected ArrayList<String> fParamList = new ArrayList<String>();
 
    /** Status of the peripheral */
    protected Status fStatus = null;
@@ -172,9 +167,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       String template = fMenuData.getTemplate("class", "");
       if (!template.isBlank()) {
          // Create or replace variable
-         StringVariable hardwareDefinitionsVar = new StringVariable("Class Info", "/"+getBaseName()+"/classInfo", substitute(template));
-         hardwareDefinitionsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(hardwareDefinitionsVar.getKey(), hardwareDefinitionsVar);
+         fDeviceInfo.addOrUpdateStringVariable("Class Info", "/"+getBaseName()+"/classInfo", substitute(template), true);
       }
    }
    
@@ -201,26 +194,26 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return;
       }
-      Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getVariablesSymbolMap());
+      ISubstitutionMap symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getVariablesSymbolMap());
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, monitor);
    }
 
    /**
     * Add extra templates to symbol map before doing other substitutions
     * 
-    * @param map  Map to symbols add to
+    * @param substitutionMap  Map to symbols add to
     *  
     * @return Modified map
     * @throws Exception 
     */
-   protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
-      map.put("_instance",   getInstance());       // FTM0 => 0
-      map.put("_name",       getName());           // FTM0 => FTM0
-      map.put("_class",      getClassName());      // FTM0 => Ftm0
-      map.put("_base_class", getClassBaseName());  // FTM0 => Ftm
+   protected ISubstitutionMap addTemplatesToSymbolMap(ISubstitutionMap substitutionMap) {
+      substitutionMap.addValue("_instance",   getInstance());       // FTM0 => 0
+      substitutionMap.addValue("_name",       getName());           // FTM0 => FTM0
+      substitutionMap.addValue("_class",      getClassName());      // FTM0 => Ftm0
+      substitutionMap.addValue("_base_class", getClassBaseName());  // FTM0 => Ftm
 
       if (fMenuData == null) {
-         return map;
+         return substitutionMap;
       }
 
       // Load any named templates
@@ -239,16 +232,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             int dimension = fileTemplate.getDimension();
             if (dimension > 0) {
                for (int index=0; index<dimension; index++) {
-                  sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), map, new IndexKeyMaker(index)));
+                  String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), new IndexKeyMaker(fKeyMaker, index));
+                  sb.append(expandedTemplate);
+//                  sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, new IndexKeyMaker(index)));
                }
             }
             else {
-               sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), map, fKeyMaker));
+               String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), fKeyMaker);
+               sb.append(expandedTemplate);
+//               sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, fKeyMaker));
             }
-            map.put(fKeyMaker.makeKey(key), sb.toString());
+            substitutionMap.addValue(fKeyMaker.makeKey(key), sb.toString());
          }
       }
-      return map;
+      return substitutionMap;
    }
    
    /**
@@ -264,19 +261,26 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Does variable substitution in a string using the device variable map
+    * Does variable substitution in a string using the device variable map<br>
+    * The following names are automatically added:
+    *    <li> _instance       Name/number of the peripheral instance e.g. FTM0 => 0, PTA => A
+    *    <li> _name           Name used to identify this provider e.g. FTM2
+    *    <li> _class          Name of C peripheral class e.g. Ftm2
+    *    <li> _base_class     Base name of C peripheral class e.g. Ftm
+    *    <li> _base_name      Base name of C peripheral class e.g. Ftm
     * 
     * @param input  String to process
     * 
     * @return Modified string or original if no changes
     */
-   String substitute(String input) {
-      Map<String, String> map = fDeviceInfo.getVariablesSymbolMap();
-      map.put(makeKey("_instance"),   getInstance());
-      map.put(makeKey("_name"),       getName());
-      map.put(makeKey("_class"),      getClassName());
-      map.put(makeKey("_base_class"), getClassBaseName());
-      map.put(makeKey("_base_name"),  getBaseName());
+   public String substitute(String input) {
+      ISubstitutionMap map = fDeviceInfo.getVariablesSymbolMap();
+      map.addValue(makeKey("_instance"),   getInstance());
+      map.addValue(makeKey("_name"),       getName());
+      map.addValue(makeKey("_class"),      getClassName());
+      map.addValue(makeKey("_base_class"), getClassBaseName());
+      map.addValue(makeKey("_base_name"),  getBaseName());
+//      map.substitute(input, fKeyMaker);
       return substitute(input, map);
    }
    
@@ -407,68 +411,26 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /**
     * Add parameter
     * 
-    * @param key
-    * @param value
+    * @param name    Display name
+    * @param key     If not absolute it is made relative to peripheral
+    * @param value   Value for param
     */
-   public void addParam(String key, String value) {
-      fParamMap.put(key, value);
+   public void addParam(String key) {
+      fParamList.add(makeKey(key));
    }
 
-   /**
-    * Get parameter map
-    * 
-    * @return
-    */
-   public Map<String, String> getParamMap() {
-      return fParamMap;
-   }
-   
-   /**
-    * Get parameter value
-    * 
-    * @param key Key to use for parameter<br>
-    * If the key starts at root it is used unchanged otherwise the peripheral name will be pre-pended.<br>
-    * e.g. xxx => /ftfl/xxx, /xxx => /xxx (unchanged)
-    *  
-    * @return parameter value or null if not present
-    */
-   public String getParam(String key) {
-      if (!key.startsWith("/")) {
-         key = "/"+getName()+"/"+key;
-      }
-      return fParamMap.get(key);
-   }
-   
-   /**
-    * Add constant
-    * 
-    * @param key
-    * @param value
-    */
-   public void addConstant(String key, String value) {
-      fConstantMap.put(key, value);
-   }
-
-   /**
-    * Get constant map
-    * 
-    * @return
-    */
-   public Map<String, String> getConstantMap() {
-      return fConstantMap;
-   }
-   
    @Override
    protected void writeExtraXMLDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
-      for (String key:getParamMap().keySet()) {
-         String value = getParamMap().get(key);
+      Collections.sort(fParamList);
+      for (String key:fParamList) {
+         Variable var = safeGetVariable(key);
          documentUtilities.openTag("param");
-         documentUtilities.writeAttribute("key",   key);
-         documentUtilities.writeAttribute("value", value);
+         documentUtilities.writeAttribute("name",  var.getName());
+         documentUtilities.writeAttribute("key",   var.getKey());
+         documentUtilities.writeAttribute("value", var.getPersistentValue());
          documentUtilities.closeTag();
       }
    }
-
    
    /**
     * Gets the model name for the peripheral<br>
@@ -476,7 +438,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * May be overridden by <b><i>peripheral_file</i></b> parameter from device file
     */
    public String getPeripheralVersionName() {
-      String peripheralFile = getParam("peripheral_file");
+      String peripheralFile = safeGetVariableValue("peripheral_file");
       if (peripheralFile != null) {
          return peripheralFile;
       }

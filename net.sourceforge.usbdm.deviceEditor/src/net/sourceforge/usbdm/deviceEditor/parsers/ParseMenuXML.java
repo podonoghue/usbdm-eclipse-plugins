@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.xmlParser;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
@@ -15,7 +15,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
@@ -46,12 +45,14 @@ import net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.PackageParser;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 import net.sourceforge.usbdm.packageParser.ProjectConstant;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 
 public class ParseMenuXML extends XML_BaseParser {
 
@@ -629,13 +630,13 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseForElement(BaseModel parent, VariableModel model) throws Exception {
       Variable variable    = model.getVariable();
       String   forVariable = variable.getForVariable();
-      HashMap<String, String> symbols = new HashMap<String, String>();
+      ISubstitutionMap symbols = new SubstitutionMap();
       if (forVariable != null) {
          String[] names = variable.getForEnumeration().split("\\s*,\\s*");
          parent.removeChild(model);
          for(String name:names) {
             name = name.trim();
-            symbols.put(forVariable, name);
+            symbols.addValue(forVariable, name);
             Variable iteratedVariable = variable.clone(name, symbols);
             iteratedVariable.createModel(parent);
             fProvider.addVariable(iteratedVariable);
@@ -799,7 +800,7 @@ public class ParseMenuXML extends XML_BaseParser {
       name = substituteKey(name);
       
       Variable var = safeGetVariable(key);
-      value = ReplacementParser.substitute(value, fPeripheral.getConstantMap());
+//      value = ReplacementParser.substitute(value, fPeripheral.get());
       if (var != null) {
          if (isWeak) {
             // Ignore constant
@@ -815,9 +816,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else {
          var = new StringVariable(name, key);
-         fProvider.addVariable(var);
          var.setValue(value);
          var.setDerived(isDerived);
+         fProvider.addVariable(var);
       }
    }
 
@@ -1264,10 +1265,6 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private ValidatorInformation parseValidate(Element validateElement) throws Exception {
       //      System.err.println("================================");
-      Map<String, String> paramMap = null;
-      if (fPeripheral != null) {
-         paramMap = fPeripheral.getParamMap();
-      }
       //      for (String k:paramMap.keySet()) {
       //         System.err.println(k + " => " + paramMap.get(k));
       //      }
@@ -1285,10 +1282,9 @@ public class ParseMenuXML extends XML_BaseParser {
          if (element.getTagName() == "param") {
             String type  = element.getAttribute("type");
             String value = element.getAttribute("value");
-            if (paramMap != null) {
-               // Do substitutions on parameter if a map available
-               value = fProvider.substitute(value, paramMap);
-            }
+            
+            // Do substitutions on parameter
+            value = fProvider.substitute(value);
             if (type.equalsIgnoreCase("long")) {
                validator.addParam(EngineeringNotation.parseAsLong(value));
             }

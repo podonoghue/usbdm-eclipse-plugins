@@ -19,7 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 public class FamilyXmlWriter {

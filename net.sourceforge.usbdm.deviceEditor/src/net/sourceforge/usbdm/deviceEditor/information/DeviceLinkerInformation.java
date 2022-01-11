@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
@@ -138,12 +137,19 @@ public class DeviceLinkerInformation {
       return memoryMap.toString();
    }
 
-   private static void updateVariable(Map<String, Variable> paramMap, Variable newVariable, boolean derived) {
-      Variable variable = paramMap.get(newVariable.getKey());
+   /**
+    * Updates or creates (if necessary) a variable
+    * 
+    * @param paramMap      Map to add variable to 
+    * @param newVariable   New variable
+    * @param derived       Whether the variable is derived i.e. calculated rather than user controlled 
+    */
+   private static void updateVariable(VariableMap paramMap, Variable newVariable, boolean derived) {
+      Variable variable = paramMap.safeGet(newVariable.getKey());
       if (variable != null) {
          // Existing variable
          if (derived || variable.isDefault()) {
-            // Update value
+            // Update value rather than create variable
             variable.setValue(newVariable.getValueAsString());
             variable.setDefault(newVariable.getValueAsString());
          }
@@ -162,12 +168,12 @@ public class DeviceLinkerInformation {
    }
    
    /**
-    * Adds the device memory map information to the paramMap
+    * Adds the device linker and memory map information to the paramMap
     * 
     * @param deviceName  Name of device to get memory map for
-    * @param paramMap    Map to add memory map to
+    * @param paramMap    Map to add information to
     */
-   public static void addLinkerMemoryMap(String deviceName, Map<String, Variable> paramMap) {
+   public static void addLinkerMemoryMap(String deviceName, VariableMap paramMap) {
 
       DeviceDatabase deviceDatabase = DeviceDatabase.getDeviceDatabase(TargetType.T_ARM);
       Device device = deviceDatabase.getDevice(deviceName);    
@@ -305,23 +311,24 @@ public class DeviceLinkerInformation {
          // Add alias for main RAM region (if needed)
          memoryMap.append(String.format("REGION_ALIAS(\"%s\",\"%s\");\n", DEFAULT_RAM_REGION,   ramRegion.getName()));
       }
+      
       if ((ramHigh != null) && (ramLow != null)) {
          // Assume separate regions for Stack and Heap.
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/stackSize",     String.format("0x%X", (ramHigh.end-ramHigh.start+1)/2)), false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/heapSize",      String.format("0x%X", (ramLow.end-ramLow.start+1)/2)),   false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramLowerSize",  String.format("0x%X", ramLow.end-ramLow.start+1)),       true);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramUpperSize",  String.format("0x%X", ramHigh.end-ramHigh.start+1)),     true);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/stackSize",     "0x"+Long.toHexString((ramHigh.end-ramHigh.start+1)/2)), false);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/heapSize",      "0x"+Long.toHexString((ramLow.end-ramLow.start+1)/2)),   false);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramLowerSize",  "0x"+Long.toHexString(ramLow.end-ramLow.start+1)),       true);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramUpperSize",  "0x"+Long.toHexString(ramHigh.end-ramHigh.start+1)),     true);
       }
       else  {
          // Assume single RAM region
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/stackSize",     String.format("0x%X", ramSize/4)), false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/heapSize",      String.format("0x%X", ramSize/4)), false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramLowerSize",  String.format("0x%X", 0)),         true);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramUpperSize",  String.format("0x%X", 0)),         true);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/stackSize",     "0x"+Long.toHexString(ramSize/4)), false);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/heapSize",      "0x"+Long.toHexString(ramSize/4)), false);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramLowerSize",  "0x"+Long.toHexString(0)),         true);
+         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramUpperSize",  "0x"+Long.toHexString(0)),         true);
       }
       updateVariable(paramMap, new StringVariable(null, "/LINKER/information",  memoryMap.toString()),             true);
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flashSize",    String.format("0x%X", flashSize)), true);
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/ramSize",      String.format("0x%X", ramSize)),   true);
+      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flashSize",    "0x"+Long.toHexString(flashSize)), true);
+      updateVariable(paramMap, new LongVariable(  null, "/LINKER/ramSize",      "0x"+Long.toHexString(ramSize)),   true);
 
       StringBuilder sb = new StringBuilder();
       if (flexRamRegions.size()>0) {
@@ -334,8 +341,8 @@ public class DeviceLinkerInformation {
       }
       updateVariable(paramMap, new StringVariable(null, "/LINKER/extraRegions", sb.toString()), true);
 
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flexRamSize",      String.format("0x%X", flexRamSize)),   true);
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flexNvmSize",      String.format("0x%X", flexNvmSize)),   true);
+      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flexRamSize",      "0x"+Long.toHexString(flexRamSize)),   true);
+      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flexNvmSize",      "0x"+Long.toHexString(flexNvmSize)),   true);
 
       String subFamily = device.getFamily();
       

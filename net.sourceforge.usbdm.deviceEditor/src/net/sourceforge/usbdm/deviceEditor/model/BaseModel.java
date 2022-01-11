@@ -9,8 +9,8 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.parsers.ListModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ListModel;
 
 /**
  * Base Model for tree item

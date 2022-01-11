@@ -5,15 +5,9 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.packageParser.FileAction.FileType;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,6 +16,11 @@ import org.eclipse.swt.SWT;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.packageParser.FileAction.FileType;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 
 public class PackageParser {
 
@@ -33,11 +32,11 @@ public class PackageParser {
     * Only evaluates the top-level &lt;appliesWhen&gt; clause when deciding inclusion
     * 
     * @param device      Device to investigate
-    * @param variableMap Variables to use when evaluation conditions
+    * @param fParamMap Variables to use when evaluation conditions
     * 
     * @return Applicable actions
     */
-   static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) {
+   static public ProjectActionList getDevicePackageList(final Device device, final ISubstitutionMap fParamMap) {
 //      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
       ProjectActionList projectActionList = new ProjectActionList("---root " + device.getName() + " ---");
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
@@ -64,7 +63,7 @@ public class PackageParser {
                      PackageParser  packParser = new PackageParser(path, projectVariables);
                      Document       document   = packParser.parseXmlFile(f.toString());
                      ProjectActionList newProjectActionList = packParser.parseDocument(document);
-                     if (newProjectActionList.appliesTo(device, variableMap)) {
+                     if (newProjectActionList.appliesTo(device, fParamMap)) {
 //                        System.err.println("projectAction ID = " + newProjectActionList.getId());
 //                        System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition());
 //                        for (ProjectAction projectAction : projectActionList.getProjectActionList()) {
@@ -87,7 +86,7 @@ public class PackageParser {
                                  //                                 System.err.println(String.format("PackageParser.getDevicePackageList(): applyTo(), %s",  action.toString()));
                                  if (action instanceof ProjectActionList) {
                                     ProjectActionList projectActionList = (ProjectActionList) action;
-                                    Result rc = projectActionList.appliesTo(device, variableMap)?CONTINUE:PRUNE;
+                                    Result rc = projectActionList.appliesTo(device, fParamMap)?CONTINUE:PRUNE;
                                     //                                  System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
                                     return rc;
                                  }
@@ -95,12 +94,12 @@ public class PackageParser {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
                                     //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                                     if (!projectConstant.doOverwrite()) {
-                                       String value = variableMap.get(projectConstant.getId());
+                                       String value = fParamMap.getSubstitutionValue(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
                                           return new Result(new Exception("Repeated constant"));
                                        }
                                     }
-                                    variableMap.put(projectConstant.getId(), projectConstant.getValue());
+                                    fParamMap.addValue(projectConstant.getId(), projectConstant.getValue());
                                  }
                                  return PRUNE;
                               } catch (Exception e) {
@@ -131,7 +130,7 @@ public class PackageParser {
     * @return ArrayList of ProjectActionLists (an empty list if none)
     * @throws Exception 
     */
-   static public ProjectActionList getKDSPackageList(final Map<String, String> variableMap) throws Exception {
+   static public ProjectActionList getKDSPackageList(final ISubstitutionMap variableMap) throws Exception {
       ProjectActionList projectActionList = new ProjectActionList("---KDSPackageList---"); 
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/KSDK_Libraries");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
@@ -181,12 +180,12 @@ public class PackageParser {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
                                     //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                                     if (!projectConstant.doOverwrite()) {
-                                       String value = variableMap.get(projectConstant.getId());
+                                       String value = variableMap.getSubstitutionValue(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
                                           return new Result(new Exception("Repeated constant"));
                                        }
                                     }
-                                    variableMap.put(projectConstant.getId(), projectConstant.getValue());
+                                    variableMap.addValue(projectConstant.getId(), projectConstant.getValue());
                                  }
                                  return PRUNE;
                               } catch (Exception e) {
@@ -996,5 +995,10 @@ public class PackageParser {
       //   System.err.println(String.format("parseCustomActionElement(%s, %s)", className, (values.size()==0)?"<empty>":values.get(0)));
 
       return new ProjectCustomAction(className, values.toArray(new String[values.size()]));
+   }
+
+   public static ProjectActionList getKDSPackageList(HashMap<String, String> hashMap) {
+      // TODO Auto-generated method stub
+      return null;
    }
 }

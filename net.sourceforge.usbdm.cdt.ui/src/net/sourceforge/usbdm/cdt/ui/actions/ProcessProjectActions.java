@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.cdt.ui.actions;
 
-import java.util.Map;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -15,6 +13,7 @@ import net.sourceforge.usbdm.packageParser.CreateFolderAction;
 import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
 import net.sourceforge.usbdm.packageParser.ExcludeAction;
 import net.sourceforge.usbdm.packageParser.FileAction;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
@@ -33,7 +32,7 @@ public class ProcessProjectActions {
          final IProject              projectHandle, 
          final Device                device, 
          final ProjectActionList     actionList,
-         final Map<String,String>    variableMap, 
+         final ISubstitutionMap   variableMap, 
          final IProgressMonitor      monitor) throws Exception {
 
 //      System.out.println("ProcessProjectActions.process("+device.getName()+") =============================================");

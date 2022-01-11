@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
+import net.sourceforge.usbdm.packageParser.ReplacementParser;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
 public class Cluster extends ModeControl implements Cloneable {
@@ -411,7 +411,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * @return dimension as string e.g. "3" or "CAN_FILTER_COUNT*4" or null if not set (not an array)
     */
    public String getDimAsExpressionForC() {
-      return ReplacementParser.addPrefixToKeys(fDim, fOwner.getHeaderStructName());
+      return ReplacementParser.addPrefixToKeys(fDim, fOwner.getHeaderStructName()+"_");
    }
 
    /**

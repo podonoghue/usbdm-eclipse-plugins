@@ -10,7 +10,6 @@ package net.sourceforge.usbdm.deviceDatabase;
 
 import java.io.PrintStream;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
@@ -19,6 +18,7 @@ import net.sourceforge.usbdm.jni.Usbdm.ResetMethod;
 import net.sourceforge.usbdm.jni.Usbdm.ResetMethods;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.packageParser.FileList;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.PackageParser;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
@@ -457,13 +457,13 @@ public class Device implements Cloneable {
    /**
     * Creates the package list that applies to this device
     * 
-    * @param variableMap Variables to use when evaluation conditions
+    * @param fParamMap Variables to use when evaluation conditions
     * 
     * @return ArrayList of ProjectActionLists (an empty list if none)
     */
-   public ProjectActionList getProjectActionList(Map<String, String> variableMap) {
+   public ProjectActionList getProjectActionList(ISubstitutionMap fParamMap) {
 //      System.err.println("getProjectActionList()");
-      return PackageParser.getDevicePackageList(this, variableMap);
+      return PackageParser.getDevicePackageList(this, fParamMap);
    }
 
    /* (non-Javadoc)

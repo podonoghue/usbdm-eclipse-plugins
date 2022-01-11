@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.xmlParser;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.nio.file.Path;
 
@@ -243,13 +243,18 @@ public class ParseFamilyXML extends XML_BaseParser {
             peripheral.addDmaChannel(getIntAttribute(element,"num"), element.getAttribute("source"));
          }
          else if (element.getTagName() == "param") {
+            String name  = element.getAttribute("name");
             String key   = element.getAttribute("key");
             String value = element.getAttribute("value");
-            PeripheralWithState p = (PeripheralWithState) peripheral;
-            StringVariable v = new StringVariable(key, p.makeKey(key));
-            p.addVariable(v);
-            v.setValue(value);
-            p.addParam(p.makeKey(key), value);
+            if (name.isBlank()) {
+               String[] pathElements = key.split("/");
+               name = pathElements[pathElements.length-1];
+            }
+            PeripheralWithState periph = (PeripheralWithState) peripheral;
+            StringVariable var = new StringVariable(name, periph.makeKey(key));
+            var.setValue(value);
+            periph.addVariable(var);
+            periph.addParam(key);
          }
          else {
             throw new Exception("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");

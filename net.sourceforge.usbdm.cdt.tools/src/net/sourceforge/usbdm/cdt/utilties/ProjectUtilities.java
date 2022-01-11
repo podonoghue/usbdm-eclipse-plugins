@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.cdt.utilties;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -34,6 +33,7 @@ import org.eclipse.core.runtime.Path;
 
 import net.sourceforge.usbdm.packageParser.CreateFolderAction;
 import net.sourceforge.usbdm.packageParser.ExcludeAction;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class ProjectUtilities {
    
@@ -244,8 +244,8 @@ public class ProjectUtilities {
       cProject.setRawPathEntries(newEntries.toArray(new IPathEntry[newEntries.size()]), monitor);
    }
 
-   public static void createFolder(IProject projectHandle, Map<String, String> variableMap, CreateFolderAction action, IProgressMonitor monitor) throws Exception {
-      String target = ReplacementParser.substitute(action.getTarget(), variableMap);
+   public static void createFolder(IProject projectHandle, ISubstitutionMap variableMap, CreateFolderAction action, IProgressMonitor monitor) throws Exception {
+      String target = variableMap.substitute(action.getTarget());
       
       if (target.isEmpty()) {
          return;

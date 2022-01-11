@@ -1,9 +1,9 @@
 package net.sourceforge.usbdm.cdt.ui.actions;
 
-import java.util.Map;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public interface CustomAction {
 
@@ -18,7 +18,7 @@ public interface CustomAction {
     */ 
    public boolean action(
          IProject              projectHandle, 
-         Map<String, String>   variableMap, 
+         ISubstitutionMap   variableMap, 
          IProgressMonitor      progressMonitor, 
          String[]              parameters);
 }

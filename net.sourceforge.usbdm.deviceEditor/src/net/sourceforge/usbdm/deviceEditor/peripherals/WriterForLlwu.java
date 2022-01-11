@@ -20,7 +20,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
@@ -168,14 +168,15 @@ public class WriterForLlwu extends PeripheralWithState {
             }
          }
       }
-      StringVariable llwuPinInputsVar = new StringVariable("Input Pin Mapping", makeKey("InputPinMapping"));
-      llwuPinInputsVar.setValue(sb.toString());
-      llwuPinInputsVar.setDerived(true);
-      fDeviceInfo.addOrReplaceVariable(llwuPinInputsVar.getKey(), llwuPinInputsVar);
+      // Create or replace Input Pin Mapping variable as needed
+      fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputPinMapping"), sb.toString(), true);
 
       // Generate enums for llwu modules (peripherals) from configuration parameter
-      String devices = getParam("device_list");
-      if (devices != null) {
+//      String devices = getParam("device_list");
+      Variable devicesListVar = safeGetVariable(makeKey("device_list"));
+      
+      if (devicesListVar != null) {
+         String devices = devicesListVar.getValueAsString();
          enumName    = getClassName()+"Peripheral";
          sb = new StringBuffer();
          String[] deviceList = devices.split(";");
@@ -214,10 +215,7 @@ public class WriterForLlwu extends PeripheralWithState {
             }
             peripheralCount++;
          }
-         StringVariable llwuModuleInputsVar = new StringVariable("Input Pin Mapping", makeKey("InputModuleMapping"));
-         llwuModuleInputsVar.setValue(sb.toString());
-         llwuModuleInputsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(llwuModuleInputsVar.getKey(), llwuModuleInputsVar);
+         fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputModuleMapping"), sb.toString(), true);
       }
    }
    /**

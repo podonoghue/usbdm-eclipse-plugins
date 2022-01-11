@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.peripherals;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,6 +22,10 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
@@ -478,12 +482,6 @@ public class ParseFamilyCSV {
 			}
 			parseParamInfoLine(line);
 		}
-		for(String[] line:grid) {
-			if (line.length < 2) {
-				continue;
-			}
-			parseConstantInfoLine(line);
-		}
 	}
 
 	/**
@@ -500,31 +498,38 @@ public class ParseFamilyCSV {
 		}
 
 		PeripheralWithState peripheral = null;
+      String paramKey        = null;
+		String peripheralName  = null;
+		String paramName       = null;
+		String paramValue      = null;
+		
+      if (line[1].startsWith("/")) {
+		   // An absolute key is given - must be PERIPHERAL/SIMPLE_KEY
+		   String[] pathElements = line[1].split("/");
+         peripheralName = pathElements[1];
+         paramKey       = line[1];
+         paramName      = line[2];
+		   paramValue     = line[3];
+		}
+		else {
+		   // Assume line[1] is the peripheral name alone
+		   peripheralName = line[1];
+         paramName      = line[2];
+         paramValue     = line[3];
+         paramKey       = "/"+peripheralName+"/"+paramName;
+		}
 		try {
-			peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
+			peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(peripheralName, Mode.fail);
 		} catch (ClassCastException e) {
 			e.printStackTrace();
 		}
-		peripheral.addParam(line[2], line[3]);
+		StringVariable var = new StringVariable(paramName, paramKey);
+		var.setValue(paramValue);
+		peripheral.addVariable(var);
+		
+		peripheral.addParam(paramKey);
 	}
 
-	/**
-	 * Parse constant line
-	 * 
-	 * @param line
-	 */
-	private void parseConstantInfoLine(String[] line) {
-		if (!line[0].equalsIgnoreCase("Constant")) {
-			return;
-		}
-		if (line.length != 4) {
-			throw new RuntimeException("Illegal Constant line");
-		}
-
-		PeripheralWithState peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
-		peripheral.addConstant(line[2], line[3]);
-	}
-	
 	/**
 	 * Parse preliminary information from file
 	 * 

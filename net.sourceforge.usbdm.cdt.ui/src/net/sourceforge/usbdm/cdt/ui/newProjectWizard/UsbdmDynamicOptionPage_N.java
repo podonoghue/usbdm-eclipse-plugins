@@ -1,24 +1,5 @@
 package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 
-/*
- Change History
-+============================================================================================
-| Revision History
-+============================================================================================
-| 28 Dec 14 | Added requirements                                                  4.10.6.250
-| 16 Nov 13 | Fixed path lookup for resource files (e.g. header files) on linux   4.10.6.100
-| 16 Nov 13 | Added default files header & vector files based upon subfamily      4.10.6.100
-+============================================================================================
-*/
-import java.util.HashMap;
-import java.util.Map;
-
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
-import net.sourceforge.usbdm.jni.Usbdm.TargetType;
-import net.sourceforge.usbdm.packageParser.ProjectActionList;
-import net.sourceforge.usbdm.packageParser.WizardPageInformation;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -35,6 +16,14 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
+import net.sourceforge.usbdm.packageParser.WizardPageInformation;
+
 /**
  *  USBDM New Project Wizard page "USBDM Project"
  */
@@ -43,19 +32,19 @@ public class UsbdmDynamicOptionPage_N extends WizardPage {
    private UsbdmNewProjectOptionsPanel    fUsbdmNewProjectOptionsPanel = null;
    private Device                         fDevice = null;
    private ProjectActionList              fProjectActionList = null;
-   private Map<String, String>            fParamMap = null;
+   private ISubstitutionMap            fParamMap = null;
    private WizardPageInformation          fWizardPageInfo = null;
    private Composite                      fParent = null;
 
    public UsbdmDynamicOptionPage_N (
          Device                  device,
-         Map<String, String>     paramMap,
+         ISubstitutionMap     fParamMap2,
          ProjectActionList       projectActionList,
          WizardPageInformation   wizardPageInfo) {
       
       super(wizardPageInfo.getName());
       fDevice              = device;
-      fParamMap            = paramMap;
+      fParamMap            = fParamMap2;
       fProjectActionList   = projectActionList;
       fWizardPageInfo      = wizardPageInfo;
       
@@ -103,7 +92,7 @@ public class UsbdmDynamicOptionPage_N extends WizardPage {
       }
    }
    
-   public void setProjectInformation(ProjectActionList projectActionList, Map<String, String> paramMap) {
+   public void setProjectInformation(ProjectActionList projectActionList, ISubstitutionMap paramMap) {
       fProjectActionList = projectActionList;
       fParamMap          = paramMap;
    }
@@ -178,7 +167,7 @@ public class UsbdmDynamicOptionPage_N extends WizardPage {
     *   
     *   @param paramMap
     */
-   public void getPageData(Map<String, String> paramMap) {
+   public void getPageData(ISubstitutionMap paramMap) {
       if (fUsbdmNewProjectOptionsPanel != null) {
          fUsbdmNewProjectOptionsPanel.getButtonData(paramMap);
       }
@@ -218,60 +207,60 @@ public class UsbdmDynamicOptionPage_N extends WizardPage {
 //      return isPageComplete();
 //   }
 
-   static public Map<String, String> populateMap() {
+   static public ISubstitutionMap populateMap() {
       
-      Map<String, String> paramMap = new HashMap<String, String>();
-      paramMap.put("bdmTargetVdd",                             "BDM_TARGET_VDD_3V3");
-      paramMap.put("buildToolsBinPath",                        "${usbdm_armLtd_arm_path}");
-      paramMap.put("buildToolsId",                             "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM");
-      paramMap.put("cDeviceParameters",                        "");
-      paramMap.put("clockTrimFrequency",                       "0");
-      paramMap.put("cpp.peripheral.external.max30100",         "true");
-      paramMap.put("cpp.peripheral.internal.adc",              "true");
-      paramMap.put("cpp.peripheral.internal.ftm",              "true");
-      paramMap.put("cpp.peripheral.internal.i2c",              "true");
-      paramMap.put("cpp.peripheral.internal.lptmr",            "true");
-      paramMap.put("cpp.peripheral.internal.pit",              "true");
-      paramMap.put("cpp.peripheral.internal.spi",              "true");
-      paramMap.put("demo.cpp.console",                         "USBDM::Uart##0");
-      paramMap.put("demo.cpp.led",                             "GpioA<2,ActiveLow>");
-      paramMap.put("demo.lcd.elecfreaks.backlight",            "GpioC<2>");
-      paramMap.put("demo.lcd.elecfreaks.backlight.ftm",        "Ftm0<1>");
-      paramMap.put("demo.lcd.elecfreaks.cs",                   "GpioA<2>");
-      paramMap.put("demo.lcd.elecfreaks.reset",                "GpioA<12>");
-      paramMap.put("eraseMethod",                              "TargetDefault");
-      paramMap.put("externalHeaderFile",                       "C:/Program Files (x86)/pgo/USBDM 4.12.1.261/Stationery/Project_Headers/MK20D5.h");
-      paramMap.put("externalHeaderFilename",                   "MK20D5.h");
-      paramMap.put("externalVectorTable",                      "");
-      paramMap.put("gdbCommand",                               "${usbdm_armLtd_arm_prefix}gdb");
-      paramMap.put("hasCCNature",                              "true");
-      paramMap.put("interfaceType",                            "T_ARM");
-      paramMap.put("linkerExtraRegions",                       "  ");
-      paramMap.put("linkerFlashSize",                          "0x20000");
-      paramMap.put("linkerHeapSize",                           "0x1000");
-      paramMap.put("linkerRamSize",                            "0x2000");
-      paramMap.put("linkerStackSize",                          "0x1000");
-      paramMap.put("nvmClockTrimLocation",                     "0");
-      paramMap.put("outputType",                               "net.sourceforge.usbdm.cdt.newProjectType.exe");
-      paramMap.put("pathSeparator",                            "\\");
-      paramMap.put("projectHomePath",                          "");
-      paramMap.put("projectName",                              "xx");
-      paramMap.put("projectOptionValue.CMSIS-RTOS",            "false");
-      paramMap.put("projectOptionValue.CPP-abstraction",       "true");
-      paramMap.put("projectOptionValue.CPP-abstraction-LCD",   "false");
-      paramMap.put("projectOptionValue.FRDM-Blinky",           "false");
-      paramMap.put("projectOptionValue.FreeRTOS",              "false");
-      paramMap.put("projectOptionValue.Kinetis-PE",            "false");
-      paramMap.put("resetMethod",                              "TargetDefault");
-      paramMap.put("semiHosting",                              "false");
-      paramMap.put("targetDeviceFamily",                       "CortexM4");
-      paramMap.put("useFloatingpointInPrintf",                 "false");
-      paramMap.put("useFloatingpointInScanf",                  "false");
+      ISubstitutionMap paramMap = new SubstitutionMap();
+      paramMap.addValue("bdmTargetVdd",                             "BDM_TARGET_VDD_3V3");
+      paramMap.addValue("buildToolsBinPath",                        "${usbdm_armLtd_arm_path}");
+      paramMap.addValue("buildToolsId",                             "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM");
+      paramMap.addValue("cDeviceParameters",                        "");
+      paramMap.addValue("clockTrimFrequency",                       "0");
+      paramMap.addValue("cpp.peripheral.external.max30100",         "true");
+      paramMap.addValue("cpp.peripheral.internal.adc",              "true");
+      paramMap.addValue("cpp.peripheral.internal.ftm",              "true");
+      paramMap.addValue("cpp.peripheral.internal.i2c",              "true");
+      paramMap.addValue("cpp.peripheral.internal.lptmr",            "true");
+      paramMap.addValue("cpp.peripheral.internal.pit",              "true");
+      paramMap.addValue("cpp.peripheral.internal.spi",              "true");
+      paramMap.addValue("demo.cpp.console",                         "USBDM::Uart##0");
+      paramMap.addValue("demo.cpp.led",                             "GpioA<2,ActiveLow>");
+      paramMap.addValue("demo.lcd.elecfreaks.backlight",            "GpioC<2>");
+      paramMap.addValue("demo.lcd.elecfreaks.backlight.ftm",        "Ftm0<1>");
+      paramMap.addValue("demo.lcd.elecfreaks.cs",                   "GpioA<2>");
+      paramMap.addValue("demo.lcd.elecfreaks.reset",                "GpioA<12>");
+      paramMap.addValue("eraseMethod",                              "TargetDefault");
+      paramMap.addValue("externalHeaderFile",                       "C:/Program Files (x86)/pgo/USBDM 4.12.1.261/Stationery/Project_Headers/MK20D5.h");
+      paramMap.addValue("externalHeaderFilename",                   "MK20D5.h");
+      paramMap.addValue("externalVectorTable",                      "");
+      paramMap.addValue("gdbCommand",                               "${usbdm_armLtd_arm_prefix}gdb");
+      paramMap.addValue("hasCCNature",                              "true");
+      paramMap.addValue("interfaceType",                            "T_ARM");
+      paramMap.addValue("linkerExtraRegions",                       "  ");
+      paramMap.addValue("linkerFlashSize",                          "0x20000");
+      paramMap.addValue("linkerHeapSize",                           "0x1000");
+      paramMap.addValue("linkerRamSize",                            "0x2000");
+      paramMap.addValue("linkerStackSize",                          "0x1000");
+      paramMap.addValue("nvmClockTrimLocation",                     "0");
+      paramMap.addValue("outputType",                               "net.sourceforge.usbdm.cdt.newProjectType.exe");
+      paramMap.addValue("pathSeparator",                            "\\");
+      paramMap.addValue("projectHomePath",                          "");
+      paramMap.addValue("projectName",                              "xx");
+      paramMap.addValue("projectOptionValue.CMSIS-RTOS",            "false");
+      paramMap.addValue("projectOptionValue.CPP-abstraction",       "true");
+      paramMap.addValue("projectOptionValue.CPP-abstraction-LCD",   "false");
+      paramMap.addValue("projectOptionValue.FRDM-Blinky",           "false");
+      paramMap.addValue("projectOptionValue.FreeRTOS",              "false");
+      paramMap.addValue("projectOptionValue.Kinetis-PE",            "false");
+      paramMap.addValue("resetMethod",                              "TargetDefault");
+      paramMap.addValue("semiHosting",                              "false");
+      paramMap.addValue("targetDeviceFamily",                       "CortexM4");
+      paramMap.addValue("useFloatingpointInPrintf",                 "false");
+      paramMap.addValue("useFloatingpointInScanf",                  "false");
       
       return paramMap;
    }
    
-   static void delayedLoad(final Map<String, String> paramMap, final Device device, final UsbdmDynamicOptionPage_N page) {
+   static void delayedLoad(final ISubstitutionMap paramMap, final Device device, final UsbdmDynamicOptionPage_N page) {
       Job job = new Job("Updating configuration") {
          protected IStatus run(IProgressMonitor monitor) {
             monitor.beginTask("Updating Pages...", 10);
@@ -320,12 +309,12 @@ public class UsbdmDynamicOptionPage_N extends WizardPage {
 
       String targetDevice = "FRDM_K20D50M";
       
-      Map<String, String> paramMap = populateMap();
-      paramMap.put("targetDevice",                  targetDevice);
-      paramMap.put("cpp.peripheral.subfamily",      "MK20D5");
-      paramMap.put("targetDeviceName",              "frdm_k20d50m");
-      paramMap.put("targetDevice",                  "FRDM_K20D50M");
-      paramMap.put("targetDeviceSubFamily",         "MK20D5");
+      ISubstitutionMap paramMap = populateMap();
+      paramMap.addValue("targetDevice",                  targetDevice);
+      paramMap.addValue("cpp.peripheral.subfamily",      "MK20D5");
+      paramMap.addValue("targetDeviceName",              "frdm_k20d50m");
+      paramMap.addValue("targetDevice",                  "FRDM_K20D50M");
+      paramMap.addValue("targetDeviceSubFamily",         "MK20D5");
       
 ////      UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(targetDevice, paramMap, "usbdm-project-options-page");
 ////      UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(targetDevice, paramMap, "kinetis-CPP-abstraction-options-page");

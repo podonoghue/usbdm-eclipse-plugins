@@ -13,8 +13,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XML_BaseParser;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
+import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 
 /**
  * Class used to persist settings

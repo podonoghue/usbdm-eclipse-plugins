@@ -1,8 +1,7 @@
-package net.sourceforge.usbdm.deviceEditor.xmlParser;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 
-import java.util.HashMap;
-import java.util.Map;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 
 /**
  * Used to represent a template for code in a project
@@ -177,7 +176,7 @@ public class TemplateInformation {
          return text;
       }
       StringBuilder       sb   = new StringBuilder();
-      Map<String, String> map  = new HashMap<String, String>();
+      ISubstitutionMap map  = new SubstitutionMap();
       fBuilder = null;
       String[] variables = fVariable.split("\\s*:\\s*");
       for(String s:fEnumeration.split("\\s*,\\s*")) {
@@ -188,9 +187,9 @@ public class TemplateInformation {
          }
          for (int index=0; index<enums.length; index++) {
 //            System.err.println("Adding '" + variables[index] + "' => '" + enums[index] + "'");
-            map.put(variables[index], enums[index]);
+            map.addValue(variables[index], enums[index]);
          }
-         sb.append(ReplacementParser.substituteIgnoreUnknowns(text, map));
+         sb.append(map.substituteIgnoreUnknowns(text));
       }
       fText = sb.toString();
       return fText;

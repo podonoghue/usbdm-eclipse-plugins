@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.xmlParser;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;

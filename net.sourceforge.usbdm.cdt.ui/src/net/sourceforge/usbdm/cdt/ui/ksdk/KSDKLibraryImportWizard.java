@@ -1,9 +1,8 @@
 package net.sourceforge.usbdm.cdt.ui.ksdk;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+
 import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
@@ -28,7 +27,9 @@ import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.SubstitutionMap;
 
 /**
  * @author pgo
@@ -92,17 +93,20 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
       return deviceDatabase.getDevice(deviceName);
    }
 
-   private void listParamMap(String title, final Map<String, String> paramMap) {
+   private void listParamMap(String title, final ISubstitutionMap paramMap) {
       System.err.println(title);
-      for (Entry<String, String> x:paramMap.entrySet()) {
-         if (x.getKey().equals("linkerInformation")) {
-            continue;
+      paramMap.forEach(new BiConsumer<String, String>() {
+         @Override
+         public void accept(String key, String value) {
+            if (key.equals("linkerInformation")) {
+               return;
+            }
+            if (key.equals("cVectorTable")) {
+               return;
+            }
+            System.err.println(String.format("%-50s => %-20s", key, value));
          }
-         if (x.getKey().equals("cVectorTable")) {
-            continue;
-         }
-         System.err.println(String.format("%-50s => %-20s", x.getKey(), x.getValue()));
-      }
+      });
       System.err.println("================================================");
    }
    
@@ -129,15 +133,15 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
       monitor.beginTask("Importing KDS Library", 100);
 
-      Map<String, String> paramMap = new HashMap<String, String>(); 
+      ISubstitutionMap paramMap = new SubstitutionMap();
             
       try {
          kdsLibraryImportWizardPage.getPageData(paramMap);
          
-         Device device = getDevice(paramMap.get(UsbdmConstants.TARGET_DEVICE_KEY));
+         Device device = getDevice(paramMap.getSubstitutionValue(UsbdmConstants.TARGET_DEVICE_KEY));
          
          if (device == null) {
-            throw new Exception("Failed to obtain device description for " + paramMap.get(UsbdmConstants.TARGET_DEVICE_KEY));
+            throw new Exception("Failed to obtain device description for " + paramMap.getSubstitutionValue(UsbdmConstants.TARGET_DEVICE_KEY));
          }
          // Add device options
          ProjectActionList deviceActionList = device.getProjectActionList(paramMap);
@@ -159,7 +163,7 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
          ProjectActionList libraryActionList = kdsLibraryImportWizardPage.getProjectActionList();
          
          System.err.println("KSDKLibraryImportWizard.run() - Applying libraryActionList");
-         ProcessProjectActions.process(project, device, libraryActionList, paramMap, monitor.newChild(30));
+         ProcessProjectActions.process(project, device, libraryActionList, (ISubstitutionMap) paramMap, monitor.newChild(30));
 
          updateConfigurations(project, monitor.newChild(10));
          

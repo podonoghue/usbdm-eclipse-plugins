@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.util.HashSet;
-import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,6 +15,7 @@ import net.sourceforge.usbdm.packageParser.CustomAction;
 import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
 import net.sourceforge.usbdm.packageParser.ExcludeAction;
 import net.sourceforge.usbdm.packageParser.FileAction;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
@@ -40,7 +40,7 @@ public class ProcessProjectActions {
     * 
     * @param projectHandle Project being manipulated
     * @param actionList    Actions to do
-    * @param variableMap   Variables that may be needed
+    * @param symbolMap   Variables that may be needed
     * @param monitor       Progress monitor
     * 
     * @throws Exception
@@ -49,7 +49,7 @@ public class ProcessProjectActions {
          final StringBuilder         actionRecord,
          final IProject              projectHandle, 
          final ProjectActionList     actionList,
-         final Map<String,String>    variableMap, 
+         final ISubstitutionMap      symbolMap, 
          final IProgressMonitor      monitor) throws Exception {
 
       if (actionList == null) {
@@ -67,16 +67,16 @@ public class ProcessProjectActions {
 //            System.err.println("ProjectCustomAction: "+action.toString());
             try {
                if (action instanceof FileAction) {
-                  new AddTargetFiles().process(projectHandle, variableMap, (FileAction)action, subMonitor);
+                  new AddTargetFiles().process(projectHandle, symbolMap, (FileAction)action, subMonitor);
                }
                else if (action instanceof DeleteResourceAction) {
-                  new DeleteResource().process(projectHandle, variableMap, (DeleteResourceAction)action, subMonitor);
+                  new DeleteResource().process(projectHandle, symbolMap, (DeleteResourceAction)action, subMonitor);
                }
                else if (action instanceof CreateFolderAction) {
 //                  ProjectUtilities.createFolder(projectHandle, variableMap, (CreateFolderAction)action, subMonitor);
                }
                else if (action instanceof ProjectOption) {
-                  applyOptions.process(variableMap, (ProjectOption)action, subMonitor);
+                  applyOptions.process(symbolMap, (ProjectOption)action, subMonitor);
                }
                else if (action instanceof ExcludeAction) {
                   ProjectUtilities.excludeItem(projectHandle, (ExcludeAction)action, subMonitor);
@@ -91,7 +91,7 @@ public class ProcessProjectActions {
                      }
                      previousActions.add(projectActionList.getId());
                   }
-                  return new Result(projectActionList.applies(variableMap)?Status.CONTINUE:Status.PRUNE);
+                  return new Result(projectActionList.applies(symbolMap)?Status.CONTINUE:Status.PRUNE);
                }
                else if (action instanceof ProjectCustomAction) {
                   ProjectCustomAction customAction = (ProjectCustomAction) action;
@@ -100,7 +100,7 @@ public class ProcessProjectActions {
                   if (!(clsInstance instanceof CustomAction)) {
                      throw new Exception("Custom action does not implement required interface");
                   }
-                  ((CustomAction)clsInstance).action(projectHandle, variableMap, subMonitor, customAction.getValue());
+                  ((CustomAction)clsInstance).action(projectHandle, symbolMap, subMonitor, customAction.getValue());
                }
                else if (action instanceof ProjectConstant) {
                   // Ignore as already added to paramMap

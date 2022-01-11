@@ -1,13 +1,12 @@
 package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 
-import java.util.Map;
-
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.ProjectActionList;
-import net.sourceforge.usbdm.packageParser.WizardPageInformation;
-
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.widgets.Composite;
+
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 public class UsbdmNewProjectOptionsPanel extends UsbdmOptionsPanel {
 
@@ -17,7 +16,7 @@ public class UsbdmNewProjectOptionsPanel extends UsbdmOptionsPanel {
     * @param style            Standard SWT style
     * @param device           Device - used to determine panel contents
     * @param dialogSettings   Unused
-    * @param optionMap        Option map used to determine panel contents
+    * @param fParamMap        Option map used to determine panel contents
     * @param wizardPageInfo 
     * 
     * @throws Exception 
@@ -28,10 +27,10 @@ public class UsbdmNewProjectOptionsPanel extends UsbdmOptionsPanel {
          IDialogSettings       dialogSettings, 
          Device                device, 
          ProjectActionList     projectActionList,
-         Map<String,String>    optionMap,
+         ISubstitutionMap   fParamMap,
          WizardPageInformation wizardPageInfo) {
       
-      super(parent, style, dialogSettings, device, projectActionList, optionMap, wizardPageInfo);
+      super(parent, style, dialogSettings, device, projectActionList, fParamMap, wizardPageInfo);
       createControl();
    }
 }

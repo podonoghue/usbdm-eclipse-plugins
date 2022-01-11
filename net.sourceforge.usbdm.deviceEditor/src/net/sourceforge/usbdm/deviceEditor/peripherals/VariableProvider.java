@@ -1,19 +1,19 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.util.ArrayList;
-import java.util.Map;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser.IKeyMaker;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
+import net.sourceforge.usbdm.packageParser.IKeyMaker;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class VariableProvider {
 
-   /** Name of peripheral e.g. FTM2 */
+   /** Name of provider e.g. FTM2 */
    private final String                fName;
    
-   /** Device information associated with this peripheral */
+   /** Device information associated with this provider */
    private final DeviceInfo            fDeviceInfo;
    
    /** Validators for variable changes */
@@ -40,19 +40,28 @@ public class VariableProvider {
       }
    }
    
+   /**
+    * KeyMaker that adds indices to key
+    */
    protected final class IndexKeyMaker implements IKeyMaker {
-      private final String fIndex;
-      
-      public IndexKeyMaker(int index) {
-         fIndex = "[" + index + "]";
+      private final String    fIndex;
+      private final IKeyMaker fKeyMaker;
+
+      /**
+       * Constructor
+       * 
+       * @param keyMaker   KeyMaker to wrap
+       * @param index      Index to add
+       */
+      public IndexKeyMaker(IKeyMaker keyMaker, int index) {
+         fIndex    = "[" + index + "]";
+         fKeyMaker = keyMaker;
       }
+      
       @Override
       public String makeKey(String name) {
-         name = name.replaceAll("\\.$", fIndex);
-         if (name.charAt(0) == '/') {
-            return name;
-         }
-         return "/"+getName()+"/"+name;
+         name = fKeyMaker.makeKey(name);
+         return name.replaceAll("\\.$", fIndex);
       }
    }
    
@@ -111,11 +120,7 @@ public class VariableProvider {
     * @throws Exception
     */
    public Variable getVariable(String key) throws Exception {
-      try {
-         return fDeviceInfo.getVariable(key);
-      } catch (Exception e) {
-         throw new Exception("Variable error in VariableProvider.getVariable() for '"+getName()+"', var='"+key+"' not found", e);
-      }
+      return fDeviceInfo.getVariable(key);
    }
 
    /**
@@ -136,11 +141,22 @@ public class VariableProvider {
     * @return Value for variable
     */
    public String getVariableValue(String key) throws Exception {
-      try {
-         return fDeviceInfo.getVariableValue(key);
-      } catch (Exception e) {
-         throw new Exception("Variable error in peripheral "+getName(), e);
+      return fDeviceInfo.getVariableValue(key);
+   }
+
+   /**
+    * Get value of variable
+    * 
+    * @param key     Key used to identify variable
+    * 
+    * @return Value for variable
+    */
+   public String safeGetVariableValue(String key) {
+      Variable var = safeGetVariable(key);
+      if (var == null) {
+         return null;
       }
+      return var.getValueAsString();
    }
 
    /**
@@ -151,7 +167,7 @@ public class VariableProvider {
     * @throws Exception if variable already exists
     */
    public void addVariable(Variable variable) {
-      fDeviceInfo.addVariable(variable.getKey(), variable);
+      fDeviceInfo.addVariable(variable);
    }
 
    /**
@@ -175,20 +191,22 @@ public class VariableProvider {
     * @return Modified string or original if no changes
     * @throws Exception 
     */
-   public String substitute(String input, Map<String, String> map) {
-      return ReplacementParser.substitute(input, map, fKeyMaker);
+   public String substitute(String input, ISubstitutionMap map) {
+      return map.substitute(input, fKeyMaker);
    }
    
    /**
     * Does variable substitution in a string using the device variable map
+    * The following names are automatically added:
+    *    <li> _name           Name used to identify this provider e.g. FTM2
     * 
     * @param input  String to process
     * 
     * @return Modified string or original if no changes
     */
-   String substitute(String input) {
-      Map<String, String> map = fDeviceInfo.getVariablesSymbolMap();
-      map.put(makeKey("_name"),     getName());
+   public String substitute(String input) {
+      ISubstitutionMap map = fDeviceInfo.getVariablesSymbolMap();
+      map.addValue(makeKey("_name"),     getName());
       return substitute(input, map);
    }
 

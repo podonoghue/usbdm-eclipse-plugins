@@ -18,7 +18,7 @@ public class StringVariable extends Variable {
    /**
     * Constructor
     * 
-    * @param name Name to display to user.
+    * @param name Name to display to user. If null then default value is derived from key.
     * @param key  Key for variable
     */
    public StringVariable(String name, String key) {

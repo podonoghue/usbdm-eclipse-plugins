@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.cdt.ui.actions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -18,11 +17,13 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.eclipse.ui.wizards.IWizardRegistry;
 
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+
 public class AddProcessorExpert implements CustomAction {
    @Override
    public boolean action(
          final IProject               projectHandle, 
-         final Map<String, String>    variableMap, 
+         final ISubstitutionMap    variableMap, 
          final IProgressMonitor       progressMonitor, 
          final String[]               parameters) {
       

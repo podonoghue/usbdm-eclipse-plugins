@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.xmlParser;
+package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;

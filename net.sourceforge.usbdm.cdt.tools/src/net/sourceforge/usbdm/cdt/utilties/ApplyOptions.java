@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.cdt.utilties;
 
-import java.util.Map;
-
 import org.eclipse.cdt.core.templateengine.process.ProcessFailureException;
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -15,6 +13,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.ProjectOption;
 
 /**
@@ -31,16 +30,16 @@ public class ApplyOptions {
       this.projectHandle = projectHandle;
    }
 
-   public void process(Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor monitor) throws Exception {
+   public void process(ISubstitutionMap symbolMap, ProjectOption projectOption, IProgressMonitor monitor) throws Exception {
 
 //      System.err.println("ApplyOptions.process() - "+projectOption.toString());
-      String id       = ReplacementParser.substitute(projectOption.getId(),     variableMap);
-      String path     = ReplacementParser.substitute(projectOption.getPath(),   variableMap);
+      String id       = symbolMap.substitute(projectOption.getId());
+      String path     = symbolMap.substitute(projectOption.getPath());
       String value[]  = projectOption.getValue();
       boolean replace = projectOption.doOverwrite();
       String config   = projectOption.getConfig();
       for (int index=0; index<value.length; index++) {
-         value[index] = ReplacementParser.substitute(value[index], variableMap);
+         value[index] = symbolMap.substitute(value[index]);
 //         System.err.println("ApplyOptions.process() value[n] = "+value[index]);
       }
       try {

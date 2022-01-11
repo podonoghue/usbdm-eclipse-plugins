@@ -1,10 +1,10 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
-import java.util.Map;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 /**
  * Class encapsulating the code for writing an instance of PMC
@@ -20,7 +20,7 @@ public class WriterForPcc extends PeripheralWithState {
       return "Peripheral Clock Control";
    }
    
-   protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
+   protected ISubstitutionMap addTemplatesToSymbolMap(ISubstitutionMap map) {
       return super.addTemplatesToSymbolMap(map);
    }
    

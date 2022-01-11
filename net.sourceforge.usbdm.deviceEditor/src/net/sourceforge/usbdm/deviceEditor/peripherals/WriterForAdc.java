@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**

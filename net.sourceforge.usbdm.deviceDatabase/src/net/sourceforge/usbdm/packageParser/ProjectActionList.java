@@ -2,15 +2,14 @@ package net.sourceforge.usbdm.packageParser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
-
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
+
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
 
 public class ProjectActionList extends ProjectAction {
 
@@ -196,12 +195,12 @@ public class ProjectActionList extends ProjectAction {
       return buffer.toString();     
    }
    
-   public boolean appliesTo(Device device, Map<String, String> variableMap) {
+   public boolean appliesTo(Device device, ISubstitutionMap variableMap) {
       return fApplyWhenCondition.appliesTo(device, variableMap);
    }
    
-   public boolean applies(Map<String, String> variableMap) {
-      return fApplyWhenCondition.applies(variableMap);
+   public boolean applies(ISubstitutionMap symbolMap) {
+      return fApplyWhenCondition.applies(symbolMap);
    }
    
    public void add(int arg0, ProjectAction projectAction) {

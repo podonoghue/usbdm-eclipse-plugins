@@ -11,7 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
 
 /**
  * Model describing the Device

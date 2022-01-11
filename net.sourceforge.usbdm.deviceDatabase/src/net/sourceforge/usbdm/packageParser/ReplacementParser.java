@@ -1,7 +1,6 @@
-package net.sourceforge.usbdm.cdt.utilties;
+package net.sourceforge.usbdm.packageParser;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,34 +26,16 @@ public class ReplacementParser {
       }
   };
   
-   public interface IKeyMaker {
-      /**
-       * Generate variable key from name
-       * 
-       * @param  name Name used to create key
-       * 
-       * @return Key generated from name
-       */
-      public String makeKey(String name);
-   }
-
    /** Map of symbols for substitution */
-   private final Map<String, String> fSymbols;
+   private final ISubstitutionMap fSymbols;
    
    /** Key-maker to translate a symbol before lookup */
    private final IKeyMaker           fKeyMaker;
    
    /** True to ignore (preserve) unknown symbols */
-   private boolean fIgnoreUnknowns = false;
+   private final boolean fIgnoreUnknowns;
 
-   /** Prefix to use for symbol mode */
-   private String fPrefix = "";
-   
-   private boolean fExpandEscapes = false;
-
-   public void setExpandEscapes(boolean expand) {
-      fExpandEscapes = expand;
-   }
+   private final boolean fExpandEscapes;
    
    /**
     * Key maker that just returns the unmodified key
@@ -66,16 +47,39 @@ public class ReplacementParser {
          return name;
       }
    };
+
+   /**
+    * Key maker that adds a prefix
+    */
+   static class PrefixKeyMaker implements IKeyMaker {
+
+      final String fPrefix;
+      
+      PrefixKeyMaker(String prefix) {
+         fPrefix = prefix;
+      }
+      
+      @Override
+      public String makeKey(String name) {
+         return fPrefix + name;
+      }
+   }
    
    /**
     * Create replacement parser
     * 
-    * @param symbols    Map of symbols for substitution
-    * @param keyMaker   Key-maker to translate a symbol before lookup in symbols
+    * @param symbolMap    Map of symbols for substitution
+    * @param keyMaker     Key-maker to translate a symbol before lookup
     */
-   private ReplacementParser(Map<String, String> symbols, IKeyMaker keyMaker) {
-      fSymbols  = symbols;
-      fKeyMaker = keyMaker;
+   private ReplacementParser(
+         ISubstitutionMap     symbolMap, 
+         IKeyMaker            keyMaker,
+         boolean              ignoreUnknowns,
+         boolean              expandEscapes) {
+      fSymbols        = symbolMap;
+      fKeyMaker       = keyMaker;
+      fIgnoreUnknowns = ignoreUnknowns;
+      fExpandEscapes  = expandEscapes;
    }
 
    /**
@@ -83,9 +87,11 @@ public class ReplacementParser {
     * 
     * @param symbols    Map of symbols for substitution
     */
-   public ReplacementParser(Map<String, String> symbols) {
-      fSymbols  = symbols;
-      fKeyMaker = NullKeyMaker;
+   public ReplacementParser(ISubstitutionMap symbols) {
+      fSymbols        = symbols;
+      fKeyMaker       = NullKeyMaker;
+      fIgnoreUnknowns = false;
+      fExpandEscapes  = false;
    }
 
    enum KeyState {KEY, DOLLAR, ESCAPE};
@@ -328,25 +334,6 @@ public class ReplacementParser {
       return index;
    }
 
-   /**
-    * Make key from bare name<br>
-    * If there is no symbol map set it just adds the prefix from setSymbolPrefix().
-    * 
-    * @param key Bare key
-    * 
-    * @return Key with added path or prefix etc.
-    */
-   String makeKey(String key) {
-      String  replaceWith = null;
-      if (fSymbols == null) {
-         replaceWith = fPrefix + "_" + key;
-      }
-      else {
-         replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
-      }
-      return replaceWith;
-   }
-   
 /**
     * Parses replacement pattern e.g. 
     * <pre>
@@ -402,10 +389,12 @@ public class ReplacementParser {
          throw new Exception("Missing ')' in '" + inputText + "'");
       }
       index++;
-
+      
+      key = fKeyMaker.makeKey(key);
+      
       String  replaceWith = null;
       if (conditional) {
-         replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
+         replaceWith = fSymbols.getSubstitutionValue(key);
          if ((replaceWith == null) && fIgnoreUnknowns) {
             // Don't expand unknown symbol (yet)
             replaceWith = "$(?" + key;
@@ -432,10 +421,10 @@ public class ReplacementParser {
       }
       else {
          if (fSymbols == null) {
-            replaceWith = fPrefix + "_" + key;
+            replaceWith = key;
          }
          else {
-            replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
+            replaceWith = fSymbols.getSubstitutionValue(key);
             if (replaceWith != null) {
                replaceWith = replaceAll(replaceWith);
             }
@@ -699,48 +688,28 @@ public class ReplacementParser {
       return sb.toString();
    }
    
-   /** 
-    * Controls whether unknown symbols are treated as an error or preserved.
-    * This also means default values will not be used.
-    *  
-    * @param ignoreUnknowns True to ignore (preserved) unknown symbols.
-    */
-   private void setIgnoreUnknowns(boolean ignoreUnknowns) {
-      fIgnoreUnknowns = ignoreUnknowns;
-   }
-   
-   private void setSymbolPrefix(String prefix) {
-      fPrefix = prefix;
-   }
-
   /**
     * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
     * @param inputText      String to replace macros in
-    * @param map            Map of key->value pairs for substitution
+    * @param symbolMap      Map of key->value pairs for substitution
     * @param keyMaker       Interface providing a method to create a key from a variable name
     * @param ignoreUnknowns True to ignore (preserved) unknown symbols.
     * @param expandEscapes  Whether to expand escapes e.g. '\n' or preserve escape sequence
-    * @param prefix
     * 
     * @return      String with substitutions (or original if none)
     */
    private static String substitute(
          String               inputText, 
-         Map<String, String>  map, 
+         ISubstitutionMap     symbolMap, 
          IKeyMaker            keyMaker,
          boolean              ignoreUnknowns,
-         boolean              expandEscapes,
-         String               prefix) {
+         boolean              expandEscapes) {
       
       if (inputText == null) {
          return null;
       }
-      ReplacementParser replacementParser = new ReplacementParser(map, keyMaker);
-      replacementParser.setIgnoreUnknowns(ignoreUnknowns);
-//      replacementParser.setSymbolPrefix("");
-      replacementParser.setSymbolPrefix(prefix);
-      replacementParser.setExpandEscapes(expandEscapes);
+      ReplacementParser replacementParser = new ReplacementParser(symbolMap, keyMaker, ignoreUnknowns, expandEscapes);
       try {
          return replacementParser.replaceAll(inputText);
       } catch (Exception e) {
@@ -756,20 +725,20 @@ public class ReplacementParser {
     * <li>Escape sequences e.g. '\n' are left unexpanded
     * 
     * @param inputText     String to replace macros in
-    * @param variableMap   Map of key->value pairs for substitution
+    * @param symbolMap     Map of key->value pairs for substitution
     * @param keyMaker      Interface providing a method to create a key from a variable name
     * 
-    * @return      String with substitutions (or original if none)
+    * @return  String with substitutions (or original if none)
     */
    public static String substitute(
          String               inputText, 
-         Map<String, String>  variableMap, 
+         ISubstitutionMap     symbolMap, 
          IKeyMaker            keyMaker) {
       
-      if (variableMap == null) {
+      if (symbolMap == null) {
          return inputText;
       }
-      return substitute(inputText, variableMap, keyMaker, false, false, "");
+      return substitute(inputText, symbolMap, keyMaker, false, false);
    }
    
    /**
@@ -779,16 +748,16 @@ public class ReplacementParser {
     * <li>Escape sequences e.g. '\n' are expanded
     * <li>NULL keymaker is used
     * 
-    * @param input         String to replace macros in
-    * @param variableMap   Map of key->value pairs for substitution
+    * @param input       String to replace macros in
+    * @param symbolMap   Map of key->value pairs for substitution
     * 
     * @return      String with substitutions (or original if variableMap is empty)
     */
-   public static String substituteFinal(String inputText, Map<String,String> variableMap) {
-      if (variableMap == null) {
+   public static String substituteFinal(String inputText, ISubstitutionMap symbolMap) {
+      if (symbolMap == null) {
          return inputText;
       }
-      return substitute(inputText, variableMap, NullKeyMaker, false, true, "");
+      return substitute(inputText, symbolMap, NullKeyMaker, false, true);
    }
    
    /**
@@ -799,15 +768,15 @@ public class ReplacementParser {
     * <li>NULL keymaker is used
     * 
     * @param input         String to replace macros in
-    * @param variableMap   Map of key->value pairs for substitution
+    * @param symbolMap   Map of key->value pairs for substitution
     * 
     * @return      String with substitutions (or original if variableMap is empty)
     */
-   public static String substitute(String inputText, Map<String,String> variableMap) {
-      if (variableMap == null) {
+   public static String substitute(String inputText, ISubstitutionMap symbolMap) {
+      if (symbolMap == null) {
          return inputText;
       }
-      return substitute(inputText, variableMap, NullKeyMaker, false, false, "");
+      return substitute(inputText, symbolMap, NullKeyMaker, false, false);
    }
    
    /**
@@ -818,23 +787,22 @@ public class ReplacementParser {
     * <li>NULL keymaker is used
     * 
     * @param inputText    String to replace macros in
-    * @param variableMap  Map of key->value pairs for substitution
+    * @param symbolMap    Map of key->value pairs for substitution
     * 
     * @return      String with substitutions (or original if variableMap is empty)
     */
-   public static String substituteIgnoreUnknowns(String inputText, Map<String,String> variableMap) {
-      if (variableMap == null) {
+   public static String substituteIgnoreUnknowns(String inputText, ISubstitutionMap symbolMap) {
+      if (symbolMap == null) {
          return inputText;
       }
-      return substitute(inputText, variableMap, NullKeyMaker, true, false, "");
+      return substitute(inputText, symbolMap, NullKeyMaker, true, false);
    }
-
+   
    /**
-    * Replaces macros e.g. $(key:defaultValue) with values prefixed symbol (for use in C code)<br>
+    * Replaces macros e.g. $(key:defaultValue) with values intended as C macros.<br>
     * Used for device header files to refer to symbols related to the struct e.g. dimensions<br>
-    * <li>No symbol map so no substitutions
     * <li>Escape sequences e.g. '\n' are left unexpanded
-    * <li>Prefix is added to keys
+    * <li>Keys are converted to prefixed symbols e.g. $(SC1_COUNT) -> ADC1_SC1_COUNT
     * 
     * @param inputText    String to replace macros in
     * @param prefix       Prefix to add to front of relative symbols
@@ -842,7 +810,7 @@ public class ReplacementParser {
     * @return      String with substitutions
     */
    public static String addPrefixToKeys(String inputText, String prefix) {
-      return substitute(inputText, null, NullKeyMaker, true, false, prefix);
+      return substitute(inputText, null, new PrefixKeyMaker(prefix), true, false);
    }
 
    

@@ -8,9 +8,7 @@ Bundle-Activator: net.sourceforge.usbdm.deviceDatabase.Activator
 Bundle-Vendor: USBDM
 Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0",
  org.eclipse.core.runtime,
- org.eclipse.jface,
- org.eclipse.swt,
- org.eclipse.core.jobs
+ org.eclipse.jface
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.deviceDatabase;uses:="org.osgi.framework",
  net.sourceforge.usbdm.deviceDatabase.ui,
@@ -21,6 +19,5 @@ Import-Package: org.eclipse.core.resources,
  org.eclipse.swt.graphics,
  org.eclipse.swt.layout,
  org.eclipse.swt.widgets,
- org.eclipse.ui,
  org.eclipse.ui.plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

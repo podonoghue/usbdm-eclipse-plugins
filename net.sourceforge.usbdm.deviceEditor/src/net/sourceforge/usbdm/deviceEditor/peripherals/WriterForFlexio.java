@@ -11,7 +11,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -132,10 +131,8 @@ public class WriterForFlexio extends PeripheralWithState {
                }
             }
          }
-         StringVariable cmpInputsVar = new StringVariable("PinList", makeKey("PinList"));
-         cmpInputsVar.setValue(inputsStringBuilder.toString());
-         cmpInputsVar.setDerived(true);
-         fDeviceInfo.addOrReplaceVariable(cmpInputsVar.getKey(), cmpInputsVar);
+         // Create or replace Pin List variable as needed
+         fDeviceInfo.addOrUpdateStringVariable("PinList", makeKey("PinList"), inputsStringBuilder.toString(), true);
       }
    }
    

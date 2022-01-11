@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 
-import java.util.Map;
-
 import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.CProjectNature;
@@ -39,10 +37,10 @@ import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.cdt.tools.UsbdmProjectNature;
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 //@SuppressWarnings("restriction")
@@ -100,7 +98,7 @@ public class UsbdmCdtProjectManager {
     * @return Created project
     */
    public static IProject createUsbdmProject(
-         Map<String, String>  paramMap, 
+         ISubstitutionMap  paramMap, 
          ProjectActionList    projectActionList, 
          IProgressMonitor     progressMonitor, 
          Device               device) {
@@ -120,13 +118,13 @@ public class UsbdmCdtProjectManager {
       try {
          monitor.beginTask("Create configuration", 100);
 
-         String        projectName       = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
-         String        directoryPath     = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
-         String        projectType       = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY), paramMap);
-         InterfaceType interfaceType     = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
-         boolean       hasCCNature       = Boolean.valueOf(paramMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
-         String        artifactName      = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_ARTIFACT_KEY), paramMap); 
-         String        mainlineFilename  = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_MAINLINE_FILE), paramMap); 
+         String        projectName       = paramMap.substitute(paramMap.getSubstitutionValue(UsbdmConstants.PROJECT_NAME_KEY)); 
+         String        directoryPath     = paramMap.substitute(paramMap.getSubstitutionValue(UsbdmConstants.PROJECT_HOME_PATH_KEY)); 
+         String        projectType       = paramMap.substitute(paramMap.getSubstitutionValue(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY));
+         InterfaceType interfaceType     = InterfaceType.valueOf(paramMap.getSubstitutionValue(UsbdmConstants.INTERFACE_TYPE_KEY));
+         boolean       hasCCNature       = Boolean.valueOf(paramMap.getSubstitutionValue(UsbdmConstants.HAS_CC_NATURE_KEY));
+         String        artifactName      = paramMap.substitute(paramMap.getSubstitutionValue(UsbdmConstants.PROJECT_ARTIFACT_KEY)); 
+         String        mainlineFilename  = paramMap.substitute(paramMap.getSubstitutionValue(UsbdmConstants.PROJECT_MAINLINE_FILE)); 
          
          if ((artifactName == null) || (artifactName.length()==0)) {
             artifactName = "${ProjName}";
