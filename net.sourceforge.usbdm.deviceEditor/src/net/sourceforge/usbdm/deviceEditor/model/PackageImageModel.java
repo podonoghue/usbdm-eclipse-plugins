@@ -15,6 +15,7 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
    private ImageCanvas        fImageCanvas = null;
    private PackageImageModel  fPackageImageModel;
    private final ModelFactory fModelFactory;
+   private Image              fImage = null;
 
    public PackageImageModel(ModelFactory modelFactory, BaseModel parent) {
       super(parent, "Package");
@@ -35,6 +36,10 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
          // Only supports updating the image - not the entire model
          throw new RuntimeException("Model differs from this!");
       }
+      if (fImage != null) {
+         fImage.dispose();
+      }
+      fImage = createImage();
       fImageCanvas.setImage(createImage());
    }
 
