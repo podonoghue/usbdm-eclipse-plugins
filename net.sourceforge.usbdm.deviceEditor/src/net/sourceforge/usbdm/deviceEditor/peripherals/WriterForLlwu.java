@@ -151,9 +151,10 @@ public class WriterForLlwu extends PeripheralWithState {
             
             if (!cIdentifier.isBlank()) {
                String description = signal.getUserDescription();
-               String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
+               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
+               String constType = "const "+ type;
                if (signal.getCreateInstance()) {
-                  writeVariableDeclaration("", description, cIdentifier, type, getPinMode(signal).toString(), pin.getNameWithLocation());
+                  writeVariableDeclaration("", description, cIdentifier, constType, getPinMode(signal).toString(), pin.getNameWithLocation());
                }
                else {
                   writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());

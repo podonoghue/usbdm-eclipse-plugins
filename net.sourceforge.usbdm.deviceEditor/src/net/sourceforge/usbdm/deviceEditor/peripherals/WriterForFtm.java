@@ -63,9 +63,10 @@ public class WriterForFtm extends PeripheralWithState {
             continue;
          }
          String trailingComment  = pin.getNameWithLocation();
-         String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
+         String type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
+         String constType = "const "+ type;
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
+            writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, constType, trailingComment);
          }
          else {
             writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
@@ -91,10 +92,11 @@ public class WriterForFtm extends PeripheralWithState {
          }
          String trailingComment  = pinPhaseA.getNameWithLocation()+", "+pinPhaseB.getNameWithLocation();
          String cIdentifier = makeCIdentifier(cIdentifierPhaseA);
-         String type = String.format("const FtmQuadDecoder"+getInstance());
+         String type = String.format("FtmQuadDecoder"+getInstance());
+         String constType = "const "+ type;
          writeTypeDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, trailingComment);
          if (signalPhaseA.getCreateInstance() || signalPhaseB.getCreateInstance()) {
-            writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, trailingComment);
+            writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, constType, trailingComment);
          }
          } while (false);
       }

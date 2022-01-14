@@ -84,13 +84,14 @@ public class WriterForAdc extends PeripheralWithState {
          String type;
          if (isPgaSignal(signal)) {
             description = description + " (Programmable gain amplifier)";
-            type = String.format("const %s", getClassBaseName()+getInstance()+"::"+"PgaChannel");
+            type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaChannel");
          }
          else {
-            type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
+            type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          }
+         String constType = "const "+ type;
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", description, cIdentifier, type, trailingComment);
+            writeVariableDeclaration("", description, cIdentifier, constType, trailingComment);
          }
          else {
             writeTypeDeclaration("", description, cIdentifier, type, trailingComment);
@@ -146,14 +147,15 @@ public class WriterForAdc extends PeripheralWithState {
          }
          if (isPgaSignal(dpSignal)) {
             description = description + " (Differential programmable gain amplifier)";
-            type = String.format("const %s", getClassBaseName()+getInstance()+"::"+"PgaDiffChannel");
+            type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaDiffChannel");
          }
          else {
             description = description + " (Differential)";
-            type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"DiffChannel", index);
+            type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"DiffChannel", index);
          }
+         String constType = "const "+ type;
          if (dpSignal.getCreateInstance() || dmSignal.getCreateInstance()) {
-            writeVariableDeclaration(error, description, cIdentifier, type, trailingComment);
+            writeVariableDeclaration(error, description, cIdentifier, constType, trailingComment);
          }
          else {
             writeTypeDeclaration(error, description, cIdentifier, type, trailingComment);

@@ -84,7 +84,7 @@ public class WriterForTsi extends PeripheralWithState {
             String mapName = "TsiInput_"+index;
             if (!cIdentifier.isBlank()) {
                inputIdentifier =  enumName+cIdentifier;
-               String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
+               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
             if (mappingInfo.getMux() == MuxSelection.fixed) {

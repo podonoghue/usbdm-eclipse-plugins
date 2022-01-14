@@ -49,13 +49,13 @@ public class WriterForCmp extends PeripheralWithState {
     * Generate set of enum symbols and Types for CMP inputs that are mapped to pins.
     * 
     * <pre>
-    *   // In tsi.h
+    *   // In cmp.h
     *   Input_Ptc6                = 6,       ///< Mapped pin PTC6 (p51)
     *   Input_MyComparatorInput   = 6,       ///< Mapped pin PTC6 (p51)
     *   
     *   // In hardware.h
     *   /// User comment
-    *   typedef const Cmp0::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
+    *   typedef Cmp0::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
     * </pre> 
     * 
     * @param documentUtilities
@@ -102,9 +102,10 @@ public class WriterForCmp extends PeripheralWithState {
             String mapName = "Input_"+index;
             if (!cIdentifier.isBlank()) {
                inputIdentifier =  enumName+cIdentifier;
-               String type = String.format("const %s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", getClassName()+"::"+pinName);
+               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", getClassName()+"::"+pinName);
+               String constType = "const "+ type;
                if (signal.getCreateInstance()) {
-                  writeVariableDeclaration("", description, cIdentifier, type, trailingComment);
+                  writeVariableDeclaration("", description, cIdentifier, constType, trailingComment);
                }
                else {
                   writeTypeDeclaration("", description, cIdentifier, type, trailingComment);

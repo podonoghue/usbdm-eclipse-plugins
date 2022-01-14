@@ -710,7 +710,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * extern const <i><b>className</b></i> codeIdentifier;
     * 
     * // UserDescription
-    * using CodeIdentifier = const <i><b>className</b></i>;
+    * using CodeIdentifier = <i><b>className</b></i>;
     * </pre>
     * 
     * @param className  Class name to use in creating declarations and definitions
@@ -723,14 +723,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          return;
       }
       String cIdentifier = getCodeIdentifier();
-      String cType       = (fIsConstType?"const ":"") + className;
+      String cConstType  = (fIsConstType?"const ":"") + className;
+      String cType       = className;
       
       String description = getUserDescription();
       if (description.isBlank()) {
          description = getDescription();
       }
       if (getCreateInstance()) {
-         writeVariableDeclaration("", description, cIdentifier, cType, "");
+         writeVariableDeclaration("", description, cIdentifier, cConstType, "");
       }
       else {
          writeTypeDeclaration("", description, cIdentifier, cType, "");
@@ -742,7 +743,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * <pre>
     * /// Clkout
-    * using Clkout  = const PcrTable_T<ControlInfo,10>;  // PTC3 ()
+    * using Clkout  = PcrTable_T&lt;ControlInfo,10&gt;;  // PTC3 ()
     * </pre>
     */
    protected void writeSignalPcrDeclarations() {
@@ -763,7 +764,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             String trailingComment  = pin.getNameWithLocation();
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             if (!cIdentifier.isBlank()) {
-               String type = String.format("const PcrTable_T<%sInfo,%d>", getClassBaseName(), infoTableIndex);
+               String type = String.format("PcrTable_T<%sInfo,%d>", getClassBaseName(), infoTableIndex);
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
          }
@@ -774,7 +775,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * Write declarations for variables and types associated with this peripheral e.g.
     * <pre>
     * // An example peripheral
-    * using MyAdc = const <i><b>Adc1</b></i>;
+    * using MyAdc = <i><b>Adc1</b></i>;
     * // An example peripheral
     * extern const <i><b>Adc1</b></i> myAdc;
     * 

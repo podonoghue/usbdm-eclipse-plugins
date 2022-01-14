@@ -665,7 +665,7 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Generate CPP files (pin_mapping.h, gpio.h) within an Eclipse C++ project
+    * Generate CPP files (pin_mapping.h) within an Eclipse C++ project
     * 
     * @param  project      Destination project 
     * @param  deviceInfo   Device information to print to CPP files  
@@ -689,10 +689,11 @@ public class WriteFamilyCpp {
       
       try {
          IFile file = project.getFile(pinMappingFile);
+         file.refreshLocal(0, subMonitor.newChild(10));
          file.setDerived(true, subMonitor.newChild(10));
       } catch (Exception e) {
          // Ignore
-         System.err.println("WARNING: Failed to refresh" + pinMappingFile);
+         System.err.println("WARNING: Failed to set Derived on '" + pinMappingFile + "'");
       }
    }
 

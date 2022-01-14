@@ -244,9 +244,10 @@ public class WriterForGpio extends PeripheralWithState {
             String trailingComment  = pin.getNameWithLocation();
             String polarity         = isActiveLow(signal)?"ActiveLow":"ActiveHigh";
             String pinDescription   = gpioPinInformation.getDescription();
-            String type = String.format("const GpioTable_T<%sInfo, %d, %s>", getClassName(), bitNum, polarity);
+            String type = String.format("GpioTable_T<%sInfo, %d, %s>", getClassName(), bitNum, polarity);
+            String constType = "const "+ type;
             if (signal.getCreateInstance()) {
-               writeVariableDeclaration("", pinDescription, mainIdentifier, type, trailingComment);
+               writeVariableDeclaration("", pinDescription, mainIdentifier, constType, trailingComment);
             }
             else {
                writeTypeDeclaration("", pinDescription, mainIdentifier, type, trailingComment);
@@ -289,10 +290,10 @@ public class WriterForGpio extends PeripheralWithState {
                polarity = ", ActiveHigh";
             }
             // GpioFieldTable_T<GpioEInfo, 7, 0, ActiveHigh>
-            String type = String.format("const GpioFieldTable_T<%s, %d, %d%s>", getClassName()+"Info", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
-
+            String type = String.format("GpioFieldTable_T<%s, %d, %d%s>", getClassName()+"Info", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
+            String constType = "const "+ type;
             if (gpioPinInformation.getCreateInstance()) {
-               writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
+               writeVariableDeclaration(error, fieldDescription, mainIdentifier, constType, trailingComment);
             }
             else {
                writeTypeDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
