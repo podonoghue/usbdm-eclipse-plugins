@@ -324,7 +324,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                subMonitor.subTask("Starting...");
                if (fProject != null) {
                   // Regenerate files
-                  fFactory.getDeviceInfo().generateCppFiles(fProject, subMonitor.newChild(20));
+                  fFactory.getDeviceInfo().generateCppFiles(fProject, false, subMonitor.newChild(20));
 
                   // Refresh project
                   subMonitor.subTask("Refreshing files...");

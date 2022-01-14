@@ -86,16 +86,19 @@ public class ProjectUtilities {
       changeExcludedItem(project, target, isFolder, isExcluded, monitor);
    }
    
-   public static void createIncludeFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException, BuildException {
+   public static IFolder createIncludeFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException, BuildException {
 //      createSourceFolder(project, targetPath, progressMonitor);
-      createFolder(project, targetPath, progressMonitor);
+      IFolder folder = createFolder(project, targetPath, progressMonitor);
+      if (folder == null) {
+         return null;
+      }
       IManagedBuildInfo info = ManagedBuildManager.getBuildInfo(project);
       // Add to Include search paths
       IConfiguration[] configs = info.getManagedProject().getConfigurations();
       for (IConfiguration config : configs) {
          // Creates include folder path that is portable (e.g. rename project doesn't break paths)
-         String path = "\"${ProjDirPath}/" + project.getFolder(targetPath).getProjectRelativePath().toOSString() + "\"";
-
+         String path = "\"${ProjDirPath}/" + project.getFolder(targetPath).getProjectRelativePath().toPortableString() + "\"";
+         
          IToolChain toolChain = config.getToolChain();
          setIncludePathOptionForConfig(path, config, toolChain.getOptions(), toolChain);
 
@@ -105,6 +108,7 @@ public class ProjectUtilities {
          }
       }
       ManagedBuildManager.saveBuildInfo(project, true);
+      return folder;
    }
 
    private static void setIncludePathOptionForConfig(String path, IConfiguration config, IOption[] options, IHoldsOptions optionHolder) throws BuildException {
@@ -128,16 +132,16 @@ public class ProjectUtilities {
     * 
     * @throws CoreException 
     */
-   public static void createSourceFolder(IProject projectHandle, String targetPath, IProgressMonitor monitor) throws CoreException {
+   public static IFolder createSourceFolder(IProject projectHandle, String targetPath, IProgressMonitor monitor) throws CoreException {
       //If the targetPath is an empty string, there will be no source folder to create.
       // Also this is not an error. So just return gracefully.
       if (targetPath == null || targetPath.length()==0) {
-         return;
+         return null;
       }
-      createFolder(projectHandle, targetPath, monitor);
+      IFolder folder = createFolder(projectHandle, targetPath, monitor);
 
       IPath projPath = projectHandle.getFullPath();
-      IFolder folder = projectHandle.getFolder(targetPath);
+//      IFolder folder = projectHandle.getFolder(targetPath);
 
       ICProject cProject = CoreModel.getDefault().getCModel().getCProject(projectHandle.getName());
       if (cProject != null) {
@@ -149,6 +153,7 @@ public class ProjectUtilities {
             createFolder(targetPath, monitor, projPath, cProject);
          }
       }
+      return folder;
    }
 
    /**
@@ -157,37 +162,42 @@ public class ProjectUtilities {
     * @param project            - project.
     * @param targetPath         - relative path to the new folder.
     * @param progressMonitor    - progress monitor.
+    * @return 
     * 
     * @throws CoreException 
     */
-   public static void createFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException {
+   public static IFolder createFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException {
+      
       //If the targetPath is an empty string, there will be no folder to create.
       // Also this is not an error. So just return gracefully.
-      if (targetPath == null || targetPath.length()==0) {
-         return;
+      if (targetPath == null || targetPath.isBlank()) {
+         return null;
       }
       IPath path = new Path(targetPath);
+      IFolder subfolder = null;;
       for (int i=1; i<=path.segmentCount(); i++) {
-         IFolder subfolder = project.getFolder(path.uptoSegment(i));
+         subfolder = project.getFolder(path.uptoSegment(i));
          if (!subfolder.exists()) {
             subfolder.create(true, true, progressMonitor);
          }
       }
+      return subfolder;
    }
 
    /**
-    * @param monitor
-    * @param projectHandle
-    * @param folder
+    * @param  monitor
+    * @param  projectHandle
+    * @param  folder
     * @throws CoreException
     * @throws WriteAccessException
     */
-   private static void createNewStyleProjectFolder(IProgressMonitor monitor,
-         IProject projectHandle, IFolder folder) throws CoreException,
-         WriteAccessException {
+   private static void createNewStyleProjectFolder(
+         IProgressMonitor monitor,
+         IProject         projectHandle, 
+         IFolder          folder)    throws CoreException, WriteAccessException {
+      
       ICSourceEntry newEntry = new CSourceEntry(folder, null, 0);
-      ICProjectDescription description = CCorePlugin.getDefault()
-            .getProjectDescription(projectHandle);
+      ICProjectDescription description = CCorePlugin.getDefault().getProjectDescription(projectHandle);
 
       ICConfigurationDescription configs[] = description.getConfigurations();
       for (int i = 0; i < configs.length; i++) {
@@ -203,8 +213,7 @@ public class ProjectUtilities {
          config.setSourceEntries(set.toArray(new ICSourceEntry[set.size()]));
       }
 
-      CCorePlugin.getDefault().setProjectDescription(projectHandle,
-            description, false, monitor);
+      CCorePlugin.getDefault().setProjectDescription(projectHandle, description, false, monitor);
    }
    
    /**
@@ -244,10 +253,15 @@ public class ProjectUtilities {
       cProject.setRawPathEntries(newEntries.toArray(new IPathEntry[newEntries.size()]), monitor);
    }
 
-   public static void createFolder(IProject projectHandle, ISubstitutionMap variableMap, CreateFolderAction action, IProgressMonitor monitor) throws Exception {
+   public static void createFolder(
+         IProject             projectHandle, 
+         ISubstitutionMap     variableMap, 
+         CreateFolderAction   action, 
+         IProgressMonitor     monitor)    throws Exception {
+      
       String target = variableMap.substitute(action.getTarget());
       
-      if (target.isEmpty()) {
+      if (target.isBlank()) {
          return;
       }
 //      System.err.println(String.format("ProjectUtilities.createFolder() \'%s\'", target));
@@ -256,18 +270,22 @@ public class ProjectUtilities {
       if (type == null) {
          type = "";
       }
+      IFolder folder = null;
       try {
          if (type.equalsIgnoreCase("source")) {
             createSourceFolder(projectHandle, target, monitor);
          }
          else if (type.equalsIgnoreCase("include")) {
-            createIncludeFolder(projectHandle, target, monitor);
+            folder = createIncludeFolder(projectHandle, target, monitor);
          }
          else {
-            createFolder(projectHandle, target, monitor);
+            folder = createFolder(projectHandle, target, monitor);
          }
       } catch (Exception e) {
          throw new Exception("Failed to create folder \'"+target+"\'", e);
+      }
+      if (folder != null) {
+         folder.setDerived(action.isDerived(), monitor);
       }
    }
    

@@ -848,9 +848,12 @@ public class PackageParser {
     */
    private static CreateFolderAction parseCreateFolderElement(Element createFolderElement) {
       // <createFolder target="..." type="..." >
-      String target  = createFolderElement.getAttribute("target");
-      String type    = createFolderElement.getAttribute("type");
-      return new CreateFolderAction(target, type);
+      String target     = createFolderElement.getAttribute("target");
+      String type       = createFolderElement.getAttribute("type");
+      boolean doDerived =  createFolderElement.getAttribute("derived").equalsIgnoreCase("true");
+      CreateFolderAction action = new CreateFolderAction(target, type);
+      action.setDerived(doDerived);
+      return action;
    }
 
    /**

@@ -73,7 +73,7 @@ public class ProcessProjectActions {
                   new DeleteResource().process(projectHandle, symbolMap, (DeleteResourceAction)action, subMonitor);
                }
                else if (action instanceof CreateFolderAction) {
-//                  ProjectUtilities.createFolder(projectHandle, variableMap, (CreateFolderAction)action, subMonitor);
+                  ProjectUtilities.createFolder(projectHandle, symbolMap, (CreateFolderAction)action, subMonitor);
                }
                else if (action instanceof ProjectOption) {
                   applyOptions.process(symbolMap, (ProjectOption)action, subMonitor);

@@ -285,7 +285,7 @@ public class FileUtility {
       try {
          copyFile(null, path, path, variableMap, null);
       } catch (Exception e) {
-         throw new Exception("Failed to refresh file "+path, e);
+         throw new Exception("Failed to refresh file '"+path+"'", e);
       }
    }
 
@@ -308,7 +308,7 @@ public class FileUtility {
          Path sourcePath = projectDirectory.resolve(path);
          copyFile(project, sourcePath, sourcePath, variableMap, monitor);
       } catch (Exception e) {
-         throw new Exception("Failed to refresh file "+path+" in project "+project.getName(), e);
+         throw new Exception("Failed to refresh file '"+path+"' in project "+project.getName(), e);
       }
    }
 }

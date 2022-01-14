@@ -1944,7 +1944,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       StringBuilder actionRecord = new StringBuilder();
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
-      regenerateProjectFiles(actionRecord, processProjectActions, null, new NullProgressMonitor());
+      regenerateProjectFiles(actionRecord, processProjectActions, null, false, new NullProgressMonitor());
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
@@ -1957,17 +1957,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project
     * 
     * @param project       Destination Eclipse C++ project 
+    * @param newProject 
     * @param monitor
     * @throws Exception 
     */
-   public synchronized void generateCppFiles(IProject project, IProgressMonitor monitor) throws Exception {
+   public synchronized void generateCppFiles(IProject project, boolean isNewProject, IProgressMonitor monitor) throws Exception {
       SubMonitor subMonitor = SubMonitor.convert(monitor, (fPeripheralsMap.size()+5)*100); 
 
       // Generate device header file
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
 //      Path headerfilePath   = projectDirectory.resolve(UsbdmConstants.PROJECT_INCLUDE_FOLDER).resolve(getDeviceSubFamily()+".h");
 
-      subMonitor.subTask("Parse SVD file");
+      subMonitor.subTask("Parsing project action files");
       DevicePeripherals devicePeripherals = getDevicePeripherals();
       Path headerfilePath   = projectDirectory.resolve(UsbdmConstants.PROJECT_INCLUDE_FOLDER).resolve(devicePeripherals.getName()+".h");
       subMonitor.worked(10);
@@ -1982,8 +1983,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       StringBuilder actionRecord = new StringBuilder();
       actionRecord.append("Actions for regenerating project files\n\n");
+
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
-      regenerateProjectFiles(actionRecord, processProjectActions, project, subMonitor.newChild(10));
+      regenerateProjectFiles(actionRecord, processProjectActions, project, isNewProject, subMonitor.newChild(10));
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
@@ -1996,7 +1998,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /**
     * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project<br>
-    * Used during initial project creation
+    * <b>Only used during initial project creation</b>
     * 
     * @param project       Eclipse C++ project 
     * @param device 
@@ -2004,7 +2006,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception
     */
-   static public void generateFiles(IProject project, Device device, IProgressMonitor monitor) {
+   static public void generateInitialProjectFiles(IProject project, Device device, IProgressMonitor monitor) {
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
       // Load hardware project
@@ -2013,11 +2015,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          deviceInfo = DeviceInfo.create(project, device, subMonitor.newChild(10));
          if (deviceInfo != null) {
             // Generate C++ code
-            deviceInfo.generateCppFiles(project, subMonitor.newChild(90));
+            deviceInfo.generateCppFiles(project, true, subMonitor.newChild(90));
             deviceInfo.saveSettings(project);
          }
       } catch (Exception e) {
-        // Ignore
+         e.printStackTrace();
       }
    }
    
@@ -2231,6 +2233,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * @param processProjectActions 
     * @param project
+    * @param isNewProject 
     * @param monitor
     * 
     * @throws Exception
@@ -2239,6 +2242,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          StringBuilder         actionRecord,
          ProcessProjectActions processProjectActions, 
          IProject              project, 
+         boolean               isNewProject,
          IProgressMonitor      monitor) throws Exception {
       
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
@@ -2246,6 +2250,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          return;
       }
       ISubstitutionMap symbolMap = getVariablesSymbolMap();
+      
+      if (isNewProject) {
+         // Actions for new project
+         VariableProvider variableProvider = new VariableProvider("Common Settings", this);
+         MenuData initialMenuData = ParseMenuXML.parseMenuFile("_new_project_actions", variableProvider);
+         processProjectActions.process(actionRecord, project, initialMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
+      }
+      
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
    }
 

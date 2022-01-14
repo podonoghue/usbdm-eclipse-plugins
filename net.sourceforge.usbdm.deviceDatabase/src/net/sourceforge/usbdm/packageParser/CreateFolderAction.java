@@ -7,6 +7,7 @@ public class CreateFolderAction extends ProjectAction {
    private String    target;
    private String    type;
    private String    root;
+   private boolean fDerived;
 
    public CreateFolderAction(String target, String type) {
       super("---folder---");
@@ -33,5 +34,21 @@ public class CreateFolderAction extends ProjectAction {
    @Override
    public String toString() {
       return String.format("CreateFolderAction[root=%s, target=%s, type=%s]", root, target, type);
+   }
+   /**
+    * Used to indicate that the folder should be marked as derived in eclipse
+    * 
+    * @param derived
+    */
+   public void setDerived(boolean derived) {
+      this.fDerived = derived;
+   }
+   /**
+    * Indicate that the folder should be marked as derived in eclipse
+    * 
+    * @return True if derived
+    */
+   public boolean isDerived() {
+      return fDerived;
    }
 }
