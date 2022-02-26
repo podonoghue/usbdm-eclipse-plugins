@@ -5,6 +5,7 @@
 ARM, ^(S32K).*$,         Automotive (S32K),
 ARM, ^(S9KEA|MKE).*$,    Kinetis E (MKE/S9KEA),
 ARM, ^(MKL).*$,          Kinetis L (MKL),
+ARM, ^(MKW).*$,          Wireless (MKW),
 ARM, ^(MKM).*$,          Kinetis M (MKM),
 ARM, ^(MKV).*$,          Kinetis V (MKV),
 ARM, ^(MK)[0-9].*$,      Kinetis K (MK),

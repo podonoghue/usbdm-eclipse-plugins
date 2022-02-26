@@ -408,27 +408,24 @@ public class DeviceSelectorPanel extends Composite {
 
    /**
     * Find a category node with given name
+    * Only searches immediate children
     * 
-    * @param node
-    * @param name
+    * @param node Node owning children to search 
+    * @param name Name to look for
     * 
-    * @return
+    * @return Node found or null
     */
    private CategoryModel findCategoryNode(Object node, String name) {
       BaseModel model = (BaseModel)node;
-      if (node instanceof CategoryModel) {
-         if (((CategoryModel)node).getName().equals(name)) {
-            return (CategoryModel)node;
-         }
-      }
-      CategoryModel deviceModel = null;
       for (Object child:model.getChildren()) {
-         deviceModel = findCategoryNode(child, name);
-         if (deviceModel != null) {
-            break;
+         if (child instanceof CategoryModel) {
+            CategoryModel categoryModel = (CategoryModel) child;
+            if (categoryModel.getName().equals(name)) {
+               return categoryModel;
+            }
          }
       }
-      return deviceModel;
+      return null;
    }
 
    /**
@@ -448,39 +445,31 @@ public class DeviceSelectorPanel extends Composite {
          fDeviceText.setText("<Device database invalid>");
          return;
       }
-      String currentFamily     = null;
-      BaseModel familyTree     = null;
-      String currentSubFamily  = null;
-      BaseModel subFamilyTree  = null;
       ArrayList<Device> devices = fDeviceDatabase.getDeviceList();
-      SubMonitor subMonitor = SubMonitor.convert(progressMonitor, "Building devcie tree", devices.size());
+      SubMonitor subMonitor = SubMonitor.convert(progressMonitor, "Building device tree", devices.size());
+      
       for (Device device : devices) {
          IProgressMonitor sub = subMonitor.split(1);
          if (device.isHidden()) {
             continue;
          }
-         String family = getFamilyName(device.getName());
-         if ((familyTree == null) || (currentFamily == null) || !currentFamily.equalsIgnoreCase(family)) {
-            familyTree = findCategoryNode(root, family);
-         }
+         String    family     = getFamilyName(device.getName());
+         BaseModel familyTree = findCategoryNode(root, family);
          if (familyTree == null) {
-            currentFamily = family;
+            // Create new family category
             familyTree = new CategoryModel(root, family);
-            currentSubFamily = null;
-            subFamilyTree = null;
          }
-         String subFamily = getSubFamilyNamePrefix(device.getName());
-         if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
-            subFamilyTree = findCategoryNode(familyTree, subFamily);
-         }
+         String    subFamily     = getSubFamilyNamePrefix(device.getName());
+         BaseModel subFamilyTree = findCategoryNode(familyTree, subFamily);
          if (subFamilyTree == null) {
-            currentSubFamily = subFamily;
-            subFamilyTree = new CategoryModel(familyTree, currentSubFamily);
+            // Create new sub-family category
+            subFamilyTree = new CategoryModel(familyTree, subFamily);
          }
-         if (device.getName().equalsIgnoreCase(currentSubFamily)) {
+         if (device.getName().equalsIgnoreCase(subFamily)) {
             continue;
          }
          new DeviceModel(subFamilyTree, device.getName());
+         System.err.println(familyTree.getName() + ":" + subFamilyTree.getName() + ":" + device.getName());
          if (sub.isCanceled()) {
             throw new InterruptedException();
          } 
