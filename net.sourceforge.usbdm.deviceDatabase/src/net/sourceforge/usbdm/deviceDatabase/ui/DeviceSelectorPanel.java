@@ -469,7 +469,7 @@ public class DeviceSelectorPanel extends Composite {
             continue;
          }
          new DeviceModel(subFamilyTree, device.getName());
-         System.err.println(familyTree.getName() + ":" + subFamilyTree.getName() + ":" + device.getName());
+//         System.err.println(familyTree.getName() + ":" + subFamilyTree.getName() + ":" + device.getName());
          if (sub.isCanceled()) {
             throw new InterruptedException();
          } 
