@@ -112,11 +112,12 @@ public class UsbdmSharedConstants {
                                                                            
    public final static String CODESOURCERY_COLDFIRE_PATH_VAR              = "usbdm_codesourcery_coldfire_path";      //$NON-NLS-1$
    public final static String CODESOURCERY_COLDFIRE_PREFIX_VAR            = "usbdm_codesourcery_coldfire_prefix";    //$NON-NLS-1$
-                                                                           
-   public final static String USBDM_MAKE_COMMAND_DEFAULT                  = "${usbdm_application_path}/usbdm-make";  //$NON-NLS-1$
-   public final static String USBDM_RM_COMMAND_DFAULT                     = "${usbdm_application_path}/usbdm-rm";    //$NON-NLS-1$
+
+   @Deprecated
    public final static String USBDM_MAKE_COMMAND_VAR                      = "usbdm_make_command";                    //$NON-NLS-1$
+   @Deprecated
    public final static String USBDM_RM_COMMAND_VAR                        = "usbdm_rm_command";                      //$NON-NLS-1$
+
    public final static String USBDM_APPLICATION_PATH_VAR                  = "usbdm_application_path";                //$NON-NLS-1$
    public final static String USBDM_RESOURCE_PATH_VAR                     = "usbdm_resource_path";                   //$NON-NLS-1$
    public final static String USBDM_KSDK_PATH                             = "usbdm_kds_path";                        //$NON-NLS-1$

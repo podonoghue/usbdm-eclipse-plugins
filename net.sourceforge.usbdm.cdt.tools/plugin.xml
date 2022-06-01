@@ -32,7 +32,7 @@
          <configuration
                artifactExtension="elf"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration"
                name="Debug"
                parent="cdt.managedbuild.config.gnu.base">
@@ -45,7 +45,7 @@
          <configuration
                artifactExtension="elf"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.arm.exe.release.configuration"
                name="Release"
                parent="cdt.managedbuild.config.gnu.base">
@@ -58,7 +58,7 @@
          <configuration
                artifactExtension="elf"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.coldfire.exe.debug.configuration"
                name="Debug"
                parent="cdt.managedbuild.config.gnu.base">
@@ -71,7 +71,7 @@
          <configuration
                artifactExtension="elf"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.coldfire.exe.release.configuration"
                name="Release"
                parent="cdt.managedbuild.config.gnu.base">
@@ -88,7 +88,7 @@
          <configuration
                artifactExtension="a"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.arm.staticLib.debug.configuration"
                name="Debug"
                parent="cdt.managedbuild.config.gnu.base">
@@ -101,7 +101,7 @@
          <configuration
                artifactExtension="a"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.arm.staticLib.release.configuration"
                name="Release"
                parent="cdt.managedbuild.config.gnu.base">
@@ -114,7 +114,7 @@
          <configuration
                artifactExtension="a"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.coldfire.staticLib.debug.configuration"
                name="Debug"
                parent="cdt.managedbuild.config.gnu.base">
@@ -127,7 +127,7 @@
          <configuration
                artifactExtension="a"
                buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-               cleanCommand="${usbdm_rm_command} -rf"
+               cleanCommand="rm -rf"
                id="net.sourceforge.usbdm.cdt.coldfire.staticLib.release.configuration"
                name="Release"
                parent="cdt.managedbuild.config.gnu.base">
@@ -151,7 +151,7 @@
          <builder
                id="net.sourceforge.usbdm.cdt.toolchain.builder"
                name="Gnu Make Builder"
-               command="${usbdm_make_command}"
+               command="make"
                superClass="cdt.managedbuild.target.gnu.builder">
          </builder>
          <optionCategory

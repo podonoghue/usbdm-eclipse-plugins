@@ -190,23 +190,11 @@ public class ToolChainPaths {
          String makeCommand    = settings.get(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "");
          String removeCommand  = settings.get(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR,   "");
 
-         String os    = System.getProperty("os.name");            
-         boolean isLinux = (os != null) && os.toUpperCase().contains("LINUX");
          if (makeCommand.isEmpty()) {
-            if (isLinux) {
-               settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "make");
-            }
-            else {
-               settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, UsbdmSharedConstants.USBDM_MAKE_COMMAND_DEFAULT);
-            }
+            settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "make");
          }         
          if (removeCommand.isEmpty() ) {
-            if (isLinux) {
-               settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, "rm");
-            }
-            else {
-               settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, UsbdmSharedConstants.USBDM_RM_COMMAND_DFAULT);
-            }
+            settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, "rm");
          }         
       }
    }

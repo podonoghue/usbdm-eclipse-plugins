@@ -70,6 +70,7 @@ IWorkbenchPreferencePage {
 
       createPathComposite(composite);
       createKDSComposite(composite);
+      // No variables currently
       createVariableComposite(composite);
       // Load settings here so controls are valid
       loadSettings();

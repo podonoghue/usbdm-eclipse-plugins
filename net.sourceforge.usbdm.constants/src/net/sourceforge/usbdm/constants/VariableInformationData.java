@@ -109,9 +109,9 @@ public class VariableInformationData {
       if (variableInformationTable == null) {
          variableInformationTable = new Hashtable<String, VariableInformationData>();
          variableInformationTable.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, 
-               new VariableInformationData("Make command",        "make", UsbdmSharedConstants.USBDM_MAKE_COMMAND_DEFAULT, UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR));
+               new VariableInformationData("Make command",        "make", "make", UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR));
          variableInformationTable.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR,
-               new VariableInformationData("Rm (delete) command", "rm",   UsbdmSharedConstants.USBDM_RM_COMMAND_DFAULT,   UsbdmSharedConstants.USBDM_RM_COMMAND_VAR));
+               new VariableInformationData("Rm (delete) command", "rm",   "rm",   UsbdmSharedConstants.USBDM_RM_COMMAND_VAR));
          variableInformationTable.put(UsbdmSharedConstants.USBDM_KSDK_PATH,
                new VariableInformationData("Path to Kinetis SDK", "",   "",             UsbdmSharedConstants.USBDM_KSDK_PATH, VariableType.FILE_PATH));
       }
