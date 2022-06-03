@@ -133,8 +133,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       fCodeIdentifier = codeIdentifier;
       setDirty(true);
-      notifyListeners();
       getMappedPin().modelElementChanged(this);
+      modelElementChanged(this);
    }
 
    /** 

@@ -370,8 +370,8 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Returns a list of peripheral signals mapped by this selection as a string 
-    * e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
+    * Returns a list of peripheral signals and identifiers mapped by this selection as a string 
+    * e.g. <b><i>GPIOC_6[RedLed]/LLWU_P10</b></i>
     * 
     * @return List of mapped signals as string
     */
@@ -382,6 +382,10 @@ public class MappingInfo extends ObservableModel {
             names.append("/");
          }
          names.append(signal.getName());
+         String id = signal.getCodeIdentifier();
+         if ((id != null) && !id.isBlank()) {
+            names.append("["+signal.getCodeIdentifier()+"]");
+         }
       }
       return names.toString();
    }
@@ -403,21 +407,4 @@ public class MappingInfo extends ObservableModel {
    public boolean hasDigitalFeatures() {
       return hasPcr() && (fMuxValue != MuxSelection.ANALOGUE);
    }
-   
-// public static String getPcrValueAsString(long pcrValue) {
-// StringBuilder sb = new StringBuilder();
-// sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
-// sb.append("PORT_PCR_DSE(" +((pcrValue & PORT_PCR_DSE_MASK) >> PORT_PCR_DSE_SHIFT)+")|");
-// sb.append("PORT_PCR_IRQC("+((pcrValue & PORT_PCR_IRQC_MASK)>> PORT_PCR_IRQC_SHIFT)+")|");
-// sb.append("PORT_PCR_ISF(" +((pcrValue & PORT_PCR_ISF_MASK) >> PORT_PCR_ISF_SHIFT)+")|");
-// sb.append("PORT_PCR_LK("  +((pcrValue & PORT_PCR_LK_MASK) >> PORT_PCR_LK_SHIFT)+")|");
-// sb.append("PORT_PCR_ODE(" +((pcrValue & PORT_PCR_ODE_MASK) >> PORT_PCR_ODE_SHIFT)+")|");
-// sb.append("PORT_PCR_PFE(" +((pcrValue & PORT_PCR_PFE_MASK) >> PORT_PCR_PFE_SHIFT)+")|");
-// sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
-// sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
-// sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
-//
-// return sb.toString();
-//}
-
 };

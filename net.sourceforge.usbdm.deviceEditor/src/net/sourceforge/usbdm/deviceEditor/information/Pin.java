@@ -450,21 +450,19 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       StringBuilder sb = new StringBuilder();
       int mappingsFound = 0;
       
-      sb.append("(");
       for (MuxSelection muxKey : fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxKey);
          if (mappingInfo.isSelected()) {
             if (mappingsFound>0) {
-               sb.append(", ");
+               sb.append("\n");
             }
-            sb.append(mappingInfo.getSignalNames());
+            sb.append("  "+mappingInfo.getSignalNames());
             mappingsFound++;
          }
       }
       if (mappingsFound <= 1) {
          return null;
       }
-      sb.append(")");
       return new Status(sb.toString(), Severity.WARNING, "Multiple signals are mapped to pin '" + getName() + "'");
    }
    
