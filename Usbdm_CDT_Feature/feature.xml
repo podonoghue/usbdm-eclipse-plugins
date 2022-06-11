@@ -23,36 +23,34 @@ Non-derivative components are licensed under the GPL.
    </license>
 
    <requires>
-      <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.jface"/>
-      <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.ui.workbench"/>
-      <import plugin="org.eclipse.osgi"/>
-      <import plugin="net.sourceforge.usbdm.jni" version="5.0.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.core.jobs"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.equinox.registry"/>
+      <import plugin="org.eclipse.jface"/>
       <import plugin="org.eclipse.core.resources"/>
-      <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="net.sourceforge.usbdm.constants" version="5.0.0" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="5.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.cdt.core" version="6.7.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.core"/>
       <import plugin="org.eclipse.cdt.managedbuilder.core"/>
       <import plugin="org.eclipse.core.variables"/>
       <import plugin="org.eclipse.ui.console"/>
-      <import plugin="net.sourceforge.usbdm.gdb.ui" version="5.2.0" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.cdt.tools" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.ui"/>
       <import plugin="org.eclipse.debug.ui"/>
+      <import plugin="net.sourceforge.usbdm.jni" version="5.0.0" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="5.0.0" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.deviceEditor"/>
       <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.cdt.dsf.gdb"/>
       <import plugin="org.eclipse.cdt.launch"/>
       <import plugin="org.eclipse.cdt.dsf.ui" version="2.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf"/>
       <import plugin="org.eclipse.debug.core"/>
+      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="5.0.0" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.cdt.tools" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
-      <import plugin="net.sourceforge.usbdm.peripherals.usbdm" version="5.0.0" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="5.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.osgi"/>
       <import plugin="org.eclipse.ui.views"/>
    </requires>
 
@@ -60,101 +58,101 @@ Non-derivative components are licensed under the GPL.
          id="net.sourceforge.usbdm.jni"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.deviceDatabase"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.cdt.tools"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.cdt.ui"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.constants"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.gdb.ui"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.2.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.peripheralDatabase"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.annotationEditor"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.peripherals.view"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="5.0.0.qualifier"/>
 
    <plugin
          id="net.sourceforge.usbdm.peripherals.freescale"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="5.0.0.qualifier"/>
 
    <plugin
          id="net.sourceforge.usbdm.peripherals.atmel"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="5.0.0.qualifier"/>
 
    <plugin
          id="net.sourceforge.usbdm.peripherals.stmicro"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="5.0.0.qualifier"/>
 
    <plugin
          id="net.sourceforge.usbdm.peripherals.usbdm"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.deviceEditor"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="5.0.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.help"
          download-size="0"
          install-size="0"
-         version="0.0.0"
+         version="1.0.0.qualifier"
          unpack="false"/>
 
 </feature>

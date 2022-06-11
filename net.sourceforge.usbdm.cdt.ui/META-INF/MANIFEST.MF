@@ -7,7 +7,7 @@ Bundle-Activator: net.sourceforge.usbdm.cdt.ui.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.ui.console,
- org.eclipse.cdt.core;bundle-version="6.7.0",
+ org.eclipse.cdt.core,
  net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  net.sourceforge.usbdm.constants;bundle-version="5.0.0",
  net.sourceforge.usbdm.gdb.ui;bundle-version="5.2.0",

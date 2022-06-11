@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -41,6 +43,17 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
       }
       fImage = createImage();
       fImageCanvas.setImage(createImage());
+      
+      fImageCanvas.addDisposeListener(new DisposeListener() {
+         
+         @Override
+         public void widgetDisposed(DisposeEvent arg0) {
+            if (fImage != null) {
+               fImage.dispose();
+               fImage = null;
+            }
+         }
+      });
    }
 
    /**
