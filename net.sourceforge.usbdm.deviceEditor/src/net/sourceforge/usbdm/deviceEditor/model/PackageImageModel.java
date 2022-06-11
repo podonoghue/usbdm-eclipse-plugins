@@ -42,7 +42,7 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
          fImage.dispose();
       }
       fImage = createImage();
-      fImageCanvas.setImage(createImage());
+      fImageCanvas.setImage(fImage);
       
       fImageCanvas.addDisposeListener(new DisposeListener() {
          

@@ -50,7 +50,6 @@ public class ImageCanvas extends Canvas {
    ArrayList<Region> fRegions = new ArrayList<Region>();
 
    private Image              sourceImage; /* original image */
-   private Image              screenImage; /* screen image */
    private AffineTransform    fTransform = new AffineTransform();
    private final boolean      debugMode;
 
@@ -197,10 +196,7 @@ public class ImageCanvas extends Canvas {
          imageRect = imageRect.intersection(imageBound);
          Rectangle destRect = SWT2Dutil.transformRect(fTransform, imageRect);
 
-         if (screenImage != null)
-            screenImage.dispose();
-         screenImage =
-               new Image(getDisplay(), clientRect.width, clientRect.height);
+         Image screenImage = new Image(getDisplay(), clientRect.width, clientRect.height);
          GC newGC = new GC(screenImage);
          newGC.setClipping(clientRect);
          newGC.setAntialias(SWT.ON);
@@ -215,8 +211,8 @@ public class ImageCanvas extends Canvas {
                destRect.width,
                destRect.height);
          newGC.dispose();
-
          gc.drawImage(screenImage, 0, 0);
+         screenImage.dispose();
       } else {
          gc.setClipping(clientRect);
          gc.fillRectangle(clientRect);
