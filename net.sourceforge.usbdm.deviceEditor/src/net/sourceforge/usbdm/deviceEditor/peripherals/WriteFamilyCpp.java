@@ -643,7 +643,7 @@ public class WriteFamilyCpp {
          filename = "-" + filename;
       }
       fDeviceInfo = deviceInfo;
-      writePinMappingHeaderFile(directory.resolve("Project_Headers").resolve(PIN_MAPPING_BASEFILENAME + filename + ".h"));
+      writePinMappingHeaderFile(directory.resolve(INCLUDE_DIRECTORY).resolve(PIN_MAPPING_BASEFILENAME + filename + ".h"));
       writePinMappingStatements();
    }
 

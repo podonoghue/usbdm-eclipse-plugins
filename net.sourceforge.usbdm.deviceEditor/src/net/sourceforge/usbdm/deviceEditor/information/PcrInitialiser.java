@@ -228,11 +228,11 @@ public class PcrInitialiser {
             bits |= pcrToBitsMap.get(pcrValue);
          }
          if ((bits&0xFFFF) != 0) {
-            sb.append(String.format(indent+"%s = PinMux_Disabled|PORT_GPCLR_GPWE(0x%sU);\n", port+"->GPCLR", 0, longTo4Hex(bits&0xFFFF).toUpperCase()));
+            sb.append(String.format(indent+"%s = PinMux_Disabled|PORT_GPCLR_GPWE(%s);\n", port+"->GPCLR", longTo4Hex(bits&0xFFFF)));
          }
          bits = Long.rotateRight(bits, 16);
          if ((bits&0xFFFF) != 0) {
-            sb.append(String.format(indent+"%s = PinMux_Disabled|PORT_GPCHR_GPWE(0x%sU);\n", port+"->GPCHR", 0, longTo4Hex(bits&0xFFFF).toUpperCase()));
+            sb.append(String.format(indent+"%s = PinMux_Disabled|PORT_GPCHR_GPWE(%s);\n", port+"->GPCHR", longTo4Hex(bits&0xFFFF)));
          }
       }
       return sb.toString();

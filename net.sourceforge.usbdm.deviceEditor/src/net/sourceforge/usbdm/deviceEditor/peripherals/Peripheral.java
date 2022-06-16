@@ -1178,17 +1178,17 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          pcrInitialiser.addSignal(signal);
       }
       
-      String initClocksBuffer = pcrInitialiser.getEnablePortClocksStatement(indent);
+      String initClocksBuffer = pcrInitialiser.getEnablePortClocksStatement(indent+"   ");
 
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
-      String pcrInitStatements = pcrInitialiser.getPcrInitStatements(indent);
+      String pcrInitStatements = pcrInitialiser.getPcrInitStatements(indent+"   ");
       pinMappingHeaderFile.write(pcrInitStatements);
       pinMappingHeaderFile.write(indent+"   }\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
-      pinMappingHeaderFile.write(pcrInitialiser.getPcrClearStatements(indent));
+      pinMappingHeaderFile.write(pcrInitialiser.getPcrClearStatements(indent+"   "));
       pinMappingHeaderFile.write(indent+"   }\n\n");
    }
      
