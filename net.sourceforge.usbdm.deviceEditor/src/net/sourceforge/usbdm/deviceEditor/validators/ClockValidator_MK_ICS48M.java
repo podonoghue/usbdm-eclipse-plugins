@@ -257,24 +257,24 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          mcg_c7_oscselVar.setValue(0);
          return;
       }
+      
+      // Find erc 
+      Variable ercOrigin; 
       switch (mcg_c7_oscsel) {
       default:
       case 0: // ERC = OSCCLK (OSC0 main oscillator)
-         mcg_erc_clockVar.setValue(osc0_osc_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus(osc0_osc_clockVar.getFilteredStatus());
-         mcg_erc_clockVar.setOrigin(osc0_osc_clockVar.getOrigin());
+         ercOrigin = osc0_osc_clockVar;
          break;
       case 1: // ERC = RTCCLK (OSC1 oscillator)
-         mcg_erc_clockVar.setValue(osc32k_osc_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus(osc32k_osc_clockVar.getFilteredStatus());
-         mcg_erc_clockVar.setOrigin(osc32k_osc_clockVar.getOrigin()+"[RTCCLK]");
+         ercOrigin = osc32k_osc_clockVar;
          break;
       case 2: // ERC = IRC48MCLK (OSC2)
-         mcg_erc_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus((Status)null);
-         mcg_erc_clockVar.setOrigin("IRC48MCLK");
+         ercOrigin = system_irc48m_clockVar;
          break;
       }
+      mcg_erc_clockVar.setValue(ercOrigin.getValueAsLong());
+      mcg_erc_clockVar.setStatus(ercOrigin.getStatus());
+      mcg_erc_clockVar.setOrigin(ercOrigin.getOrigin() + " selected by mcg.c7.oscsel");
 
       Variable mcg_c11_pllcsVar = safeGetVariable("mcg_c11_pllcs");
       boolean pllIsInternal = (mcg_c11_pllcsVar == null) || !mcg_c11_pllcsVar.getValueAsBoolean();

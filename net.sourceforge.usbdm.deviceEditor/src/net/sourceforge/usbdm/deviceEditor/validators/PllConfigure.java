@@ -138,10 +138,12 @@ public class PllConfigure {
       }
       // Update with 'best value' - irrespective of whether they are acceptable
       mcg_c5_prdiv0Node.setValue(mcg_prdiv);
+      mcg_c5_prdiv0Node.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_prdiv-1), Severity.OK));
       mcg_c6_vdiv0Node.setValue(mcg_vdiv);
+      mcg_c6_vdiv0Node.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_vdiv-PLL_POST_DIV), Severity.OK));
 
       pllInputFrequencyNode.setValue(mcg_erc_clock/mcg_prdiv);
-      pllInputFrequencyNode.setOrigin("("+mcg_erc_clockNode.getOrigin()+" via MCG_ERC)/PRDIV");
+      pllInputFrequencyNode.setOrigin("("+mcg_erc_clockNode.getOrigin()+")/mcg.c7.prdiv0");
       system_mcgpllclk_clockVar.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
 
       if (!pllInputValid) {
