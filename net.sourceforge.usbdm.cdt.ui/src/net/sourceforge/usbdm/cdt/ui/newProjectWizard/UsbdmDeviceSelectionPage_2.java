@@ -479,7 +479,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "{\n";         //$NON-NLS-1$
 
    private final static String MAP_SUFFIX = 
-         "};\n\n";         //$NON-NLS-1$
+         "}\n\n";         //$NON-NLS-1$
 
    private final static String MEM_FORMAT       = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
    private final static String MEM_FORMAT_FLASH = "  %-14s %-5s : ORIGIN = 0x%08X + BOOT_LOADER_SIZE, LENGTH = 0x%08X - BOOT_LOADER_SIZE - BOOT_INFO_SIZE\n";
@@ -581,7 +581,6 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             device.getName())); //$NON-NLS-1$
 
       memoryMap.append(MAP_PREFIX);
-      long gdbGuardAddress = -1;
       ArrayList<MemoryRange> ramRegions     = new ArrayList<MemoryRange>();
       ArrayList<MemoryRange> flashRegions   = new ArrayList<MemoryRange>();
       ArrayList<MemoryRange> flexNVMRegions = new ArrayList<MemoryRange>();
@@ -665,6 +664,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
       // Use largest RAM region as default RAM
       for(MemoryRange region:ramRegions) {
+         if ((region.getName() != null) && (region.getName().equals("bitband"))) {
+            // This is not real RAM!
+            continue;
+         }
          long t = (region.end-region.start+1);
          if (t>=ramSize) {
             ramSize   = t;
@@ -682,13 +685,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          System.err.println("Error no RAM region found");
       }
       else {
-         // Add GDB guard region at top of RAM
-         gdbGuardAddress = ramRegion.end+1;
          memoryMap.append(writeRegions(ramRegions, "RAM", "ram", "rwx"));
-         if (gdbGuardAddress > 0) {
-            memoryMap.append("/*\n * Guard region above stack for GDB \n */\n");
-            memoryMap.append(String.format(MEM_FORMAT, "gdbGuard", "(r)", gdbGuardAddress, 32));
-         }
          memoryMap.append(MAP_SUFFIX);
       }
       

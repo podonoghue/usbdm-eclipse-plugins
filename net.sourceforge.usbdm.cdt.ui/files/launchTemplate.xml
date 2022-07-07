@@ -11,7 +11,7 @@
 	<stringAttribute key="net.sourceforge.usbdm.gdb.targetVdd" value="$(bdmTargetVdd:BDM_TARGET_VDD_3V3)" />
 	<booleanAttribute key="net.sourceforge.usbdm.gdb.useSemiHosting" value="$(semiHosting:false)"/>
 	<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="$(binPath)" />
-	<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}\${usbdm_armLtd_arm_prefix}gdb" />
+	<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="${usbdm_armLtd_arm_path}/${usbdm_armLtd_arm_prefix}gdb" />
 	<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="$(projectName)"/>
 	<booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
 	<intAttribute key="net.sourceforge.usbdm.gdb.interfaceFrequency" value="12000000"/>

@@ -3,9 +3,9 @@ package tests.internal;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.dialogs.ListSelectionDialog;
+//import org.eclipse.swt.widgets.Display;
+//import org.eclipse.swt.widgets.Shell;
+//import org.eclipse.ui.dialogs.ListSelectionDialog;
 
 public class ListDialogueExample {
 
@@ -46,19 +46,22 @@ public class ListDialogueExample {
 
    public static void main(String[] args) {
 
-      Display display = new Display();
-      Shell shell = new Shell(display);
+//      Display display = new Display();
+//      Shell shell = new Shell(display);
 
-      ListSelectionDialog dialog =
-            new ListSelectionDialog(
-                  shell,
-                  new String[]{"aa", "bbb"},
-                  new MyContentProvider(),
-                  new MyLabelProvider(),
-                  "Select the resources to save:");
-      dialog.setInitialSelections(new Object[]{"1"});
-      dialog.setTitle("Save Resources");
-      dialog.open();
+//      ListSelectionDialog d = 
+//            new ListSelectionDialog
+//            
+//      ListSelectionDialog dialog =
+//            new ListSelectionDialog(
+//                  shell,
+//                  new String[]{"aa", "bbb"},
+//                  new MyContentProvider(),
+//                  new MyLabelProvider(),
+//                  "Select the resources to save:");
+//      dialog.setInitialSelections(new Object[]{"1"});
+//      dialog.setTitle("Save Resources");
+//      dialog.open();
    }
 
 }
