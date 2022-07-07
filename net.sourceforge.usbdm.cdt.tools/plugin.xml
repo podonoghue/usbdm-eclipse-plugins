@@ -1120,7 +1120,7 @@
             <option
                name="Other flags"
                id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.other"
-               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot;"
+               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot; -fstack-usage"
                category="net.sourceforge.usbdm.gnu.c.compiler.other"
                valueType="string">
             </option>
@@ -1651,7 +1651,7 @@
             <option
                name="Other flags"
                id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.other"
-               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot;"
+               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot; -fstack-usage"
                category="net.sourceforge.usbdm.gnu.cpp.compiler.other"
                valueType="string">
             </option>
