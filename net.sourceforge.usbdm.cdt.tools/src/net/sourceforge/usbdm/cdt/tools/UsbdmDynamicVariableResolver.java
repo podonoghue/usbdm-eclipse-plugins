@@ -23,7 +23,7 @@ public class UsbdmDynamicVariableResolver implements IDynamicVariableResolver {
       if (usbdmApplicationPath == null) {
          usbdmApplicationPath = new Path("USBDM APPLICATION PATH NOT FOUND");
       }
-      usbdmResourcePath = Usbdm.getApplicationPath();
+      usbdmResourcePath = Usbdm.getResourcePath();
       if (usbdmResourcePath == null) {
     	  usbdmResourcePath = new Path("USBDM RESOURCE PATH NOT FOUND");
       }
@@ -38,7 +38,7 @@ public class UsbdmDynamicVariableResolver implements IDynamicVariableResolver {
          return usbdmApplicationPath.toOSString();
       }
       if (variable.getName().equals(UsbdmSharedConstants.USBDM_RESOURCE_PATH_VAR)) {
-//	         System.err.println("UsbdmDynamicVariableResolver.resolveValue(usbdm_application_path) => " + usbdmApplicationPath.toOSString());
+//	         System.err.println("UsbdmDynamicVariableResolver.resolveValue(usbdm_resource_path) => " + usbdmApplicationPath.toOSString());
          return usbdmResourcePath.toOSString();
       }
       UsbdmSharedSettings usbdmSharedSettings = UsbdmSharedSettings.getSharedSettings();
