@@ -14,11 +14,12 @@ public class VariableProvider {
    private final String                fName;
    
    /** Device information associated with this provider */
-   private final DeviceInfo            fDeviceInfo;
+   protected final DeviceInfo            fDeviceInfo;
    
    /** Validators for variable changes */
    private final ArrayList<Validator>  fValidators = new ArrayList<Validator>();
 
+   private boolean suspended = true;
    
    protected final class KeyMaker implements IKeyMaker {
       
@@ -227,13 +228,43 @@ public class VariableProvider {
    public ArrayList<Validator> getValidators() {
       return fValidators;
    }
+   /**
+    * Sets whether variable changes are notified to listeners
+    * 
+    * @param suspend true to suspend notiofication
+    */
+   public void setSuspended(boolean suspend) {
+      suspended = suspend;
+   }
    
    public void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
       fDeviceInfo.setDirty(true);
+      if (suspended) {
+         return;
+      }
       for (Validator v:fValidators) {
          v.variableChanged(variable);
       }
    }
+   
+   /**
+    * Set editor dirty via deviceInfo
+    */
+   public void setDirty(boolean dirty) {
+      if (fDeviceInfo != null) {
+         fDeviceInfo.setDirty(dirty);
+      }
+   }
+   
+   /**
+    * Set editor dirty via deviceInfo
+    * @return 
+    */
+   public DeviceInfo getDeviceInfo() {
+      return fDeviceInfo;
+   }
+   
+
 
 }

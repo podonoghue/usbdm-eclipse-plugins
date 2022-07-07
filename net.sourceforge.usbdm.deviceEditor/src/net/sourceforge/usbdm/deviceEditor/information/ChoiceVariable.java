@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
@@ -287,6 +289,9 @@ public class ChoiceVariable extends Variable {
     * @return the choices
     */
    public String[] getChoices() {
+//      if (getName().startsWith("mcg_c7_oscsel")) {
+//         System.err.println("mcg_c7_oscsel.getData()");
+//      }
       if (fChoices == null) {
          fChoices = new String[fData.length];
          for (int index=0; index<fData.length; index++) {
@@ -353,6 +358,17 @@ public class ChoiceVariable extends Variable {
     */
    public void setData(ChoiceData[] entries) {
       this.fData = entries;
+      fChoices = null;
+   }
+   
+   /**
+    * @param entries The name/value entries to set
+    */
+   public void setData(ArrayList<ChoiceData> entries) {
+      fData = entries.toArray(new ChoiceData[entries.size()]);
+      fDefaultValue = null;
+      fValue = null;
+      fChoices = null;
    }
 
    @Override

@@ -24,13 +24,17 @@ public class SubstitutionMap implements ISubstitutionMap {
    
    @Override
    public String getSubstitutionValue(String key) {
-      return fMap.get(key);
-      }
+      String s =  fMap.get(key);
+//      if (s == null) {
+//         System.err.println("Symbol not found '"+key+"'");
+//      }
+      return s;
+   }
    
    @Override
    public String getDisplayValue(String key) {
       return getSubstitutionValue(key);
-      }
+   }
 
    @Override
    public void addValue(String key, String value) {

@@ -570,7 +570,12 @@ public class ParseFamilyCSV {
 				parseKeyLine(line);
 			}
 			else if (line[0].equalsIgnoreCase("Device")) {
-				fDeviceInfo.createDeviceInformation(line[1], line[2], line[3]);
+			   if (line.length<5) {
+			      fDeviceInfo.createDeviceInformation(line[1], line[2], line[3], "");
+			   }
+			   else {
+               fDeviceInfo.createDeviceInformation(line[1], line[2], line[3], line[4]);
+			   }
 			}
 			else if (line[0].equalsIgnoreCase("TargetDeviceSubFamily")) {
 				fDeviceInfo.setDeviceSubFamily(line[1]);

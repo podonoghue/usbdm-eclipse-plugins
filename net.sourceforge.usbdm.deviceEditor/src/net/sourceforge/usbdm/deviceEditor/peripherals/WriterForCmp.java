@@ -43,7 +43,7 @@ public class WriterForCmp extends PeripheralWithState {
       return NUMBER_OF_INPUTS+super.getSignalIndex(function, signalNames);
    }
 
-   static final String PIN_FORMAT   = "      %-25s = %-8s %s\n";
+   static final String PIN_FORMAT   = "         %-25s = %-8s %s\n";
    
    /**
     * Generate set of enum symbols and Types for CMP inputs that are mapped to pins.

@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import net.sourceforge.usbdm.deviceEditor.editor.BaseLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
@@ -21,22 +24,26 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of LLWU
  */
-public class WriterForLlwu extends PeripheralWithState {
+public class WriterForLlwu extends PeripheralWithState implements Customiser {
 
    /** Key used to save/restore identifier used for code generation */
    private final String PIN_MODE_KEY  = "$peripheral$"+getName()+"_pinMode";
+   
+   /** Contains list of peripherals that may be LLWU sources **/
+   private String[] peripherals = null;
 
    public enum LlwuPinMode {
-      LlwuPinMode_Disabled   ("Disabled",    0b00),      //!< Wake-up by pin change disabled
-      LlwuPinMode_RisingEdge ("RisingEdge",  0b01),    //!< Wake-up on pin rising edge
+      LlwuPinMode_Disabled   ("Disabled",    0b00),   //!< Wake-up by pin change disabled
+      LlwuPinMode_RisingEdge ("RisingEdge",  0b01),   //!< Wake-up on pin rising edge
       LlwuPinMode_FallingEdge("FallingEdge", 0b10),   //!< Wake-up on pin falling edge
-      LlwuPinMode_EitherEdge ("EitherEdge",  0b11);    //!< Wake-up on pin rising or falling edge
+      LlwuPinMode_EitherEdge ("EitherEdge",  0b11);   //!< Wake-up on pin rising or falling edge
       
       private final int      fValue;
       private final String   fName;
@@ -102,6 +109,7 @@ public class WriterForLlwu extends PeripheralWithState {
     * </pre> 
     * 
     * @param documentUtilities
+    * @throws Exception 
     * @throws IOException
     */
    @Override
@@ -111,79 +119,74 @@ public class WriterForLlwu extends PeripheralWithState {
       
       String enumName    = getClassName()+"Pin";
       String commentRoot = "///< ";
-      ArrayList<InfoTable> signalTables = getSignalTables();
       HashSet<String> usedEnumIdentifiers = new HashSet<String>();
       
       // Generate enums for llwu pin inputs (signals)
       StringBuffer sb = new StringBuffer();
-      for (InfoTable signalTable:signalTables) {
-         int index = -1;
-         for (Signal signal:signalTable.table) {
-            index++;
-            if (signal == null) {
-               continue;
-            }
-            if (signal == Signal.DISABLED_SIGNAL) {
-               continue;
-            }
-            MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
-            Pin pin = mappingInfo.getPin();
-            if (pin == Pin.UNASSIGNED_PIN) {
-               continue;
-            }
+      InfoTable signalTable = getUniqueSignalTable();
+      int index = -1;
+      for (Signal signal:signalTable.table) {
+         index++;
+         if (signal == null) {
+            continue;
+         }
+         if (signal == Signal.DISABLED_SIGNAL) {
+            continue;
+         }
+         MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
+         Pin pin = mappingInfo.getPin();
+         if (pin == Pin.UNASSIGNED_PIN) {
+            continue;
+         }
+         if (!pin.isAvailableInPackage()) {
+            continue;
+         }
+         // Found fixed or mapped pin
+         String trailingComment  = pin.getNameWithLocation();
+         String cIdentifier      = makeCTypeIdentifier(signal.getCodeIdentifier());
+         String pinName = enumName+"_"+prettyPinName(pin.getName());
+         String mapName = enumName+"_"+index;
+         if (mappingInfo.getMux() == MuxSelection.fixed) {
+            // Fixed pin mapping
+            trailingComment = "Fixed pin  "+trailingComment;
+         }
+         else {
+            trailingComment = "Mapped pin "+trailingComment;
+         }
+         trailingComment = commentRoot + trailingComment;
 
-            // Found fixed or mapped pin
-            String trailingComment  = pin.getNameWithLocation();
-            String cIdentifier      = makeCTypeIdentifier(signal.getCodeIdentifier());
-            String pinName = enumName+"_"+prettyPinName(pin.getName());
-            String mapName = enumName+"_"+index;
-            if (mappingInfo.getMux() == MuxSelection.fixed) {
-               // Fixed pin mapping
-               trailingComment = "Fixed pin  "+trailingComment;
+         // Default enum e.g.  "LlwuPin_Pta13 = LlwuPin_4, ///< Mapped pin PTA13(p29)"
+         sb.append(String.format(PIN_FORMAT, pinName, mapName+',', trailingComment));
+
+         if (!cIdentifier.isBlank()) {
+            String description = signal.getUserDescription();
+            String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
+            String constType = "const "+ type;
+            if (signal.getCreateInstance()) {
+               writeVariableDeclaration("", description, cIdentifier, constType, getPinMode(signal).toString(), pin.getNameWithLocation());
             }
             else {
-               trailingComment = "Mapped pin "+trailingComment;
+               writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
             }
-            trailingComment = commentRoot + trailingComment;
-            
-            // Default enum e.g.  "LlwuPin_Pta13 = LlwuPin_4, ///< Mapped pin PTA13(p29)"
-            sb.append(String.format(PIN_FORMAT, pinName, mapName+',', trailingComment));
-            
-            if (!cIdentifier.isBlank()) {
-               String description = signal.getUserDescription();
-               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
-               String constType = "const "+ type;
-               if (signal.getCreateInstance()) {
-                  writeVariableDeclaration("", description, cIdentifier, constType, getPinMode(signal).toString(), pin.getNameWithLocation());
-               }
-               else {
-                  writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
-               }
-               String enumIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
-               boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
-               if (inUse) {
-                  // Repeated value comment out
-                  enumIdentifier = "// "+enumIdentifier; 
-               }
-               sb.append(String.format(PIN_FORMAT, enumIdentifier, mapName+",", trailingComment));
+            String enumIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
+            boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
+            if (inUse) {
+               // Repeated value comment out
+               enumIdentifier = "// "+enumIdentifier; 
             }
+            sb.append(String.format(PIN_FORMAT, enumIdentifier, mapName+",", trailingComment));
          }
       }
       // Create or replace Input Pin Mapping variable as needed
       fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputPinMapping"), sb.toString(), true);
 
-      // Generate enums for llwu modules (peripherals) from configuration parameter
-//      String devices = getParam("device_list");
-      Variable devicesListVar = safeGetVariable(makeKey("device_list"));
-      
-      if (devicesListVar != null) {
-         String devices = devicesListVar.getValueAsString();
+      if (peripherals != null) {
+         // Generate enums for llwu modules (peripherals) from configuration parameter
          enumName    = getClassName()+"Peripheral";
          sb = new StringBuffer();
-         String[] deviceList = devices.split(";");
          int peripheralCount = 0;
-         for (String deviceNames:deviceList) {
-            if (!deviceNames.isBlank()) {
+         for (String deviceNames:peripherals) {
+            if ((deviceNames != null) && !deviceNames.isBlank()) {
                for (String deviceName:deviceNames.split("/")) {
                   String mapName    = enumName+"_"+peripheralCount;
                   String moduleName = makeCTypeIdentifier(enumName+"_"+prettyPinName(deviceName));
@@ -219,6 +222,7 @@ public class WriterForLlwu extends PeripheralWithState {
          fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputModuleMapping"), sb.toString(), true);
       }
    }
+   
    /**
     * Indicates mode for input
     * 
@@ -371,4 +375,84 @@ public class WriterForLlwu extends PeripheralWithState {
       return modifierEditingSupport;
    }
 
+   @Override
+   public void modifyPeripheral() throws Exception {
+      // Update list of devices
+      Variable devicesListVar = safeGetVariable(makeKey("device_list"));
+      if (devicesListVar != null) {
+         String devices = devicesListVar.getValueAsString();
+         if (!devices.isBlank() && !devices.equalsIgnoreCase("none")) {
+            peripherals = devices.split(";");
+            for (int index=0; index<peripherals.length; index++) {
+               String peripheralDescription = "Peripheral "+peripherals[index];
+               if (peripherals[index].isBlank()) {
+                  // No device for this slot
+                  peripherals[index] = null;
+                  peripheralDescription = "";
+               }
+               Variable meEntry = safeGetVariable(makeKey("llwu_me_wume"+index));
+               if (meEntry != null) {
+                  meEntry.setDescription(peripheralDescription);
+                  if (peripheralDescription.isBlank()) {
+                     meEntry.setHidden(true);
+                  }
+               }
+            }
+         }
+      }
+      
+      // Update list of pins
+      ArrayList<ChoiceData> choiceData = new ArrayList<ChoiceData>();
+      InfoTable signalTable = getUniqueSignalTable();
+      for (int index = 0; index<=31; index++) {
+         Variable peEntry = safeGetVariable(makeKey("llwu_pe"+((index/4)+1)+"_wupe"+index));
+         if (index<signalTable.table.size()) {
+            // peEntry MUST exists and needs to be modified or cleared
+            Signal signal = signalTable.table.get(index);
+            String pinName = null;
+            if ((signal != null) && (signal != Signal.DISABLED_SIGNAL)) {
+               final StringBuilder nameCollector = new StringBuilder();
+               TreeSet<MappingInfo> mapping = signal.getPinMapping();
+               mapping.forEach(new Consumer<MappingInfo>() {
+
+                  @Override
+                  public void accept(MappingInfo mapInfo) {
+                     Pin pin = mapInfo.getPin();
+                     if ((pin != Pin.UNASSIGNED_PIN) && pin.isAvailableInPackage()) {
+                        nameCollector.append(pin.getName());
+                     }
+                  }
+               });
+               if (!nameCollector.toString().isEmpty()) {
+                  pinName = "Pin " + nameCollector.toString();
+               }
+            }
+            if (pinName == null) {
+               // Input not used
+               peEntry.setHidden(true);
+            }
+            else {
+               // Input associated with pin
+               peEntry.setDescription(pinName);
+               ChoiceData entry = new ChoiceData(pinName, Integer.toString(index));
+               choiceData.add(entry);
+            }
+         }
+         else {
+            // peEntry MAY exists and needs to be cleared if so
+            if (peEntry != null) {
+               peEntry.setHidden(true);
+            }
+         }
+      }
+      for(int index=0; index<6; index++) {
+         ChoiceVariable filter = (ChoiceVariable) safeGetVariable(makeKey("llwu_filt"+index+"_filtsel"));
+         if (filter != null) {
+            filter.setData(choiceData);
+            filter.setValue(choiceData.get(0).name);
+            filter.setDisabledValue(choiceData.get(0).name);
+         }
+      }
+      fMenuData.prune();
+   }
 }

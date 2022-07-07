@@ -60,4 +60,10 @@ public class WriterForTrgmux extends PeripheralWithState {
       rv.add(fInfoTable);
       return rv;
    }
+   
+   @Override
+   public InfoTable getUniqueSignalTable() {
+      System.err.println("There is more than one signal table");
+      return fInfoTable;
+    }
 }

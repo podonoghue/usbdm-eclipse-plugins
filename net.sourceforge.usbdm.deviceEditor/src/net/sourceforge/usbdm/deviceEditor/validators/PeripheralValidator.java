@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -138,6 +139,49 @@ public class PeripheralValidator extends Validator {
       fIndex = 0;
    }
 
+   /**
+    * Create reference to a target variable by obtaining its name from given variable <br>
+    * The name of the target variable will be added to namesToWatch
+    *  
+    * @param indirectName  Name of StringVariable containing name of target LongVariable 
+    * @param namesToWatch  List of names of variables to be watched (may be null)
+    * 
+    * @return Target variable or null if indirectName variable doesn't exist
+    * 
+    * @throws Exception if target variable doesn't exist
+    */
+   protected LongVariable createLongVariableIndirectReference(String indirectName, ArrayList<String> namesToWatch) throws Exception {
+      
+      LongVariable reference = null;
+      StringVariable nameVar = safeGetStringVariable(indirectName);
+      if (nameVar != null) {
+         String targetName = nameVar.getValueAsString();
+         if (namesToWatch != null) {
+            namesToWatch.add(targetName);
+         }
+         reference = getLongVariable(targetName);
+      }
+      return reference;
+   }
+   
+   /**
+    * Create reference to a target by name <br>
+    * The name of the target variable will be added to namesToWatch
+    *  
+    * @param targetName    Name of Variable 
+    * @param namesToWatch  List of names of variables to be watched
+    * 
+    * @return Target variable or null if it doesn't exist
+    */
+   protected LongVariable createLongVariableReference(String targetName, ArrayList<String> namesToWatch) {
+      
+      LongVariable reference = safeGetLongVariable(targetName);
+      if ((reference != null) && (namesToWatch != null)) {
+         namesToWatch.add(targetName);
+      }
+      return reference;
+   }
+   
    @Override
    protected void createDependencies() throws Exception {
       // Assume no external dependencies

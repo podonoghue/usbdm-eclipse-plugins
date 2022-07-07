@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,20 +63,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       try {
          fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralVersionName(), this);
       } catch (Exception e) {
-         System.out.println("Warning: Failed to load model "+getPeripheralVersionName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
+         System.err.println("Warning: Failed to load model "+getPeripheralVersionName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
       }
       return fMenuData;
-//      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
-//         try {
-//            String className = v.getClassName();
-//            // Get validator class
-//            Class<?> clazz = Class.forName(className);
-//            PeripheralValidator validatorClass = (PeripheralValidator) clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass()).newInstance(this, v.getParams());
-//            addValidator(validatorClass);
-//         } catch (Exception e) {
-//            throw new Exception("Failed to add validator "+v.getClassName()+" for Peripheral " + getName(), e);
-//         }
-//      }
    }
 
    @Override
@@ -144,7 +135,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    /**
-    * Create variable containing the template-based C code to be included in<br>
+    * Add variable containing the template-based C code to be included in<br>
     * the peripheral class describing the peripheral<br>
     * 
     * <b>Example:</b>
@@ -157,7 +148,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception 
     */
    @Override
-   public void writeClassTemplate() {
+   public void addClassTemplates() {
       if (fMenuData == null) {
 //         System.err.println("No fData for " + getName());
          return;
@@ -183,6 +174,72 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
 
+   String expandTemplate(String key, ArrayList<TemplateInformation> fileTemplateList, ISubstitutionMap substitutionMap) {
+      // Final template after substitutions
+      StringBuffer sb = new StringBuffer();
+      for (TemplateInformation fileTemplate:fileTemplateList) {
+
+         // Check for dimension
+         int dimension = fileTemplate.getDimension();
+         if (dimension > 0) {
+            for (int index=0; index<dimension; index++) {
+               String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), new IndexKeyMaker(fKeyMaker, index));
+               sb.append(expandedTemplate);
+               //                     sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, new IndexKeyMaker(index)));
+            }
+         }
+         else {
+            String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), fKeyMaker);
+            sb.append(expandedTemplate);
+            //                  sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, fKeyMaker));
+         }
+      }
+      return sb.toString();
+   }
+   
+   /**
+    * Check if a template is OK to include in output code
+    * 
+    * @param key Key of template to check
+    * 
+    * @return true to include
+    */
+   protected boolean okTemplate(String key) {
+      return true;
+   }
+   
+   /**
+    * Add shared templates from peripheral
+    * @param sharedTemplates 
+    */
+   protected void updateSharedVariables(ISubstitutionMap substitutionMap, Map<String, String> sharedTemplates) {
+      if (fMenuData == null) {
+         return;
+      }
+      substitutionMap.addValue("_instance",   getInstance());       // FTM0 => 0
+      substitutionMap.addValue("_name",       getName());           // FTM0 => FTM0
+      substitutionMap.addValue("_class",      getClassName());      // FTM0 => Ftm0
+      substitutionMap.addValue("_base_class", getClassBaseName());  // FTM0 => Ftm
+
+      fMenuData.getTemplates().forEach(new BiConsumer<String, ArrayList<TemplateInformation>>() {
+
+         @Override
+         public void accept(String key, ArrayList<TemplateInformation> fileTemplateList) {
+            if (key.endsWith(".") || !MenuData.isKeyAbsolute(key) || !okTemplate(key)) {
+               // Skip unnamed or non-global templates
+               return;
+            }
+            
+            String t = expandTemplate(key, fileTemplateList, substitutionMap);
+            String existingTemplate = sharedTemplates.get(key);
+            if (existingTemplate != null) {
+               t = existingTemplate + t;
+            }
+            sharedTemplates.put(key, t);
+         }
+      });
+   }
+   
    /**
     * @param processProjectActions 
     * @param project
@@ -199,7 +256,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Add extra templates to symbol map before doing other substitutions
+    * Add named templates to symbol map before doing other substitutions <br>
+    * Absolute templates are skipped
     * 
     * @param substitutionMap  Map to symbols add to
     *  
@@ -216,35 +274,18 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          return substitutionMap;
       }
 
-      // Load any named templates
-      for (String key:fMenuData.getTemplates().keySet()) {
-         if (key.isEmpty() || key.endsWith(".")) {
-            // Discard unnamed templates
-            continue;
-         }
-         ArrayList<TemplateInformation> fileTemplateList = fMenuData.getTemplates().get(key);
+      fMenuData.getTemplates().forEach(new BiConsumer<String, ArrayList<TemplateInformation>>() {
 
-         // Final template after substitutions
-         StringBuffer sb = new StringBuffer();
-         for (TemplateInformation fileTemplate:fileTemplateList) {
-            
-            // Check for dimension
-            int dimension = fileTemplate.getDimension();
-            if (dimension > 0) {
-               for (int index=0; index<dimension; index++) {
-                  String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), new IndexKeyMaker(fKeyMaker, index));
-                  sb.append(expandedTemplate);
-//                  sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, new IndexKeyMaker(index)));
-               }
+         @Override
+         public void accept(String key, ArrayList<TemplateInformation> fileTemplateList) {
+            if (key.endsWith(".") || MenuData.isKeyAbsolute(key)) {
+               // Skip unnamed templates
+               return;
             }
-            else {
-               String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), fKeyMaker);
-               sb.append(expandedTemplate);
-//               sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, fKeyMaker));
-            }
-            substitutionMap.addValue(fKeyMaker.makeKey(key), sb.toString());
+            String t = expandTemplate(key, fileTemplateList, substitutionMap);
+            substitutionMap.addValue(fKeyMaker.makeKey(key), t);
          }
-      }
+      });
       return substitutionMap;
    }
    
@@ -506,7 +547,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param  requiredSignals Array of required signals as indices into the signal table
     * @param  table           Peripheral signal table to use
     * 
-    * @return Status Status if error or null if none
+    * Updates fStatus
     * 
     * @throws Exception
     */

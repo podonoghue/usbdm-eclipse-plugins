@@ -63,15 +63,15 @@ public class PllConfigure {
    }
 
    protected void validate(Variable mcg_erc_clockNode, 
-         Variable pllInputFrequencyNode, 
-         Variable system_mcgpllclk_clockVar, 
-         Variable mcg_c5_prdiv0Node, 
-         Variable mcg_c6_vdiv0Node ) {
+         Variable pll0InputFrequencyVar, 
+         Variable pll0OutputFrequencyVar, 
+         Variable mcg_c5_prdiv0Var, 
+         Variable mcg_c6_vdiv0Var ) {
 
       // Main clock used by FLL
       long mcg_erc_clock = mcg_erc_clockNode.getValueAsLong();
 
-      long pllTargetFrequency = system_mcgpllclk_clockVar.getRawValueAsLong();
+      long pllTargetFrequency = pll0OutputFrequencyVar.getRawValueAsLong();
 
 //      System.err.println(String.format("\nPllClockValidater.validate(): mcg_erc_clock = %d, pllTargetFrequency = %d", mcg_erc_clock, pllTargetFrequency));
 
@@ -137,26 +137,26 @@ public class PllConfigure {
          }
       }
       // Update with 'best value' - irrespective of whether they are acceptable
-      mcg_c5_prdiv0Node.setValue(mcg_prdiv);
-      mcg_c5_prdiv0Node.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_prdiv-1), Severity.OK));
-      mcg_c6_vdiv0Node.setValue(mcg_vdiv);
-      mcg_c6_vdiv0Node.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_vdiv-PLL_POST_DIV), Severity.OK));
+      mcg_c5_prdiv0Var.setValue(mcg_prdiv);
+      mcg_c5_prdiv0Var.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_prdiv-1), Severity.OK));
+      mcg_c6_vdiv0Var.setValue(mcg_vdiv);
+      mcg_c6_vdiv0Var.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_vdiv-PLL_POST_DIV), Severity.OK));
 
-      pllInputFrequencyNode.setValue(mcg_erc_clock/mcg_prdiv);
-      pllInputFrequencyNode.setOrigin("("+mcg_erc_clockNode.getOrigin()+")/mcg.c7.prdiv0");
-      system_mcgpllclk_clockVar.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
+      pll0InputFrequencyVar.setValue(mcg_erc_clock/mcg_prdiv);
+      pll0InputFrequencyVar.setOrigin("("+mcg_erc_clockNode.getOrigin()+")/mcg.c7.prdiv0");
+      pll0OutputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
 
       if (!pllInputValid) {
          String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]", 
                EngineeringNotation.convert(mcg_erc_clock,3),
                EngineeringNotation.convert(PLL_IN_MIN,3),EngineeringNotation.convert(PLL_IN_MAX,3));
          Status status = new Status(msg, Severity.WARNING);
-         pllInputFrequencyNode.setStatus(status);
+         pll0InputFrequencyVar.setStatus(status);
          pllStatus = status;
       }
       else {
-         // PLL in is valid
-         pllInputFrequencyNode.setStatus((Status)null);
+         // PLL-in is valid
+         pll0InputFrequencyVar.setStatus((Status)null);
 
          // Check PLL out
          StringBuilder status = new StringBuilder();
@@ -166,15 +166,14 @@ public class PllConfigure {
             status.append("Not possible to generate desired PLL frequency from input clock\n");
             severity = Severity.WARNING;
             // Update PLL in case it was approximated
+            pll0OutputFrequencyVar.setStatus(pllStatus);
          }
          else {
             // PLL Output valid
             if (pllTargetFrequency != nearest_PllOutFrequency) {
                // Update PLL as it was approximated
                pllTargetFrequency = nearest_PllOutFrequency;
-               if (system_mcgpllclk_clockVar.isEnabled()) {
-                  system_mcgpllclk_clockVar.setValue(pllTargetFrequency);
-               }
+               pll0OutputFrequencyVar.setValue(pllTargetFrequency);
             }
          }
          status.append("Possible values = \n");
@@ -193,6 +192,7 @@ public class PllConfigure {
          }
          pllStatus = new Status(status.toString(), severity);
       }
+      pll0OutputFrequencyVar.setStatus(pllStatus);
    }
 
    /**

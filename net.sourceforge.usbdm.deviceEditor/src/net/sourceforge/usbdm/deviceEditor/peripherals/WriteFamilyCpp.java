@@ -7,11 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -142,6 +145,25 @@ public class WriteFamilyCpp {
 
       DocumentationGroups groups = new DocumentationGroups(writer);
 
+      Collection<Peripheral> allperipherals = fDeviceInfo.getPeripherals().values();
+      
+      Map<String,String> sharedTemplates = new HashMap<String,String>();
+      for (Peripheral peripheral : allperipherals) {
+         if (peripheral instanceof PeripheralWithState) {
+            PeripheralWithState p = (PeripheralWithState) peripheral;
+            p.updateSharedVariables(fDeviceInfo.getVariablesSymbolMap(), sharedTemplates);
+         }
+      }
+      sharedTemplates.forEach(new BiConsumer<String, String>() {
+
+         @Override
+         public void accept(String key, String value) {
+//            System.err.println("Key   = " + key);
+//            System.err.println("Value = \n" + value);
+            fDeviceInfo.addOrUpdateStringVariable(key, key, value, true);
+         }
+      });
+      
       // Write these classes in order as they declare dependent information etc.
       ArrayList<Pattern> priorityClasses = new ArrayList<Pattern>();
       priorityClasses.add(Pattern.compile("GPIO.*"));
@@ -154,23 +176,21 @@ public class WriteFamilyCpp {
       priorityClasses.add(Pattern.compile("PMC"));
       
       for (Pattern pattern : priorityClasses) {
-         for (String peripheralName : fDeviceInfo.getPeripherals().keySet()) {
-            if (pattern.matcher(peripheralName).matches()) {
-               Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
+         for (Peripheral peripheral : allperipherals) {
+            if (pattern.matcher(peripheral.getName()).matches()) {
                writePeripheralInformationClass(writer, groups, peripheral);
             }
          }
       }
-      for (String peripheralName : fDeviceInfo.getPeripherals().keySet()) {
+      for (Peripheral peripheral : allperipherals) {
          boolean excluded = false;
          for (Pattern pattern : priorityClasses) {
-            if (pattern.matcher(peripheralName).matches()) {
+            if (pattern.matcher(peripheral.getName()).matches()) {
                excluded = true;
                break;
             }
          }
          if (!excluded) {
-            Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
             writePeripheralInformationClass(writer, groups, peripheral);
          }
       }
@@ -178,7 +198,7 @@ public class WriteFamilyCpp {
       writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.write("\n");
-      writer.flush();
+      writer.flush();     
    }
 
    /**
@@ -355,11 +375,11 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Create central pin mapping statements in variable <b>/HARDWARE/portInit</b>
+    * Create central pin mapping statements in variable <b>/HARDWARE/portInit</b><br>
     * 
-    * Adds two variables for code substitution:
-    *   HARDWARE_FILE_PORT_INIT_KEY          Contains PCR initialisation statements
-    *   HARDWARE_FILE_PORT_INIT_ERRORS_KEY   Contains PCR initialisation statement errors or warnings
+    * Adds two variables for code substitution:<br>
+    *   <li>HARDWARE_FILE_PORT_INIT_KEY          Contains PCR initialisation statements
+    *   <li>HARDWARE_FILE_PORT_INIT_ERRORS_KEY   Contains PCR initialisation statement errors or warnings
     *   
     * <pre>
     *    enablePortClocks(PORTA_CLOCK_MASK|...);
@@ -615,6 +635,8 @@ public class WriteFamilyCpp {
       writer.writeHeaderFileInclude("error.h");
       headerFile.write("\n");
 
+      createSignalDeclarationVariables();
+
       writePeripheralInformationClasses(writer);
 
       writeIncludes(writer);
@@ -622,8 +644,6 @@ public class WriteFamilyCpp {
       writeDocumentation(writer);
 
       writer.writeHeaderFilePostamble(PIN_MAPPING_BASEFILENAME + ".h");
-
-      createSignalDeclarationVariables();
 
       writer.close();
    }

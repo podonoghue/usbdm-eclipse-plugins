@@ -59,7 +59,7 @@ public class LongVariable extends Variable {
    
    @Override
    public String toString() {
-      return String.format("Variable(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
+      return String.format("Variable(Name=%s, key=%s, value=%s (%s)", getName(), getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    @Override

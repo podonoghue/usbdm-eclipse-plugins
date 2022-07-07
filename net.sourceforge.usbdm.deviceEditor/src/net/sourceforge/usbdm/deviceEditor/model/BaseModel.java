@@ -192,7 +192,7 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /**
-    * Add child node
+    * Add child node (unless hidden)
     * 
     * @param model
     */
@@ -587,5 +587,27 @@ public abstract class BaseModel implements Cloneable {
     */
    public boolean showAsLocked() {
       return (this instanceof EditableModel) && !canEdit();
+   }
+
+   /**
+    * Prune hidden children
+    */
+   public void prune() {
+      if (fChildren == null) {
+         return;
+      }
+      ArrayList<BaseModel> childrenToRemove = new ArrayList<BaseModel>();
+      for (Object child:fChildren) {
+         if (child instanceof BaseModel) {
+            BaseModel bm = (BaseModel) child;
+            bm.prune();
+            if (bm.isHidden()) {
+               childrenToRemove.add(bm);
+            }
+         }
+      }
+      for (BaseModel bm:childrenToRemove) {
+         removeChild(bm);
+      }
    }
 }

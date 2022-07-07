@@ -2,7 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 
-public class DevicePackageModel extends StringModel implements IModelChangeListener {
+public class DeviceNameModel extends StringModel implements IModelChangeListener {
 
    /**
     * Device package
@@ -10,8 +10,8 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
     * @param parent     Parent node
     * @param deviceInfo Device info used to construct the node
     */
-   public DevicePackageModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Package", "Device package for this variant", deviceInfo.getVariant().getPackage().getName());
+   public DeviceNameModel(BaseModel parent, DeviceInfo deviceInfo) {
+      super(parent, "Generic device Name", "Device name for this variant", deviceInfo.getVariant().getDeviceName());
       deviceInfo.addListener(this);
    }
 

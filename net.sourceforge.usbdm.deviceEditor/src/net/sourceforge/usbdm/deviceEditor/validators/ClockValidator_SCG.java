@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
@@ -126,9 +127,8 @@ public class ClockValidator_SCG extends BaseClockValidator {
             }
          }
       }
-      for (int index=0; index<fDimension; index++) {
-         fIndex = index;
-         validateClocks(variable, index);
+      for (int fIndex=0; fIndex<fDimension; fIndex++) {
+         validateClocks(variable);
       }
       initialisationDone = true;
       fIndex = 0;
@@ -139,11 +139,31 @@ public class ClockValidator_SCG extends BaseClockValidator {
     * @param index 
     * @throws Exception
     */
-   protected void validateClocks(Variable variable, int index) throws Exception {
+   protected void validateClocks(Variable variable) throws Exception {
 //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       super.validate(variable);
 
+      StringVariable clockConfig = safeGetStringVariable("ClockConfig");
+      clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
+
+      Variable     enableClockConfigurationVar      =  getVariable("enableClockConfiguration");
+      if (fIndex == 0) {
+         // Clock configuration 0 is always enables
+         if (enableClockConfigurationVar.isEnabled()) {
+            enableClockConfigurationVar.enable(false);
+            enableClockConfigurationVar.setToolTip("Clock configuration 0 must always be enabled");
+         }
+      }
+      else {
+         if (enableClockConfigurationVar.getValueAsBoolean()) {
+            clockConfig.enable(true);
+         }
+         else {
+            clockConfig.enable(false);
+         }
+      }
+      
       CategoryVariable  runModeSystemClocksVar         = (CategoryVariable) getVariable("runModeSystemClocks");
       CategoryVariable  alternativeModeSystemClocksVar = (CategoryVariable) getVariable("alternativeModeSystemClocks");
       

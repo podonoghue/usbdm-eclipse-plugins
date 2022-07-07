@@ -551,7 +551,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Creates model for displaying this variable
     * 
-    * @param parent Parent for the new model
+    * @param parent Parent for the new model (unless hidden)
     * 
     * @return {@link VariableModel}
     */

@@ -8,19 +8,12 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
  */
 public class WriterForAdc extends PeripheralWithState {      
-
-   @Override
-   public MenuData loadModels() throws Exception {
-      // TODO Auto-generated method stub
-      return super.loadModels();
-   }
 
    /** Signals that use this writer */
    protected InfoTable fDmFunctions = new InfoTable("InfoDM");
@@ -75,6 +68,9 @@ public class WriterForAdc extends PeripheralWithState {
          if (pin == Pin.UNASSIGNED_PIN) {
             continue;
          }
+         if (!pin.isAvailableInPackage()) {
+            continue;
+         }
          String cIdentifier = signal.getCodeIdentifier();
          if (cIdentifier.isBlank()) {
             continue;
@@ -116,6 +112,9 @@ public class WriterForAdc extends PeripheralWithState {
          Pin dpPin = dpSignal.getFirstMappedPinInformation().getPin();
          Pin dmPin = dmSignal.getFirstMappedPinInformation().getPin();
          if ((dpPin == Pin.UNASSIGNED_PIN) || (dmPin == Pin.UNASSIGNED_PIN)) {
+            continue;
+         }
+         if (!dpPin.isAvailableInPackage() || !dmPin.isAvailableInPackage()) {
             continue;
          }
          String dpIdentifier = dpSignal.getCodeIdentifier();
@@ -279,5 +278,12 @@ public class WriterForAdc extends PeripheralWithState {
          rv.add(fDmFunctions);
          return rv;
       }
+      
+      @Override
+      public InfoTable getUniqueSignalTable() {
+        System.err.println("There is more than one signal table");
+        return fInfoTable;
+      }
+     
 
    }

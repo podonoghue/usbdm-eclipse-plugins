@@ -48,7 +48,7 @@ public class TemplateInformation {
     */
    public void setIteration(String variable, String enumeration) throws Exception {
       if (fIterationDone) {
-         throw new Exception("Template already has iteration");
+         throw new Exception("Template iteration had already been set");
       }
       fIterationDone = true;
       fVariable    = variable.trim();
@@ -175,7 +175,7 @@ public class TemplateInformation {
          fText = text;
          return text;
       }
-      StringBuilder       sb   = new StringBuilder();
+      StringBuilder    sb   = new StringBuilder();
       ISubstitutionMap map  = new SubstitutionMap();
       fBuilder = null;
       String[] variables = fVariable.split("\\s*:\\s*");

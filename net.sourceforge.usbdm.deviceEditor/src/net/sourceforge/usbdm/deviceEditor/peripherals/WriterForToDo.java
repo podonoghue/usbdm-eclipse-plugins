@@ -56,6 +56,6 @@ public class WriterForToDo extends Peripheral {
    }
 
    @Override
-   public void writeClassTemplate() {
+   public void addClassTemplates() {
    }
 }

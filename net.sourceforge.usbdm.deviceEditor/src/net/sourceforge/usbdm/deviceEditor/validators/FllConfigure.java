@@ -119,8 +119,9 @@ class FllConfigure {
     * @param system_slow_irc_clock      [in]     Frequency of slow IRC
     * @param mcg_c7_oscsel              [in]     OSCSEL value used to constrain dividers
     * @param mcg_c4_dmx32Var            [in]     Affects input range accepted 
+    * @param fll_enabledVar             [in]     Indicates if FLL is in use
     * @param fllInputFrequencyVar       [in/out] Input to FLL
-    * @param system_mcgfllclk_clockVar  [out]    Output from FLL
+    * @param fllOutputFrequencyVar      [out]    Output from FLL
     * @param system_mcgffclk_clockVar   [out]    MCGFFCLK 
     * @param drst_drs_max               [in]     Maximum value for mcg_c4_drst_drs
     */
@@ -133,8 +134,9 @@ class FllConfigure {
          long           system_slow_irc_clock, 
          long           mcg_c7_oscsel, 
          boolean        mcg_c4_dmx32, 
+         final Variable fll_enabledVar,
          final Variable fllInputFrequencyVar, 
-         final Variable system_mcgfllclk_clockVar, 
+         final Variable fllOutputFrequencyVar, 
          final Variable system_mcgffclk_clockVar, 
          long           drst_drs_max) {
 
@@ -162,7 +164,7 @@ class FllConfigure {
       }
       fllInputFrequencyVar.setOrigin(fllInputOrigin);
       system_mcgffclk_clockVar.setOrigin(fllInputOrigin);
-      system_mcgfllclk_clockVar.setOrigin(fllOrigin+" via FLL");
+      fllOutputFrequencyVar.setOrigin(fllOrigin+" via FLL");
 
       if ((fllStatus != null) && (fllStatus.getSeverity().greaterThan(Severity.OK))) {
          // Invalid input
@@ -247,6 +249,7 @@ class FllConfigure {
          mcg_c4_drst_drs = 0;
          system_mcgffclk_clockVar.setValue(Math.round(nearestFrequency));
          system_mcgffclk_clockVar.setStatus((Status)null);
+         fllOutputFrequencyVar.setStatus(fllStatus);
          return;
       }
 
@@ -266,7 +269,7 @@ class FllConfigure {
 
       long fllOutFrequency = inputFrequency * (mcg_c4_dmx32?FLL_NARROW_FACTOR:FLL_WIDE_FACTOR);
 
-      Long fllTargetFrequency = system_mcgfllclk_clockVar.getRawValueAsLong();
+      Long fllTargetFrequency = fllOutputFrequencyVar.getRawValueAsLong();
 
       ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
       for (int probe=0; probe<=drst_drs_max; probe++) {
@@ -277,7 +280,7 @@ class FllConfigure {
          }         
       }
       StringBuilder sb       = new StringBuilder();
-      Severity      severity = Severity.OK;
+      Severity      severity = Severity.INFO;
       if (mcg_c4_drst_drs_calc >= 0) {
          // Adjust rounded value
          fllTargetFrequency = fllOutFrequency*(mcg_c4_drst_drs_calc+1);
@@ -299,9 +302,8 @@ class FllConfigure {
          sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
       }
       fllStatus = new Status (sb.toString(), severity);
-      if (system_mcgfllclk_clockVar.isEnabled()) {
-         system_mcgfllclk_clockVar.setValue(fllTargetFrequency);
-      }
+      fllOutputFrequencyVar.setValue(fllTargetFrequency);
+      fllOutputFrequencyVar.setStatus(fllStatus);
       mcg_c4_drst_drs = mcg_c4_drst_drs_calc;
    }
 

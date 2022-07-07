@@ -125,12 +125,21 @@ public abstract class Validator {
    }
 
    /**
-    * Get Variable from associated peripheral 
+    * Add a variable to provider
+    * 
+    * @param variable
+    */
+   protected void addVariable(Variable variable) {
+      fProvider.addVariable(variable);
+   }
+   
+   /**
+    * Get Variable from associated peripheral. <br> 
     * Tries to obtain an indexed variable or failing that an unindexed one.
     * 
     * @param key  Key to lookup variable
     * 
-    * @return variable or null if not found
+    * @return Variable or null if not found
     */
    protected Variable safeGetVariable(String key) {
       Variable variable = fProvider.safeGetVariable(fProvider.makeKey(key)+"["+fIndex+"]");
@@ -141,7 +150,8 @@ public abstract class Validator {
    }
    
    /**
-    * Get Variable from associated peripheral 
+    * Get Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one. 
     * 
     * @param key  Key to lookup variable
     * 
@@ -153,18 +163,19 @@ public abstract class Validator {
 
       Variable variable = safeGetVariable(key);
       if (variable == null) {
-         throw new Exception("Varible not  found");
+         throw new Exception("Variable not  found '"+ key + "'");
       }
       return variable;
    }
    
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Irq Variable from associated peripheral <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.  
     * 
     * @param key  Key to lookup variable
     * 
     * @return Variable found
-    * @throws Exception 
+    * @throws Exception if variable not found 
     */
    protected IrqVariable getIrqVariable(String key) throws Exception {
       Variable variable = getVariable(key);
@@ -175,7 +186,8 @@ public abstract class Validator {
    }
 
    /**
-    * Get String Variable from associated peripheral 
+    * Get Irq Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.  
     * 
     * @param key  Key to lookup variable
     * 
@@ -193,12 +205,14 @@ public abstract class Validator {
    }
 
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Boolean Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.   
     * 
     * @param key  Key to lookup variable
     * 
     * @return Variable found
-    * @throws Exception 
+    * 
+    * @throws Exception if variable not found 
     */
    protected BooleanVariable getBooleanVariable(String key) throws Exception {
       Variable variable = getVariable(key);
@@ -209,7 +223,8 @@ public abstract class Validator {
    }
 
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Boolean Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.   
     * 
     * @param key  Key to lookup variable
     * 
@@ -227,12 +242,14 @@ public abstract class Validator {
    }
 
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Choice Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.  
     * 
     * @param key  Key to lookup variable
     * 
     * @return Variable found
-    * @throws Exception 
+    * 
+    * @throws Exception if variable not found 
     */
    protected ChoiceVariable getChoiceVariable(String key) throws Exception {
       Variable variable = getVariable(key);
@@ -243,7 +260,8 @@ public abstract class Validator {
    }
 
    /**
-    * Get Choice Variable from associated peripheral 
+    * Get Choice Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.  
     * 
     * @param key  Key to lookup variable
     * 
@@ -265,8 +283,9 @@ public abstract class Validator {
     * 
     * @param key  Key to lookup variable
     * 
-    * @return
-    * @throws Exception 
+    * @return Variable found
+    * 
+    * @throws Exception if variable not found 
     */
    protected LongVariable getLongVariable(String key) throws Exception {
       Variable variable = getVariable(key);
@@ -277,11 +296,10 @@ public abstract class Validator {
    }
 
    /**
-    * Get Long Variable from associated peripheral 
+    * Get Long Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.
     * 
-    * @param key  Key to lookup variable
-    * 
-    * @return
+    * @return Variable found or null
     */
    protected LongVariable safeGetLongVariable(String key) {
       Variable variable = safeGetVariable(key);
@@ -301,7 +319,9 @@ public abstract class Validator {
     * 
     * @return
     * 
-    * @throws Exception 
+    * @return Variable found
+    * 
+    * @throws Exception if variable not found 
     */
    protected StringVariable getStringVariable(String key) throws Exception {
       Variable variable = getVariable(key);
@@ -316,7 +336,7 @@ public abstract class Validator {
     * 
     * @param key  Key to lookup variable
     * 
-    * @return
+    * @return Variable found or null
     */
    protected StringVariable safeGetStringVariable(String key) {
       Variable variable = safeGetVariable(key);
@@ -334,8 +354,9 @@ public abstract class Validator {
     * 
     * @param key  Key to lookup variable
     * 
-    * @return
-    * @throws Exception 
+    * @return Variable found
+    * 
+    * @throws Exception if variable not found 
     */
    protected DoubleVariable getDoubleVariable(String key) throws Exception {
       Variable variable = getVariable(key);
@@ -350,7 +371,7 @@ public abstract class Validator {
     * 
     * @param key  Key to lookup variable
     * 
-    * @return
+    * @return Variable found or null
     */
    protected DoubleVariable safeGetDoubleVariable(String key) {
       Variable variable = safeGetVariable(key);

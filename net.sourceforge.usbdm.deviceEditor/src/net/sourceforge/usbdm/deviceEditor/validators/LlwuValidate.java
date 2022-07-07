@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
-import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -59,7 +58,7 @@ public class LlwuValidate extends PeripheralValidator {
     * Tables are added to the following Peripheral Variables:
     *  <li>InputPeripherals
     */
-   private void doPeriperalNames() {
+   private void doPeripheralNames() {
       if (donePinNames) {
          return;
       }
@@ -93,18 +92,16 @@ public class LlwuValidate extends PeripheralValidator {
    public void validate(Variable variable) throws Exception {
       
       super.validate(variable);
-      doPeriperalNames();
+      doPeripheralNames();
       
       for (int index=0; index<8; index++) {
          // Filter variables
          ChoiceVariable   llwu_filt_filteVar     = safeGetChoiceVariable("llwu_filt"+index+"_filte");
-         LongVariable     llwu_filt_filtselVar   = safeGetLongVariable("llwu_filt"+index+"_filtsel");
+         ChoiceVariable   llwu_filt_filtselVar   = safeGetChoiceVariable("llwu_filt"+index+"_filtsel");
          if ((llwu_filt_filteVar != null) && ((variable == null) || (variable == llwu_filt_filteVar))) {
             llwu_filt_filtselVar.enable(llwu_filt_filteVar.getValueAsLong() != 0);
          }
       }
-//      // Warn if Rx and Tx signals not mapped
-//      validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
    }
    
    @Override

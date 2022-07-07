@@ -102,13 +102,10 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "device") {
-            String name        = element.getAttribute("name");
-            String manual      = element.getAttribute("manual");
-            String packageName = element.getAttribute("package");
-            fDeviceInfo.createDeviceInformation(name, manual, packageName);
+            fDeviceInfo.parseDeviceInformationXML(element);
          }
          else {
-            throw new Exception("Unexpected field in FAMILYT, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in FAMILY, value = \'"+element.getTagName()+"\'");
          }
       }
    }

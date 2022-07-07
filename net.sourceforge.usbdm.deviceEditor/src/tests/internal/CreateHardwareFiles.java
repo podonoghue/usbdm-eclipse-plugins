@@ -31,7 +31,7 @@ public class CreateHardwareFiles {
       String sourceName      = filepath.getFileName().toString();
       String destinationName = sourceName.replaceAll("(^.*)"+Pattern.quote(DeviceInfo.HARDWARE_CSV_FILE_EXTENSION)+"$", "$1"+DeviceInfo.HARDWARE_FILE_EXTENSION);
       
-      DeviceInfo deviceInfo = DeviceInfo.create(filepath);
+      DeviceInfo deviceInfo = DeviceInfo.createFromHardwareFile(filepath);
       
       Path xmlFilePath = xmlDirectory.resolve(destinationName);
       FamilyXmlWriter writer = new FamilyXmlWriter(deviceInfo);

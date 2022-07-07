@@ -16,6 +16,9 @@ public class ObservableModel implements ObservableModelInterface {
       if (!fListeners.contains(listener)) {
          fListeners.add(listener);
       }
+//      else {
+//         System.err.println("Listener "+ listener + " already in list");
+//      }
    }
 
    @Override

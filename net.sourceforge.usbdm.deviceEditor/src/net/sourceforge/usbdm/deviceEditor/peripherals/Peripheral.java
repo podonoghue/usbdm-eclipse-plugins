@@ -47,9 +47,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Name for default PCR value uses in Info classes */
    public static final String DEFAULT_PCR_VALUE_NAME = "defaultPcrValue";
 
-   /** Device information */
-   protected final DeviceInfo fDeviceInfo;
-   
    /** Base name of C peripheral class e.g. Ftm */
    private final String fClassBaseName;
    
@@ -164,7 +161,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       
       fBaseName       = baseName;
       fInstance       = instance;
-      fDeviceInfo     = deviceInfo;
       fIsConstType    = true;
       
       fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
@@ -784,6 +780,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * Default action is to create a declaration for the device itself.<br>
     * Overridden in some peripherals to add declarations for signals
+    * @throws Exception 
     */
    protected void writeDeclarations() {
       // Default action is to create a declaration for the device itself 
@@ -819,6 +816,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param hardwareIncludeFiles   Collects include files need for user declared objects (->hardware.h)
     * @param hardwareDeclarations   Collects declarations of user objects (->hardware.h)
     * @param hardwareDefinitions    Collects definitions of user objects (->hardware.cpp)
+    * @throws Exception 
     */
    final synchronized void createDeclarations(
          Set<String>       usedIdentifiers, 
@@ -961,6 +959,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return rv;
    }
    
+   /**
+    * Returns the single signal table <br>
+    * 
+    * @return The signal table
+    */
+   public InfoTable getUniqueSignalTable() {
+      return fInfoTable;
+   }
+   
    private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, INVALID_PCR,  (PcrValue)0          },\n";
    private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, UNMAPPED_PCR, (PcrValue)0          },\n";
    private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, FIXED_NO_PCR, (PcrValue)0          },\n";
@@ -975,7 +982,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       String indent = "";
       if (signalTable.getName() != INFO_TABLE_NAME) {
          // Write MACRO indicated extra Pin Table information
-         pinMappingHeaderFile.writeMacroDefinition("USBDM_"+(getClassName()+"_"+signalTable.getName()).toUpperCase()+"_IS_DEFINED");
+//         pinMappingHeaderFile.writeMacroDefinition("USBDM_"+(getClassName()+"_"+signalTable.getName()).toUpperCase()+"_IS_DEFINED");
 
          // Open static class wrapper
          pinMappingHeaderFile.write(String.format(
@@ -1094,7 +1101,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
 
       // Macro indicating presence of peripheral
-      pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED");
+//      pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED");
 
       pinMappingHeaderFile.writeDocBanner(
             "Peripheral information for " + getGroupTitle() + ".\n\n" + 
@@ -1113,7 +1120,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       // Additional, peripheral specific, information
       writeInfoConstants(pinMappingHeaderFile);
       
-      writeClassTemplate();
+      addClassTemplates();
       
       // Write PCR Table
       writeInfoTables(pinMappingHeaderFile);
@@ -1125,7 +1132,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       pinMappingHeaderFile.write(String.format("};\n\n"));
    }
 
-   public abstract void writeClassTemplate();
+   public abstract void addClassTemplates();
 
    /**
     * Indicate if the peripheral has some pins that <i><b>may be</b></i> mapped to a package location<br>
@@ -1227,19 +1234,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
      fVersion = version;
    }
 
-   /**
-    * @return the DeviceInfo
-    */
-   public DeviceInfo getDeviceInfo() {
-      return fDeviceInfo;
-   }
-
    public String getPcrValue(Signal y) {
       return "USBDM::DEFAULT_PCR";
    }
 
    // Indicates the peripheral has associated signals
-   boolean hasSignal = false;
+   boolean fHasSignal = false;
 
    /**
     * Class to hold peripheral to get signals from and a filter to select them
@@ -1337,7 +1337,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @return PeripheralSignalsModel containing signals or null if no signals are associated with this peripheral
     */
    public PeripheralSignalsModel createPeripheralSignalsModel(BaseModel parent) {
-      if (!hasSignal) {
+      if (!fHasSignal) {
          return null;
       }
       return new PeripheralSignalsModel(parent, this);
@@ -1351,7 +1351,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
     */
    public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter) {
-      hasSignal = true;
+      fHasSignal = true;
       if (peripheral == this) {
          // Don't add to self!
          return;
@@ -1369,7 +1369,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /**
     * Validate the signal to pin mapping
     * 
-    * @return Status Status if error or null if none
+    * Updates fStatus
     */
    public void validateMappedPins() {
       return;
@@ -1400,15 +1400,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return fCodeIdentifier;
    }
 
-   /**
-    * Set editor dirty via deviceInfo
-    */
-   public void setDirty(boolean dirty) {
-      if (fDeviceInfo != null) {
-         fDeviceInfo.setDirty(dirty);
-      }
-   }
-   
    /**
     * Set user identifier used for this peripheral in C code
     * 

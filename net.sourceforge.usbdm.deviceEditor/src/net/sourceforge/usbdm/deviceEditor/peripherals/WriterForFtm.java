@@ -62,6 +62,9 @@ public class WriterForFtm extends PeripheralWithState {
          if (cIdentifier.isBlank()) {
             continue;
          }
+         if (!pin.isAvailableInPackage()) {
+            continue;
+         }
          String trailingComment  = pin.getNameWithLocation();
          String type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          String constType = "const "+ type;
@@ -173,6 +176,12 @@ public class WriterForFtm extends PeripheralWithState {
       rv.add(fClkinSignals);
       return rv;
    }
+   
+   @Override
+   public InfoTable getUniqueSignalTable() {
+      System.err.println("There is more than one signal table");
+      return fInfoTable;
+    }
 
    @Override
    public void addLinkedSignals() {
@@ -183,6 +192,14 @@ public class WriterForFtm extends PeripheralWithState {
          }
          addSignal(signal);
       }
+   }
+
+   @Override
+   protected boolean okTemplate(String key) {
+      if (key.equalsIgnoreCase("/FTM/quadDeclarations")) {
+         return fQuadSignals.table.size()>0;
+      }
+      return super.okTemplate(key);
    }
 
 }

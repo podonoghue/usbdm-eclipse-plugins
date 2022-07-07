@@ -48,7 +48,7 @@ public class TestCreateCpp {
           * Process each input file
           */
          System.err.println("Processing " + filePath.getFileName() + " ======================== ");
-         DeviceInfo deviceInfo = DeviceInfo.create(filePath);
+         DeviceInfo deviceInfo = DeviceInfo.createFromHardwareFile(filePath);
          WriteFamilyCpp writer = new WriteFamilyCpp();
          writer.writeCppFiles(directory, deviceInfo);
       }

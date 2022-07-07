@@ -19,6 +19,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
     */
    public DeviceVariantModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Variant");
+      setSimpleDescription("Selected variant from this sub-family");
 
       fDeviceInfo = deviceInfo;
 

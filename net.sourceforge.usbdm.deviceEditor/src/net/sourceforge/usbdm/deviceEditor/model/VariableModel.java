@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.editor.CellEditorProvider;
@@ -94,7 +95,10 @@ public abstract class VariableModel extends EditableModel implements IModelChang
 
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
-      update();
+      StructuredViewer viewer = getViewer();
+      if (viewer != null) {
+         viewer.refresh(observableModel);
+      }
    }
 
    @Override
@@ -140,4 +144,10 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       model.fVariable.addListener(model);
       return model;
    }
+
+   @Override
+   public boolean isHidden() {
+      return super.isHidden() || ((fVariable != null) && fVariable.isHidden());
+   }
+   
 }

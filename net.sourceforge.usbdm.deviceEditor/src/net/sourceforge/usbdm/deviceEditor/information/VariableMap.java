@@ -64,12 +64,24 @@ public class VariableMap {
     * @return String for display or null if variable not found
     */
    public String getValueAsString(String key) {
+      String field = null;
+      int dotIndex = key.indexOf('.');
+      if (dotIndex>=0) {
+         field = key.substring(dotIndex+1);
+         key   = key.substring(0, dotIndex);
+      }
       Variable var = fMap.get(key);
       if (var == null) {
          return null;
       }
-      if (var.getValueAsString().startsWith("Don't")) {
-         System.err.print("Found " + var.getValueAsString());
+      if (field != null) {
+         if (field.equals("description")) {
+            return var.getDescription();
+         }
+         else if (field.equals("value")) {
+            return var.getValueAsString();
+         }
+         return null;
       }
       return var.getValueAsString();
    }
@@ -80,12 +92,24 @@ public class VariableMap {
     * @return String for text substitutions (in C code) or null if variable not found
     */
    public String getSubstitutionValue(String key) {
+      String field = null;
+      int dotIndex = key.indexOf('.');
+      if (dotIndex>=0) {
+         field = key.substring(dotIndex+1);
+         key   = key.substring(0, dotIndex);
+      }
       Variable var = fMap.get(key);
       if (var == null) {
          return null;
       }
-      if (var.getSubstitutionValue().startsWith("Don't")) {
-         System.err.print("Found " + var.getValueAsString());
+      if (field != null) {
+         if (field.equals("description")) {
+            return var.getDescription();
+         }
+         else if (field.equals("value")) {
+            return var.getSubstitutionValue();
+         }
+         return null;
       }
       return var.getSubstitutionValue();
    }

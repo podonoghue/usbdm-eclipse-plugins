@@ -15,6 +15,9 @@ public class StringVariable extends Variable {
    /** Default value of variable */
    protected String fDefault;
    
+   /** Default value of variable */
+   protected String fDisabledValue;
+   
    /**
     * Constructor
     * 
@@ -58,7 +61,7 @@ public class StringVariable extends Variable {
 
    @Override
    public String getValueAsString() {
-      return isEnabled()?getPersistentValue():fDefault;
+      return isEnabled()?getPersistentValue():fDisabledValue;
    }
 
    @Override
@@ -137,5 +140,7 @@ public class StringVariable extends Variable {
 
    @Override
    public void setDisabledValue(Object value) {
+      fDisabledValue = value.toString();
    }
+   
 }

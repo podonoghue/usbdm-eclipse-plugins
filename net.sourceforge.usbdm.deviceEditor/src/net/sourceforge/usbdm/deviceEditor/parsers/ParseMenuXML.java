@@ -32,6 +32,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.AliasPlaceholderModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.IndexedCategoryModel;
@@ -91,9 +92,17 @@ public class ParseMenuXML extends XML_BaseParser {
       private final ArrayList<ValidatorInformation>               fValidators;
       private final ProjectActionList                             fProjectActionList;
       
-      public MenuData(BaseModel model, Map<String, ArrayList<TemplateInformation>> fTemplateInfos, ArrayList<ValidatorInformation> validators, ProjectActionList projectActionList) {
+      /**
+       * Create Menu data for peripheral
+       * 
+       * @param model               Display model
+       * @param templateInfos       Associated templates (hashed by namespace and key)
+       * @param validators          Associated validators
+       * @param projectActionList   Associated action lists
+       */
+      public MenuData(BaseModel model, Map<String, ArrayList<TemplateInformation>> templateInfos, ArrayList<ValidatorInformation> validators, ProjectActionList projectActionList) {
          fRootModel  = model;
-         fTemplatesList  = fTemplateInfos;
+         fTemplatesList  = templateInfos;
          if (validators == null) {
             // Empty list rather than null
             fValidators = new ArrayList<ValidatorInformation>();
@@ -118,6 +127,19 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return key;
       }
+      
+      /**
+       * Indicates if the template key is absolute rather than relative to current peripheral
+       * Note a template key encodes both namespace and name
+       * 
+       * @param key  Key to check
+       * 
+       * @return True is absolute
+       */
+      static public boolean isKeyAbsolute(String key) {
+         return key.startsWith("/") && !key.endsWith(".");
+      }
+      
       /**
        * Get validators
        * 
@@ -185,6 +207,10 @@ public class ParseMenuXML extends XML_BaseParser {
       public void instantiateAliases(VariableProvider provider) throws Exception {
          ParseMenuXML.instantiateAliases(provider, fRootModel);
       }
+
+      public void prune() {
+         fRootModel.prune();
+      }
       
    }
 
@@ -194,7 +220,11 @@ public class ParseMenuXML extends XML_BaseParser {
    /** Peripheral to add vectors etc to */
    private PeripheralWithState fPeripheral;
 
-   /** Used to build the template */
+   /** 
+    * Templates being accumulated.
+    * This is a map using (key + namespace) as map key.
+    * Multiple matching templates are kept in a list rather than combined (to allow individual iteration). 
+    */
    private final Map<String, ArrayList<TemplateInformation>>  fTemplateInfos = new HashMap<String, ArrayList<TemplateInformation>>();
 
    /** Holds the validators found */
@@ -229,6 +259,17 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private Variable safeGetVariable(String key) {
       return fProvider.safeGetVariable(key);
+   }
+   
+   /**
+    * Removes a variable
+    * 
+    * @param variable  Variable to remove
+    * 
+    * @throws Exception if variable does not exist
+    */
+   private void removeVariable(Variable variable) {
+      fProvider.removeVariable(variable);
    }
    
    /**
@@ -279,6 +320,10 @@ public class ParseMenuXML extends XML_BaseParser {
       String  name = varElement.getAttribute("name");
       String  key  = varElement.getAttribute("key");
 
+      boolean replace = false;
+      if (varElement.hasAttribute("replace")) {
+         replace = Boolean.valueOf(varElement.getAttribute("replace"));
+      }
       String indexSuffix = "";
       indexSuffix = "["+Integer.toString(fIndex)+"]";
       if (key.isEmpty()) {
@@ -297,6 +342,11 @@ public class ParseMenuXML extends XML_BaseParser {
       
       Variable newVariable = null;
       Variable existingVariable = safeGetVariable(key);
+      if ((existingVariable != null) && replace) {
+         // Replacing existing variable - just delete the one found
+         removeVariable(existingVariable);
+         existingVariable = null;
+      }
       if (existingVariable == null) {
          // New variable
          try {
@@ -308,12 +358,14 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else {
          if (!existingVariable.getClass().equals(clazz)) {
-            throw new Exception("Overridden variable "+key+" has wrong type");
+            throw new Exception("Overridden variable "+existingVariable+" has wrong type");
+         }
+         if (!replace) {
+            System.out.println("Overriding variable " + existingVariable);
          }
          newVariable = existingVariable;
       }
       return newVariable;
-
    }
 
    /**
@@ -374,6 +426,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("description")) {
          variable.setDescription(varElement.getAttribute("description"));
       }
+      if (varElement.hasAttribute("default")) {
+         variable.setDefault(varElement.getAttribute("default"));
+      }
       if (varElement.hasAttribute("toolTip")) {
          variable.setToolTip(getToolTip(varElement));
       }
@@ -386,8 +441,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("disabledValue")) {
          // Value is used as disabled value
-         String value = varElement.getAttribute("disabledValue");
-         variable.setDisabledValue(value);
+         variable.setDisabledValue(varElement.getAttribute("disabledValue"));
       }
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
@@ -540,6 +594,11 @@ public class ParseMenuXML extends XML_BaseParser {
 
       variable.setValue(varElement.getAttribute("value"));
       parseChildModels(model, varElement);
+      if ((model.getChildren()==null)||(model.getChildren().size() == 0)) {
+         // Empty category - discard
+         parent.removeChild(model);
+         return;
+      }
    }
 
    private void parseIndexedCategoryOption(BaseModel parent, Element varElement) throws Exception {
@@ -557,6 +616,11 @@ public class ParseMenuXML extends XML_BaseParser {
       
       parseChildModels(indexedCategoryModel, varElement);
 
+      if (indexedCategoryModel.getChildren().size() == 0) {
+         // Empty category - discard
+         parent.removeChild(indexedCategoryModel);
+         return;
+      }
       for (int index=1; index<dimension; index++) {
          IndexedCategoryModel newModel = indexedCategoryModel.clone(parent, fProvider, index);
          if (newModel.getName() == indexedCategoryModel.getName()) {
@@ -822,6 +886,50 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   private void parseTemplate(Element element) throws Exception {
+      /**
+       * namespace:
+       *    class - Template is available in 
+       */
+      String nameAttr      = element.getAttribute("name");
+      String namespaceAttt = element.getAttribute("namespace");
+//      if (nameAttr.contains("declarations")) {
+//         System.err.println("Found "+nameAttr);
+//      }
+      if (namespaceAttt.isBlank()) {
+         throw new Exception("Template is missing namespace, name='" + nameAttr + "'");
+      }
+      if (!nameAttr.isBlank() && !namespaceAttt.equals("all")) {
+         throw new Exception("Named templates must have 'all' namespace, name='" + nameAttr + "'");
+      }
+      if (nameAttr.isBlank() && namespaceAttt.equals("all")) {
+         throw new Exception("Templates must be named in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
+      }
+      element.getNodeValue();
+      int dimension = (int)getLongAttributeWithSubstitution(element, "dim");
+      
+      TemplateInformation templateInfo = addTemplate(nameAttr, namespaceAttt, dimension);
+      for (Node node = element.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
+            templateInfo.addText(node.getTextContent());
+            continue;
+         }
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element childElement = (Element) node;
+         String  forTagName   = childElement.getTagName();
+         if (forTagName.equals("for")) {
+            parseForElement(childElement, templateInfo);
+         }
+         else {
+            throw new Exception("Unexpected child in <template>, value = \'"+forTagName+"\'");
+         }
+      }
+   }
+   
    /**
     * Parse element: <ul>
     *   <li> &lt;fragment&gt; referencing only elements below
@@ -853,43 +961,7 @@ public class ParseMenuXML extends XML_BaseParser {
          fValidators.add(parseValidate(element));
       }
       else if (tagName == "template") {
-         /**
-          * namespace:
-          *    class - Template is available in 
-          */
-         String nameAttr      = element.getAttribute("name");
-         String namespaceAttt = element.getAttribute("namespace");
-         
-         if (namespaceAttt.isEmpty()) {
-            throw new Exception("Template is missing namespace, name='" + nameAttr + "'");
-         }
-         if (!nameAttr.isEmpty() && !namespaceAttt.equals("all")) {
-            throw new Exception("Named templates must have 'all' namespace, name='" + nameAttr + "'");
-         }
-         element.getNodeValue();
-         long dimension = getLongAttributeWithSubstitution(element, "dim");
-         
-         TemplateInformation templateInfo = new TemplateInformation(nameAttr, namespaceAttt, (int)dimension);
-         addTemplate(templateInfo);
-         for (Node node = element.getFirstChild();
-               node != null;
-               node = node.getNextSibling()) {
-            if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-               templateInfo.addText(node.getTextContent());
-               continue;
-            }
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
-               continue;
-            }
-            Element childElement = (Element) node;
-            String  forTagName   = childElement.getTagName();
-            if (forTagName.equals("for")) {
-               parseForElement(childElement, templateInfo);
-            }
-            else {
-               throw new Exception("Unexpected child in <template>, value = \'"+forTagName+"\'");
-            }
-         }
+         parseTemplate(element);
       }
       else if (tagName == "projectActionList") {
          ProjectActionList pal = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
@@ -1078,9 +1150,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Add template<br>
-    * If the template exists then the text is appended otherwise it is created.<br>
-    * Some consistency checks are done if adding to existing template.
+    * Create and add template<br>
     * 
     * @param key        Key used to index template
     * @param namespace  Namespace for template (info, usbdm, class)
@@ -1089,9 +1159,11 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private TemplateInformation addTemplate(TemplateInformation templateInfo) throws Exception {
+   private TemplateInformation addTemplate(String name, String namespace, int dimension) throws Exception {
       
-      String key = MenuData.makeKey(templateInfo.getKey(), templateInfo.getNamespace());
+      TemplateInformation templateInfo = new TemplateInformation(name, namespace, dimension);
+
+      String key = MenuData.makeKey(name, namespace);
       ArrayList<TemplateInformation> templateList = fTemplateInfos.get(key);
       if (templateList == null) {
          templateList = new ArrayList<TemplateInformation>();
@@ -1203,9 +1275,8 @@ public class ParseMenuXML extends XML_BaseParser {
             var.setTrueValue(entries.get(1));
          }
          else if (variable instanceof ChoiceVariable) {      
-            ChoiceData theEntries[] = entries.toArray(new ChoiceData[entries.size()]);
             ChoiceVariable var = (ChoiceVariable)variable;
-            var.setData(theEntries);
+            var.setData(entries);
          }
          variable.setDefault(defaultValue);
          variable.setValue(defaultValue);
@@ -1532,8 +1603,14 @@ public class ParseMenuXML extends XML_BaseParser {
       
       ArrayList<Object> deletedChildren = new ArrayList<Object>();
       
+      if (parent.getName().startsWith("MCG")) {
+         System.err.println("Found "+parent.getName());
+      }
+      if (parent.getName().startsWith("USB PLL")) {
+         System.err.println("Found "+parent.getName());
+      }
       for (int index=0; index<children.size(); index++) {
-         Object model = children.get(index);
+         BaseModel model = (BaseModel) children.get(index);
          if (model instanceof AliasPlaceholderModel) {
             BaseModel newModel = createModelFromAlias(provider, parent, (AliasPlaceholderModel) model);
             if (newModel == null) {
@@ -1547,7 +1624,14 @@ public class ParseMenuXML extends XML_BaseParser {
             }
          }
          else {
-            instantiateAliases(provider, (BaseModel) model);
+            instantiateAliases(provider, model);
+            if ((model instanceof CategoryVariableModel) || (model instanceof CategoryModel)) {
+               if ((model.getChildren()==null)||(model.getChildren().isEmpty())) {
+                  // Empty category - prune
+                  parent.removeChild(model);
+                  return;
+               }
+            }
          }
       }
       // Remove deleted children

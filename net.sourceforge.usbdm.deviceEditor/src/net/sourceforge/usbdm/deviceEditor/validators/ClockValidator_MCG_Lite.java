@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
@@ -15,6 +17,12 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     mcg_mk
  */
 public class ClockValidator_MCG_Lite extends BaseClockValidator {
+
+   String         osc0_peripheralName       = null;
+   String         osc0_description          = null;
+   LongVariable   osc0_osc_clockVar         = null;
+   Variable       osc0_osc_cr_erclkenVar    = null;
+   Variable       osc0_oscillatorRangeVar   = null;
 
    public ClockValidator_MCG_Lite(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
@@ -43,82 +51,65 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
    }
 
    protected void validateClocks(Variable variable) throws Exception {
-      //      System.err.println(getSimpleClassName()+" Var = "+variable);
+//      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       super.validate(variable);
 
-     
+      // Fix enabling of clock configurations
+      StringVariable clockConfig = getStringVariable("ClockConfig");
+      clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
+
+      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
+      if (fIndex == 0) {
+         // Clock configuration 0 is always true to enable 1st clock configuration
+         enableClockConfigurationVar.setDefault(true);
+      }
+      clockConfig.enable(enableClockConfigurationVar.getValueAsBoolean());
+
       // C1
       //=================================
-      Variable mcg_c1_clksVar;
-      Variable mcg_c1_irclkenVar;
-      Variable mcg_c1_irefstenVar;
+      Variable mcg_c1_clksVar                   = getVariable("mcg_c1_clks");
+      Variable mcg_c1_irclkenVar                = getVariable("mcg_c1_irclken");
+      Variable mcg_c1_irefstenVar               = getVariable("mcg_c1_irefsten");
+                                       
       // C2
       //=================================
-      Variable mcg_c2_rangeVar;
-      Variable mcg_c2_ircsVar;
+      Variable mcg_c2_rangeVar                  = getVariable("mcg_c2_range");
+      Variable mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
+                                       
       // SC
       //=================================
-      Variable mcg_sc_fcrdivVar;
+      Variable mcg_sc_fcrdivVar        = safeGetVariable("mcg_sc_fcrdiv");
+                                       
       // MC
       //=================================
-      Variable mcg_mc_hircenVar;
-      Variable mcg_mc_lirc_div2Var;
+      Variable mcg_mc_hircenVar        = safeGetVariable("mcg_mc_hircen");
+      Variable mcg_mc_lirc_div2Var     = safeGetVariable("mcg_mc_lirc_div2");
+                                       
       // LIRC
       //=================================
-      Variable system_slow_irc_clockVar;
-      Variable system_fast_irc_clockVar;
-      Variable system_lirc_clockVar;
-      Variable system_lirc_div1_clockVar;
-      Variable system_mcgirclk_clockVar;
-      // Internal
+      Variable system_slow_irc_clockVar  = getVariable("system_slow_irc_clock");
+      Variable system_fast_irc_clockVar  = getVariable("system_fast_irc_clock");
+      Variable system_lirc_clockVar      = getVariable("system_lirc_clock");
+      Variable system_lirc_div1_clockVar = getVariable("system_lirc_div1_clock");
+      Variable system_mcgirclk_clockVar  = getVariable("system_mcgirclk_clock");
+                                       
+      // Internal (HIRC)
       //=================================
-      Variable system_irc48m_clockVar;
-      // Clocks and information from main oscillator
+      Variable system_irc48m_clockVar  = safeGetVariable("system_irc48m_clock");
+                                       
       //=================================
-      Variable osc_clockVar;
-      Variable osc_oscillatorRangeVar;
-      //=================================
-      Variable clock_modeVar;
-      //=================================
-      Variable system_mcgoutclk_clock_sourceVar;
-      Variable system_mcgoutclk_clockVar;
-      Variable system_mcgpclk_clockVar;
+      Variable clock_modeVar           = getVariable("clock_mode");
 
-      mcg_c1_clksVar                   = getVariable("mcg_c1_clks");
-      mcg_c1_irclkenVar                = getVariable("mcg_c1_irclken");
-      mcg_c1_irefstenVar               = getVariable("mcg_c1_irefsten");
-                                       
-      mcg_c2_rangeVar                  = getVariable("mcg_c2_range");
-      mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
-                                       
-      mcg_sc_fcrdivVar                 = safeGetVariable("mcg_sc_fcrdiv");
-                                       
-      mcg_mc_hircenVar                 = safeGetVariable("mcg_mc_hircen");
-      mcg_mc_lirc_div2Var              = safeGetVariable("mcg_mc_lirc_div2");
-                                       
-      system_slow_irc_clockVar         = getVariable("system_slow_irc_clock");
-      system_fast_irc_clockVar         = getVariable("system_fast_irc_clock");
-      system_lirc_clockVar             = getVariable("system_lirc_clock");
-      system_lirc_div1_clockVar        = getVariable("system_lirc_div1_clock");
-      system_mcgirclk_clockVar         = getVariable("system_mcgirclk_clock");
-                                       
-      system_irc48m_clockVar           = safeGetVariable("system_irc48m_clock");
-                                       
-      osc_clockVar                  = getVariable("/OSC0/osc_clock");
-      osc_oscillatorRangeVar           = getVariable("/OSC0/oscillatorRange");
-                                       
-      clock_modeVar                    = getVariable("clock_mode");
-
-      system_mcgoutclk_clock_sourceVar = getVariable("system_mcgoutclk_clock_source");
-      system_mcgoutclk_clockVar        = getVariable("system_mcgoutclk_clock");
-                                       
-      system_mcgpclk_clockVar          = getVariable("system_mcgpclk_clock");
+      //=================================
+      Variable system_mcgoutclk_clock_sourceVar = getVariable("system_mcgoutclk_clock_source");
+      Variable system_mcgoutclk_clockVar        = getVariable("system_mcgoutclk_clock");
+      Variable system_mcgpclk_clockVar          = getVariable("system_mcgpclk_clock");
       
-      long rangeIn = osc_oscillatorRangeVar.getValueAsLong();
+      long rangeIn = osc0_oscillatorRangeVar.getValueAsLong();
       if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {
          mcg_c2_rangeVar.enable(true);
-         mcg_c2_rangeVar.setValue(osc_oscillatorRangeVar.getValueAsLong());
+         mcg_c2_rangeVar.setValue(osc0_oscillatorRangeVar.getValueAsLong());
       }
       else {
          mcg_c2_rangeVar.enable(false);
@@ -176,8 +167,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c1_clksVar.setValue(2);
          mcg_c2_ircsVar.setLocked(false);
 
-         system_mcgoutclk_clockVar.setValue(osc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(osc_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(osc0_osc_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(osc0_osc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Status)null);
          system_mcgoutclk_clock_sourceVar.setValue("External Clock (OSCCLK)");
          break;
@@ -244,15 +235,32 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
    }
    
    @Override
-   public void createDependencies() throws Exception {
-      // Clock Mapping
-      //=================
-      final String   osc0_peripheral    = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+   protected void createDependencies() throws Exception {
 
-      final String externalVariables[] = {
-            osc0_peripheral+"/osc_clock",
-            osc0_peripheral+"/oscillatorRange",
+      //  MCG OSC0 input always exists
+      osc0_peripheralName        = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+      osc0_description           = getStringVariable("/SIM/osc0_description").getValueAsString();
+      osc0_osc_clockVar          = getLongVariable(osc0_peripheralName+"/osc_clock");
+      osc0_osc_cr_erclkenVar     = safeGetBooleanVariable(osc0_peripheralName+"/osc_cr_erclken");
+      osc0_oscillatorRangeVar    = safeGetVariable(osc0_peripheralName+"/oscillatorRange");
+      String externalVariables0[] = {
+            osc0_peripheralName+"/osc_clock",
+            osc0_peripheralName+"/osc_cr_erclken",
+            osc0_peripheralName+"/oscillatorRange",
       };
-      addToWatchedVariables(externalVariables);
+      addToWatchedVariables(externalVariables0);
+      for (fIndex=0; fIndex<fDimension; fIndex++) {
+         if (fIndex == 0) {
+            Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
+            // Clock configuration 0 is always true to enable 1st clock configuration
+            // Disable variable so user can't change it
+            enableClockConfigurationVar.setValue(true);
+            enableClockConfigurationVar.setDisabledValue(true);
+            enableClockConfigurationVar.enable(false);
+            enableClockConfigurationVar.setToolTip("Clock configuration 0 must always be enabled");
+            enableClockConfigurationVar.setDerived(true);
+         }
+      }
+      fIndex = 0;
    }
 }

@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
+import org.w3c.dom.Element;
 
 import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
@@ -36,6 +37,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Customiser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -104,6 +106,7 @@ import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
+import net.sourceforge.usbdm.peripheralDatabase.ModeControl;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public class DeviceInfo extends ObservableModel implements IModelEntryProvider, IModelChangeListener {
@@ -191,16 +194,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Create DeviceInfo from hardware file, either .csv or .usbdmHardware<br>
-    * Several locations will be searched for the file
+    * Create device hardware description from given file<br>
     * 
-    * @param filePath   Path to file
+    * @param filePath   Path to <b>.usbdmProject</b>, <b>.usbdmHardware</b> or <b>.csv</b> file
     * 
-    * @return DeviceInfo created
+    * @return Created hardware description for device
     * 
     * @throws Exception
     */
-   private static DeviceInfo createFromHardwareFile(Path filePath) throws Exception {
+   public static DeviceInfo createFromHardwareFile(Path filePath) throws Exception {
       
       String filename  = filePath.getFileName().toString();
       if (!filename.endsWith(HARDWARE_FILE_EXTENSION) &&
@@ -231,7 +233,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          throw new Exception("Cannot locate file "+ filePath);
       }
       DeviceInfo deviceInfo = new DeviceInfo();
-      deviceInfo.parse(filePath);
+      deviceInfo.load(filePath);
       return deviceInfo;
    }
    /**
@@ -284,33 +286,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (!Files.isReadable(hardwarePath)) {
          throw new Exception("Cannot locate file "+ hardwarePath);
       }
-      deviceInfo.parse(hardwarePath);
+      deviceInfo.load(hardwarePath);
       deviceInfo.loadSettings(device, projectSettings);
       return deviceInfo;
-   }
-
-   /**
-    * Create device hardware description from given file<br>
-    * 
-    * @param filePath   Path to <b>.usbdmProject</b>, <b>.usbdmHardware</b> or <b>.csv</b> file
-    * 
-    * @return Create hardware description for device
-    * 
-    * @throws Exception
-    */
-   public static DeviceInfo create(Path filePath) throws Exception {
-      
-      String filename  = filePath.getFileName().toString();
-
-      if (filename.endsWith(HARDWARE_FILE_EXTENSION)) {
-         return createFromHardwareFile(filePath);
-      }
-      else if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
-         return createFromHardwareFile(filePath);
-      }
-      else {
-         throw new RuntimeException("Unknown file type " + filePath);
-      }
    }
 
    /**
@@ -320,7 +298,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception
     */
-   private void parse(Path hardwarePath) throws Exception {
+   private void load(Path hardwarePath) throws Exception {
       System.out.println("DeviceInfo.parse(" + hardwarePath.getFileName().toString() + ")");
       fHardwarePath = hardwarePath;
       String filename = fHardwarePath.getFileName().toString();
@@ -361,15 +339,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          });
          // Construct peripherals
          for (PeripheralWithState p:peripheralWithStateList) {
-            if (p instanceof PeripheralWithState) {
-//               System.err.println("Constructing " + p);
-               ((PeripheralWithState) p).loadModels();
-            }
+            p.loadModels();
          }
          for (PeripheralWithState p:peripheralWithStateList) {
-            if (p instanceof PeripheralWithState) {
-               p.instantiateAliases();
-            }
+            p.instantiateAliases();
          }
       }
       else {
@@ -797,8 +770,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    Map<String, DevicePackage> fDevicePackages = new TreeMap<String, DevicePackage>();
 
    /**
-    * Create device package information
-    * Will create new package information if necessary
+    * Find device package information <br>
+    * Will create new empty package information if necessary
     * 
     * @param packageName
     * 
@@ -1415,7 +1388,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             throw new UsbdmException("Illegal device variant name "+ variantName);
          }
       }
-      DeviceLinkerInformation.addLinkerMemoryMap(getDeviceName(fVariantName), fVariables);
+      String deviceName = fVariantInformation.getDeviceName();
+      if ((deviceName == null) || deviceName.isBlank()) {
+         // Use legacy method
+         deviceName = getDeviceName(fVariantName);
+      }
+      DeviceLinkerInformation.addLinkerMemoryMap(deviceName, fVariables);
       setDirty(true);
    }
    
@@ -1440,16 +1418,17 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Create device variant information
     * 
-    * @param variantName   Device variant name e.g. MK20DN32VLH5, FRDM_K20D50M
-    * @param manual        Manual name e.g. K20P64M50SF0RM
-    * @param packageName   Package name e.g. LQFP_64
-    * 
+    * @param variantName      Device variant name e.g. MK20DN32VLH5, FRDM_K20D50M, MK28FN2M0CAU15R - Key
+    * @param manual           Manual reference e.g. K20P64M50SF0RM
+    * @param packageName      Package e.g. LQFP_64, QFN_32  - Identifies package pin information internally
+    * @param deviceName       Device name e.g. MK28FN2M0M15 - Used to obtain device information (linker etc)
+
     * @return class containing given information
     * @throws UsbdmException 
     */
-   public DeviceVariantInformation createDeviceInformation(String variantName, String manual, String packageName) throws UsbdmException {
+   public DeviceVariantInformation createDeviceInformation(String variantName, String manual, String packageName, String deviceName) throws UsbdmException {
       DeviceVariantInformation deviceInformation = 
-            new DeviceVariantInformation(variantName, findOrCreateDevicePackage(packageName), manual);
+            new DeviceVariantInformation(variantName, manual, findOrCreateDevicePackage(packageName), deviceName);
       fVariantInformationTable.put(variantName, deviceInformation);
 
       // TODO - check this
@@ -1683,7 +1662,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             subFamilyName = settings.get(USBDMPROJECT_OLD_SUBFAMILY_SETTING_KEY);
          }
          setDeviceSubFamily(subFamilyName);
-         
+
+         // Create dependencies between peripherals
+         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+            Peripheral peripheral =  entry.getValue();
+               ArrayList<Validator> validators = peripheral.getValidators();
+               for (Validator validator:validators) {
+//                  validator.createDependencies();
+                  validator.addDependencies();
+               }
+         }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
             pin.loadSettings(settings);
@@ -1695,6 +1683,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          for (String peripheralName:fPeripheralsMap.keySet()) {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             peripheral.loadSettings(settings);
+         }
+         // Customise peripherals with extra device information
+         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+            Peripheral peripheral =  entry.getValue();
+            if (peripheral instanceof Customiser) {
+               Customiser c = (Customiser)peripheral;
+               c.modifyPeripheral();
+            }
          }
          for (String key:settings.getKeys()) {
             Variable var   = fVariables.safeGet(key);
@@ -1725,16 +1721,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                addVariable(var);
             }
          }
-         // Create dependencies between peripherals
-         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
-            Peripheral peripheral =  entry.getValue();
-               ArrayList<Validator> validators = peripheral.getValidators();
-               for (Validator validator:validators) {
-//                  validator.createDependencies();
-                  validator.addDependencies();
-               }
-         }
-         
 //         System.err.println("Make sure peripherals have been updated");
          /*
           * Make sure critical peripherals have been updated in order first
@@ -1747,16 +1733,25 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "MCG",
                "SIM",
          };
+         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+            Peripheral peripheral =  entry.getValue();
+            if (peripheral instanceof PeripheralWithState) {
+               PeripheralWithState p = (PeripheralWithState) peripheral;
+               p.setSuspended(false);
+            }
+         }
          for (String name:criticalPeripherals) {
             Peripheral peripheral =  fPeripheralsMap.get(name);
             if (peripheral instanceof PeripheralWithState) {
-               ((PeripheralWithState)peripheral).variableChanged(null);
+               PeripheralWithState p = (PeripheralWithState) peripheral;
+               p.variableChanged(null);
             }
          }
          for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
             Peripheral peripheral =  entry.getValue();
             if (peripheral instanceof PeripheralWithState) {
-               ((PeripheralWithState)peripheral).variableChanged(null);
+               PeripheralWithState p = (PeripheralWithState) peripheral;
+               p.variableChanged(null);
             }
          }
 //       System.err.println("Notify changes of persistent variables");
@@ -1972,8 +1967,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       DevicePeripherals devicePeripherals = getDevicePeripherals();
       Path headerfilePath   = projectDirectory.resolve(UsbdmConstants.PROJECT_INCLUDE_FOLDER).resolve(devicePeripherals.getName()+".h");
       subMonitor.worked(10);
+      ModeControl.setUseNamesInFieldMacros(true);
       devicePeripherals.writeHeaderFile(headerfilePath, subMonitor.newChild(10));
-
+      
       // Generate pinmapping.h etc
       WriteFamilyCpp writer = new WriteFamilyCpp();
       writer.writeCppFiles(project, this, subMonitor.newChild(10));
@@ -2316,6 +2312,25 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       System.err.println("Unable to find device name for '" + variantName + "'");
       return variantName;
+   }
+
+   /**
+    * Create DeviceVariantInformation from XML element
+    * 
+    * @param element Element to parse e.g. <br>
+    * &lt;device variant="FRDM_K20D50M" manual="K20P64M50SF0RM" package="FRDM_K20D50M" deviceName="" />
+    * 
+    * @return DeviceVariantInformation created. 
+    * @throws UsbdmException 
+    * 
+    * @note Note DevicePackage may be created but will be empty if it did not previously exist.
+    */
+   public DeviceVariantInformation parseDeviceInformationXML(Element element) throws UsbdmException {
+      String variantName = element.getAttribute("variant");
+      String manual      = element.getAttribute("manual");
+      String packageName = element.getAttribute("package");
+      String deviceName  = element.getAttribute("deviceName");
+      return createDeviceInformation(variantName, manual, packageName, deviceName);
    }
 
 //   /**

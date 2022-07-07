@@ -52,6 +52,6 @@ public class WriterForNull extends Peripheral {
    }
 
    @Override
-   public void writeClassTemplate() {
+   public void addClassTemplates() {
    }
 }

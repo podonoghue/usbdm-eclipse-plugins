@@ -42,7 +42,7 @@ public class TestParseXML {
           */
          System.err.println("Processing " + filePath.getFileName() + " ======================== ");
          
-         DeviceInfo deviceInfo = DeviceInfo.create(filePath);
+         DeviceInfo deviceInfo = DeviceInfo.createFromHardwareFile(filePath);
 
 //         report(deviceInfo);
          

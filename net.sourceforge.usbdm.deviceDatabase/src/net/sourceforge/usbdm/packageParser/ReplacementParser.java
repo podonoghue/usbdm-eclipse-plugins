@@ -390,11 +390,18 @@ public class ReplacementParser {
       }
       index++;
       
-      key = fKeyMaker.makeKey(key);
-      
       String  replaceWith = null;
-      if (conditional) {
+      if (fSymbols==null) {
+         replaceWith = fKeyMaker.makeKey(key);
+      }
+      else {
          replaceWith = fSymbols.getSubstitutionValue(key);
+         key = fKeyMaker.makeKey(key);
+         if (replaceWith == null) {
+            replaceWith = fSymbols.getSubstitutionValue(key);
+         }
+      }
+      if (conditional) {
          if ((replaceWith == null) && fIgnoreUnknowns) {
             // Don't expand unknown symbol (yet)
             replaceWith = "$(?" + key;
@@ -420,14 +427,8 @@ public class ReplacementParser {
          }
       }
       else {
-         if (fSymbols == null) {
-            replaceWith = key;
-         }
-         else {
-            replaceWith = fSymbols.getSubstitutionValue(key);
-            if (replaceWith != null) {
-               replaceWith = replaceAll(replaceWith);
-            }
+         if (replaceWith != null) {
+            replaceWith = replaceAll(replaceWith);
          }
          if ((replaceWith == null) && fIgnoreUnknowns) {
             // Don't expand unknown symbol (yet)
@@ -444,11 +445,13 @@ public class ReplacementParser {
             replaceWith += ")";
          }
          else {
-            if (arg1 == null) {
-               arg1 = "Symbol '" + key + "' not found";
-            }
             if (replaceWith == null) {
                replaceWith = arg1;
+            }
+
+            if (replaceWith == null) {
+//               String xx = fSymbols.getSubstitutionValue(key);
+               replaceWith = "Symbol '" + key + "' not found";
             }
             if (arg2 != null) {
                if (arg2.equalsIgnoreCase("toupper")) {
