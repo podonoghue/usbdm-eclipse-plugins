@@ -326,7 +326,7 @@ public abstract class VectorTable extends ModeControl {
       writer.print(                       indenter+"</"+SVD_XML_Parser.INTERRUPTS_TAG+">\n\n");
    }
 
-   static final String INTERRUPT_BANNER            = "/* -------------------------  Interrupt Number Definition  ------------------------ */\n\n";
+   static final String INTERRUPT_BANNER            = "/* -------------------------  Interrupt Number Definitions  ------------------------ */\n\n";
    static final String INTERRUPT_PREAMBLE          = 
            "/**\n" +
             " * Interrupt vector numbers\n" +

@@ -564,7 +564,7 @@ public class DevicePeripherals extends ModeControl {
    }
 
    static final String HEADER_FILE_INTRO =
-         "/****************************************************************************************************//**\n"
+         "/*!\n"
                + " * @file     %s.h\n"
                + " *\n"
                + " * @brief    CMSIS Cortex-M Peripheral Access Layer Header File for %s.\n"
@@ -573,9 +573,11 @@ public class DevicePeripherals extends ModeControl {
                + " * @version  V%s\n"
                + " * @date     %s\n"
                + " *\n"
-               + " *******************************************************************************************************/\n"
+               + " */\n"
                + "\n"
-               + "#ifndef MCU_%s\n"
+               + "#ifndef _%s_H_\n"
+               + "#define _%s_H_\n"
+               + "\n"
                + "#define MCU_%s\n"
                + "\n"
                ;
@@ -796,7 +798,7 @@ public class DevicePeripherals extends ModeControl {
       writer.print(String.format(HEADER_FILE_INTRO, 
             getName(), 
             getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date), 
-            getName().toUpperCase(), getName().toUpperCase()));
+            getName().toUpperCase(), getName().toUpperCase(), getName().toUpperCase()));
       writer.print(String.format(COMMON_INCLUDES));
       writer.print(String.format(CPP_OPENING));
       ModeControl.clearMacroCache();

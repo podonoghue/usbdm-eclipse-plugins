@@ -132,6 +132,8 @@ public abstract class ArmVectorTable extends VectorTable {
 
       writeGroupPreamble(writer, "Interrupt_vector_numbers", "Interrupt vector numbers", "Vector numbers required for NVIC functions");
 
+      writer.write(String.format("#define NUMBER_OF_INT_VECTORS %s //<! Number of vector table entries\n", lastUsedEntry+1));
+      
       writer.write(INTERRUPT_BANNER);
       writer.write(INTERRUPT_PREAMBLE);
       writer.write(INTERRUPT_SEPARATOR);

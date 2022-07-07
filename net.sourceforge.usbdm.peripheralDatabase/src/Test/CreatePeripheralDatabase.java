@@ -559,7 +559,7 @@ public class CreatePeripheralDatabase {
       ModeControl.setFreescaleFieldNames(true);
       ModeControl.setMapFreescalePeriperalCommonNames(true);
       ModeControl.setGenerateFreescaleRegisterMacros(false);
-      ModeControl.setUseShiftsInFieldMacros(true);
+      ModeControl.setUseNamesInFieldMacros(true);
 
       // Don't optimise
       ModeControl.setExtractComplexStructures(false);
@@ -706,6 +706,7 @@ public class CreatePeripheralDatabase {
          ModeControl.setExtractSimpleRegisterArrays(false);
          ModeControl.setMapFreescalePeriperalCommonNames(false);
          ModeControl.setFoldRegisters(false);
+         ModeControl.setUseNamesInFieldMacros(true);
 
          // Header file generation options (use defaults)
 //         ModeControl.setGenerateFreescaleRegisterMacros(false);
@@ -770,7 +771,7 @@ public class CreatePeripheralDatabase {
          // Header file generation options
          ModeControl.setGenerateFreescaleRegisterMacros(false);
          ModeControl.setFreescaleFieldNames(true);
-         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseNamesInFieldMacros(true);
          ModeControl.setUseBytePadding(true);
          createHeaderFiles(usbdmFolder_2nd_Stage, usbdmHeaderFolder_2nd_Stage, true);
 
@@ -848,7 +849,7 @@ public class CreatePeripheralDatabase {
          // Header file generation options
          ModeControl.setFreescaleFieldNames(true);
          ModeControl.setGenerateFreescaleRegisterMacros(false);
-         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseNamesInFieldMacros(true);
          ModeControl.setUseBytePadding(true);
          createHeaderFiles(stage3Folder, resultHeaderFolder, false);
 
@@ -868,7 +869,7 @@ public class CreatePeripheralDatabase {
     */
    static void doHeaderFiles() {
       final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
-      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("InternalHeader.Check");
 
       try {
          // Turn of optimisation when generating header files
@@ -883,7 +884,7 @@ public class CreatePeripheralDatabase {
          // Header file generation options
          ModeControl.setGenerateFreescaleRegisterMacros(false);
          ModeControl.setFreescaleFieldNames(true);
-         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseNamesInFieldMacros(true);
          ModeControl.setUseBytePadding(true);
          createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, true);
 
@@ -900,13 +901,14 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) throws IOException {
       
-//    firstFileToProcess = ("^MK28.*");
-//    firstFileToReject  = ("^MK30.*");
+//    firstFileToProcess = ("^MKW41Z4.*");
+//    firstFileToReject  = ("^S32K148.*");
 
       System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 
+      doHeaderFiles();
 //      doInitialRegeneration();
-      doUsualRegeneration();
+//      doUsualRegeneration();
 //      try {
 //         createReducedDeviceList(MAIN_FOLDER.resolve("Raw"), MAIN_FOLDER.resolve("Raw.expanded"));
 //      } catch (Exception e) {

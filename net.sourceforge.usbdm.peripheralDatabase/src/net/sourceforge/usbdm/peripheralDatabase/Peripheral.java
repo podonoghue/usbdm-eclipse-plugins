@@ -2111,8 +2111,8 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    /**
-    *    Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers<br>
-    *    e.g. <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
+    *    Writes C code for Peripheral declaration. <br>This is a typedef for a STRUCT representing all the peripheral registers e.g.<br>
+    *    <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
     * 
     *    @param writer
     */

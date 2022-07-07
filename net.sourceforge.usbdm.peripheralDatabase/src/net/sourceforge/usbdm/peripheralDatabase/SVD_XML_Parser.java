@@ -549,6 +549,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       else {
          register.setDim(dimensionFromTag);
+         
          dim = Eval.eval(peripheral.getSimpleParameterMap().substitute(dimensionFromTag));
       }
       if (dim==0) {

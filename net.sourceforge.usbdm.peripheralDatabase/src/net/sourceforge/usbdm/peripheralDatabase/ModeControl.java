@@ -77,9 +77,9 @@ public class ModeControl {
    private static boolean foldRegisters = false;
 
    /**
-    * Whether to generate bit fields a simple numbers or used (1&lt;&lt;N) shifts
+    * Whether to use names for shifts and offsets in field macros <br>
     */
-   private static boolean useShiftsInFieldMacros = false;
+   private static boolean useNamesInFieldMacros = false;
 
    /**
     * Whether to do some intelligent hacks on the files produced.  This
@@ -711,26 +711,31 @@ public class ModeControl {
    }
    
    /**
-    * Indicates whether to use shifts in field macros
+    * Indicates whether to use names for shifts and offsets in field macros <br>
+    * <pre>
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;0U))&0x1FUL) //!&lt; ADC0_SC1.ADCH Field</pre>   
+    *   versus
+    * <pre>
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;ADC_SC1_ADCH_SHIFT))&ADC_SC1_ADCH_MASK) //!&lt; ADC0_SC1.ADCH Field</pre>   
     *  
     * @return the useShiftsInFieldMacros
     */
-   public static boolean isUseShiftsInFieldMacros() {
-      return useShiftsInFieldMacros;
+   public static boolean isUseNamesInFieldMacros() {
+      return useNamesInFieldMacros;
    }
 
    /**
-    * Sets whether to use shifts in field macros
+    * Sets whether to use names for shifts and offsets in field macros <br>
     * <pre>
-    * #define DEV_REG_MSK    (0x01UL &lt;&lt; DEV_REG_POS)
-    *   // versus
-    * #define DEV_REG_MASK   (0x80U)
-    * </pre>
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;0U))&0x1FUL) //!&lt; ADC0_SC1.ADCH Field</pre>   
+    *   versus
+    * <pre>
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;ADC_SC1_ADCH_SHIFT))&ADC_SC1_ADCH_MASK) //!&lt; ADC0_SC1.ADCH Field</pre>   
     *  
     * @param useShiftsInFieldMacros True to use shifts in field macros
     */
-   public static void setUseShiftsInFieldMacros(boolean useShiftsInFieldMacros) {
-      ModeControl.useShiftsInFieldMacros = useShiftsInFieldMacros;
+   public static void setUseNamesInFieldMacros(boolean useShiftsInFieldMacros) {
+      ModeControl.useNamesInFieldMacros = useShiftsInFieldMacros;
    }
 
    static final String groupPostamble =  

@@ -421,8 +421,8 @@ public class Register extends Cluster implements Cloneable {
    }
 
    /**
-    * Returns the description of the register
-    * Sanitised for use in C code
+    * Returns the description of the register <br>
+    * Sanitised for use in C code <br>
     * 
     * @param index   Used for %s index
     * 
@@ -431,6 +431,25 @@ public class Register extends Cluster implements Cloneable {
     */
    public String getCDescription() {
       return SVD_XML_BaseParser.unEscapeString(getDescription());
+   }
+
+   /**
+    * Returns the description of the register <br>
+    * Sanitised for use in C code <br>
+    * Description if truncated at first newline if present.
+    * 
+    * @param index   Used for %s index
+    * 
+    * @return        String description
+    * @throws Exception
+    */
+   public String getBriefCDescription() {
+      String s = SVD_XML_BaseParser.unEscapeString(getDescription());
+      int truncateAt = s.indexOf('\n');
+      if (truncateAt>0) {
+         s = s.substring(0, truncateAt);
+      }
+      return s;
    }
 
    /**
@@ -914,8 +933,11 @@ public class Register extends Cluster implements Cloneable {
    }
 
    static final String REGISTER_MACRO_PREFIX = 
-         "/* ------- %-40s ------ */\n";
+         "\n/*! @name %s - %s */\n";
 
+//   static final String REGISTER_MACRO_PREFIX = 
+//         "/* ------- %-40s ------ */\n";
+//
    private void writeFieldMacro(Writer writer, String prefix) throws Exception {
       for (Field field : fFields) {
          field.writeHeaderFileFieldMacros(writer, prefix);
@@ -951,7 +973,9 @@ public class Register extends Cluster implements Cloneable {
 //         return;
 //      }
       //      writer.write(String.format(registerMacroPrefix, getFormattedName(-1, peripheral, this, registerPrefix)));
-      writer.write(String.format(REGISTER_MACRO_PREFIX, getSimplifedName() + " Bit Fields"));
+//      writer.write(String.format(REGISTER_MACRO_PREFIX, getSimplifedName() + " Bit Fields"));
+      
+      writer.write(String.format(REGISTER_MACRO_PREFIX, getSimplifedName(), getBriefCDescription()));
       //      String registerPrefix = (isMapFreescaleCommonNames())?peripheral.getPrependToName()+"_":peripheral.getName()+"_";
       //      sortFields();
       //      for (Field field : fields) {
@@ -959,7 +983,6 @@ public class Register extends Cluster implements Cloneable {
       //      }
       //      return;
       sortFields();
-
       String formattedName = getFormattedName(-1, peripheral.getName(), this, registerPrefix);
       formattedName = String.format(formattedName, "");
       formattedName.replaceAll("\\[\\]", "");
