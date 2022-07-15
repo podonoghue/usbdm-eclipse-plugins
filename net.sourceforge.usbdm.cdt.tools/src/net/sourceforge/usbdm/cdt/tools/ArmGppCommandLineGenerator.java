@@ -15,6 +15,8 @@ public class ArmGppCommandLineGenerator extends GccCommandLineGenerator {
       UsbdmConstants.USBDM_GCC_DEBUG_OTHER_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_DEBUG_PROF_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_DEBUG_GPROF_OPTION_KEY,
+      UsbdmConstants.USBDM_GCC_DEBUG_STACK_USAGE_OPTION_KEY,
+      UsbdmConstants.USBDM_GCC_DEBUG_CALL_GRAPH_OPTION_KEY,
       
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY,         
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_PACKSTRUCTS_OPTION_KEY,   

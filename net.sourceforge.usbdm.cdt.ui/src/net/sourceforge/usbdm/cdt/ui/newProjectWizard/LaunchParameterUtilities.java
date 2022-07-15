@@ -34,7 +34,6 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.TwoPaneElementSelector;
 
-import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
@@ -348,7 +347,7 @@ public class LaunchParameterUtilities {
          }
       }
       if (folder == null) {
-         Activator.log("'Project_Settings' folder doesn't exist, creating launch config in root directory");
+         // Project_Settings' folder doesn't exist, creating launch config in root directory
          folder = project;
       }
       // Create launch file name e.g. project_debug_USBDM.launch
@@ -356,10 +355,10 @@ public class LaunchParameterUtilities {
 
       if (launchFile.exists()) {
 //         System.err.println("File " + launchFile + " already exists");
-         throw new Exception("Launch configuration \n\"" + launchFile.getName() + "\"\nalready exists");
+         throw new Exception("Launch configuration \"" + launchFile.getName() + "\" already exists");
       }
       // Try to get device name from existing project files
-      String         deviceName     = scrapeDeviceName(project);
+      String deviceName = scrapeDeviceName(project);
 
       // Ask user to select/confirm device
       DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, deviceName);

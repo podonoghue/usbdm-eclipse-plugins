@@ -232,6 +232,22 @@
                   name="Toolchain default"/>
          </option>
          <option
+               category="net.sourceforge.usbdm.cdt.toolchain.debug.category"
+               command="-fstack-usage"
+               defaultValue="false"
+               id="net.sourceforge.usbdm.cdt.toolchain.debug.stackUsage"
+               name="Generate stack usage information (-fstack-usage)"
+               valueType="boolean">
+         </option>
+         <option
+               category="net.sourceforge.usbdm.cdt.toolchain.debug.category"
+               command="-fcallgraph-info=su"
+               defaultValue="true"
+               id="net.sourceforge.usbdm.cdt.toolchain.debug.callGraph"
+               name="Generate call graph information (-fcallgraph-info=su)"
+               valueType="boolean">
+         </option>
+         <option
             category="net.sourceforge.usbdm.cdt.toolchain.debug.category"
             command="-p"
             id="net.sourceforge.usbdm.cdt.toolchain.debug.prof"
@@ -1120,7 +1136,7 @@
             <option
                name="Other flags"
                id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.other"
-               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot; -fstack-usage"
+               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot;"
                category="net.sourceforge.usbdm.gnu.c.compiler.other"
                valueType="string">
             </option>
@@ -1651,7 +1667,7 @@
             <option
                name="Other flags"
                id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.other"
-               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot; -fstack-usage"
+               defaultValue="-c -fmessage-length=0 -MT&quot;$@&quot;"
                category="net.sourceforge.usbdm.gnu.cpp.compiler.other"
                valueType="string">
             </option>

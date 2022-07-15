@@ -74,30 +74,6 @@ public class CreateLaunchConfigurationHandler implements IHandler {
       return  null;
    }
 
-//   void delme(IProject project, IBinary bin) {
-//      IPath path = bin.getPath();
-//      String buildName = path.segment(path.segmentCount());
-//      try {
-//         IBuildConfiguration x = project.getActiveBuildConfig();
-//      } catch (CoreException e1) {
-//         e1.printStackTrace();
-//      }
-//      ILaunchConfiguration launchConfiguration = (ILaunchConfiguration)bin.getAdapter(ILaunchConfiguration.class);
-//      try {
-//         ILaunchConfigurationType x = launchConfiguration.getType();
-//      } catch (CoreException e) {
-//         e.printStackTrace();
-//      }
-//      try {
-//         ICProject cProject = (ICProject) project.getAdapter(ICProject.class);
-//         for (IBuildConfiguration config:project.getBuildConfigs()) {
-//            System.err.println("IBuildConfiguration = "+config.getName());
-//         }
-//      } catch (CoreException e) {
-//         e.printStackTrace();
-//      }
-//   }
-   
    @Override
    public boolean isEnabled() {
       return true;

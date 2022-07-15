@@ -97,7 +97,7 @@ public class ProjectUtilities {
       IConfiguration[] configs = info.getManagedProject().getConfigurations();
       for (IConfiguration config : configs) {
          // Creates include folder path that is portable (e.g. rename project doesn't break paths)
-         String path = "\"${ProjDirPath}/" + project.getFolder(targetPath).getProjectRelativePath().toPortableString() + "\"";
+         String path = "\"../" + project.getFolder(targetPath).getProjectRelativePath().toPortableString() + "\"";
          
          IToolChain toolChain = config.getToolChain();
          setIncludePathOptionForConfig(path, config, toolChain.getOptions(), toolChain);
@@ -253,6 +253,16 @@ public class ProjectUtilities {
       cProject.setRawPathEntries(newEntries.toArray(new IPathEntry[newEntries.size()]), monitor);
    }
 
+   /**
+    *  Create folder
+    *  
+    * @param projectHandle Project being modified
+    * @param variableMap   Variable lookup
+    * @param action        Action to carry out  - Create folder
+    * @param monitor       Progress monitor
+    * 
+    * @throws Exception
+    */
    public static void createFolder(
          IProject             projectHandle, 
          ISubstitutionMap     variableMap, 
