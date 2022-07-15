@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ASCII"?>
+<fragment:ModelFragments xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:commands="http://www.eclipse.org/ui/2010/UIModel/application/commands" xmlns:fragment="http://www.eclipse.org/ui/2010/UIModel/fragment" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_BxaXACerEeWxCPrV0pAZQQ">
+  <imports xsi:type="application:Addon" xmi:id="_xjJf0P5YEey9Q_Ni90ga1A"/>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_QqSikIrOEeW7h_qdP9N9fw" featurename="commands" parentElementId="xpath:/">
+    <elements xsi:type="commands:Command" xmi:id="_F9ngQP5WEey9Q_Ni90ga1A" elementId="net.sourceforge.usbdm.utilities.command.EstimateStackUsage" commandName="Estimate Stack Usage"/>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_fW12kIrOEeW7h_qdP9N9fw" featurename="handlers" parentElementId="xpath:/">
+    <elements xsi:type="commands:Handler" xmi:id="_k2L0IIrOEeW7h_qdP9N9fw" elementId="net.sourceforge.usbdm.utilities.handler.EstimateStackUsage" contributionURI="bundleclass://net.sourceforge.usbdm.utilities/net.sourceforge.usbdm.utilities.handlers.EstimateStackUsageHandler" command="_F9ngQP5WEey9Q_Ni90ga1A">
+      <persistedState key="persistState" value="false"/>
+    </elements>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_pVgfIIrOEeW7h_qdP9N9fw" featurename="menuContributions" parentElementId="xpath:/">
+    <elements xsi:type="menu:MenuContribution" xmi:id="_tSwX0IrOEeW7h_qdP9N9fw" elementId="net.sourceforge.usbdm.utilities.menucontribution.0" positionInParent="after=additions" parentId="org.eclipse.ui.main.menu">
+      <persistedState key="persistState" value="false"/>
+      <children xsi:type="menu:Menu" xmi:id="_Z7gqsP5ZEey9Q_Ni90ga1A" elementId="net.sourceforge.usbdm.utilities.mainMenu.EstimateStackUsage" label="USBDM">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_bG4RoP5ZEey9Q_Ni90ga1A" elementId="net.sourceforge.usbdm.utilities.handledmenuitem.xxx" label="Estimate Stack Usage" iconURI="platform:/plugin/net.sourceforge.usbdm.utilities/icons/cog.png" command="_F9ngQP5WEey9Q_Ni90ga1A"/>
+      </children>
+    </elements>
+    <elements xsi:type="menu:MenuContribution" xmi:id="_BducUIrPEeW7h_qdP9N9fw" elementId="net.sourceforge.usbdm.utilities.menucontribution.1" positionInParent="after=additions" parentId="popup">
+      <persistedState key="persistState" value="false"/>
+      <children xsi:type="menu:Menu" xmi:id="_Cf2cEP5aEey9Q_Ni90ga1A" elementId="net.sourceforge.usbdm.utilities.popup" label="USBDM" iconURI="platform:/plugin/net.sourceforge.usbdm.utilities/icons/cog.png">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_sXvAUP5XEey9Q_Ni90ga1A" elementId="net.sourceforge.usbdm.utilities.popup.EstimateStackUsage" label="Estimate Stack Usage" iconURI="platform:/plugin/net.sourceforge.usbdm.utilities/icons/Sample.png" command="_F9ngQP5WEey9Q_Ni90ga1A"/>
+      </children>
+    </elements>
+  </fragments>
+</fragment:ModelFragments>

@@ -155,4 +155,11 @@ Non-derivative components are licensed under the GPL.
          version="1.0.0.qualifier"
          unpack="false"/>
 
+   <plugin
+         id="net.sourceforge.usbdm.utilities"
+         download-size="0"
+         install-size="0"
+         version="5.0.0.qualifier"
+         unpack="false"/>
+
 </feature>
