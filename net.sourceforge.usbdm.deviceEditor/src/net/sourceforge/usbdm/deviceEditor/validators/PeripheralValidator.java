@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -171,14 +172,50 @@ public class PeripheralValidator extends Validator {
     * @param targetName    Name of Variable 
     * @param namesToWatch  List of names of variables to be watched
     * 
-    * @return Target variable or null if it doesn't exist
+    * @return Target variable
     */
-   protected LongVariable createLongVariableReference(String targetName, ArrayList<String> namesToWatch) {
+   protected LongVariable safeCreateLongVariableReference(String targetName, ArrayList<String> namesToWatch) {
       
       LongVariable reference = safeGetLongVariable(targetName);
       if ((reference != null) && (namesToWatch != null)) {
          namesToWatch.add(targetName);
       }
+      return reference;
+   }
+   
+   /**
+    * Create reference to a target by name <br>
+    * The name of the target variable will be added to namesToWatch
+    *  
+    * @param targetName    Name of Variable 
+    * @param namesToWatch  List of names of variables to be watched
+    * 
+    * @return Target variable
+    * 
+    * @throws Exception if target variable doesn't exist
+    */
+   protected LongVariable createLongVariableReference(String targetName, ArrayList<String> namesToWatch) throws Exception {
+      
+      LongVariable reference = getLongVariable(targetName);
+      namesToWatch.add(targetName);
+      return reference;
+   }
+   
+   /**
+    * Create reference to a target by name <br>
+    * The name of the target variable will be added to namesToWatch
+    *  
+    * @param targetName    Name of Variable 
+    * @param namesToWatch  List of names of variables to be watched
+    * 
+    * @return Target variable
+    * 
+    * @throws Exception if target variable doesn't exist
+    */
+   protected BooleanVariable createBooleanVariableReference(String targetName, ArrayList<String> namesToWatch) throws Exception {
+      
+      BooleanVariable reference = getBooleanVariable(targetName);
+      namesToWatch.add(targetName);
       return reference;
    }
    

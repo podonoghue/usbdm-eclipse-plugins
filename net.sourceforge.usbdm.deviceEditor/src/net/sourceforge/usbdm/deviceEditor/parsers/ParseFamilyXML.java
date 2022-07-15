@@ -248,22 +248,29 @@ public class ParseFamilyXML extends XML_BaseParser {
                name = pathElements[pathElements.length-1];
             }
             PeripheralWithState periph = (PeripheralWithState) peripheral;
-            StringVariable var = new StringVariable(name, periph.makeKey(key));
-            var.setValue(value);
+            StringVariable var = new StringVariable(name, periph.makeKey(key), value);
+            var.setDefault(value);
             periph.addVariable(var);
             periph.addParam(key);
+//            if (key.equals(periph.makeKey("version"))) {
+//               // Override peripheral file
+//               version = value;
+//            }
          }
          else {
             throw new Exception("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
          }
       }
-      peripheral.setVersion(version);
+      if (!version.isBlank()) {
+         peripheral.setPeripheralVersion(version);
+      }
    }
 
    /**
-    * Parses document from top element
+    * Parses Device <b>xxx.usbdmHardware</b> document from top element
     * 
-    * @param deviceInfo 
+    * @param deviceInfo
+    *  
     * @return 
     * 
     * @throws Exception

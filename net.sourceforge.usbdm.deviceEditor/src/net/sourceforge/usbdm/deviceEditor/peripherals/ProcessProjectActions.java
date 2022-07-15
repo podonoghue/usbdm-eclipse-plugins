@@ -40,7 +40,7 @@ public class ProcessProjectActions {
     * 
     * @param projectHandle Project being manipulated
     * @param actionList    Actions to do
-    * @param symbolMap   Variables that may be needed
+    * @param symbolMap     Variables that may be needed
     * @param monitor       Progress monitor
     * 
     * @throws Exception

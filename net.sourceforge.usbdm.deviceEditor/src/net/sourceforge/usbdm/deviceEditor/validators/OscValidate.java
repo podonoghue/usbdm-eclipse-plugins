@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -76,8 +77,8 @@ public class OscValidate extends PeripheralValidator {
    private LongVariable     osc_input_freqVar              =  null;
 
    // Check if RTC has control of oscillator pins
-   private Variable rtcSharesPins_Var = safeGetVariable("/SIM/rtcSharesPins");
-   private Variable rtc_cr_osce_Var   = safeGetVariable("/RTC/rtc_cr_osce");
+   private boolean  rtcSharesPins           = false;
+   private BooleanVariable rtc_cr_osceVar   = null;
 
    public OscValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
@@ -93,15 +94,8 @@ public class OscValidate extends PeripheralValidator {
       super.validate(variable);
 
       // Check if RTC has control of oscillator pins
-      boolean rtcForcing = 
-            (rtcSharesPins_Var != null) &&
-            rtcSharesPins_Var.getValueAsBoolean() &&
-            (rtc_cr_osce_Var != null) &&
-            rtc_cr_osce_Var.getValueAsBoolean();
+      boolean rtcForcing = rtcSharesPins && rtc_cr_osceVar.getValueAsBoolean();
       
-      String  rangeOrigin  = "Unused";
-      int     range        = UNCONSTRAINED_RANGE;
-
       if (rtcForcing) {
          // RTC controlling XTAL pins
          Status rtcInUseMessage = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.WARNING);
@@ -109,14 +103,9 @@ public class OscValidate extends PeripheralValidator {
          oscillatorRangeVar.enable(false);
          oscillatorRangeVar.setStatus(rtcInUseMessage);
 
-//         osc_cr_erclkenVar.enable(false);
-//         osc_cr_erclkenVar.setStatus(rtcInUseMessage);
-//
-//         osc_cr_erefstenVar.enable(false);
-//         osc_cr_erefstenVar.setStatus(rtcInUseMessage);
-
          osc_cr_erefstenVar.enable(osc_cr_erclkenVar.getValueAsBoolean());
-         
+         osc_cr_erefstenVar.setStatus(rtcInUseMessage);
+
          osc_cr_scpVar.enable(false);
          osc_cr_scpVar.setStatus(rtcInUseMessage);
 
@@ -126,25 +115,30 @@ public class OscValidate extends PeripheralValidator {
          mcg_c2_hgo0Var.enable(false);
          mcg_c2_hgo0Var.setStatus(rtcInUseMessage);
 
-         rangeOrigin     = "Determined by RTC";
-         range           = 0;
+         oscillatorRangeVar.setValue(0);
+         oscillatorRangeVar.setOrigin("Determined by RTC");
+
+         osc_clockVar.setOrigin(osc32k_clockVar.getOrigin());
+         osc_clockVar.setStatus(osc32k_clockVar.getStatus());
+         osc_clockVar.setValue(osc32k_clockVar.getValueAsLong());
+         osc_clockVar.enable(true);
       }
       else {
+         String  rangeOrigin  = "Unused";
+         int     range        = UNCONSTRAINED_RANGE;
+
          // OSC controlling XTAL pins
 
          oscillatorRangeVar.enable(true);
          oscillatorRangeVar.clearStatus();
 
-//         osc_cr_erclkenVar.enable(true);
-//         osc_cr_erclkenVar.clearStatus();
-//
          osc_cr_erefstenVar.enable(osc_cr_erclkenVar.getValueAsBoolean());
-//         osc_cr_erefstenVar.clearStatus();
+         osc_cr_erefstenVar.clearStatus();
 
          mcg_c2_erefs0Var.enable(true);
          mcg_c2_erefs0Var.clearStatus();
 
-         osc_input_freqVar.clearStatus();
+//         osc_input_freqVar.clearStatus();
 
          String  oscclk_clockOrg = getPeripheral().getName();
          Status  oscclk_clockStatus = null;
@@ -202,26 +196,27 @@ public class OscValidate extends PeripheralValidator {
          osc_clockVar.setStatus(oscclk_clockStatus);
          osc_clockVar.setValue(oscclkOK?osc_input_freq:0);
          osc_clockVar.enable(oscclkOK);
-      }
-      oscillatorRangeVar.setValue(range);
-      oscillatorRangeVar.setOrigin(rangeOrigin);
+         
+         oscillatorRangeVar.setValue(range);
+         oscillatorRangeVar.setOrigin(rangeOrigin);
 
-      // Check suitability of OSC for OSC32KCLK
-      //=========================================
-      // Initially assume suitable
-      long    osc32kclk_clockFreq   = osc_clockVar.getValueAsLong();
-      Status  osc32kclk_clockStatus = osc_clockVar.getStatus();
-      String  osc32kclk_clockOrg    = osc_clockVar.getOrigin();
-      
-      if ((osc32kclk_clockFreq < EXTERNAL_EXTAL_RANGE1_MIN) || (osc32kclk_clockFreq > EXTERNAL_EXTAL_RANGE1_MAX)) {
-         if ((osc32kclk_clockStatus==null)||osc32kclk_clockStatus.lessThan(Severity.ERROR)) {
-            osc32kclk_clockStatus = new Status(OSCCLK32K_CLOCK_MSG, Severity.WARNING);
+         // Check suitability of OSC for OSC32KCLK
+         //=========================================
+         // Initially assume suitable
+         long    osc32kclk_clockFreq   = osc_clockVar.getValueAsLong();
+         Status  osc32kclk_clockStatus = osc_clockVar.getStatus();
+         String  osc32kclk_clockOrg    = osc_clockVar.getOrigin();
+         
+         if ((osc32kclk_clockFreq < EXTERNAL_EXTAL_RANGE1_MIN) || (osc32kclk_clockFreq > EXTERNAL_EXTAL_RANGE1_MAX)) {
+            if ((osc32kclk_clockStatus==null)||osc32kclk_clockStatus.lessThan(Severity.ERROR)) {
+               osc32kclk_clockStatus = new Status(OSCCLK32K_CLOCK_MSG, Severity.WARNING);
+            }
+            osc32kclk_clockOrg  = osc32kclk_clockOrg+"(invalid range for 32kHz clock)";
          }
-         osc32kclk_clockOrg  = osc32kclk_clockOrg+"(invalid range for 32kHz clock)";
+         osc32k_clockVar.setValue((osc32kclk_clockStatus != null)?0:osc32kclk_clockFreq);
+         osc32k_clockVar.setStatus(osc32kclk_clockStatus);
+         osc32k_clockVar.setOrigin(osc32kclk_clockOrg);
       }
-      osc32k_clockVar.setValue((osc32kclk_clockStatus != null)?0:osc32kclk_clockFreq);
-      osc32k_clockVar.setStatus(osc32kclk_clockStatus);
-      osc32k_clockVar.setOrigin(osc32kclk_clockOrg);
 
       // Determine OSCERCLK, OSCERCLK_UNDIV 
       //==================================
@@ -265,10 +260,11 @@ public class OscValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      ArrayList<String> externalVariablesList = new ArrayList<String>();
       
+      mcg_c2_erefs0Var               =  createBooleanVariableReference("/MCG/mcg_c2_erefs0", externalVariablesList);
+      mcg_c2_hgo0Var                 =  createBooleanVariableReference("/MCG/mcg_c2_hgo0", externalVariablesList);
       osc_cr_erclkenVar              =  getBooleanVariable("osc_cr_erclken");
-      mcg_c2_erefs0Var               =  getBooleanVariable("/MCG/mcg_c2_erefs0");
-      mcg_c2_hgo0Var                 =  getBooleanVariable("/MCG/mcg_c2_hgo0");
       osc_cr_scpVar                  =  getChoiceVariable("osc_cr_scp");
       osc_cr_erefstenVar             =  getVariable("osc_cr_erefsten");
       oscillatorRangeVar             =  getVariable("oscillatorRange");
@@ -285,14 +281,13 @@ public class OscValidate extends PeripheralValidator {
       osc_clockVar                   =  getLongVariable("osc_clock");
       osc_input_freqVar              =  getLongVariable("osc_input_freq");
 
-      rtcSharesPins_Var = safeGetVariable("/SIM/rtcSharesPins");
-      rtc_cr_osce_Var   = safeGetVariable("/RTC/rtc_cr_osce");
+      StringVariable rtcSharesPinsVar = safeGetStringVariable("/SIM/rtcSharesPins");
+      rtcSharesPins = (rtcSharesPinsVar != null) && rtcSharesPinsVar.getValueAsBoolean();
+
+      rtc_cr_osceVar                 =  createBooleanVariableReference("/RTC/rtc_cr_osce", externalVariablesList);
       
-      final String[] externalVariables = {
-            "/MCG/mcg_c2_erefs0",
-            "/MCG/mcg_c2_hgo0",
-            "/RTC/rtc_cr_osce",
-      };
+      String[] externalVariables     = externalVariablesList.toArray(new String[externalVariablesList.size()]);
+
       addToWatchedVariables(externalVariables);
    }
 }

@@ -151,6 +151,7 @@ public class LongVariable extends Variable {
     * @return String in appropriate form e.g. 24.56MHz
     */
    public String getValueAsString(long value) {
+      int sigDigits = 5;
       switch(getUnits()) {
       default:
       case None:
@@ -160,7 +161,19 @@ public class LongVariable extends Variable {
          return Long.toString(value);
       case s:
       case Hz:
-         return EngineeringNotation.convert(value, 5).toString()+getUnits().toString();
+         if (value <= 1) {
+            sigDigits = 1;
+         }
+         else if (value <= 10) {
+            sigDigits = 2;
+         }
+         else if (value <= 100) {
+            sigDigits = 3;
+         }
+         else if (value <= 1000) {
+            sigDigits = 4;
+         }
+         return EngineeringNotation.convert(value, sigDigits).toString()+getUnits().toString();
       }
    }
 

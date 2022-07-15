@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -31,6 +32,9 @@ import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 
 public class ParseFamilyCSV {
+
+   /** File name extension for hardware description file (CSV format) */
+   private static final String HARDWARE_CSV_FILE_EXTENSION = ".csv";
 
 	/** The parsed information */
 	private final DeviceInfo           fDeviceInfo;
@@ -430,9 +434,10 @@ public class ParseFamilyCSV {
 	}
 
 	/**
-	 * Parse file
+	 * Parse CSV file
 	 * 
-	 * @param reader
+	 * @param reader       Reader from CSV file
+	 * 
 	 * @throws Exception
 	 */
 	private void parseFile(BufferedReader reader) throws Exception {
@@ -490,6 +495,7 @@ public class ParseFamilyCSV {
 	 * @param line
 	 */
 	private void parseParamInfoLine(String[] line) {
+	   
 		if (!line[0].equalsIgnoreCase("Param")) {
 			return;
 		}
@@ -527,7 +533,13 @@ public class ParseFamilyCSV {
 		var.setValue(paramValue);
 		peripheral.addVariable(var);
 		
-		peripheral.addParam(paramKey);
+      if (paramKey.equals(peripheral.makeKey("version"))) {
+         // Override peripheral file
+         peripheral.setPeripheralVersion(paramValue);
+      }
+      else {
+         peripheral.addParam(paramKey);
+      }
 	}
 
 	/**
@@ -593,13 +605,21 @@ public class ParseFamilyCSV {
 	/**
 	 * Process file
 	 * 
-	 * @param filePath   File to process
+	 * @param filePath               File to process
+    * @param peripheralVersions     Accumulates peripheral versions
 	 * 
 	 * @return Class containing information from file
 	 * 
 	 * @throws IOException 
 	 */
-	public void parseFile(Path filePath) throws Exception {
+	public void parseFile(Path filePath, HashMap<String, HashSet<String>> peripheralVersions) throws Exception {
+      System.out.println("ParseFamilyCsv.parseFile(" + filePath.getFileName().toString() + ")");
+      
+      String filename = filePath.getFileName().toString();
+      if (!filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+         throw new Exception("Unexpected file type for " + filePath);
+      }
+      
 		// Open source file
 		BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
 		parsePreliminaryInformation(sourceFile);
@@ -615,6 +635,7 @@ public class ParseFamilyCSV {
 		// Information from device database
 		final DevicePeripherals fDevicePeripherals = fDeviceInfo.getDevicePeripherals();
 		System.out.println("SVD File = "+fDevicePeripherals.getSvdFilename());
+		
 		// Create map to allow peripheral lookup
 		final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> 
 		fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);
@@ -631,9 +652,36 @@ public class ParseFamilyCSV {
 				}
 				continue;
 			}
-			// Get peripheral version
-			peripheral.setVersion(dbPeripheral.getBasePeripheral().getSourceFilename().toLowerCase());
+			String version   = peripheral.getPeripheralVersionName();
+			String dbVersion = dbPeripheral.getBasePeripheral().getSourceFilename().toLowerCase();
+			
+			if ((version==null) && (dbVersion.startsWith("ftfe") || dbVersion.startsWith("ftfl"))) {
+            System.err.println("Flash version (size) should be explicitly given for'" + dbVersion + "'");
+			}
 
+			if ((version != null) && version.equals(dbVersion)) {
+            System.err.println("Unnecessary peripheral version '" + version + "'");
+         }
+         else if ((version != null) && !version.equals(dbVersion)) {
+            System.out.println("Not overriding peripheral version '" + version + "' with '" + dbVersion + "'");
+         }
+			else {
+   			// Set peripheral version from SVD file loaded
+			   version = dbVersion;
+	         if (dbVersion.startsWith("ftfe") || dbVersion.startsWith("ftfl") || dbVersion.startsWith("ftfa")) {
+	            System.out.println("Setting peripheral version '" + dbVersion + "'");
+	         }
+   			peripheral.setPeripheralVersion(dbVersion);
+			}
+			
+			// Add version to cumulative list
+			HashSet<String> listOfVersions = peripheralVersions.get(peripheral.getBaseName());
+			if (listOfVersions == null) {
+			   listOfVersions = new HashSet<String>();
+			   peripheralVersions.put(peripheral.getName(), listOfVersions);
+			}
+			listOfVersions.add(version);
+			
 			// Attach DMAMUX information from database
 			String[] dmaMuxInputs = dbPeripheral.getDmaMuxInputs();
 			if (dmaMuxInputs != null) {

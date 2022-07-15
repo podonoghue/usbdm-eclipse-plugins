@@ -35,6 +35,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.ErrorModel;
 import net.sourceforge.usbdm.deviceEditor.model.IndexedCategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
@@ -320,12 +321,10 @@ public class ParseMenuXML extends XML_BaseParser {
       String  name = varElement.getAttribute("name");
       String  key  = varElement.getAttribute("key");
 
-      boolean replace = false;
-      if (varElement.hasAttribute("replace")) {
-         replace = Boolean.valueOf(varElement.getAttribute("replace"));
-      }
-      String indexSuffix = "";
-      indexSuffix = "["+Integer.toString(fIndex)+"]";
+      boolean replace = varElement.hasAttribute("replace") && Boolean.valueOf(varElement.getAttribute("replace"));
+      boolean modify  = varElement.hasAttribute("modify") && Boolean.valueOf(varElement.getAttribute("modify"));
+      
+      String indexSuffix = "["+Integer.toString(fIndex)+"]";
       if (key.isEmpty()) {
          key = name;
       }
@@ -358,10 +357,10 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else {
          if (!existingVariable.getClass().equals(clazz)) {
-            throw new Exception("Overridden variable "+existingVariable+" has wrong type");
+            throw new Exception("Overridden variable\n   "+existingVariable.toString()+" has wrong type");
          }
-         if (!replace) {
-            System.out.println("Overriding variable " + existingVariable);
+         if (!modify) {
+            throw new Exception("Overriding variable without 'modify' attribute\n " + existingVariable);
          }
          newVariable = existingVariable;
       }
@@ -585,7 +584,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseStringOption(BaseModel parent, Element varElement) throws Exception {
       
       StringVariable variable = (StringVariable) createVariable(varElement, StringVariable.class);
-      parseCommonAttributes(parent, varElement, variable).getVariable();
+      parseCommonAttributes(parent, varElement, variable);
    }
 
    private void parseCategoryOption(BaseModel parent, Element varElement) throws Exception {
@@ -616,7 +615,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       parseChildModels(indexedCategoryModel, varElement);
 
-      if (indexedCategoryModel.getChildren().size() == 0) {
+      if ((indexedCategoryModel.getChildren() == null) || (indexedCategoryModel.getChildren().size() == 0)) {
          // Empty category - discard
          parent.removeChild(indexedCategoryModel);
          return;
@@ -1515,30 +1514,36 @@ public class ParseMenuXML extends XML_BaseParser {
       String tooltip = getToolTip(element);
       
       String tagName = element.getTagName();
-      if (tagName == "fragment") {
-         /*
-          * Parse fragment as if it was a continuation of the parent elements
-          * This handles fragments that just include a href include a <peripheralPage>
-          */
-         for (Node node = element.getFirstChild();
-               node != null;
-               node = node.getNextSibling()) {
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
-               continue;
+      try {
+         if (tagName == "fragment") {
+            /*
+             * Parse fragment as if it was a continuation of the parent elements
+             * This handles fragments that just include a href include a <peripheralPage>
+             */
+            for (Node node = element.getFirstChild();
+                  node != null;
+                  node = node.getNextSibling()) {
+               if (node.getNodeType() != Node.ELEMENT_NODE) {
+                  continue;
+               }
+               parsePage((Element) node);
             }
-            parsePage((Element) node);
          }
-      }
-      else if (tagName == "peripheralPage") {
-         fRootModel = new ParametersModel(null, name, tooltip);
-         parseSectionsOrOtherContents(fRootModel, element);
-      }
-      else if (tagName == "list") {
-         fRootModel = new ListModel(null, name);
-         parseSectionsOrOtherContents(fRootModel, element);
-      }
-      else {
-         throw new Exception("Expected <peripheralPage> or <list>");
+         else if (tagName == "peripheralPage") {
+            fRootModel = new ParametersModel(null, name, tooltip);
+            parseSectionsOrOtherContents(fRootModel, element);
+         }
+         else if (tagName == "list") {
+            fRootModel = new ListModel(null, name);
+            parseSectionsOrOtherContents(fRootModel, element);
+         }
+         else {
+            throw new Exception("Expected <peripheralPage> or <list>");
+         }
+      } catch (Exception e) {
+         new ErrorModel(fRootModel, "Parse Error", e.getMessage());
+         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
+         e.printStackTrace();
       }
    }
 
@@ -1599,20 +1604,14 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((parent == null) || (parent.getChildren()==null)) {
          return;
       }
-      ArrayList<Object> children = parent.getChildren();
-      
-      ArrayList<Object> deletedChildren = new ArrayList<Object>();
-      
-      if (parent.getName().startsWith("MCG")) {
-         System.err.println("Found "+parent.getName());
-      }
-      if (parent.getName().startsWith("USB PLL")) {
-         System.err.println("Found "+parent.getName());
-      }
+      ArrayList<BaseModel> children = parent.getChildren();
+      ArrayList<Object>    deletedChildren = new ArrayList<Object>();
+     
       for (int index=0; index<children.size(); index++) {
          BaseModel model = (BaseModel) children.get(index);
          if (model instanceof AliasPlaceholderModel) {
             BaseModel newModel = createModelFromAlias(provider, parent, (AliasPlaceholderModel) model);
+            // Note: createModelFromAlias() handles missing model errors
             if (newModel == null) {
                // Variable not found and model is optional - delete placeholder
                deletedChildren.add(model);
@@ -1628,8 +1627,7 @@ public class ParseMenuXML extends XML_BaseParser {
             if ((model instanceof CategoryVariableModel) || (model instanceof CategoryModel)) {
                if ((model.getChildren()==null)||(model.getChildren().isEmpty())) {
                   // Empty category - prune
-                  parent.removeChild(model);
-                  return;
+                  deletedChildren.add(model);
                }
             }
          }
@@ -1661,7 +1659,6 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) child;
-//         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
          parser.parsePage(element);
       }
       if (parser.fRootModel == null) {

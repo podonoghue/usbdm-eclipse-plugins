@@ -70,7 +70,7 @@ public class TabbedEditor implements IEditor {
       for (CTabItem c:fTabFolder.getItems()) {
          c.dispose();
       }
-      ArrayList<Object> children = fPeripheralPageModel.getChildren();
+      ArrayList<BaseModel> children = fPeripheralPageModel.getChildren();
       if ((children.size() == 1) && (children.get(0) instanceof TreeViewModel)) {
       }
       for (Object child:fPeripheralPageModel.getChildren()) {

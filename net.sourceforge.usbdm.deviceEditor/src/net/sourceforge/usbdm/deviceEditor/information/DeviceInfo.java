@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -192,11 +193,71 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    private DeviceInfo() {
       Variable.setDeviceInfo(this);
    }
+   
+   public static Path findFile(Path filePath) throws Exception {
+      Path resolvedPath = null;
+
+      try {
+         do {
+            // As is
+            if (Files.isReadable(filePath)) {
+               resolvedPath = filePath;
+               continue;
+            }
+            resolvedPath = filePath.toAbsolutePath();
+            if (Files.isReadable(resolvedPath)) {
+               continue;
+            }
+            if (!filePath.isAbsolute()) {
+               // Try default locations
+               // Debug location
+               resolvedPath = Paths.get("hardware").resolve(filePath);
+               if (Files.isReadable(resolvedPath)) {
+                  continue;
+               }
+               // USBDM installation
+               resolvedPath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(USBDM_HARDWARE_LOCATION).resolve(filePath);
+               if (Files.isReadable(resolvedPath)) {
+                  continue;
+               }
+               resolvedPath = null;
+            }
+         } while (false);
+      } catch (UsbdmException e) {
+         e.printStackTrace();
+      }
+      return resolvedPath;
+   }
+   
+   /**
+    * Create device hardware description from given file<br>
+    * 
+    * @param filePath            Path to <b>.csv</b> file
+    * @param peripheralVersions  Accumulates peripheral versions
+    * 
+    * @return Created hardware description for device
+    * 
+    * @throws Exception
+    */
+   public static DeviceInfo createFromCsvFile(Path filePath, HashMap<String, HashSet<String>> peripheralVersions) throws Exception {
+      
+      String filename  = filePath.getFileName().toString();
+      if (!filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+         throw new Exception("Incorrect file type"+ filePath);
+      }
+      Path resolvedPath = findFile(filePath);
+      if (resolvedPath == null) {
+         throw new Exception("Cannot locate file "+ filePath);
+      }
+      DeviceInfo deviceInfo = new DeviceInfo();
+      deviceInfo.loadHardwareDescriptionFromCsv(resolvedPath, peripheralVersions);
+      return deviceInfo;
+   }
 
    /**
     * Create device hardware description from given file<br>
     * 
-    * @param filePath   Path to <b>.usbdmProject</b>, <b>.usbdmHardware</b> or <b>.csv</b> file
+    * @param filePath   Path to <b>.usbdmHardware</b> file
     * 
     * @return Created hardware description for device
     * 
@@ -205,37 +266,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public static DeviceInfo createFromHardwareFile(Path filePath) throws Exception {
       
       String filename  = filePath.getFileName().toString();
-      if (!filename.endsWith(HARDWARE_FILE_EXTENSION) &&
-          !filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+      if (!filename.endsWith(HARDWARE_FILE_EXTENSION)) {
          throw new Exception("Incorrect file type"+ filePath);
       }
-
-      if (!filePath.isAbsolute()) {
-         // Try default locations
-         do {
-            // As is
-            Path path = filePath.toAbsolutePath();
-            if (Files.isReadable(path)) {
-               filePath = path;
-               continue;
-            }
-            // Debug location
-            path = Paths.get("hardware").resolve(filePath);
-            if (Files.isReadable(path)) {
-               filePath = path;
-               continue;
-            }
-            // USBDM installation
-            filePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(USBDM_HARDWARE_LOCATION).resolve(filePath);
-         } while (false);
-      }
-      if (!Files.isReadable(filePath)) {
+      Path resolvedPath = findFile(filePath);
+      if (resolvedPath == null) {
          throw new Exception("Cannot locate file "+ filePath);
       }
       DeviceInfo deviceInfo = new DeviceInfo();
-      deviceInfo.load(filePath);
+      deviceInfo.loadHardwareDescription(resolvedPath);
       return deviceInfo;
    }
+   
    /**
     * Create device hardware description from settings file
     * @param device 
@@ -286,27 +328,37 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (!Files.isReadable(hardwarePath)) {
          throw new Exception("Cannot locate file "+ hardwarePath);
       }
-      deviceInfo.load(hardwarePath);
+      deviceInfo.loadHardwareDescription(hardwarePath);
       deviceInfo.loadSettings(device, projectSettings);
       return deviceInfo;
    }
 
    /**
-    * Load hardware description from file
+    * Load hardware description from file (.csv)
+    * 
+    * @param hardwarePath  Path to load from
+    * @param peripheralVersions     Accumulates peripheral versions
+    * 
+    * @throws Exception
+    */
+   private void loadHardwareDescriptionFromCsv(Path hardwarePath, HashMap<String, HashSet<String>> peripheralVersions) throws Exception {
+      fHardwarePath = hardwarePath;
+      ParseFamilyCSV parser = new ParseFamilyCSV(this);
+      parser.parseFile(hardwarePath, peripheralVersions);
+   }
+
+   /**
+    * Load hardware description from file (.usbdmHardware)
     * 
     * @param hardwarePath  Path to load from
     * 
     * @throws Exception
     */
-   private void load(Path hardwarePath) throws Exception {
+   private void loadHardwareDescription(Path hardwarePath) throws Exception {
       System.out.println("DeviceInfo.parse(" + hardwarePath.getFileName().toString() + ")");
       fHardwarePath = hardwarePath;
       String filename = fHardwarePath.getFileName().toString();
-      if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
-         ParseFamilyCSV parser = new ParseFamilyCSV(this);
-         parser.parseFile(fHardwarePath);
-      }
-      else if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
+      if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
          ParseFamilyXML parser = new ParseFamilyXML();
          parser.parseFile(this, fHardwarePath);
 

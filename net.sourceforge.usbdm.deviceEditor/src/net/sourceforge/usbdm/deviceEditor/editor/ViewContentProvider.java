@@ -6,7 +6,6 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
 
 public class ViewContentProvider implements ITreeContentProvider {
    public void inputChanged(Viewer v, Object oldInput, Object newInput) {
@@ -18,16 +17,33 @@ public class ViewContentProvider implements ITreeContentProvider {
 
    @Override
    public Object[] getElements(Object inputElement) {
-      ArrayList<Object> children = ((TreeViewModel) inputElement).getChildren();
+      ArrayList<BaseModel> children = ((BaseModel) inputElement).getChildren();
       if (children == null) {
          return new Object[0];
       }
-      return children.toArray();
+      ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
+      for (BaseModel child:children) {
+         if (!child.isHidden()) {
+            visibleChildren.add(child);
+         }
+      }
+      return visibleChildren.toArray();
+   
    }
 
    @Override
    public Object[] getChildren(Object parentElement) {
-      return ((BaseModel) parentElement).getChildren().toArray();
+      ArrayList<BaseModel> children = ((BaseModel) parentElement).getChildren();
+      if (children == null) {
+         return new Object[0];
+      }
+      ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
+      for (BaseModel child:children) {
+         if (!child.isHidden()) {
+            visibleChildren.add(child);
+         }
+      }
+      return visibleChildren.toArray();
    }
 
    @Override

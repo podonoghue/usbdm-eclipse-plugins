@@ -17,13 +17,35 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
  */
 public abstract class BaseModel implements Cloneable {
    
-   static final String watchedName = "OSC"; 
-   protected boolean fHidden;
-
    /** Factory owning these models */
-   static private ModelFactory fFactory = null;
+   static private ModelFactory   fFactory = null;
 
-   private String fDescription = null;
+   protected boolean             fHidden;
+
+   /** Description of model */
+   private String                fDescription = null;
+   
+   /** Name of model */
+   protected String              fName;
+   
+   /** Parent node */
+   protected BaseModel           fParent;
+   
+   /** Child nodes */
+   protected ArrayList<BaseModel>   fChildren = null;
+   
+   /** Tool-tip */
+   protected String              fToolTip = "";
+   
+   /** Information/Warning/Error message */
+   protected Status              fMessage = null;
+
+   /** Controls logging */
+   protected final boolean       fLogging = false;
+
+   /** Index for indexed models */
+   private int                   fIndex;
+
    
    /** 
     * Set the Factory using these models 
@@ -77,28 +99,13 @@ public abstract class BaseModel implements Cloneable {
     */
    public synchronized void update() {
       BaseModel        origin = this;
-      //          XXX Delete OK
-//      if (origin.getName().contains(watchedName)) {
-//         System.err.println("BaseModel.update Scheduling : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
-//         System.err.flush();
-//      }         
       StructuredViewer viewer = getViewer();
 
       if (!fModelsToRefresh.contains(origin)) {
-         //          XXX Delete OK
-//         if (origin.getName().contains(watchedName)) {
-//            System.err.println("BaseModel.update Scheduling : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
-//            System.err.flush();
-//         }         
          fModelsToRefresh.add(origin);
 
          Display.getDefault().asyncExec(new Runnable() {
             public void run() {
-               // XXX Delete OK
-//               if (origin.getName().contains(watchedName)) {
-//                  System.err.println("BaseModel.update.run()     : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
-//                  System.err.flush();
-//               }
                fModelsToRefresh.remove(origin);
                if ((viewer != null) && (!viewer.getControl().isDisposed())) {
                   //                  viewer.refresh();
@@ -111,13 +118,6 @@ public abstract class BaseModel implements Cloneable {
             }
          });
       }
-      //      else {
-      //         if (origin.getName().contains(watchedName)) {
-      //            // XXX Delete OK
-      //            System.err.println("BaseModel.update.Discarding : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
-      //            System.err.flush();
-      //         }
-      //      }
    }
    
    /**
@@ -140,27 +140,6 @@ public abstract class BaseModel implements Cloneable {
      });
    }
    
-   /** Name of model */
-   protected       String            fName;
-   
-   /** Parent node */
-   protected BaseModel               fParent;
-   
-   /** Child nodes */
-   protected       ArrayList<Object> fChildren = null;
-   
-   /** Tool-tip */
-   protected       String            fToolTip = "";
-   
-   /** Information/Warning/Error message */
-   protected Status fMessage = null;
-
-   /** Controls logging */
-   protected final boolean fLogging = false;
-
-   /** Index for indexed models */
-   private int  fIndex;
-
    /**
     * Constructor
     * 
@@ -206,7 +185,7 @@ public abstract class BaseModel implements Cloneable {
       }
       else {
          if (fChildren == null) {
-            fChildren = new ArrayList<Object>();
+            fChildren = new ArrayList<BaseModel>();
          }
          fChildren.add(model);
       }
@@ -240,7 +219,7 @@ public abstract class BaseModel implements Cloneable {
     * 
     * @return the children
     */
-   public ArrayList<Object> getChildren() {
+   public ArrayList<BaseModel> getChildren() {
       return fChildren;
    }
 

@@ -196,7 +196,11 @@ public class WriterForFtm extends PeripheralWithState {
 
    @Override
    protected boolean okTemplate(String key) {
+      // Filter Quadrature decoders where there are no Quad inputs
       if (key.equalsIgnoreCase("/FTM/quadDeclarations")) {
+         return fQuadSignals.table.size()>0;
+      }
+      if (key.equalsIgnoreCase("/TPM/quadDeclarations")) {
          return fQuadSignals.table.size()>0;
       }
       return super.okTemplate(key);

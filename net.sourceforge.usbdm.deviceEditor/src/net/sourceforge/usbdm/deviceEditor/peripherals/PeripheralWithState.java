@@ -473,19 +473,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
    
-   /**
-    * Gets the model name for the peripheral<br>
-    * Defaults to name based on peripheral e.g. ftm<br>
-    * May be overridden by <b><i>peripheral_file</i></b> parameter from device file
-    */
-   public String getPeripheralVersionName() {
-      String peripheralFile = safeGetVariableValue("peripheral_file");
-      if (peripheralFile != null) {
-         return peripheralFile;
-      }
-      return super.getPeripheralVersionName();
-   }
-
    protected ArrayList<IrqVariable> irqVariables = new ArrayList<IrqVariable>();
    
    /**

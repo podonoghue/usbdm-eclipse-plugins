@@ -13,6 +13,9 @@ public class ObservableModel implements ObservableModelInterface {
 
    @Override
    public void addListener(IModelChangeListener listener) {
+      if (listener == this) {
+         return;
+      }
       if (!fListeners.contains(listener)) {
          fListeners.add(listener);
       }

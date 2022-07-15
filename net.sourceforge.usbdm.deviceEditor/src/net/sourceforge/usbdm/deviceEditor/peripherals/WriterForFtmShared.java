@@ -8,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of FTM shared pins
  */
 /**
  * @author podonoghue

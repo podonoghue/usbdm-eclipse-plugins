@@ -216,7 +216,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    
    @Override
    public String toString() {
-      return String.format(getSimpleClassName()+"(Name=%s, Key=%s, value=%s (%s))", getName(), getKey(), getSubstitutionValue(), getValueAsString());
+      String value = getSubstitutionValue();
+      boolean wrap = value.length()>40; 
+      return String.format(getSimpleClassName()+
+            "(Name=%s, Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))", 
+            getName(), getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    /**
@@ -695,6 +699,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    public void setHidden(boolean b) {
       fHidden = b;
+      notifyStructureChangeListeners();
    }
    
    public boolean isHidden() {

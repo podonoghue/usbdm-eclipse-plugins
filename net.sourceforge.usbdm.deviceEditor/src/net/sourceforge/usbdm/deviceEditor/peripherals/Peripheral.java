@@ -213,11 +213,25 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Return version name of peripheral<br>
+    * Set version name for this peripheral e.g. <b>flexio_4sh_4tmr_0x4005f000</b> <br>
+    * This is used to access the XML file for the device editor.
+    * 
+    * @param version Version name to set
+    */
+   public void setPeripheralVersion(String version) {
+      if (version.isBlank()) {
+         System.err.println("setPeripheralVersion");
+      }
+      fVersion = version;
+    }
+
+   /**
+    * Return version name of peripheral e.g. <b>flexio_4sh_4tmr_0x4005f000</b> <br>
     * Defaults to name based on peripheral e.g. Ftm
     */
    public String getPeripheralVersionName() {
-      return ((fVersion!=null) && !fVersion.isEmpty())?fVersion:getClassBaseName().toLowerCase();
+      return (fVersion!=null)?fVersion:getClassBaseName().toLowerCase();
+//      return fVersion;
    }
 
    /**
@@ -1228,10 +1242,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          }
       }
       throw new RuntimeException("Signal does not match expected pattern \'" + signal.getSignalName() + "\'");
-   }
-
-   public void setVersion(String version) {
-     fVersion = version;
    }
 
    public String getPcrValue(Signal y) {
