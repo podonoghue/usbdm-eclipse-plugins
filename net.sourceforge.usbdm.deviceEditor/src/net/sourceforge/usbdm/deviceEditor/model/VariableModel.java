@@ -25,15 +25,24 @@ public abstract class VariableModel extends EditableModel implements IModelChang
     * @note Added as child of parent if not null
     */
    public VariableModel(BaseModel parent, Variable variable) {
-      super(parent, variable.getName());
+      super(parent, "");
       fVariable = variable;
       fVariable.addListener(this);
    }
 
    @Override
+   /**
+    * Get name with modified indication (* as suffix)
+    * 
+    * @return Name
+    */
    public String getName() {
+      String name = super.getName(); 
+      if ((name == null) || name.isBlank()) {
+         name = fVariable.getName();
+      }
       boolean modified = !fVariable.isDerived() && !fVariable.isDefault();
-      return super.getName() + (modified?" *":"");
+      return name + (modified?" *":"");
    }
 
    @Override

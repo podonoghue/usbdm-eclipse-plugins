@@ -171,7 +171,8 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /**
-    * Add child node (unless hidden)
+    * Add child node (unless hidden)<br>
+    * The parent of the child is not changed
     * 
     * @param model
     */
@@ -180,6 +181,7 @@ public abstract class BaseModel implements Cloneable {
          return;
       }
       if (model instanceof ListModel) {
+         // List model's children become direct children of this model
          ListModel listModel = (ListModel) model;
          listModel.addChildrenToParent(this);
       }
@@ -191,6 +193,20 @@ public abstract class BaseModel implements Cloneable {
       }
    }
 
+   /**
+    * Move children to this model<br>
+    * This updates the children's parent to this model
+    * 
+    * @param children Children to move
+    */
+   public void moveChildren(ArrayList<BaseModel> children) {
+      if (children != null) {
+         for (BaseModel child:children) {
+            child.setParent(this);
+         }
+      }
+   }
+   
    /**
     * Remove child model node
     * 
@@ -589,4 +605,5 @@ public abstract class BaseModel implements Cloneable {
          removeChild(bm);
       }
    }
+
 }

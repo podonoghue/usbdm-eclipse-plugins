@@ -21,6 +21,7 @@ public abstract class Validator {
    protected final int              fDimension;
    protected int                    fIndex=0;
    protected boolean                fVerbose = false;
+   
    /**
     * Create validator
     * 
@@ -419,7 +420,11 @@ public abstract class Validator {
     * @throws Exception 
     */
    public void addDependencies() throws Exception {
-      createDependencies();
+      try {
+         createDependencies();
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
       if (fProvider instanceof Peripheral) {
        Vector<Signal> table = ((Peripheral)fProvider).getSignalTables().get(0).table;
        for(Signal signal:table) {

@@ -65,23 +65,24 @@ public class VariableMap {
     */
    public String getValueAsString(String key) {
       String field = null;
-      int dotIndex = key.indexOf('.');
-      if (dotIndex>=0) {
-         field = key.substring(dotIndex+1);
-         key   = key.substring(0, dotIndex);
+      int hashIndex = key.indexOf('.');
+      if ((hashIndex>=0)&&(hashIndex<key.length()-1)) {
+         // '.' not at end of name 
+         field = key.substring(hashIndex+1);
+         key   = key.substring(0, hashIndex);
+      }
+      if (key.endsWith(".")) {
+         key = key.substring(0, key.length()-1)+"[0]";
+      }
+      if (key.endsWith("[]")) {
+         key = key.substring(0, key.length()-2)+"[0]";
       }
       Variable var = fMap.get(key);
       if (var == null) {
          return null;
       }
       if (field != null) {
-         if (field.equals("description")) {
-            return var.getDescription();
-         }
-         else if (field.equals("value")) {
-            return var.getValueAsString();
-         }
-         return null;
+         return var.getField(field);
       }
       return var.getValueAsString();
    }
@@ -93,23 +94,24 @@ public class VariableMap {
     */
    public String getSubstitutionValue(String key) {
       String field = null;
-      int dotIndex = key.indexOf('.');
-      if (dotIndex>=0) {
-         field = key.substring(dotIndex+1);
-         key   = key.substring(0, dotIndex);
+      int hashIndex = key.indexOf('.');
+      if ((hashIndex>=0)&&(hashIndex<key.length()-1)) {
+         // '.' not at end of name 
+         field = key.substring(hashIndex+1);
+         key   = key.substring(0, hashIndex);
+      }
+      if (key.endsWith(".")) {
+         key = key.substring(0, key.length()-1)+"[0]";
+      }
+      if (key.endsWith("[]")) {
+         key = key.substring(0, key.length()-2)+"[0]";
       }
       Variable var = fMap.get(key);
       if (var == null) {
          return null;
       }
       if (field != null) {
-         if (field.equals("description")) {
-            return var.getDescription();
-         }
-         else if (field.equals("value")) {
-            return var.getSubstitutionValue();
-         }
-         return null;
+         return var.getField(field);
       }
       return var.getSubstitutionValue();
    }

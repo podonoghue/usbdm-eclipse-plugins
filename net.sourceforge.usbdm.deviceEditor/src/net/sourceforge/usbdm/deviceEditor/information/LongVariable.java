@@ -437,4 +437,5 @@ public class LongVariable extends Variable {
    public void setRadix(int radix) {
       fRadix = radix;
    }
+
 }

@@ -4,7 +4,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
  
-public class BooleanVariable extends Variable {
+public class BooleanVariable extends VariableWithChoices {
    
    private ChoiceData fTrue  = new ChoiceData("true",  "true");
    private ChoiceData fFalse = new ChoiceData("false", "false");
@@ -57,8 +57,8 @@ public class BooleanVariable extends Variable {
       }
       if (value instanceof String) {
          String sValue = value.toString();
-         return (sValue.equalsIgnoreCase(fTrue.name))||
-                (sValue.equalsIgnoreCase(fTrue.value))||
+         return (sValue.equalsIgnoreCase(fTrue.getName()))||
+                (sValue.equalsIgnoreCase(fTrue.getValue()))||
                 (sValue.equalsIgnoreCase("true"))||
                 (sValue.equalsIgnoreCase("1"));
       }
@@ -100,7 +100,7 @@ public class BooleanVariable extends Variable {
    
    @Override
    public String getValueAsString() {
-      return getValueAsBoolean()?fTrue.name:fFalse.name;
+      return getValueAsBoolean()?fTrue.getName():fFalse.getName();
    }
    
    @Override
@@ -115,7 +115,7 @@ public class BooleanVariable extends Variable {
    
    @Override
    public String getSubstitutionValue() {
-      return getValueAsBoolean()?fTrue.value:fFalse.value;
+      return getValueAsBoolean()?fTrue.getValue():fFalse.getValue();
    }
 
    @Override
@@ -209,6 +209,12 @@ public class BooleanVariable extends Variable {
     */
    public void setFalseValue(ChoiceData falseValue) {
       this.fFalse = falseValue;
+   }
+
+   @Override
+   public ChoiceData[] getData() {
+      ChoiceData[] choices = {fFalse, fTrue};
+      return choices;
    }
 
 }

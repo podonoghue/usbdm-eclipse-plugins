@@ -32,22 +32,71 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public static class ChoiceData {
       
       /** Name used by GUI/model */
-      public final String name;
+      private final String fName;
       
       /** Value used by substitution */
-      public final String value;
+      private final String fValue;
 
       /** Whether this choice is hidden in display */
       private boolean fHidden = false;
+
+      /** Suffix for code enum generation e.g. yyy => ENUM_yyy */
+      private final String fEnumName;
+      
+      /** Code fragment for this enum e.g. getPeripheralClock() */
+      private final String fCodeValue;
+      
+      /** Reference to another variable associated with this choice e.g. clock source selection */
+      private final String fReference;
       
       /**
        * 
-       * @param name  Name used by GUI/model
-       * @param value Value used by data
+       * @param name       Name used by GUI/model
+       * @param value      Value used by data
+       * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
+       * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
+       * @param reference  Reference to another variable associated with this choice e.g. clock source selection
+       */
+      public ChoiceData(String name, String value, String enumName, String codeValue, String reference) {
+         fName        = name;
+         fValue       = value;
+         fEnumName    = enumName.isBlank()?null:enumName;
+         fCodeValue   = codeValue.isBlank()?null:codeValue;
+         fReference   = reference.isBlank()?null:reference;
+      }
+      
+      /**
+       * 
+       * @param name       Name used by GUI/model
+       * @param value      Value used by data
+       * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
+       * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
+       * @param reference  Reference to another variable associated with this choice e.g. clock source selection
        */
       public ChoiceData(String name, String value) {
-         this.name  = name;
-         this.value = value;
+         fName        = name;
+         fValue       = value;
+         fEnumName    = null;
+         fCodeValue   = null;
+         fReference   = null;
+      }
+      
+      /** 
+       * Get name of this choice 
+       * 
+       * @return data value or null if none
+       */
+      public String getName() {
+         return fName;
+      }
+      
+      /** 
+       * Get value associated with this choice 
+       * 
+       * @return value
+       */
+      public String getValue() {
+         return fValue;
       }
       
       /**
@@ -68,6 +117,39 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       public void setHidden(boolean hidden) {
          this.fHidden = hidden;
       }
+
+      /**
+       * Get suffix for code enum generation e.g. yyy => ENUM_yyy
+       * 
+       * @return suffix
+       */
+      public String getEnumName() {
+         return fEnumName;
+      }
+
+      /**
+       * Get code fragment for this enum e.g. getPeripheralClock()
+       * 
+       * @return code fragment
+       */
+      public String getCodeValue() {
+         return fCodeValue;
+      }
+
+      /**
+       * Get reference to another variable associated with this choice e.g. clock source selection
+       * 
+       * @return Variable name or null if no reference
+       */
+      public String getReference() {
+         return fReference;
+      }
+
+      @Override
+      public String toString() {
+         return "ChoiceData("+fName+", "+fValue+", "+fEnumName+", "+fCodeValue+", "+fReference+")";
+      }
+
    }
 
    /** Name of variable visible to user */
@@ -105,6 +187,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    private boolean fHidden;
 
+   private String fDataValue;
+
+   private String fTarget;
+
    /**
     * Constructor
     * 
@@ -121,10 +207,21 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * @return the Name
+    * Get the variable name
+    * 
+    * @return Name
     */
    public String getName() {
       return fName;
+   }
+
+   /**
+    * Set the variable name
+    * 
+    * @param name Name to set
+    */
+   public void setName(String name) {
+      fName = name;
    }
 
    /**
@@ -134,12 +231,12 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return fKey;
    }
 
-   /**
-    * @param key The key to set
-    */
-   public void setKey(String key) {
-      this.fKey = key;
-   }
+//   /**
+//    * @param key The key to set
+//    */
+//   public void setKey(String key) {
+//      this.fKey = key;
+//   }
 
    /**
     * Get the variable value as a string for use in substitutions
@@ -622,18 +719,20 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param symbols
     * 
     * @return Clone
-    * 
-    * @throws CloneNotSupportedException
+    * @throws Exception 
     * 
     * @note All listeners are removed from clone
     */
-   public Variable clone(String name, ISubstitutionMap symbols) throws CloneNotSupportedException {
+   public Variable clone(String name, ISubstitutionMap symbols) throws Exception {
       Variable var = null;
       // Create cloned variable
       var = (Variable) super.clone();
       var.removeAllListeners();
       var.fName         = symbols.substitute(fName);
       var.fKey          = symbols.substitute(fKey);
+      if (var.fKey == fKey) {
+         throw new Exception("Clone has the same key '" + fKey + "'");
+      }
       var.fToolTip      = symbols.substitute(fToolTip);
       var.fDescription  = symbols.substitute(fDescription);
       var.fOrigin       = symbols.substitute(fOrigin);
@@ -704,5 +803,84 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    
    public boolean isHidden() {
       return fHidden;
+   }
+
+   /**
+    * Set data value
+    * 
+    * @param value
+    */
+   public void setDataValue(String value) {
+      fDataValue = value;
+   }
+
+   /**
+    * Get data value
+    * 
+    * @return data value
+    */
+   public String getDataValue() {
+      return fDataValue;
+   }
+
+   public String getToolTipAsCode() {
+      String tooltip = getToolTip();
+      if (tooltip != null) {
+         tooltip = tooltip.replace("\n", "\n\\t * ");
+      }
+      return tooltip;
+   }
+   
+   public String getDescriptionAsCode() {
+      String description = getDescription();
+      if (description != null) {
+         description = description.replace("\n", "\n\\t * ");
+      }
+      return description;
+   }
+   
+   public String getShortDescription() {
+      String description = getDescription();
+      if (description != null) {
+         int eol = description.indexOf("\n");
+         if (eol>=0) {
+            description = description.substring(0, eol);
+         }
+      }
+         return description;
+   }
+      
+   public String getField(String field) {
+      if (field.equals("tooltip")) {
+         return getToolTipAsCode();
+      }
+      if (field.equals("description")) {
+         return getDescriptionAsCode();
+      }
+      else if (field.equals("value")) {
+         return getSubstitutionValue();
+      }
+      else if (field.equals("data")) {
+         return fDataValue;
+      }
+      return "field '"+field+"' not found in variable";
+   }
+
+   /**
+    * Set target variable
+    * 
+    * @param target
+    */
+   public void setTarget(String target) {
+      fTarget = target;
+   }
+
+   /**
+    * Get target variable
+    * 
+    * @return
+    */
+   public String getTarget() {
+      return fTarget;
    }
 }

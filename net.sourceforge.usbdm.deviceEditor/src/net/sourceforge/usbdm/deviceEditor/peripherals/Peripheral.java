@@ -227,6 +227,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
    /**
     * Return version name of peripheral e.g. <b>flexio_4sh_4tmr_0x4005f000</b> <br>
+    * 
+    * @return null if not set
+    */
+   public String getOverriddenPeripheralVersionName() {
+      return fVersion;
+   }
+
+   /**
+    * Return version name of peripheral e.g. <b>flexio_4sh_4tmr_0x4005f000</b> <br>
     * Defaults to name based on peripheral e.g. Ftm
     */
    public String getPeripheralVersionName() {

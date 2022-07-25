@@ -449,8 +449,8 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
          ChoiceVariable filter = (ChoiceVariable) safeGetVariable(makeKey("llwu_filt"+index+"_filtsel"));
          if (filter != null) {
             filter.setData(choiceData);
-            filter.setValue(choiceData.get(0).name);
-            filter.setDisabledValue(choiceData.get(0).name);
+            filter.setValue(choiceData.get(0).getName());
+            filter.setDisabledValue(choiceData.get(0).getName());
          }
       }
       fMenuData.prune();

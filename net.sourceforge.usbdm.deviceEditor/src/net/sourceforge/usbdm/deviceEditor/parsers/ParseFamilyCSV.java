@@ -652,7 +652,7 @@ public class ParseFamilyCSV {
 				}
 				continue;
 			}
-			String version   = peripheral.getPeripheralVersionName();
+			String version   = peripheral.getOverriddenPeripheralVersionName();
 			String dbVersion = dbPeripheral.getBasePeripheral().getSourceFilename().toLowerCase();
 			
 			if ((version==null) && (dbVersion.startsWith("ftfe") || dbVersion.startsWith("ftfl"))) {

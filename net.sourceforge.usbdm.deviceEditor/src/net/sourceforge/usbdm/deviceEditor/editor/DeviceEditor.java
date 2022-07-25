@@ -57,8 +57,8 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
-   private final String ActiveTab_key           = "ActiveTab";
-   private final String PeripheralTabNumber_key = "PeripheralTabNumber";
+   private final String MAIN_TAB_NAME_KEY         = "/EDITOR/MainTabName";
+   private final String PERIPHERAL_TAB_NAME_KEY   = "/EDITOR/PeripheralTabName";
    
    /** Path from which the data was loaded */
    private Path         fPath                = null;
@@ -140,10 +140,16 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                IDialogSettings dialogSettings = activator.getDialogSettings();
                if (dialogSettings != null) {
                   if (fTabFolder != null)  {
-                     dialogSettings.put(ActiveTab_key,           fTabFolder.getSelectionIndex());
+                     String tabName = fTabFolder.getSelection().getText();
+                     if (tabName != null) {
+                        dialogSettings.put(MAIN_TAB_NAME_KEY, tabName);
+                     }
                   }
                   if (fPeripheralParametersFolder != null) {
-                     dialogSettings.put(PeripheralTabNumber_key, fPeripheralParametersFolder.getSelectionIndex());
+                     String tabName = fPeripheralParametersFolder.getSelection().getText();
+                     if (tabName != null) {
+                        dialogSettings.put(PERIPHERAL_TAB_NAME_KEY, tabName);
+                     }
                   }
                }
             }
@@ -261,28 +267,38 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             // Add selected actions to menu bar
             //      contributeToActionBars();
 
-            int tabNum           = fTabFolder.getItemCount()-1;
-            int peripheralTabNum = 0;
+            String mainTabName       = null;
+            String peripheralTabName = null;
+            
             Activator activator = Activator.getDefault();
             if (activator != null) {
                IDialogSettings dialogSettings = activator.getDialogSettings();
                if (dialogSettings != null) {
-                  try {
-                     tabNum              = dialogSettings.getInt(ActiveTab_key);
-                     peripheralTabNum = dialogSettings.getInt(PeripheralTabNumber_key);
-                  } catch (NumberFormatException e) {
+                  mainTabName       = dialogSettings.get(MAIN_TAB_NAME_KEY);
+                  if (mainTabName != null) {
+                     CTabItem[] mainTabs = fTabFolder.getItems();
+                     for (int index=0; index<mainTabs.length; index++) {
+                        CTabItem tab = mainTabs[index];
+                        if (mainTabName.equals(tab.getText())) {
+                           fTabFolder.setSelection(index);
+                           break;
+                        }
+                     }
+                  }
+                  peripheralTabName = dialogSettings.get(PERIPHERAL_TAB_NAME_KEY);
+                  if (peripheralTabName != null) {
+                     CTabItem[] peripheralTabs = fPeripheralParametersFolder.getItems();
+                     for (int index=0; index<peripheralTabs.length; index++) {
+                        CTabItem tab = peripheralTabs[index];
+                        if (peripheralTabName.equals(tab.getText())) {
+                           fPeripheralParametersFolder.setSelection(index);
+                           break;
+                        }
+                     }
                   }
                }
             }
-            if (tabNum>=fTabFolder.getItemCount()) {
-               tabNum = 0;
-            }
-            if (peripheralTabNum>=fPeripheralParametersFolder.getItemCount()) {
-               peripheralTabNum = 0;
-            }
-            fTabFolder.setSelection(tabNum);
             fTabFolder.layout();
-            fPeripheralParametersFolder.setSelection(peripheralTabNum);
          }
       });
       return;
@@ -446,6 +462,10 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       }
    }
 
+   private void addEditorSettingsToProject(DeviceInfo deviceInfo) {
+      // Not used
+   }
+   
    @Override
    public void doSaveAs() {  
       FileDialog dialog = new FileDialog(getSite().getShell(), SWT.SAVE);
@@ -457,6 +477,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          if (deviceInfo == null) {
             return;
          }
+         addEditorSettingsToProject(deviceInfo);
          Path path = FileSystems.getDefault().getPath(result);
          deviceInfo.saveSettingsAs(path, fProject);
       }
@@ -473,6 +494,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       if (deviceInfo == null) {
          return;
       }
+      addEditorSettingsToProject(deviceInfo);
       deviceInfo.saveSettings(fProject);
    }
 

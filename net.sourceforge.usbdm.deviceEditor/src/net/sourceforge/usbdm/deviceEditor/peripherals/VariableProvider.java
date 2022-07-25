@@ -33,6 +33,9 @@ public class VariableProvider {
        */
       @Override
       public String makeKey(String name) {
+         if (name.isBlank()) {
+            return name;
+         }
          if (name.charAt(0) == '/') {
             // Don't modify explicit variables
             return name;
@@ -180,6 +183,22 @@ public class VariableProvider {
     */
    public void removeVariable(Variable variable) {
       fDeviceInfo.removeVariable(variable.getKey());
+   }
+
+   /**
+    * Removes a variable by name
+    * 
+    * @param variableName Name of variable to remove
+    * 
+    * @return true if variable existed and removed, false otherwise
+    */
+   public boolean removeVariable(String variableName) {
+      boolean present = fDeviceInfo.safeGetVariable(variableName) != null;
+      if (!present) {
+         return false;
+      }
+      fDeviceInfo.removeVariable(variableName);
+      return true;
    }
 
    /**

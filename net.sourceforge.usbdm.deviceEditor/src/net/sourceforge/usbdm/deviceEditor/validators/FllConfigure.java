@@ -164,7 +164,8 @@ class FllConfigure {
       }
       fllInputFrequencyVar.setOrigin(fllInputOrigin);
       system_mcgffclk_clockVar.setOrigin(fllInputOrigin);
-      fllOutputFrequencyVar.setOrigin(fllOrigin+" via FLL");
+      
+      fllOrigin = fllOrigin+" via FLL";
 
       if ((fllStatus != null) && (fllStatus.getSeverity().greaterThan(Severity.OK))) {
          // Invalid input
@@ -178,6 +179,7 @@ class FllConfigure {
          mcg_c1_frdiv    = 0;
          mcg_c2_rangeVar.setValue(osc0_range);
          mcg_c2_rangeVar.setOrigin(osc0_rangeOrigin);
+         fllOutputFrequencyVar.setOrigin(fllOrigin+"(invalid FLL input)");
          return;
       }
 
@@ -250,6 +252,7 @@ class FllConfigure {
          system_mcgffclk_clockVar.setValue(Math.round(nearestFrequency));
          system_mcgffclk_clockVar.setStatus((Status)null);
          fllOutputFrequencyVar.setStatus(fllStatus);
+         fllOutputFrequencyVar.setOrigin(fllOrigin+"(invalid input frequency)");
          return;
       }
 
@@ -288,6 +291,7 @@ class FllConfigure {
       else {
          mcg_c4_drst_drs_calc = 0;
          sb.append("Not possible to generate desired FLL frequency from input clock\n");
+         fllOrigin = fllOrigin+"(invalid output frequency)";
          severity = Severity.WARNING;
       }
       boolean needComma = false;
@@ -304,6 +308,7 @@ class FllConfigure {
       fllStatus = new Status (sb.toString(), severity);
       fllOutputFrequencyVar.setValue(fllTargetFrequency);
       fllOutputFrequencyVar.setStatus(fllStatus);
+      fllOutputFrequencyVar.setOrigin(fllOrigin);
       mcg_c4_drst_drs = mcg_c4_drst_drs_calc;
    }
 

@@ -4,9 +4,7 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
-import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -32,6 +30,24 @@ public class AdcValidate extends PeripheralValidator {
    private static final long FADC_LP0_HS0_MAX = 5200000;
    private static final long FADC_LP0_HS1_MAX = 6200000;
 
+   private LongVariable    system_adc_clockVar      = null;
+   private Variable        adc_cfg1_adivVar         = null;
+   private Variable        adcInternalClockVar      = null;
+   private Variable        adc_cfg1_adlpcVar        = null;
+   private Variable        adc_cfg2_adhscVar        = null;
+   private Variable        adc_cfg1_modeVar         = null;
+   private BooleanVariable adc_cfg1_adlsmpVar       = null;
+   private ChoiceVariable  adc_cfg2_adlstsVar       = null;
+   private LongVariable    low_comparison_valueVar  = null;
+   private LongVariable    high_comparison_valueVar = null;
+   private LongVariable    adc_cv1Var               = null;
+   private LongVariable    adc_cv2Var               = null;
+   private ChoiceVariable  adc_sc2_compareVar       = null;
+   private LongVariable    adc_sc2_acfeVar          = null;
+   private LongVariable    adc_sc2_acfgtVar         = null;
+   private LongVariable    adc_sc2_acrenVar         = null;
+   private LongVariable    clockFrequencyVar        = null;
+   
    private static long ADC_CLOCK_VALUES[] = {FADC_LP0_HS0_MAX, FADC_LP0_HS1_MAX, FADC_LP1_HS0_MAX, FADC_LP1_HS1_MAX};
 
    public AdcValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
@@ -46,38 +62,6 @@ public class AdcValidate extends PeripheralValidator {
    public void validate(Variable variable) throws Exception {
 
       super.validate(variable);
-
-      // Clock Mapping
-      //=================
-      final StringVariable   osc0_peripheralVar   = getStringVariable("/SIM/osc0_peripheral");
-      final LongVariable     osc0_oscer_clockVar  = getLongVariable(osc0_peripheralVar.getValueAsString()+"/oscer_clock");
-
-      // Variables
-      //=================================
-      DoubleVariable clockFrequencyVar    = (DoubleVariable) getVariable("clockFrequency");
-      Variable adc_cfg1_adiclkVar         = getVariable("adc_cfg1_adiclk");
-      Variable adc_cfg1_adivVar           = getVariable("adc_cfg1_adiv");
-      Variable adcInternalClockVar        = getVariable("adcInternalClock");
-
-      Variable system_bus_clockVar        = getVariable("/SIM/system_bus_clock");
-
-      Variable adc_cfg1_adlpcVar          = getVariable("adc_cfg1_adlpc");
-      Variable adc_cfg2_adhscVar          = getVariable("adc_cfg2_adhsc");
-      Variable adc_cfg1_modeVar           = getVariable("adc_cfg1_mode");
-
-      BooleanVariable adc_cfg1_adlsmpVar  = getBooleanVariable("adc_cfg1_adlsmp");
-      ChoiceVariable  adc_cfg2_adlstsVar  = getChoiceVariable("adc_cfg2_adlsts");
-
-      LongVariable    low_comparison_valueVar  = getLongVariable("low_comparison_value");
-      LongVariable    high_comparison_valueVar = getLongVariable("high_comparison_value");
-      LongVariable    adc_cv1Var = getLongVariable("adc_cv1");
-      LongVariable    adc_cv2Var = getLongVariable("adc_cv2");
-
-      ChoiceVariable  adc_sc2_compareVar = getChoiceVariable("adc_sc2_compare");
-
-      LongVariable adc_sc2_acfeVar  = getLongVariable("adc_sc2_acfe");
-      LongVariable adc_sc2_acfgtVar = getLongVariable("adc_sc2_acfgt");
-      LongVariable adc_sc2_acrenVar = getLongVariable("adc_sc2_acren");
 
       int cv1 = 0;
       int cv2 = 0;
@@ -138,41 +122,6 @@ public class AdcValidate extends PeripheralValidator {
       // Varies with power settings etc
       adcInternalClockVar.setValue(ADC_CLOCK_VALUES[(int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong())]);
 
-      LongVariable system_irc48m_clockVar = safeGetLongVariable("/MCG/system_irc48m_clock");
-
-      Variable clockSourceVar = null;
-      double clockFrequency;
-
-      switch((int)adc_cfg1_adiclkVar.getValueAsLong()) {
-      case 0: 
-         clockSourceVar = system_bus_clockVar;
-         clockFrequency = system_bus_clockVar.getValueAsLong();
-         break;
-      case 1:
-         /* 
-          * TODO Implement better method of clock selection
-          * ALTCLK2: Varies with device but assume irc48m if available else busClock/2
-          */
-         if (system_irc48m_clockVar != null) {
-            clockSourceVar = system_irc48m_clockVar;
-            clockFrequency = system_irc48m_clockVar.getValueAsLong();
-         }
-         else {
-            clockSourceVar = system_bus_clockVar;
-            clockFrequency = system_bus_clockVar.getValueAsLong()/2.0;
-         }
-         break;
-      case 2:
-         clockSourceVar = osc0_oscer_clockVar;
-         clockFrequency = osc0_oscer_clockVar.getValueAsLong();
-         break;
-      default:
-         adc_cfg1_adiclkVar.setValue(1);
-      case 3:
-         clockSourceVar = adcInternalClockVar;
-         clockFrequency = adcInternalClockVar.getValueAsLong();
-         break;
-      }
       // Set MIN and MAX before updating value
       if (adc_cfg1_modeVar.getValueAsLong()>=2) {
          clockFrequencyVar.setMin(FADC_HIGH_RES_MIN);
@@ -182,24 +131,43 @@ public class AdcValidate extends PeripheralValidator {
          clockFrequencyVar.setMin(FADC_LOW_RES_MIN);
          clockFrequencyVar.setMax(FADC_LOW_RES_MAX);
       }
+      long clockFrequency = system_adc_clockVar.getValueAsLong();
       clockFrequency = clockFrequency/(1L<<adc_cfg1_adivVar.getValueAsLong());
       clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
-      clockFrequencyVar.setOrigin(clockSourceVar.getOrigin() + " divided by adc_cfg1_adiv");
+      clockFrequencyVar.setStatus(system_adc_clockVar.getFilteredStatus());
+      clockFrequencyVar.setOrigin(system_adc_clockVar.getOrigin() + " divided by adc_cfg1_adiv");
    }
 
    @Override
    protected void createDependencies() throws Exception {
-      // Clock Mapping
-      //=================
-      final String   osc0_peripheral = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+      // Variable to watch
+      ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-      final String externalVariables[] = {
-            "/MCG/system_irc48m_clock",
-            "/SIM/system_bus_clock",
-            osc0_peripheral+"/oscer_clock",
-      };
-      addToWatchedVariables(externalVariables);
+      adc_cfg1_adivVar          = getVariable("adc_cfg1_adiv");
+      adcInternalClockVar       = getVariable("adcInternalClock");
+      adc_cfg1_adlpcVar         = getVariable("adc_cfg1_adlpc");
+      adc_cfg2_adhscVar         = getVariable("adc_cfg2_adhsc");
+      adc_cfg1_modeVar          = getVariable("adc_cfg1_mode");
+                                
+      adc_cfg1_adlsmpVar        = getBooleanVariable("adc_cfg1_adlsmp");
+      adc_cfg2_adlstsVar        = getChoiceVariable("adc_cfg2_adlsts");
+                                
+      low_comparison_valueVar   = getLongVariable("low_comparison_value");
+      high_comparison_valueVar  = getLongVariable("high_comparison_value");
+      adc_cv1Var                = getLongVariable("adc_cv1");
+      adc_cv2Var                = getLongVariable("adc_cv2");
+                                
+      adc_sc2_compareVar        = getChoiceVariable("adc_sc2_compare");
+                                
+      adc_sc2_acfeVar           = getLongVariable("adc_sc2_acfe");
+      adc_sc2_acfgtVar          = getLongVariable("adc_sc2_acfgt");
+      adc_sc2_acrenVar          = getLongVariable("adc_sc2_acren");
+      clockFrequencyVar         = getLongVariable("clockFrequency");
+      
+      system_adc_clockVar = createLongVariableReference(
+            "/SIM/system_adc"+getPeripheral().getInstance()+"_clock", variablesToWatch);
+      
+      addToWatchedVariables(variablesToWatch);
    }
 
 }

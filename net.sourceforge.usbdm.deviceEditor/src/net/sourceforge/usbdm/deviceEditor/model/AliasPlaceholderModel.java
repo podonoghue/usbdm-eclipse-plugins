@@ -52,4 +52,14 @@ public class AliasPlaceholderModel extends BaseModel {
       return model;
    }
 
+   @Override
+   public String toString() {
+      return getClass().getSimpleName()+"("+fName+", k="+getKey()+", d="+getDescription()+")";
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      return super.clone();
+   }
+
 }

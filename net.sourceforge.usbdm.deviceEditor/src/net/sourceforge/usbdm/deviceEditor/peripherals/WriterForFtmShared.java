@@ -21,19 +21,27 @@ public class WriterForFtmShared extends PeripheralWithState {
       
       // Not real hardware
       setSynthetic();
-
+      
+      // Can create type declarations for signals belonging to this peripheral (PCR)
+      fcanCreateSignalType = true;
    }
 
+   @Override
+   protected void writeDeclarations() {
+      writeSignalPcrDeclarations();
+   }
+   
    @Override
    public String getTitle() {
       return "PWM, Input capture and Output compare";
    }
 
    @Override
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoClass(pinMappingHeaderFile);
+   public void writeInfoConstants(final DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      super.writeDefaultPinInstances(pinMappingHeaderFile);
    }
-
+   
    @Override
    public String getGroupName() {
       return getBaseName().toUpperCase()+"_Group";

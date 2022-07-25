@@ -37,17 +37,17 @@ public class ClockValidator_MCG extends BaseClockValidator {
    
    private final long  DRST_DRS_MAX;
 
-   String         osc0_peripheralName       = null;
-   String         osc0_description          = null;
-   LongVariable   osc0_osc_clockVar         = null;
+//   String         osc0_peripheralName       = null;
+//   String         osc0_description          = null;
+//   LongVariable   osc0_osc_clockVar         = null;
    Variable       osc0_osc_cr_erclkenVar    = null;
    Variable       osc0_oscillatorRangeVar   = null;
 
-   LongVariable   osc1_osc_clockVar         = null;
-   String         osc1_description          = null;
-
-   LongVariable   osc2_osc_clockVar         = null;
-   String         osc2_description          = null;
+//   LongVariable   osc1_osc_clockVar         = null;
+//   String         osc1_description          = null;
+//
+//   LongVariable   osc2_osc_clockVar         = null;
+//   String         osc2_description          = null;
 
    Variable       usb1pfdclk_ClockVar       = null;
 
@@ -223,39 +223,6 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c1_irefstenVar.enable(false);
       }
 
-      // Determine MCG external reference clock [mcg_erc_clock]
-      //========================================================
-      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
-      Variable       mcg_erc_clockVar = getVariable("mcg_erc_clock");
-
-      Variable ercOrigin;
-      String    ercPathDescription = "";
-      if (mcg_c7_oscselVar == null) {
-         // Fixed OSCCLK (OSC0 main oscillator)
-         ercOrigin = osc0_osc_clockVar;
-      }
-      else {
-         int mcg_c7_oscsel = (int)mcg_c7_oscselVar.getValueAsLong();
-         
-         // Find erc 
-         switch (mcg_c7_oscsel) {
-         default:
-         case 0: // ERC = OSCCLK (OSC0 main oscillator)
-            ercOrigin = osc0_osc_clockVar;
-            break;
-         case 1: // ERC = RTCCLK (OSC1 oscillator)
-            ercOrigin = osc1_osc_clockVar;
-            break;
-         case 2: // ERC = IRC48MCLK (OSC2)
-            ercOrigin = osc2_osc_clockVar;
-            break;
-         }
-         ercPathDescription = " selected by mcg.c7.oscsel";
-      }
-      mcg_erc_clockVar.setValue(ercOrigin.getValueAsLong());
-      mcg_erc_clockVar.setStatus(ercOrigin.getStatus());
-      mcg_erc_clockVar.setOrigin(ercOrigin.getOrigin() + ercPathDescription);
-
       Variable mcg_c11_pllcsVar = safeGetVariable("mcg_c11_pllcs");
       boolean pllIsInternal = (mcg_c11_pllcsVar == null) || !mcg_c11_pllcsVar.getValueAsBoolean();
 
@@ -374,6 +341,11 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_ircsVar.clearStatus();
       }
 
+      // Determine MCG external reference clock [mcg_erc_clock]
+      //========================================================
+      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("/SIM/mcg_c7_oscsel");
+      Variable       mcg_erc_clockVar = getVariable("/SIM/mcg_erc_clock");
+
       //=======================================
       // Find FLL dividers
       FllConfigure fllCheck = new FllConfigure(
@@ -397,30 +369,30 @@ public class ClockValidator_MCG extends BaseClockValidator {
 
       // External PLLs
       //=================================================
-      if (usb1pfdclk_ClockVar != null) {
-         // Check USB HS PLL
-         long irClockFreq = osc0_osc_clockVar.getValueAsLong();
-         String failedPreCondition = null;
-         if (!osc0_osc_cr_erclkenVar.getValueAsBoolean()) {
-            failedPreCondition = "Disabled: to use PFDCLK, OSCCLK clock must be enabled by osc_cr_erclkenVar";
-         }
-         else if (!mcg_c1_irclkenVar.getValueAsBoolean()) {
-            failedPreCondition = "Disabled: to use PFDCLK, IRC clock must be enabled by mcg_c1_irclken";
-         }
-         else if ((irClockFreq!=12000000)&&(irClockFreq!=16000000)&&(irClockFreq!=24000000)) {
-            failedPreCondition = "Disabled: to use PFDCLK, OSCCLK must be in [12Mhz, 16MHz, 24MHz]";
-         }
-         if (failedPreCondition==null) {
-            usb1pfdclk_ClockVar.enable(true);
-            usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL"); 
-            usb1pfdclk_ClockVar.setStatus((Status)null);
-         }
-         else {
-            usb1pfdclk_ClockVar.enable(false);
-            usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL (disabled)"); 
-            usb1pfdclk_ClockVar.setStatus(new Status(failedPreCondition, Severity.WARNING));
-         }
-      }
+//      if (usb1pfdclk_ClockVar != null) {
+//         // Check USB HS PLL
+//         long irClockFreq = osc0_osc_clockVar.getValueAsLong();
+//         String failedPreCondition = null;
+//         if (!osc0_osc_cr_erclkenVar.getValueAsBoolean()) {
+//            failedPreCondition = "Disabled: to use PFDCLK, OSCCLK clock must be enabled by osc_cr_erclkenVar";
+//         }
+//         else if (!mcg_c1_irclkenVar.getValueAsBoolean()) {
+//            failedPreCondition = "Disabled: to use PFDCLK, IRC clock must be enabled by mcg_c1_irclken";
+//         }
+//         else if ((irClockFreq!=12000000)&&(irClockFreq!=16000000)&&(irClockFreq!=24000000)) {
+//            failedPreCondition = "Disabled: to use PFDCLK, OSCCLK must be in [12Mhz, 16MHz, 24MHz]";
+//         }
+//         if (failedPreCondition==null) {
+//            usb1pfdclk_ClockVar.enable(true);
+//            usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL"); 
+//            usb1pfdclk_ClockVar.setStatus((Status)null);
+//         }
+//         else {
+//            usb1pfdclk_ClockVar.enable(false);
+//            usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL (disabled)"); 
+//            usb1pfdclk_ClockVar.setStatus(new Status(failedPreCondition, Severity.WARNING));
+//         }
+//      }
       
       // Internal PLL
       //========================================
@@ -542,86 +514,37 @@ public class ClockValidator_MCG extends BaseClockValidator {
    @Override
    protected void createDependencies() throws Exception {
 
-      // OSC Selection
-      ArrayList<ChoiceData> mcg_c7_oscsel_entries = new ArrayList<ChoiceData>();
+      // Variable to watch
+      ArrayList<String> variablesToWatch = new ArrayList<String>();
+
+      // mcg_erc_clock is the main clock input to MCG (maintained by SIM)
+      variablesToWatch.add("/SIM/mcg_erc_clock");
+
+      // mcg_erc Selection
+      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("/SIM/mcg_c7_oscsel");
+      ChoiceData[] choiceData = mcg_c7_oscselVar.getData();
       
-      //  MCG OSC0 input always exists
-      osc0_peripheralName        = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
-      osc0_description           = getStringVariable("/SIM/osc0_description").getValueAsString();
-      osc0_osc_clockVar          = getLongVariable(osc0_peripheralName+"/osc_clock");
-      osc0_osc_cr_erclkenVar     = safeGetBooleanVariable(osc0_peripheralName+"/osc_cr_erclken");
-      osc0_oscillatorRangeVar    = safeGetVariable(osc0_peripheralName+"/oscillatorRange");
-      mcg_c7_oscsel_entries.add(new ChoiceData(osc0_description, "0"));
-      String externalVariables0[] = {
-            osc0_peripheralName+"/osc_clock",
-            osc0_peripheralName+"/osc_cr_erclken",
-            osc0_peripheralName+"/oscillatorRange",
-      };
-      addToWatchedVariables(externalVariables0);
-
-      // MCG OSC1 input may exist
-      StringVariable osc1_osc_clockNameVar = safeGetStringVariable("/SIM/osc1_clock");
-      if (osc1_osc_clockNameVar != null) {
-         String osc1_variableName = osc1_osc_clockNameVar.getValueAsString();
-         osc1_osc_clockVar  = getLongVariable(osc1_variableName);
-         osc1_description   = getStringVariable("/SIM/osc1_description").getValueAsString();
-         mcg_c7_oscsel_entries.add(new ChoiceData(osc1_description, "1"));
-         String externalVariables[] = {
-               osc1_variableName, // OSC1 ~ RTC
-         };
-         addToWatchedVariables(externalVariables);
-      }
-
-      // MCG OSC2 input may exist
-      StringVariable osc2_osc_clockNameVar  = safeGetStringVariable("/SIM/osc2_clock");
-      if (osc2_osc_clockNameVar != null) {
-         String osc2_variableName = osc2_osc_clockNameVar.getValueAsString();
-         osc2_osc_clockVar  = getLongVariable(osc2_variableName);
-         osc2_description   = getStringVariable("/SIM/osc2_description").getValueAsString();
-         mcg_c7_oscsel_entries.add(new ChoiceData(osc2_description, "2"));
-         String externalVariables[] = {
-               osc2_variableName,
-         };
-         addToWatchedVariables(externalVariables);
-      }
-
-      if (osc2_osc_clockVar == null) {
-         // MCG OSC2 input may exist as IRC48M
-         osc2_osc_clockVar = safeGetLongVariable("system_irc48m_clock");
-         if (osc2_osc_clockVar != null) {
-            mcg_c7_oscsel_entries.add(new ChoiceData("IRC48M - fix-me", "2"));
-            String externalVariables[] = {
-                  "system_irc48m_clock",
-            };
-            addToWatchedVariables(externalVariables);
-         }
-      }
+      //  mcg_erc[0] = OSC0, input must always exists
+      int index = choiceData[0].getReference().lastIndexOf("/");
+      String osc0Name = choiceData[0].getReference().substring(0, index);
+      osc0_osc_cr_erclkenVar     = getBooleanVariable(osc0Name+"/osc_cr_erclken");
+      osc0_oscillatorRangeVar    = getVariable(osc0Name+"/oscillatorRange");
 
       usb1pfdclk_ClockVar = safeGetVariable("usb1pfdclk_Clock");
       if (usb1pfdclk_ClockVar != null) {
-         String externalVariables[] = {
-               "usb1pfdclk_Clock",
-         };
-         addToWatchedVariables(externalVariables);
+         variablesToWatch.add("usb1pfdclk_Clock");
       }
+      
+      addToWatchedVariables(variablesToWatch);
 
-      for (fIndex=0; fIndex<fDimension; fIndex++) {
-         if (fIndex == 0) {
-            Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
-            // Clock configuration 0 is always true to enable 1st clock configuration
-            // Disable variable so user can't change it
-            enableClockConfigurationVar.setValue(true);
-            enableClockConfigurationVar.setDisabledValue(true);
-            enableClockConfigurationVar.enable(false);
-            enableClockConfigurationVar.setToolTip("Clock configuration 0 must always be enabled");
-            enableClockConfigurationVar.setDerived(true);
-         }
-         ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
-         if (mcg_c7_oscselVar != null) {
-            mcg_c7_oscselVar.setData(mcg_c7_oscsel_entries);
-            mcg_c7_oscselVar.setValue(mcg_c7_oscsel_entries.get(0).name);
-         }
-      }
+      // Clock configuration 0 is always true to enable 1st clock configuration
+      // Disable variable so user can't change it
+      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
+      enableClockConfigurationVar.setValue(true);
+      enableClockConfigurationVar.setDisabledValue(true);
+      enableClockConfigurationVar.enable(false);
+      enableClockConfigurationVar.setToolTip("Clock configuration 0 must always be enabled");
+      enableClockConfigurationVar.setDerived(true);
       fIndex = 0;
    }
 }

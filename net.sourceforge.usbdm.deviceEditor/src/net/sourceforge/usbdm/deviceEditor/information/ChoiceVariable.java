@@ -7,7 +7,13 @@ import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
-public class ChoiceVariable extends Variable {
+public class ChoiceVariable extends VariableWithChoices {
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
 
    /** Name/choice pairs */
    private ChoiceData[] fData = null;
@@ -36,7 +42,7 @@ public class ChoiceVariable extends Variable {
    
    @Override
    public String toString() {
-      return String.format("Variable(Name=%s, value=%s (%s))", getName(), getSubstitutionValue(), getValueAsString());
+      return String.format("Variable(key=%s, value=%s=>(%s))", getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    @Override
@@ -72,7 +78,7 @@ public class ChoiceVariable extends Variable {
       if ((index<0) || (index>=getChoices().length)) {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
       }
-      return fData[index].name;
+      return fData[index].getName();
    }
 
    /**
@@ -114,7 +120,7 @@ public class ChoiceVariable extends Variable {
       String value = Integer.toString(intValue);
       int res = -1;
       for (int index=0; index<fData.length; index++) {
-         if (fData[index].value.equalsIgnoreCase(value)) {
+         if (fData[index].getValue().equalsIgnoreCase(value)) {
             res = index;
             break;
          }
@@ -122,7 +128,7 @@ public class ChoiceVariable extends Variable {
       if (res<0) {
          throw new RuntimeException("'"+intValue + "' is not compatible with ChoiceVariable " + getName());
       }
-      return setValue(fData[res].name);
+      return setValue(fData[res].getName());
    }
    
    /**
@@ -135,7 +141,7 @@ public class ChoiceVariable extends Variable {
    public boolean setSubstitutionValue(String value) {
       int res = -1;
       for (int index=0; index<fData.length; index++) {
-         if (fData[index].value.equalsIgnoreCase(value)) {
+         if (fData[index].getValue().equalsIgnoreCase(value)) {
             res = index;
             break;
          }
@@ -143,7 +149,7 @@ public class ChoiceVariable extends Variable {
       if (res<0) {
          throw new RuntimeException("'"+value + "' is not compatible with ChoiceVariable " + getName());
       }
-      return setValue(fData[res].name);
+      return setValue(fData[res].getName());
    }
    
    @Override
@@ -159,8 +165,8 @@ public class ChoiceVariable extends Variable {
    @Override
    public void setPersistentValue(String value) {
       for (int index=0; index<fData.length; index++) {
-         if (fData[index].value.equalsIgnoreCase(value)) {
-            fValue = fData[index].name;
+         if (fData[index].getValue().equalsIgnoreCase(value)) {
+            fValue = fData[index].getName();
             return;
          }
       }
@@ -168,7 +174,7 @@ public class ChoiceVariable extends Variable {
          // Try as index number
          int index = Integer.parseInt(value);
          if ((index>=0) && (index<fData.length)) {
-            fValue = fData[index].name;
+            fValue = fData[index].getName();
             return;
          }
       } catch (NumberFormatException e) {
@@ -198,19 +204,6 @@ public class ChoiceVariable extends Variable {
       return isEnabled()?fValue:fDisabledValue;
    }
    
-   /**
-    * Get index of current value in choice entries
-    * 
-    * @return index or -1 if not found
-    */
-   private int getIndex(String name) {
-      for (int index=0; index<fData.length; index++) {
-         if (fData[index].name.equalsIgnoreCase(name)) {
-            return index;
-         }
-      }
-      return -1;
-   }
    
    @Override
    public String getSubstitutionValue() {
@@ -218,7 +211,7 @@ public class ChoiceVariable extends Variable {
       if (index<0) {
          return "["+getValueAsString()+" not found]";
       }
-      return fData[index].value;
+      return fData[index].getValue();
    }
 
 
@@ -299,7 +292,7 @@ public class ChoiceVariable extends Variable {
                fChoices[index] = "Unavailable";
             }
             else {
-               fChoices[index] = fData[index].name;
+               fChoices[index] = fData[index].getName();
             }
          }
          if (fValue == null) {
@@ -327,7 +320,7 @@ public class ChoiceVariable extends Variable {
     */
    public void hideByValue(String value, boolean hide) {
       for (ChoiceData choice:fData) {
-         if (choice.value.equalsIgnoreCase(value)) {
+         if (choice.getValue().equalsIgnoreCase(value)) {
             choice.setHidden(hide);
             fChoices = null;
          }
@@ -349,6 +342,7 @@ public class ChoiceVariable extends Variable {
    /**
     * @return the choices
     */
+   @Override
    public ChoiceData[] getData() {
       return fData;
    }
@@ -365,17 +359,76 @@ public class ChoiceVariable extends Variable {
     * @param entries The name/value entries to set
     */
    public void setData(ArrayList<ChoiceData> entries) {
-      fData = entries.toArray(new ChoiceData[entries.size()]);
-      fDefaultValue = null;
-      fValue = null;
-      fChoices = null;
+      fData          = entries.toArray(new ChoiceData[entries.size()]);
+      fDefaultValue  = null;
+      fValue         = null;
+      fChoices       = null;
+   }
+
+   /**
+    * Adds choice data to existing data
+    * 
+    * @param entries Entries to add
+    */
+   public void addChoices(ArrayList<ChoiceData> entries, String defaultValue) {
+      ArrayList<ChoiceData> consolidatedEntries = new ArrayList<ChoiceData>();
+      for (ChoiceData item:fData) {
+         consolidatedEntries.add(item);
+      }
+      consolidatedEntries.addAll(entries);
+
+      if (defaultValue == null) {
+         defaultValue = fDefaultValue;
+      }
+      setData(consolidatedEntries);
+      fDefaultValue = defaultValue;
+      fValue        = defaultValue;
    }
 
    @Override
-   public Variable clone(String name, ISubstitutionMap symbols) throws CloneNotSupportedException {
+   public Variable clone(String name, ISubstitutionMap symbols) throws Exception {
       ChoiceVariable var = (ChoiceVariable) super.clone(name, symbols);
       this.fDefaultValue = var.fDefaultValue;
       return var;
    }
+
+   @Override
+   public boolean isLocked() {
+      return super.isLocked() || (getChoices().length <= 1);
+   }
+
+//   final Pattern fFieldPattern = Pattern.compile("^(data|name|value)(\\[(\\d+)\\])?$");
+//
+//   @Override
+//   public String getField(String field) {
+//      // Try data from variable
+//      String data = super.getField(field);
+//      if (data != null) {
+//         return data;
+//      }
+//      Matcher m = fFieldPattern.matcher(field);
+//      if (!m.matches()) {
+//         return "Field '"+field+"' not matched";
+//      }
+//      int index;
+//      // Return data from choice
+//      if (m.group(3) != null) {
+//         index = Integer.parseInt(m.group(3));
+//      }
+//      else {
+//         index = getIndex(getValueAsString());
+//         if (index<0) {
+//            return "Choice value '"+getValueAsString()+"' not found]";
+//         }
+//      }
+//      if (m.group(1).equals("data")) {
+//         return fData[index].getData();
+//      } else if (m.group(1).equals("name")) {
+//         return fData[index].getName();
+//      } else if (m.group(1).equals("value")) {
+//         return fData[index].getValue();
+//      }
+//      return "Field '"+field+"' not matched";
+//   }
 
 }

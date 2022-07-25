@@ -1,11 +1,14 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -14,7 +17,10 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public class PeripheralValidator extends Validator {
 
    protected static final Status UNMAPPED_PIN_STATUS = new Status("Not all common signals are mapped to pins", Severity.WARNING);
-
+   
+   // List of clock controls to update on validation
+   private ArrayList<Variable> clockControlVariables = new ArrayList<Variable>();
+   
    /**
     * Peripheral dialogue validator <br>
     * Constructor used by derived classes
@@ -63,6 +69,7 @@ public class PeripheralValidator extends Validator {
     */
    protected void validate(Variable variable) throws Exception {
       validateInterrupt(variable);
+      validateClockSelectorVariables();
    }
 
    /**
@@ -108,6 +115,132 @@ public class PeripheralValidator extends Validator {
    }
    
    /**
+    * Validate a clock selector variable
+    * 
+    * @param clockSelectorVar This variable is controlling a clock multiplexor
+    * 
+    * @throws Exception
+    */
+   private void validateClockSelectorVariable(Variable clockSelectorVar) throws Exception {
+      
+      LongVariable targetClockVar = safeGetLongVariable(clockSelectorVar.getTarget());
+
+      // Get clock source
+      LongVariable clockSourceVar = null;
+      if (clockSelectorVar instanceof StringVariable) {
+         // String variable with name of clock being used.
+         clockSourceVar = safeGetLongVariable(clockSelectorVar.getValueAsString());
+      }
+      else if (clockSelectorVar instanceof ChoiceVariable) {
+         // ChoiceVar selecting the clock input
+         ChoiceVariable cv = (ChoiceVariable)clockSelectorVar;
+         ChoiceData[] choiceData = cv.getData();
+         int index = (int)cv.getValueAsLong();
+         if (index<0) {
+            cv.getValueAsLong();
+            index = 0;
+         }
+         String clockName = choiceData[index].getReference();
+         if (clockName != null) {
+            if ("disabled".equalsIgnoreCase(clockName)) {
+               targetClockVar.setValue(0);
+               targetClockVar.setStatus((Status)null);
+               targetClockVar.setOrigin("Disabled");
+            }
+            else {
+               clockSourceVar = safeGetLongVariable(clockName);
+               if (clockSourceVar == null) {
+                  throw new Exception("Clock var '"+clockName+"' not found in '"+clockSelectorVar.getName()+"'");
+               }
+            }
+         }
+      }
+      else {
+         throw new Exception("Clock source control variable not of correct type" + clockSelectorVar);
+      }
+      if (clockSourceVar != null) {
+         targetClockVar.setValue(clockSourceVar.getValueAsLong());
+         targetClockVar.setStatus(clockSourceVar.getStatus());
+         targetClockVar.setOrigin(clockSourceVar.getOrigin());
+      }
+   }
+
+   
+   /**
+    * Validate all clock selector variables
+    * 
+    * @throws Exception
+    */
+  protected void validateClockSelectorVariables() throws Exception {
+      // Validate clock selectors
+      for (Variable controlVar:clockControlVariables) {
+         validateClockSelectorVariable(controlVar);
+      }
+   }
+   
+  /**
+   * Add a clock selector variable
+   * 
+   * @param clockSelectorVar This variable is controlling a clock multiplexor
+   * 
+   * @throws Exception
+   */
+   protected void addClockSelectorVariable(String clockSelectorVar) {
+      Variable controlVar = safeGetVariable(clockSelectorVar);
+      if (controlVar == null) {
+         System.err.println("Clock control variable '"+clockSelectorVar+"' not found");
+         return;
+      }
+      clockControlVariables.add(controlVar);
+      controlVar.addListener(getPeripheral());
+
+      if (controlVar instanceof ChoiceVariable) {
+         // ChoiceVar selecting the clock input
+         ChoiceVariable cv = (ChoiceVariable)controlVar;
+         ChoiceData[] choiceDatas = cv.getData();
+         for (ChoiceData choiceData:choiceDatas) {
+            Variable reference = safeGetVariable(choiceData.getReference());
+            if (reference == null) {
+               System.err.println("Clock reference variable '"+choiceData.getReference()+"' not found");
+            }
+            reference.addListener(getPeripheral());
+         }
+      }
+   }
+   
+   /**
+    * Add multiple clock selector variables
+    * 
+    * @param clockSelectorVars List of variables controlling a clock multiplexor
+    * 
+    * @throws Exception
+    */
+   protected void addClockSelectorVariables(List<String> clockSelectorVars) {
+      for (String controlVarName:clockSelectorVars) {
+         addClockSelectorVariable(controlVarName.replace("%n", ""));
+         for (int index=0; index<5; index++) {
+            addClockSelectorVariable(controlVarName.replace("%n", Integer.toString(index)));
+         }
+      }
+   }
+   
+   /**
+    * Add multiple clock selector variables
+    * 
+    * @param clockSelectorVars List of variables controlling a clock multiplexor
+    * 
+    * @throws Exception
+    */
+   protected void addClockSelectorVariables(String[] clockSelectorVars) throws Exception {
+      for (String controlVarName:clockSelectorVars) {
+         addClockSelectorVariable(controlVarName.replace("%n", ""));
+         for (int index=0; index<5; index++) {
+            addClockSelectorVariable(controlVarName.replace("%n", Integer.toString(index)));
+         }
+      }
+   }
+   
+   /**
     * Add to watched variables
     * 
     * @param externalVariables Variables to add
@@ -129,17 +262,37 @@ public class PeripheralValidator extends Validator {
    /**
     * Add to watched variables
     * 
-    * @param externalVariables Variables to add
+    * @param variablesToWatch Variables to add
     */
-   protected void addToWatchedVariables(String[] externalVariables) {
+   protected void addToWatchedVariables(String[] variablesToWatch) {
+      if (variablesToWatch == null) {
+         return;
+      }
       for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
-         for (String name:externalVariables) {
+         for (String name:variablesToWatch) {
             addToWatchedVariables(name);
          }
       }
       fIndex = 0;
    }
 
+   /**
+    * Add to watched variables
+    * 
+    * @param externalVariables Variables to add
+    */
+   protected void addToWatchedVariables(ArrayList<String> variablesToWatch) {
+      if (variablesToWatch == null) {
+         return;
+      }
+      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+         for (String name:variablesToWatch) {
+            addToWatchedVariables(name);
+         }
+      }
+      fIndex = 0;
+   }
+   
    /**
     * Create reference to a target variable by obtaining its name from given variable <br>
     * The name of the target variable will be added to namesToWatch
@@ -209,6 +362,24 @@ public class PeripheralValidator extends Validator {
     * @param namesToWatch  List of names of variables to be watched
     * 
     * @return Target variable
+    */
+   protected BooleanVariable safeCreateBooleanVariableReference(String targetName, ArrayList<String> namesToWatch) {
+      
+      BooleanVariable reference = safeGetBooleanVariable(targetName);
+      if ((reference != null) && (namesToWatch != null)) {
+         namesToWatch.add(targetName);
+      }
+      return reference;
+   }
+   
+   /**
+    * Create reference to a target by name <br>
+    * The name of the target variable will be added to namesToWatch
+    *  
+    * @param targetName    Name of Variable 
+    * @param namesToWatch  List of names of variables to be watched
+    * 
+    * @return Target variable
     * 
     * @throws Exception if target variable doesn't exist
     */
@@ -221,7 +392,7 @@ public class PeripheralValidator extends Validator {
    
    @Override
    protected void createDependencies() throws Exception {
-      // Assume no external dependencies
+      addToWatchedVariables(getPeripheral().getDepenedencies());
    }
 
    /**

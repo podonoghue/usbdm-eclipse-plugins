@@ -50,6 +50,10 @@ public class WriterForFtm extends PeripheralWithState {
       super.writeDeclarations();
       
       for (int index=0; index<fInfoTable.table.size(); index++) {
+         if (index>7) {
+            // Maximum of 8 signals/channels. Other signals are special purpose
+            break;
+         }
          Signal signal = fInfoTable.table.get(index);
          if (signal == null) {
             continue;
@@ -59,7 +63,7 @@ public class WriterForFtm extends PeripheralWithState {
             continue;
          }
          String cIdentifier = signal.getCodeIdentifier();
-         if (cIdentifier.isBlank()) {
+         if ((cIdentifier == null) || cIdentifier.isBlank()) {
             continue;
          }
          if (!pin.isAvailableInPackage()) {

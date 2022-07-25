@@ -53,9 +53,6 @@ public class ExtendedVariableSubstitutionMap implements ISubstitutionMap {
       if (fExtraSymbols != null) {
          value = fExtraSymbols.get(key);
          if (value != null) {
-            if (value.startsWith("Don't")) {
-               System.err.print("Found " + value);
-            }
             return value;
          }
       }

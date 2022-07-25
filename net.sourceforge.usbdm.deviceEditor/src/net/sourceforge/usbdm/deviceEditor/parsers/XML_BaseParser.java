@@ -259,61 +259,99 @@ public class XML_BaseParser {
       }
       return index;
    }
-   
+
    /**
-    * @param element
-    * @param name
+    * Parse a long value with suffixes
     * 
-    * @return
+    * @param longValue Value to parse
     * 
-    * @throws NumberFormatException
+    * @return value parsed as Long
+    * 
+    * @throws NumberFormatException if format is invalid
     */
-   protected static long getLongAttribute(Element element, String name) throws NumberFormatException {
-      String s = element.getAttribute(name);
-      if ((s == null) || (s.length()==0)) {
-         throw new NumberFormatException("Attribute \'"+name+"\'not found");
-      }
+   protected static Long parseLong(String longValue) {
+      
       long value      = 0;
       long multiplier = 1;
-      int kiIndex    = checkSuffix(s, kibiSuffixes);
-      int miIndex    = checkSuffix(s, mibiSuffixes);
-      int kiloIndex  = checkSuffix(s, kiloSuffixes);
-      int megaIndex  = checkSuffix(s, megaSuffixes);
+      int kiIndex    = checkSuffix(longValue, kibiSuffixes);
+      int miIndex    = checkSuffix(longValue, mibiSuffixes);
+      int kiloIndex  = checkSuffix(longValue, kiloSuffixes);
+      int megaIndex  = checkSuffix(longValue, megaSuffixes);
       
       if (kiIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), K found");
-         s = s.substring(0, kiIndex);
+         longValue = longValue.substring(0, kiIndex);
          multiplier = 1024;
          //         System.out.println("getIntAttribute("+s+"), K found");
       }
       if (miIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), M found");
-         s = s.substring(0, miIndex);
+         longValue = longValue.substring(0, miIndex);
          multiplier = 1024*1024;
          //         System.out.println("getIntAttribute("+s+"), M found");
       }
       if (kiloIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), K found");
-         s = s.substring(0, kiloIndex);
+         longValue = longValue.substring(0, kiloIndex);
          multiplier = 1000;
          //         System.out.println("getIntAttribute("+s+"), K found");
       }
       if (megaIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), K found");
-         s = s.substring(0, megaIndex);
+         longValue = longValue.substring(0, megaIndex);
          multiplier = 1000*1000;
          //         System.out.println("getIntAttribute("+s+"), K found");
       }
       try {
-         value = multiplier*Long.decode(s.trim());
+         value = multiplier*Long.decode(longValue.trim());
       } catch (NumberFormatException e) {
-         //         System.out.println("getIntAttribute("+s+"), failed");
-         throw new NumberFormatException("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
-         //         throw e;
+         throw new NumberFormatException("Failed to parse Long Attribute \'"+longValue+"\'");
       }
       return value;
    }
+   
+   
+   /**
+    * Get a long attribute
+    * 
+    * @param element Element being examined
+    * @param name    Attribute name
+    * 
+    * @return value parsed as Long or null if attribute not present
+    *  
+    * @throws NumberFormatException if attribute is found but invalid long
+    */
+   protected static Long safeGetLongAttribute(Element element, String name) throws NumberFormatException {
+      String attr = element.getAttribute(name);
+      if (attr.isBlank()) {
+         return null;
+      }
+      try {
+         return parseLong(attr);
+      } catch (NumberFormatException e) {
+         throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' in '"+element+"'");
+      }
+   }
 
+   /**
+    * Parse a long attribute
+    * 
+    * @param element Element being examined
+    * @param name    Attribute name
+    * 
+    * @return value parsed as Long
+    *  
+    * @throws Exception if attribute not found
+    * @throws NumberFormatException if attribute found but invalid
+    */
+   protected static Long getLongAttribute(Element element, String name) throws Exception {
+      Long value = safeGetLongAttribute(element, name);
+      if (value == null) {
+         throw new Exception("Attribute '"+name+"', not found in '"+element+"'");
+      }
+      return value;
+   }
+   
    /**
     * @param element
     * @param name
@@ -366,27 +404,43 @@ public class XML_BaseParser {
     * 
     * @param value Input value
     * 
-    * @return  Value as int if possible
+    * @return  Value as Integer or null if value is null
     * 
     * @throws IllegalArgumentException if out of range
+    * @throws ArithmeticException - if the argument overflows an integer
     */
-   public static int safeLongToInt(long value) throws IllegalArgumentException {
-      if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
-         throw new IllegalArgumentException(value + " cannot be cast to int without truncation");
+   public static Integer safeLongToInt(Long value) throws IllegalArgumentException {
+      if (value == null) {
+         return null;
       }
-      return (int) value;
+      return Math.toIntExact(value);
    }
    
    /**
-    * @param element
-    * @param name
+    * @param element Element to examine
+    * @param name    Name of attribute
     * 
-    * @return
+    * @return Attribute as Integer
     * 
-    * @throws NumberFormatException
+    * @throws Exception - if attribute not found
+    * @throws NumberFormatException - if attribute found but invalid 
+    * @throws ArithmeticException - if the argument overflows an integer
     */
-   protected static int getIntAttribute(Element element, String name) throws NumberFormatException {
+   protected static Integer getIntAttribute(Element element, String name) throws IllegalArgumentException, Exception {
       return safeLongToInt(getLongAttribute(element, name));
+   }
+
+   /**
+    * @param element Element to examine
+    * @param name    Name of attribute
+    * 
+    * @return Attribute as Integer
+    * 
+    * @throws NumberFormatException - if attribute found but invalid 
+    * @throws ArithmeticException - if the argument overflows an integer
+    */
+   protected static Integer safeGetIntAttribute(Element element, String name) throws IllegalArgumentException, Exception {
+      return safeLongToInt(safeGetLongAttribute(element, name));
    }
 
    protected static Document parseXmlString(String xmlString, Path path) throws ParserConfigurationException, SAXException, IOException {

@@ -27,9 +27,14 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Stationery</name>
+			<name>180.ARM_Peripherals - Build</name>
 			<type>2</type>
-			<locationURI>PARENT-1-WORKSPACE_LOC/usbdm-eclipse-makefiles-build/PackageFiles/Stationery</locationURI>
+			<locationURI>PARENT-1-WORKSPACE_LOC/usbdm-eclipse-makefiles-build/PackageFiles/Stationery/Packages/180.ARM_Peripherals</locationURI>
+		</link>
+		<link>
+			<name>180.ARM_Peripherals - Installed</name>
+			<type>2</type>
+			<location>/usr/share/usbdm/Stationery/Packages/180.ARM_Peripherals</location>
 		</link>
 	</linkedResources>
 </projectDescription>

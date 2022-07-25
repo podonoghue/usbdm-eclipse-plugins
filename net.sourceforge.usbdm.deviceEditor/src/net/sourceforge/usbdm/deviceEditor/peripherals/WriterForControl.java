@@ -35,10 +35,11 @@ public class WriterForControl extends PeripheralWithState {
    }
 
    @Override
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoClass(pinMappingHeaderFile);
+   public void writeInfoConstants(final DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      super.writeDefaultPinInstances(pinMappingHeaderFile);
    }
-
+   
    @Override
    public String getGroupName() {
       return "Control_Group";
@@ -48,12 +49,14 @@ public class WriterForControl extends PeripheralWithState {
    private int fIndex = 0;
    
    @Override
-   public int getSignalIndex(Signal signal) {
-      Integer index = indexMap.get(signal.getName());
+   public int getSignalIndex(Signal function) {
+      Integer index = indexMap.get(function.getName());
       if (index == null) {
          index = fIndex++;
-         indexMap.put(signal.getName(), index);
+         indexMap.put(function.getName(), index);
       }
       return index;
+      
+//      return super.getSignalIndex(function, signalNames);
    }
 }

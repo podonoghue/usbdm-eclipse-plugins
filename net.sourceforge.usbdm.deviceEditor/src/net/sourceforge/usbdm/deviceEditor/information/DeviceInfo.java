@@ -1774,6 +1774,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
 //         System.err.println("Make sure peripherals have been updated");
+         
+         // Allow variable change notifications
+         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+            Peripheral peripheral =  entry.getValue();
+            if (peripheral instanceof PeripheralWithState) {
+               PeripheralWithState p = (PeripheralWithState) peripheral;
+               p.setSuspended(false);
+            }
+         }
          /*
           * Make sure critical peripherals have been updated in order first
           */
@@ -1785,13 +1794,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "MCG",
                "SIM",
          };
-         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
-            Peripheral peripheral =  entry.getValue();
-            if (peripheral instanceof PeripheralWithState) {
-               PeripheralWithState p = (PeripheralWithState) peripheral;
-               p.setSuspended(false);
-            }
-         }
          for (String name:criticalPeripherals) {
             Peripheral peripheral =  fPeripheralsMap.get(name);
             if (peripheral instanceof PeripheralWithState) {
@@ -2194,6 +2196,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (var == null) {
          // Try 0 index as well
          var = fVariables.safeGet(key+"[0]");
+      }
+      if ((var == null) && key.endsWith(".")) {
+         // Try 0 index as well
+         var = fVariables.safeGet(key.substring(0,key.length()-1)+"[0]");
+      }
+      if ((var == null) && key.endsWith("[]")) {
+         // Try 0 index as well
+         var = fVariables.safeGet(key.substring(0,key.length()-2)+"[0]");
       }
       return var;
    }

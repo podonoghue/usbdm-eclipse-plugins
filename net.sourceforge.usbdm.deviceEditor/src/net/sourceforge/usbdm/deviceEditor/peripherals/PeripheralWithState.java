@@ -15,6 +15,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -35,7 +37,7 @@ import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
-   
+
    public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlingMethod";
 
    /** Data obtained from the Menu description file */
@@ -103,6 +105,29 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       writeInfoTemplate(pinMappingHeaderFile);
    }
 
+   public void writeDefaultPinInstances(final DocumentUtilities pinMappingHeaderFile) throws IOException {
+      for (int index=0; index<fInfoTable.table.size(); index++) { 
+         Signal signal = fInfoTable.table.get(index);
+
+         MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
+         if (!mappingInfo.getPin().isAvailableInPackage()) {
+            // Discard unmapped signals on this package 
+            continue;
+         }
+         if (mappingInfo.getMux() == MuxSelection.unassigned) {
+            // Reset selection - ignore
+            continue;
+         }
+         if (mappingInfo.getMux() == MuxSelection.fixed) {
+            // Fixed pin mapping
+            continue;
+         }
+         pinMappingHeaderFile.write(String.format("using %-20s = PcrTable_T<"+getClassName()+"Info,"+index+">;\n", signal.getName()+"_pin", index));
+      }
+      pinMappingHeaderFile.write("\n");
+   }
+
+
    /**
     * Writes template-based C code to be included in the information class describing the peripheral<br>
     * 
@@ -121,7 +146,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception 
     */
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException  {
-      pinMappingHeaderFile.write("   // Template:" + getPeripheralVersionName()+"\n\n");
+      pinMappingHeaderFile.writeBanner("   ", "Template:" + getPeripheralVersionName());
       if (fMenuData == null) {
 //         System.err.println("No fData for " + getName());
          return;
@@ -577,6 +602,19 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             }
          }
       }
+   }
+
+   ArrayList<String> fDepenedencies;
+   
+   public void addDependency(String dependencyVarName) {
+      if (fDepenedencies == null) {
+         fDepenedencies = new ArrayList<String>();
+      }
+      fDepenedencies.add(dependencyVarName);
+   }
+   
+   public ArrayList<String> getDepenedencies() {
+      return fDepenedencies;
    }
 
 }

@@ -978,6 +978,24 @@ public class DocumentUtilities {
    }
 
    /**
+    * Writes am indented simple banner
+    * <pre><code>
+    * .../*
+    * ... * <b><i>banner...</b></i>
+    * ... * <b><i>banner...</b></i>
+    * ... *&#47;
+    * </code></pre>
+    * 
+    * @param fileName   Filename to use in #include directive
+    * 
+    * @throws IOException
+    */
+   public void writeBanner(String indent, String banner) throws IOException {
+      banner = indent+"/*\n"+indent+" * " + banner.replaceAll("\n", "\n"+indent+" * ") + "\n"+indent+" */\n";
+      _write(banner);
+   }
+
+   /**
     * Writes a simple banner.<br>
     * Any new-lines in the banner will be used to break the banner into multiple formatted lines.
     * <pre><code>

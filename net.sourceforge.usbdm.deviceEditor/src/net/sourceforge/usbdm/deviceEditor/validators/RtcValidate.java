@@ -65,6 +65,8 @@ public class RtcValidate extends PeripheralValidator {
    /** ERCLK32K is used as RTC clock when using shared OSC0 */
    private LongVariable     system_erclk32k_clockVar = null;
    
+   private StringVariable   rtcNoteVar            = null;
+
    /**
     * @param peripheral Associated peripheral
     * @param values     Not used
@@ -98,12 +100,14 @@ public class RtcValidate extends PeripheralValidator {
          if (rtc_osc_input_freqVar.equals(variable)) {
             osc0_input_freqVar.setValue(oscFrequency);
          }
-         else if (osc0_input_freqVar.equals(variable)) {
+         else {
             oscFrequency = osc0_input_freqVar.getValueAsLong();
             rtc_osc_input_freqVar.setValue(oscFrequency);
          }
+         // Copy osc0_osc32k_clockVar => rtc_osc_clockVar
          rtc_osc_clockVar.setValue(osc0_osc32k_clockVar.getValueAsLong());
          rtc_osc_clockVar.setStatus(osc0_osc32k_clockVar.getStatus());
+         rtc_osc_clockVar.setOrigin(osc0_osc32k_clockVar.getOrigin());
       }
       
       //=========================================
@@ -181,9 +185,9 @@ public class RtcValidate extends PeripheralValidator {
             rtcclk_gated_clockVar.enable(rtc_cr_osce);
          }
       }
-      rtc_1hz_clockVar.enable(rtc_cr_osce || !rtcSharesPins);
+      rtc_1hz_clockVar.enable(rtcClockFrequency>0);
       rtc_1hz_clockVar.setValue((rtcClockFrequency/32768.0));
-      rtc_1hz_clockVar.setStatus(status);
+      rtc_1hz_clockVar.setStatus((rtcClockFrequency>0)?null:status);
       rtc_1hz_clockVar.setOrigin(rtcOrigin+" via RTC divider");
 
    }
@@ -191,6 +195,8 @@ public class RtcValidate extends PeripheralValidator {
    @Override
    protected void createDependencies() throws Exception {
       ArrayList<String> externalVariablesList = new ArrayList<String>(); 
+      
+      rtcNoteVar = getStringVariable("Note");
       
       StringVariable rtcSharesPinsVar = safeGetStringVariable("/SIM/rtcSharesPins");
       rtcSharesPins =  (rtcSharesPinsVar != null) && rtcSharesPinsVar.getValueAsBoolean();
@@ -214,6 +220,7 @@ public class RtcValidate extends PeripheralValidator {
          
          rtc_osc_clockVar.setDescription(osc0_osc32k_clockVar.getDescription());
          rtc_osc_clockVar.setToolTip(osc0_osc32k_clockVar.getToolTip());
+         rtc_osc_clockVar.setName(osc0_osc32k_clockVar.getName());
          
          rtc_cr_osceVar.setToolTip(
                "Enable "+osc0_peripheralName.substring(1)+" as 32kHz RTC oscillator\n"+
@@ -230,6 +237,8 @@ public class RtcValidate extends PeripheralValidator {
          rtc_cr_clkoVar.setHidden(true);
          rtcclk_gated_clockVar.enable(false);
          rtcclk_gated_clockVar.setHidden(true);
+         
+         rtcNoteVar.setValue("RTC is clocked by ERCLK32K");
       }
       else {
          // RTC uses separate XTAL32/EXTAL32 pins
@@ -237,6 +246,8 @@ public class RtcValidate extends PeripheralValidator {
          rtc_cr_osceVar.setToolTip("Enable independent 32kHz RTC oscillator");
          rtc_osc_input_freqVar.setMin(EXTERNAL_EXTAL_RANGE_MIN);
          rtc_osc_input_freqVar.setMax(EXTERNAL_EXTAL_RANGE_MAX);
+         
+         rtcNoteVar.setValue("RTC is clocked by RTC Oscillator");
       }
       
       // Write-only variables
