@@ -121,6 +121,9 @@ public class ReplacementParser {
       while((index<inputText.length()) && (!complete)) {
          char c = inputText.charAt(index);
          pendingChar = null;
+         if (!Character.isLetterOrDigit(c) && ("$:()[]_/.".indexOf(c)<0)) {
+            throw new Exception("Illegal character in key '"+ sb.toString()+c+"'");
+         }
          switch(state) {
             case KEY:
                if (c == '$') {
@@ -362,7 +365,9 @@ public class ReplacementParser {
          index = parseKey(inputText, index, keyBuffer);
          key = keyBuffer.toString();
       }
-
+      if (key.contains("llwu_me_wume0.description")) {
+         System.err.println("Found "+key);
+      }
       String arg1 = null;
       char c = inputText.charAt(index);
       if (c == ':') {
@@ -448,11 +453,6 @@ public class ReplacementParser {
             if (replaceWith == null) {
                replaceWith = arg1;
             }
-
-            if (replaceWith == null) {
-//               String xx = fSymbols.getSubstitutionValue(key);
-               replaceWith = "Symbol '" + key + "' not found";
-            }
             if (arg2 != null) {
                if (arg2.equalsIgnoreCase("toupper")) {
                   replaceWith = replaceWith.toUpperCase();
@@ -469,7 +469,7 @@ public class ReplacementParser {
       }
       if (replaceWith == null) {
          replaceWith = 
-               "---Symbol not found or format incorrect for substitution '"+inputText+
+               "---Symbol not found or format incorrect for substitution '"+inputText.substring(0,40)+
                "' => key='" + key +
                "', def='" + arg1 + 
                "', mod='" + arg2 + "'";
