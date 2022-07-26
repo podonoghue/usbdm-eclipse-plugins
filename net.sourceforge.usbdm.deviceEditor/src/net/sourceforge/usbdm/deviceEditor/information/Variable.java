@@ -189,7 +189,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    private String fDataValue;
 
+   /** Target for clock selector */
    private String fTarget;
+
+   /** stem for enum generation e.g. XXXX => XXX_yyyy enums */
+   private String fEnumStem;
 
    /**
     * Constructor
@@ -867,7 +871,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * Set target variable
+    * Set target for clock selector
     * 
     * @param target
     */
@@ -876,11 +880,30 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * Get target variable
+    * Get target for clock selector
     * 
     * @return
     */
    public String getTarget() {
       return fTarget;
    }
+
+   /**
+    * Set stem for enum generation e.g. XXXX => XXX_yyyy enums
+    * 
+    * @param enumStem
+    */
+   public void setEnumStem(String enumStem) {
+      fEnumStem = enumStem;
+   }
+   
+   /**
+    * Get stem for enum generation e.g. XXXX => XXX_yyyy enums
+    * 
+    * @param enumStem
+    */
+   public String getEnumStem() {
+      return fEnumStem;
+   }
+   
 }

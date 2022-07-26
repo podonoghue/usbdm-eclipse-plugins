@@ -683,6 +683,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("target")) {
          variable.setTarget(getAttributeWithFor(varElement, "target"));
       }
+      if (varElement.hasAttribute("enumStem")) {
+         variable.setEnumStem(getAttributeWithFor(varElement, "enumStem"));
+      }
       if (varElement.hasAttribute("clockSources")) {
          throw new Exception("clockSources no longer supported in "+varElement+", '"+variable.getName()+"'");
       }
@@ -808,6 +811,11 @@ public class ParseMenuXML extends XML_BaseParser {
       VariableModel  model    = parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       parseForElement(parent, model);
+      
+      if (variable.getTarget() != null) {
+         // Add as clock selector
+         fPeripheral.addClockSelector(variable);
+      }
    }
 
 
@@ -1473,7 +1481,6 @@ public class ParseMenuXML extends XML_BaseParser {
       String namespace       = doForSubstitutions(element.getAttribute("namespace"));
       String condition       = doForSubstitutions(element.getAttribute("condition"));
       String template        = doForSubstitutions(element.getAttribute("template"));
-      String enumRoot        = doForSubstitutions(element.getAttribute("enumRoot"));
       String valueFormat     = doForSubstitutions(element.getAttribute("valueFormat"));
       
       if (namespace.isBlank()) {
@@ -1489,11 +1496,6 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("EnumTemplate must have 'conditionAttr' attribute, peripheral='" + 
                fPeripheral.getName() + "', template= '" + template + "'");
       }
-      if ((template.isBlank() && enumRoot.isBlank() || 
-          (!template.isBlank() && !enumRoot.isBlank()) )) {
-         throw new Exception("EnumTemplate must have either 'template' or 'enumRoot' attributes, peripheral='" + 
-               fPeripheral.getName() + "', template= '" + template + "'");
-      }
       if (!element.hasAttribute("valueFormat")) {
          // Default of form 'XXXX(%s)'
          valueFormat = condition.toUpperCase()+"(%s)";
@@ -1501,6 +1503,19 @@ public class ParseMenuXML extends XML_BaseParser {
       VariableWithChoices choiceVar = (VariableWithChoices) safeGetVariable(fProvider.makeKey(condition));
       if (choiceVar == null) {
          return;
+      }
+      String enumStem = choiceVar.getEnumStem();
+      if (enumStem == null) {
+         enumStem = doForSubstitutions(element.getAttribute("enumRoot"));
+      }
+      else if (element.hasAttribute("enumRoot")){
+         throw new Exception("EnumTemplate has redundant 'enumRoot' attribute, peripheral='" + 
+               fPeripheral.getName() + "', condition='" + condition + "'");
+      }
+      if ((template.isBlank() && enumStem.isBlank() || 
+            (!template.isBlank() && !enumStem.isBlank()) )) {
+         throw new Exception("EnumTemplate must have either 'template' or 'enumRoot' attributes, peripheral='" + 
+               fPeripheral.getName() + "', condition='" + condition + "'");
       }
       TemplateInformation templateInfo = addTemplate(name, namespace);
       
@@ -1511,7 +1526,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
       if (template.isBlank()) {
          // Use enumRoot attribute
-         enumClass  = Character.toUpperCase(enumRoot.charAt(0)) + enumRoot.substring(1);
+         enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
 
          String[] enumName  = new String[choiceData.length];
          String[] values    = new String[choiceData.length];
@@ -1600,10 +1615,19 @@ public class ParseMenuXML extends XML_BaseParser {
       String name         = doForSubstitutions(element.getAttribute("name"));
       String namespace    = doForSubstitutions(element.getAttribute("namespace"));
       String condition    = doForSubstitutions(element.getAttribute("condition"));
-      String enumRoot     = doForSubstitutions(element.getAttribute("enumRoot"));
       String returnFormat = element.hasAttribute("returnFormat")?doForSubstitutions(element.getAttribute("returnFormat")):null;
       String mask         = doForSubstitutions(element.getAttribute("mask"));
+
+      VariableWithChoices choiceVar = (VariableWithChoices) safeGetVariable(fProvider.makeKey(condition));
+      if (choiceVar == null) {
+         return;
+      }
       
+      String enumStem = choiceVar.getEnumStem();
+      if (enumStem == null) {
+         enumStem = doForSubstitutions(element.getAttribute("enumRoot"));
+      }
+
       if (namespace.isBlank()) {
          throw new Exception("ClockCodeTemplate is missing namespace, name='" + name + "'");
       }
@@ -1615,17 +1639,11 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (condition.isBlank()) {
          throw new Exception("ClockCodeTemplate must have 'condition' attribute, peripheral='" + 
-               fPeripheral.getName() + "', enumRootAttr= '" + enumRoot + "'");
+               fPeripheral.getName() + "', enumRootAttr= '" + enumStem + "'");
       }
-      if (enumRoot.isBlank()) {
+      if (enumStem.isBlank()) {
          throw new Exception("ClockCodeTemplate must have 'enumRoot' attribute, peripheral='" + 
                fPeripheral.getName() + "', cond= '" + condition + "'");
-      }
-      element.getNodeValue();
-
-      VariableWithChoices choiceVar = (VariableWithChoices) safeGetVariable(fProvider.makeKey(condition));
-      if (choiceVar == null) {
-         return;
       }
       TemplateInformation templateInfo = addTemplate(name, namespace);
       
@@ -1640,8 +1658,8 @@ public class ParseMenuXML extends XML_BaseParser {
       int enumNameMax    = 0;
       int returnValueMax = 0;
       
-      String enumClass  = Character.toUpperCase(enumRoot.charAt(0)) + enumRoot.substring(1);
-      String enumParam  = Character.toLowerCase(enumRoot.charAt(0)) + enumRoot.substring(1);
+      String enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
+      String enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
       
       if (returnFormat != null) {
          // Create body for case statement if used
@@ -1652,7 +1670,7 @@ public class ParseMenuXML extends XML_BaseParser {
             if ((enumName == null) || (codeValue == null)) {
                throw new Exception("Choice '"+choiceData[index].getName()+"' is missing enum/code value in "+choiceVar);
             }
-            enumNames[index]     = enumRoot+"_"+enumName;
+            enumNames[index]     = enumStem+"_"+enumName;
             enumNameMax          = Math.max(enumNameMax, enumNames[index].length());
             returnValues[index]  = String.format(returnFormat+";", codeValue);
             returnValueMax       = Math.max(returnValueMax, returnValues[index].length());

@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -615,6 +616,27 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    public ArrayList<String> getDepenedencies() {
       return fDepenedencies;
+   }
+
+   // List of clock selectors to update on validation
+   private ArrayList<Variable> clockSelectorVariables = new ArrayList<Variable>();
+   
+   /**
+    * Add variable as clock selector
+    * 
+    * @param clockSelector Clock selector to add
+    */
+   public void addClockSelector(ChoiceVariable clockSelector) {
+      clockSelectorVariables.add(clockSelector);
+   }
+   
+   /**
+    * Get list of clock selectors to update on validation
+    * 
+    * @return list of clock selectors
+    */
+   public ArrayList<Variable> getClockSelectors() {
+      return clockSelectorVariables;
    }
 
 }

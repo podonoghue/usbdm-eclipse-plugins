@@ -545,6 +545,5 @@ public class ClockValidator_MCG extends BaseClockValidator {
       enableClockConfigurationVar.enable(false);
       enableClockConfigurationVar.setToolTip("Clock configuration 0 must always be enabled");
       enableClockConfigurationVar.setDerived(true);
-      fIndex = 0;
    }
 }

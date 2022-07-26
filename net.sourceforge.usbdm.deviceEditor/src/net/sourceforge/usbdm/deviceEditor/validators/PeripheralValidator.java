@@ -1,7 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
@@ -17,9 +18,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public class PeripheralValidator extends Validator {
 
    protected static final Status UNMAPPED_PIN_STATUS = new Status("Not all common signals are mapped to pins", Severity.WARNING);
-   
-   // List of clock controls to update on validation
-   private ArrayList<Variable> clockControlVariables = new ArrayList<Variable>();
    
    /**
     * Peripheral dialogue validator <br>
@@ -126,10 +124,10 @@ public class PeripheralValidator extends Validator {
       LongVariable targetClockVar = safeGetLongVariable(clockSelectorVar.getTarget());
 
       // Get clock source
-      LongVariable clockSourceVar = null;
+      String reference = null;
       if (clockSelectorVar instanceof StringVariable) {
          // String variable with name of clock being used.
-         clockSourceVar = safeGetLongVariable(clockSelectorVar.getValueAsString());
+         reference = clockSelectorVar.getValueAsString();
       }
       else if (clockSelectorVar instanceof ChoiceVariable) {
          // ChoiceVar selecting the clock input
@@ -140,102 +138,96 @@ public class PeripheralValidator extends Validator {
             cv.getValueAsLong();
             index = 0;
          }
-         String clockName = choiceData[index].getReference();
-         if (clockName != null) {
-            if ("disabled".equalsIgnoreCase(clockName)) {
-               targetClockVar.setValue(0);
-               targetClockVar.setStatus((Status)null);
-               targetClockVar.setOrigin("Disabled");
-            }
-            else {
-               clockSourceVar = safeGetLongVariable(clockName);
-               if (clockSourceVar == null) {
-                  throw new Exception("Clock var '"+clockName+"' not found in '"+clockSelectorVar.getName()+"'");
-               }
-            }
-         }
+         reference = choiceData[index].getReference();
       }
       else {
          throw new Exception("Clock source control variable not of correct type" + clockSelectorVar);
       }
-      if (clockSourceVar != null) {
-         targetClockVar.setValue(clockSourceVar.getValueAsLong());
-         targetClockVar.setStatus(clockSourceVar.getStatus());
-         targetClockVar.setOrigin(clockSourceVar.getOrigin());
+      if ("disabled".equalsIgnoreCase(reference)) {
+         targetClockVar.setValue(0);
+         targetClockVar.setStatus((Status)null);
+         targetClockVar.setOrigin("Disabled");
+         return;
       }
+      String data[] = reference.split(",");
+      
+      LongVariable clockSourceVar = safeGetLongVariable(data[0]);     
+      long         value          = clockSourceVar.getValueAsLong();
+      String       origin         = clockSourceVar.getOrigin();
+      
+      if (data.length>1) {
+         Pattern p = Pattern.compile("(/|\\*)(\\d+)");
+         Matcher m = p.matcher(data[1]);  
+         if (!m.matches()) {
+            throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
+         }
+         origin = "("+origin+")"+data[1];
+         long factor = Long.parseLong(m.group(2));
+         switch(m.group(1).charAt(0)) {
+         case '/' : value = value / factor; break;
+         case '*' : value = value * factor; break;
+         }
+      }
+      targetClockVar.setValue(value);
+      targetClockVar.setStatus(clockSourceVar.getStatus());
+      targetClockVar.setOrigin(origin);
    }
-
    
    /**
     * Validate all clock selector variables
     * 
     * @throws Exception
     */
-  protected void validateClockSelectorVariables() throws Exception {
+   private void validateClockSelectorVariables() throws Exception {
+      
       // Validate clock selectors
-      for (Variable controlVar:clockControlVariables) {
-         validateClockSelectorVariable(controlVar);
+      ArrayList<Variable> clockSelectors = getPeripheral().getClockSelectors();
+      for (Variable clockSelector:clockSelectors) {
+         validateClockSelectorVariable(clockSelector);
       }
    }
    
   /**
-   * Add a clock selector variable
-   * 
-   * @param clockSelectorVar This variable is controlling a clock multiplexor
+   * Add clock selectors and their references to watched variables<br>
+   * The clock selectors are obtained from the associated peripheral
    * 
    * @throws Exception
    */
-   protected void addClockSelectorVariable(String clockSelectorVar) {
-      Variable controlVar = safeGetVariable(clockSelectorVar);
-      if (controlVar == null) {
-         System.err.println("Clock control variable '"+clockSelectorVar+"' not found");
-         return;
-      }
-      clockControlVariables.add(controlVar);
-      controlVar.addListener(getPeripheral());
+   private void addClockSelectors() throws Exception {
+      ArrayList<Variable> clockSelectors = getPeripheral().getClockSelectors();
+      for (Variable clockSelector:clockSelectors) {
+         String targetName = clockSelector.getTarget();
+         if (targetName == null) {
+            throw new Exception("Clock selector var '"+clockSelector+"' doesn't have target");
+         }
+         Variable target = safeGetVariable(targetName);
+         if (target == null) {
+            throw new Exception("Target '"+targetName+"' not found for Clock selector var '"+clockSelector+"' have target");
+         }         
+         
+         // Watch clock selector
+         clockSelector.addListener(getPeripheral());
 
-      if (controlVar instanceof ChoiceVariable) {
-         // ChoiceVar selecting the clock input
-         ChoiceVariable cv = (ChoiceVariable)controlVar;
-         ChoiceData[] choiceDatas = cv.getData();
-         for (ChoiceData choiceData:choiceDatas) {
-            Variable reference = safeGetVariable(choiceData.getReference());
-            if (reference == null) {
-               System.err.println("Clock reference variable '"+choiceData.getReference()+"' not found");
+         if (clockSelector instanceof ChoiceVariable) {
+            // ChoiceVar selecting the clock input
+            ChoiceVariable cv = (ChoiceVariable)clockSelector;
+            ChoiceData[] choiceDatas = cv.getData();
+            for (ChoiceData choiceData:choiceDatas) {
+               String referenceString = choiceData.getReference();
+               if (referenceString == null) {
+                  throw new Exception("Clock reference is missing for Clock selector var '"+clockSelector+"' have target");
+               }
+               if ("disabled".equalsIgnoreCase(referenceString)) {
+                  continue;
+               }
+               String parts[] = referenceString.split(",");
+               Variable reference = safeGetVariable(parts[0]);
+               if (reference == null) {
+                  throw new Exception("Clock reference variable '"+choiceData.getReference()+"' not found for Clock selector var '"+clockSelector+"' have target");
+               }
+               // Watch references
+               reference.addListener(getPeripheral());
             }
-            reference.addListener(getPeripheral());
-         }
-      }
-   }
-   
-   /**
-    * Add multiple clock selector variables
-    * 
-    * @param clockSelectorVars List of variables controlling a clock multiplexor
-    * 
-    * @throws Exception
-    */
-   protected void addClockSelectorVariables(List<String> clockSelectorVars) {
-      for (String controlVarName:clockSelectorVars) {
-         addClockSelectorVariable(controlVarName.replace("%n", ""));
-         for (int index=0; index<5; index++) {
-            addClockSelectorVariable(controlVarName.replace("%n", Integer.toString(index)));
-         }
-      }
-   }
-   
-   /**
-    * Add multiple clock selector variables
-    * 
-    * @param clockSelectorVars List of variables controlling a clock multiplexor
-    * 
-    * @throws Exception
-    */
-   protected void addClockSelectorVariables(String[] clockSelectorVars) throws Exception {
-      for (String controlVarName:clockSelectorVars) {
-         addClockSelectorVariable(controlVarName.replace("%n", ""));
-         for (int index=0; index<5; index++) {
-            addClockSelectorVariable(controlVarName.replace("%n", Integer.toString(index)));
          }
       }
    }
@@ -393,6 +385,7 @@ public class PeripheralValidator extends Validator {
    @Override
    protected void createDependencies() throws Exception {
       addToWatchedVariables(getPeripheral().getDepenedencies());
+      addClockSelectors();
    }
 
    /**
@@ -427,6 +420,5 @@ public class PeripheralValidator extends Validator {
    protected Variable getParameterSelectedVariable(String parameterVariableName, String defaultVariableName) throws Exception {
       return getVariable(getParameter(parameterVariableName, defaultVariableName));
    }
-   
 
 }
