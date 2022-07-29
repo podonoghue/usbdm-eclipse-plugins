@@ -271,6 +271,8 @@ public class OscValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
+      
       ArrayList<String> externalVariablesList = new ArrayList<String>();
       
       mcg_c2_erefs0Var               =  createBooleanVariableReference("/MCG/mcg_c2_erefs0", externalVariablesList);

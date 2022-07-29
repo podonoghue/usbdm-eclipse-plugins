@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -619,15 +618,33 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    // List of clock selectors to update on validation
-   private ArrayList<Variable> clockSelectorVariables = new ArrayList<Variable>();
+   private ArrayList<Variable> fClockSelectorVariables = null;
    
    /**
     * Add variable as clock selector
     * 
     * @param clockSelector Clock selector to add
     */
-   public void addClockSelector(ChoiceVariable clockSelector) {
-      clockSelectorVariables.add(clockSelector);
+   public void addClockSelector(Variable clockSelector) {
+      if (fClockSelectorVariables == null) {
+         fClockSelectorVariables = new ArrayList<Variable>();
+      }
+      if (!fClockSelectorVariables.contains(clockSelector)) {
+         fClockSelectorVariables.add(clockSelector);
+      }
+   }
+   
+   /**
+    * Add variable as clock selector
+    * 
+    * @param clockSelector Clock selector to add
+    * @throws Exception 
+    */
+   public void removeClockSelector(Variable clockSelector) throws Exception {
+      if (fClockSelectorVariables == null) {
+         return;
+      }
+      fClockSelectorVariables.remove(clockSelector);
    }
    
    /**
@@ -636,7 +653,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return list of clock selectors
     */
    public ArrayList<Variable> getClockSelectors() {
-      return clockSelectorVariables;
+      return fClockSelectorVariables;
    }
 
 }

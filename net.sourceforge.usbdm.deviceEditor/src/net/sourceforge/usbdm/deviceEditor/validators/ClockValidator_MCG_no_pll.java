@@ -23,17 +23,17 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
 
    private final long  DRST_DRS_MAX;
 
-   String         osc0_peripheralName       = null;
-   String         osc0_description          = null;
-   LongVariable   osc0_osc_clockVar         = null;
+//   String         osc0_peripheralName       = null;
+//   String         osc0_description          = null;
+//   LongVariable   osc0_osc_clockVar         = null;
    Variable       osc0_osc_cr_erclkenVar    = null;
    Variable       osc0_oscillatorRangeVar   = null;
 
-   LongVariable   osc1_osc_clockVar         = null;
-   String         osc1_description          = null;
-
-   LongVariable   osc2_osc_clockVar         = null;
-   String         osc2_description          = null;
+//   LongVariable   osc1_osc_clockVar         = null;
+//   String         osc1_description          = null;
+//
+//   LongVariable   osc2_osc_clockVar         = null;
+//   String         osc2_description          = null;
 
    Variable       usb1pfdclk_ClockVar       = null;
 
@@ -343,8 +343,8 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       //  mcg_erc[0] = OSC0, input must always exists
       int index = choiceData[0].getReference().lastIndexOf("/");
       String osc0Name = choiceData[0].getReference().substring(0, index);
-      osc0_osc_cr_erclkenVar     = getBooleanVariable(osc0Name+"/osc_cr_erclken");
-      osc0_oscillatorRangeVar    = getVariable(osc0Name+"/oscillatorRange");
+      osc0_osc_cr_erclkenVar     = safeGetBooleanVariable(osc0Name+"/osc_cr_erclken");
+      osc0_oscillatorRangeVar    = safeGetVariable(osc0Name+"/oscillatorRange");
 
       usb1pfdclk_ClockVar = safeGetVariable("usb1pfdclk_Clock");
       if (usb1pfdclk_ClockVar != null) {

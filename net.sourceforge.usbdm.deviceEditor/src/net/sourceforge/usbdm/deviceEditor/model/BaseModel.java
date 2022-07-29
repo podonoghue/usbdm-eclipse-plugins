@@ -387,7 +387,7 @@ public abstract class BaseModel implements Cloneable {
       if (((returnStatus == null) || returnStatus.lessThan(Status.Severity.ERROR)) && (fChildren != null)) {
          for (Object node:fChildren) {
             BaseModel child = (BaseModel) node;
-            Status status = child.getStatus();
+            Status status = child.getPropagatedStatus();
             if ((status != null) && status.greaterThan(Status.Severity.WARNING)) {
                returnStatus = status;
                break;
@@ -397,6 +397,10 @@ public abstract class BaseModel implements Cloneable {
       return returnStatus;
    }
    
+   protected Status getPropagatedStatus() {
+      return getStatus();
+   }
+
    /** 
     * Indicates that model value is in error and an error icon to be displayed
     * Note - Error are propagated from children

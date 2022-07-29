@@ -181,10 +181,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    protected boolean fDebug = false;
 
-   private String fForEnumeration;
-
-   private String fForVariable;
-
    private boolean fHidden;
 
    private String fDataValue;
@@ -194,6 +190,12 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    /** stem for enum generation e.g. XXXX => XXX_yyyy enums */
    private String fEnumStem;
+
+   /** Whether to propagate errors form this variable up through categories */
+   private Severity fSeverityPropagate;
+
+   /** Register name if known */
+   private String fRegister;
 
    /**
     * Constructor
@@ -787,19 +789,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       fDebug = value;
    }
 
-   public void addForIteration(String forVariable, String enumeration) {
-      fForVariable = forVariable;
-      fForEnumeration = enumeration;
-   }
-   
-   public String getForEnumeration() {
-      return fForEnumeration;
-   }
-   
-   public String getForVariable() {
-      return fForVariable;
-   }
-
    public void setHidden(boolean b) {
       fHidden = b;
       notifyStructureChangeListeners();
@@ -905,5 +894,31 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public String getEnumStem() {
       return fEnumStem;
    }
+
+   public void setErrorPropagate(String attributeWithFor) {
+      fSeverityPropagate = Severity.valueOf(attributeWithFor);
+   }
    
+   public Severity getErrorPropagate() {
+      return fSeverityPropagate;
+   }
+
+   /**
+    * Set Register name
+    * 
+    * @param register
+    */
+   public void setRegister(String register) {
+      fRegister=register;
+      
+   }
+   
+   /**
+    * Get Register name if set, null otherwise
+    * 
+    * @param register
+    */
+   public String getRegister() {
+      return fRegister;
+   }
 }

@@ -10,6 +10,7 @@ import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,34 +61,7 @@ import net.sourceforge.usbdm.packageParser.ProjectConstant;
 public class ParseMenuXML extends XML_BaseParser {
 
    public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
-
-//   private static class TemplateIteration {
-//      final String fVariable;
-//      final String fEnumeration[];
-//      
-//      TemplateIteration(String variable, String enumeration) {
-//         fVariable    = variable;
-//         fEnumeration = enumeration.split("\\s*,\\s*");
-//      }
-//
-//      public String getVariable() {
-//         return fVariable;
-//      }
-//
-//      public String[] getEnumeration() {
-//         return fEnumeration;
-//      }
-//      
-//      public String toString() {
-//         StringBuilder sb = new StringBuilder();
-//         for(String s : fEnumeration) {
-//            sb.append(s);
-//            sb.append(", ");
-//         }
-//         return "[" + fVariable + "= " + sb.toString() + "]";
-//      }
-//   }
-   
+  
    public static class MenuData {
       private final BaseModel                                     fRootModel;
       private final Map<String, ArrayList<TemplateInformation>>   fTemplatesList;
@@ -381,23 +355,16 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
-    * Get an attribute and apply for-loop substitutions
+    * Parse &lt;for&gt;
     * 
-    * @param element    Element to obtain attribute from
-    * @param attrName   Name of attribute
-    * 
-    * @return  modified attribute
-    * 
-    * @throws Exception If for-loop completed  
+    * @param parentModel
+    * @param element
+    * @throws Exception
     */
-   String getAttributeWithFor(Element element, String attrName) throws Exception {
-      return fForStack.doForSubstitutions(element.getAttribute(attrName));
-   }
-   
    private void parseForLoop(BaseModel parentModel, Element element) throws Exception {
-      String keys   = element.getAttribute("keys");
-      String values = element.getAttribute("values");
-      String dim    = element.getAttribute("dim");
+      String keys   = getAttribute(element, "keys");
+      String values = getAttribute(element, "values");
+      String dim    = getAttribute(element, "dim");
       if (!dim.isBlank()) {
          if (!values.isBlank()) {
             throw new Exception("Both values and dim attribute given in <for> '" + keys +"'");
@@ -417,6 +384,23 @@ public class ParseMenuXML extends XML_BaseParser {
          parseSectionsOrOtherContents(parentModel, element);
       } while (fForStack.next());
       fForStack.dropLevel();
+   }
+
+   /**
+    * Parse &lt;for&gt;
+    * 
+    * @param parentModel
+    * @param element
+    * @throws Exception
+    */
+   private void parseIfThen(BaseModel parentModel, Element element) throws Exception {
+      if (!element.hasAttribute("condition")) {
+         throw new Exception("<if> required condition attribute '"+element+"'");
+      }
+      String condition   = getAttribute(element, "condition");
+      if (fTemplateConditionParser.checkTemplateCondition(condition)) {
+         parseSectionsOrOtherContents(parentModel, element);
+      }
    }
 
    /**
@@ -455,7 +439,6 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception if variable exists but is of wrong type
     */
-   @SuppressWarnings("unused")
    private ChoiceVariable safeGetChoiceVariable(String key) {
       return (ChoiceVariable) fProvider.safeGetVariable(key);
    }
@@ -507,20 +490,16 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!element.hasAttribute(name)) {
          return null;
       }
-      String attr = element.getAttribute(name);
-      Long value = null;
+      String attr = getAttribute(element, name);
       if (Character.isDigit(attr.charAt(0))) {
          return safeGetLongAttribute(element, name);
       }
-      if (value == null) {
-         // Try variable
-         String varName = getAttributeWithFor(element, name);
-         Variable var = safeGetVariable(varName);
-         if (var != null) {
-            value = var.getValueAsLong();
-         }
+      // Try variable
+      Variable var = safeGetVariable(getAttribute(element, name));
+      if (var != null) {
+         return var.getValueAsLong();
       }
-      return value;
+      return null;
    }
    
    /**
@@ -532,7 +511,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private String getToolTip(Element element) throws Exception {
-      String text = doForSubstitutions(element.getAttribute("toolTip"));
+      String text = doForSubstitutions(getAttribute(element, "toolTip"));
       return text.replaceAll("\\\\n( +)", "\n").replaceAll("\\\\t", "  ");
    }
 
@@ -546,22 +525,14 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private Variable createVariable(Element varElement, Class<?> clazz) throws Exception {
 
-      String  name         = getAttributeWithFor(varElement, "name");
-      String  key          = getAttributeWithFor(varElement, "key");
-
-      boolean replace = Boolean.valueOf(varElement.getAttribute("replace"));
-      boolean modify  = Boolean.valueOf(varElement.getAttribute("modify"));
-      
-      if (key.isEmpty()) {
-         key = name;
+      String key  = getKeyAttribute(varElement);
+      String name = getAttribute(varElement, "name");
+      if (name.isBlank()) {
+         name = getNameFromKey(key);
       }
-      if (name.isEmpty()) {
-         name = key;
-      }
-      key  = substituteKey(key);
-      name = substituteKey(name);
       
-      key  = fProvider.makeKey(key);
+      boolean replace = Boolean.valueOf(getAttribute(varElement, "replace"));
+      boolean modify  = Boolean.valueOf(getAttribute(varElement, "modify"));
       
       Variable newVariable      = null;
       Variable existingVariable = safeGetVariable(key);
@@ -569,6 +540,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((existingVariable != null) && replace) {
          // Replacing existing variable - just delete the one found
          removeVariable(existingVariable);
+         fPeripheral.removeClockSelector(existingVariable);
          existingVariable = null;
       }
       if (existingVariable == null) {
@@ -603,7 +575,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private Variable getDerived(Element varElement) throws Exception {      
       Variable otherVariable = null;
-      String derivedFromName = varElement.getAttribute("derivedFrom");
+      String derivedFromName = getAttribute(varElement,"derivedFrom");
       if (!derivedFromName.isEmpty()) {
          if (derivedFromName.endsWith(".")) {
             derivedFromName = derivedFromName.substring(0, derivedFromName.length()-1);
@@ -621,14 +593,19 @@ public class ParseMenuXML extends XML_BaseParser {
     * Parse attributes common to most variables<br>
     * Also creates model.
     * Processes the following attributes:
-    * <li>name
-    * <li>key
     * <li>description
+    * <li>default
     * <li>toolTip (processed)
-    * <li>constant
-    * <li>derived
-    * <li>derivedFrom
+    * <li>value
+    * <li>disabledValue
     * <li>origin
+    * <li>derived
+    * <li>data
+    * <li>errorPropagate
+    * <li>target
+    * <li>enumStem
+    * <li>clockSources
+    * <li>constant
     * <li>hidden
     * 
     * @param parent        Parent for model
@@ -650,41 +627,47 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDerived(otherVariable.getDerived());
       }
       if (varElement.hasAttribute("description")) {
-         variable.setDescription(getAttributeWithFor(varElement, "description"));
+         variable.setDescription(getAttribute(varElement, "description"));
       }
       if (varElement.hasAttribute("default")) {
-         variable.setDefault(getAttributeWithFor(varElement, "default"));
+         variable.setDefault(getAttribute(varElement, "default"));
       }
       if (varElement.hasAttribute("toolTip")) {
          variable.setToolTip(getToolTip(varElement));
       }
       if (varElement.hasAttribute("value")) {
          // Value is used as default and initial value
-         String value = getAttributeWithFor(varElement, "value");
+         String value = getAttribute(varElement, "value");
          variable.setValue(value);
          variable.setDefault(value);
          variable.setDisabledValue(value);
       }
       if (varElement.hasAttribute("disabledValue")) {
          // Value is used as disabled value
-         variable.setDisabledValue(getAttributeWithFor(varElement, "disabledValue"));
+         variable.setDisabledValue(getAttribute(varElement, "disabledValue"));
       }
       if (varElement.hasAttribute("origin")) {
-         variable.setOrigin(getAttributeWithFor(varElement, "origin"));
+         variable.setOrigin(getAttribute(varElement, "origin"));
       }
       if (varElement.hasAttribute("derived")) {
-         variable.setDerived(Boolean.valueOf(getAttributeWithFor(varElement, "derived")));
+         variable.setDerived(Boolean.valueOf(getAttribute(varElement, "derived")));
       }
       if (varElement.hasAttribute("data")) {
          // Internal data vale
-         String value = getAttributeWithFor(varElement, "data");
+         String value = getAttribute(varElement, "data");
          variable.setDataValue(value);
       }
+      if (varElement.hasAttribute("errorPropagate")) {
+         variable.setErrorPropagate(getAttribute(varElement, "errorPropagate").toUpperCase());
+      }
       if (varElement.hasAttribute("target")) {
-         variable.setTarget(getAttributeWithFor(varElement, "target"));
+         variable.setTarget(getAttribute(varElement, "target"));
+      }
+      if (varElement.hasAttribute("register")) {
+         variable.setRegister(getAttribute(varElement, "register"));
       }
       if (varElement.hasAttribute("enumStem")) {
-         variable.setEnumStem(getAttributeWithFor(varElement, "enumStem"));
+         variable.setEnumStem(getAttribute(varElement, "enumStem"));
       }
       if (varElement.hasAttribute("clockSources")) {
          throw new Exception("clockSources no longer supported in "+varElement+", '"+variable.getName()+"'");
@@ -692,14 +675,10 @@ public class ParseMenuXML extends XML_BaseParser {
       NodeList forNodes = varElement.getElementsByTagName("for");
       if (forNodes.getLength() > 0) {
          throw new Exception ("<for> no longer supported here "+varElement);
-//         Element forElement = (Element)forNodes.item(0);
-//         String  forVariable = forElement.getAttribute("var");
-//         String  enumeration = forElement.getAttribute("enumeration");
-//         variable.addForIteration(forVariable, enumeration);
       }
       VariableModel model = variable.createModel(parent);
-      model.setConstant(Boolean.valueOf(varElement.getAttribute("constant")));
-      model.setHidden(Boolean.valueOf(varElement.getAttribute("hidden")));
+      model.setConstant(Boolean.valueOf(getAttribute(varElement, "constant")));
+      model.setHidden(Boolean.valueOf(getAttribute(varElement, "hidden")));
       return model;
    }
 
@@ -724,7 +703,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMax(otherVariable.getMax());
          variable.setUnits(((LongVariable)otherVariable).getUnits());
       }
-      VariableModel model = parseCommonAttributes(parent, varElement, variable);
+      parseCommonAttributes(parent, varElement, variable);
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getLongAttribute(varElement, "min"));
@@ -736,7 +715,7 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
       if (varElement.hasAttribute("units")) {
-         variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
+         variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
       }
       if (varElement.hasAttribute("step")) {
          variable.setStep(getLongAttribute(varElement, "step"));
@@ -744,7 +723,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("offset")) {
          variable.setOffset(getLongAttribute(varElement, "offset"));
       }
-      parseForElement(parent, model);
    }
 
    /**
@@ -776,7 +754,7 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
       if (varElement.hasAttribute("units")) {
-         variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
+         variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
       }
    }
 
@@ -789,14 +767,13 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseBitmaskOption(BaseModel parent, Element varElement) throws Exception {
 
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
-      VariableModel   model    = parseCommonAttributes(parent, varElement, variable);
+      parseCommonAttributes(parent, varElement, variable);
       try {
          variable.setPermittedBits(getLongAttribute(varElement, "bitmask"));
-         variable.setBitList(varElement.getAttribute("bitList"));
+         variable.setBitList(getAttribute(varElement, "bitList"));
       } catch( NumberFormatException e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
       }
-      parseForElement(parent, model);
    }
 
    /**
@@ -808,9 +785,8 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
-      VariableModel  model    = parseCommonAttributes(parent, varElement, variable);
+      parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
-      parseForElement(parent, model);
       
       if (variable.getTarget() != null) {
          // Add as clock selector
@@ -818,7 +794,87 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   /**
+    * Get an attribute and apply usual substitutions
+    *  <li>"$(_name)"     => fProvider.getName()
+    *  <li>"$(_instance)" => fPeripheral.getInstance()
+    *  <li>For loop substitution
+    *  
+    * @param element    Element to obtain attribute from
+    * @param attrName   Name of attribute
+    * 
+    * @return  modified attribute
+    * 
+    * @throws Exception If for-loop completed  
+    */
+   String getAttribute(Element element, String attrName) throws Exception {
+      
+      String res = fForStack.doForSubstitutions(element.getAttribute(attrName));
+      res = res.replace("$(_name)", fProvider.getName());
+      if (fPeripheral != null) {
+         res = res.replace("$(_instance)", fPeripheral.getInstance());
+      }
+      return res;
+   }
+   
+   /**
+    * Get element text and apply usual substitutions
+    *  <li>"$(_name)"     => fProvider.getName()
+    *  <li>"$(_instance)" => fPeripheral.getInstance()
+    *  <li>For loop substitution
+    *  
+    * @param node    Element to obtain attribute from
+    * 
+    * @return  modified element text
+    * 
+    * @throws Exception If for-loop completed  
+    */
+   String getText(Node node) throws Exception {
 
+      String bodyText = fForStack.doForSubstitutions(node.getTextContent());
+      bodyText = bodyText.replace("$(_name)", fProvider.getName());
+      if (fPeripheral != null) {
+         bodyText = bodyText.replace("$(_instance)", fPeripheral.getInstance());
+      }
+      return bodyText;
+   }
+   
+   /** 
+    * Get attribute 'key' or 'name' and apply usual key transformations
+    *  <li>"$(_name)"     => fProvider.getName()
+    *  <li>"$(_instance)" => fPeripheral.getInstance()
+    *  <li>For loop substitution
+    *  <li>fprovider.MakeKey()
+    * 
+    * @param element    Element to examine
+    * 
+    * @return  Modified key
+    * 
+    * @throws Exception
+    */
+   String getKeyAttribute(Element element) throws Exception {
+      String key = getAttribute(element, "key");
+      if (key.isBlank()) {
+         key = getAttribute(element, "name");
+      }
+      return fProvider.makeKey(key);
+   }
+   
+   /**
+    * Get name from key
+    * 
+    * @param key
+    * 
+    * @return
+    */
+   String getNameFromKey(String key) {
+      int index = key.lastIndexOf('/');
+      if (index<0) {
+         return key;
+      }
+      return key.substring(index+1);
+   }
+   
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
@@ -827,10 +883,10 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseAddChoices(BaseModel parent, Element varElement) throws Exception {
 
-      String key = getAttributeWithFor(varElement, "key");
-      key  = substituteKey(key);
-      key  = fProvider.makeKey(key);
-      
+      String key = getKeyAttribute(varElement);
+      if (key == null) {
+         throw new Exception("<addChoice> must have key attribute");
+      }
       ChoiceVariable variable = (ChoiceVariable) safeGetChoiceVariable(key);
       if (variable == null) {
          throw new Exception("Cannot find target in <addChoice>, key='"+key+"'");
@@ -849,14 +905,17 @@ public class ParseMenuXML extends XML_BaseParser {
       
       StringVariable variable = (StringVariable) createVariable(varElement, StringVariable.class);
       parseCommonAttributes(parent, varElement, variable);
+      
+      if (variable.getTarget() != null) {
+         // Add as clock selector
+         fPeripheral.addClockSelector(variable);
+      }
    }
 
    private void parseCategory(BaseModel parent, Element varElement) throws Exception {
-//      CategoryVariable      variable = (CategoryVariable) createVariable(varElement, CategoryVariable.class);
-//      CategoryVariableModel model    = (CategoryVariableModel) parseCommonAttributes(parent, varElement, variable);
       
-      CategoryModel model = new CategoryModel(parent, varElement.getAttribute("name"));
-      boolean hidden = Boolean.parseBoolean(varElement.getAttribute("hidden"));
+      CategoryModel model = new CategoryModel(parent, getAttribute(varElement, "name"));
+      boolean hidden = Boolean.parseBoolean(getAttribute(varElement, "hidden"));
       model.setHidden(hidden);
       parseChildModels(model, varElement);
       if ((model.getChildren()==null)||(model.getChildren().size() == 0)) {
@@ -871,7 +930,7 @@ public class ParseMenuXML extends XML_BaseParser {
       CategoryVariable      categoryVariable = (CategoryVariable)      createVariable(varElement, CategoryVariable.class);
       CategoryVariableModel categoryModel    = (CategoryVariableModel) parseCommonAttributes(parent, varElement, categoryVariable);
       
-      categoryVariable.setValue(varElement.getAttribute("value"));
+      categoryVariable.setValue(getAttribute(varElement, "value"));
       Long dimension = safeGetLongAttributeWithVariableSubstitution(varElement, "dim");
 
       if (dimension != null) {
@@ -916,7 +975,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMaxListLength(otherVariable.getMaxListLength());
          variable.setMinListLength(otherVariable.getMinListLength());
       }
-      VariableModel model = parseCommonAttributes(parent, varElement, variable);
+      parseCommonAttributes(parent, varElement, variable);
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getLongAttribute(varElement, "min"));
@@ -930,7 +989,6 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max/size value in " + variable.getName(), e);
       }
-      parseForElement(parent, model);
    }
 
    /**
@@ -945,40 +1003,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (variable == null) {
          return;
       }
-      VariableModel model = parseCommonAttributes(parent, varElement, variable);
+      parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
-      parseForElement(parent, model);
    }
-
-   /**
-    * Parse<br>
-    * <pre>
-    *  &lt;for var="instance" enumeration="0, 1, 2, 3" />
-    * </pre>
-    * 
-    * @param parent
-    * @param variable
-    * @param model
-    * @throws Exception
-    */
-   private void parseForElement(BaseModel parent, VariableModel model) throws Exception {
-      Variable variable    = model.getVariable();
-      String   forVariable = variable.getForVariable();
-      if (forVariable != null) {
-         throw new Exception("<for> no longer supported here '" + parent +"', '"+model+"'");
-//         ISubstitutionMap symbols = new SubstitutionMap();
-//         String[] names = variable.getForEnumeration().split("\\s*,\\s*");
-//         parent.removeChild(model);
-//         for(String name:names) {
-//            name = name.trim();
-//            symbols.addValue(forVariable, name);
-//            Variable iteratedVariable = variable.clone(name, symbols);
-//            iteratedVariable.createModel(parent);
-//            fProvider.addVariable(iteratedVariable);
-//         }
-//         fProvider.removeVariable(variable);
-      }
-}
 
    /**
     * Parse &lt;irqOption&gt; element<br>
@@ -1017,8 +1044,8 @@ public class ParseMenuXML extends XML_BaseParser {
       IrqVariable variable = (IrqVariable) createVariable(irqElement, IrqVariable.class);
       parseCommonAttributes(parent, irqElement, variable).getVariable();
 
-      variable.setPattern(irqElement.getAttribute("pattern"));
-      variable.setClassHandler(irqElement.getAttribute("classHandler"));
+      variable.setPattern(getAttribute(irqElement, "pattern"));
+      variable.setClassHandler(getAttribute(irqElement, "classHandler"));
       
       fPeripheral.addIrqVariable(variable);
    }
@@ -1032,7 +1059,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
 
       PinListVariable variable = (PinListVariable) createVariable(varElement, PinListVariable.class);
-      VariableModel model = parseCommonAttributes(parent, varElement, variable);
+      parseCommonAttributes(parent, varElement, variable);
       variable.setPeripheral(fPeripheral);
       try {
          if (varElement.hasAttribute("size")) {
@@ -1041,24 +1068,6 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal size value in " + variable.getName(), e);
       }
-      parseForElement(parent, model);
-   }
-
-   /**
-    * Does some simple substitutions on the key
-    *  "$(_name)"     => fProvider.getName()
-    *  "$(_instance)" => fPeripheral.getInstance()
-    * 
-    * @param key Key to modify
-    * 
-    * @return modified key
-    */
-   private String substituteKey(String key) {
-      key = key.replaceAll("\\$\\(_name\\)", fProvider.getName());
-      if (fPeripheral != null) {
-         key = key.replaceAll("\\$\\(_instance\\)", fPeripheral.getInstance());
-      }
-      return key;
    }
 
    /**
@@ -1068,32 +1077,17 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private AliasPlaceholderModel parseAliasOption(BaseModel parent, Element stringElement) throws Exception {
-      // Key and name are interchangeable
-      // Name is an IDREF and can be used for validation checks within the file.
-      // Key is used to refer to an external variable without validation error
-      // DisplayName is used for GUI (model)
-      String  name         = getAttributeWithFor(stringElement, "name");
-      String  key          = getAttributeWithFor(stringElement, "key");
-      String  displayName  = getAttributeWithFor(stringElement, "displayName");
-      String  description  = getAttributeWithFor(stringElement, "description");
+      String  key          = getKeyAttribute(stringElement);
+      String  displayName  = getAttribute(stringElement, "displayName");
+      String  description  = getAttribute(stringElement, "description");
       String  toolTip      = getToolTip(stringElement);
 
-      if (!key.isEmpty() && !name.isEmpty()) {
-         throw new Exception("Both name and key provided for <alias>, key='" + key +"', name='" + name + "'");
-      }
       if (key.isEmpty()) {
-         key = name;
+         throw new Exception("Alias requires key "+displayName);
       }
-      if (key.isEmpty()) {
-         throw new Exception("Alias requires either name or key "+displayName);
-      }
-      key = substituteKey(key);
-      key = fProvider.makeKey(key);
-
-      displayName = substituteKey(displayName);
       
-      boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
-      boolean isOptional  = Boolean.valueOf(stringElement.getAttribute("optional"));
+      boolean isConstant  = Boolean.valueOf(getAttribute(stringElement, "constant"));
+      boolean isOptional  = Boolean.valueOf(getAttribute(stringElement, "optional"));
       
       AliasPlaceholderModel placeholderModel = new AliasPlaceholderModel(parent, displayName, description);
       placeholderModel.setkey(key);
@@ -1109,29 +1103,18 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private void parseConstant(BaseModel parentModel, Element element) throws Exception {
-      // Key and name are interchangeable
-      // Name is an ID and can be used for validation checks within the file.
-      // Key is used to refer to an external variable without validation error
-      String name       = element.getAttribute("name");
-      String key        = element.getAttribute("key");
-      String value      = element.getAttribute("value");
-      boolean isWeak    = Boolean.valueOf(element.getAttribute("weak"));
-      boolean isReplace = Boolean.valueOf(element.getAttribute("replace"));
-      boolean isDerived = Boolean.valueOf(element.getAttribute("derived"));
+      String key        = getKeyAttribute(element);
+      String name       = getAttribute(element, "name");
+      String value      = getAttribute(element, "value");
+      boolean isWeak    = Boolean.valueOf(getAttribute(element, "weak"));
+      boolean isReplace = Boolean.valueOf(getAttribute(element, "replace"));
+      boolean isDerived = Boolean.valueOf(getAttribute(element, "derived"));
       
-      // Accept either key or name (prefer key)
-      if (key.isEmpty()) {
-         key = name;
+      if (name == null) {
+         name = getNameFromKey(key);
       }
-      if (name.isEmpty()) {
-         name = key;
-      }
-      key  = fProvider.makeKey(key);
-      key  = substituteKey(key);
-      name = substituteKey(name);
       
       Variable var = safeGetVariable(key);
-//      value = ReplacementParser.substitute(value, fPeripheral.get());
       if (var != null) {
          if (isWeak) {
             // Ignore constant
@@ -1157,9 +1140,6 @@ public class ParseMenuXML extends XML_BaseParser {
       
       private final VariableProvider fProvider;
       
-      /** Set of template enables. These are used to discard unused conditional templates */
-//      private HashSet<String> templateEnables = new HashSet<String>();
-
       /** Index into current expression being parsed */
       private int    index;
       
@@ -1173,15 +1153,6 @@ public class ParseMenuXML extends XML_BaseParser {
        */
       public TemplateConditionParser(VariableProvider provider) {
          fProvider = provider;
-      }
-
-      /**
-       * Add condition value
-       * 
-       * @param enable value of condition
-       */
-      public void addEnable(String enable) {
-//         templateEnables.add(enable);
       }
 
       void skipSpace() {
@@ -1285,38 +1256,21 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
       
-   /**
-    * Parse template enable. <br>
-    * This is a list of enables in the text node of a template enable element
-    * 
-    * @param element    Template enable node &lt;templateEnable&gt;
-    * 
-    * @throws Exception
-    */
-   private void parseTemplateEnable(Element element) throws Exception {
-      for (Node node = element.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() == Node.TEXT_NODE) {
-            String[] enables = node.getTextContent().split(",");
-            for (String enable : enables) {
-               fTemplateConditionParser.addEnable(enable.trim());
-            }
-            continue;
-         }
+   private static class BiconsumerReplacer implements BiConsumer<String, String> {
+      String text;
+      BiconsumerReplacer(String text) {
+         this.text = text;
       }
-   }
-   
-   private static class Pair {
-      final String left;
-      final String right;
       
-      Pair(String left ,String right) {
-         this.left  = left;
-         this.right = right;
+      @Override
+      public void accept(String key, String value) {
+         if ((key==null) || (value==null)) {
+            System.err.println("Opps");
+         }
+         text = text.replace(key, value);
       }
    }
-   
+
    /**
     * Apply a set of template substitutions of form <b>%name</b> in template text
     * 
@@ -1325,63 +1279,161 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @return Modified test
     */
-   private String doTemplateSubstitutions(String text, ArrayList<Pair> substitutions) {
-      for (Pair p:substitutions) {
-         if (p.right == null) {
-            continue;
-         }
-         text = text.replace(p.left, p.right);
+   private String doTemplateSubstitutions(String text, Map<String, String> substitutions) {
+      if (text == null) {
+         return null;
       }
-      return text;
+      // Replace body first!
+      String bodyText = substitutions.get("%body");
+      if (bodyText != null) {
+      text = text.replace("%body", bodyText);
+      }
+      
+      BiconsumerReplacer br = new BiconsumerReplacer(text);
+      substitutions.forEach(br);
+      return br.text;
    }
    
    /**
-    * Construct template substitutions
+    * Construct template substitutions<br><br>
+    * 
+    * Values obtained from <b>controlVarName</b>
+    * 
+    * <br><br>
+    * Substitutions obtained from <b>controlVarName</b>
     * <li>%description              Description from controlVar
     * <li>%shortDescription         Short description from controlVar
     * <li>%tooltip                  Tool-tip from controlVar
-    * <li>%defaultValueExpression   Of form <b>$(controlVarName)</b>
-    * <li>%bareValueExpression      Of form <b>CONTROL_VAR_NAME($(control_var_name))</b>
+    * <li>%enumClass                Based on enumStem with upper-case first letter
+    * <li>%enumParam                Based on enumStem with lower-case first letter
+    * <li>%bareValueExpression      Of form <b>$(controlVarName)</b>
+    * <li>%symbolicValueExpression  Of form <b>%enumClass$(controlVarName.enum[])</b>
+    * <li>%defaultValueExpression   Of form <b>CONTROL_VAR_NAME($(control_var_name))</b>
+    * <li>%defaultClockExpression   Based on controlVarName etc. Similar to sim->SOPT2 = (sim->SOPT2&~%mask) | %enumParam;
+    * <li>%defaultMaskingExpression Based on controlVarName etc. Similar to (sim->SOPT2&%mask)
+    * <br><br>
+    * Substitutions obtained from <b>element</b>
+    * <li>%variable                 Variable name from condition
+    * <li>%mask                     From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG_MASK" (_MASK is added)
+    * <li>&lt;register&gt;          Used to help extract mask etc from condition if required e.g. pll_sic <br><br>
     *  
     * @param element          Element 
-    * @param controlVarName   Control var to obtain information from
+    * @param condition   Control var to obtain information from
     * 
     * @return  List of substitutions
+    * @throws Exception 
     */
-   ArrayList<Pair> getTemplateSubstitutions(Element element, String controlVarName) {
+   Map<String,String> getTemplateSubstitutions(Element element) throws Exception {
       
-      ArrayList<Pair> substitutions = new ArrayList<Pair>();
+      Map<String,String> substitutions = new HashMap<String,String>();
       
-      String description            = "'%description' not available in this template";
-      String shortDescription       = "'%shortDescription' not available in this template";
-      String tooltip                = "'%tooltip' not available in this template";
-      String defaultValueExpression = "'%defaultValueExpression' not available in this template";
-      String bareValueExpression    = "'%bareValueExpression' not available in this template";
-      
-      Variable controlVar = fProvider.safeGetVariable(fProvider.makeKey(controlVarName));
+      String description                = "'%description' not available in this template";
+      String shortDescription           = "'%shortDescription' not available in this template";
+      String tooltip                    = "'%tooltip' not available in this template";
+      String defaultValueExpression     = "'%defaultValueExpression' not available in this template";
+      String bareValueExpression        = "'%bareValueExpression' not available in this template";
+      String mask                       = "'%mask' not available in this template";
+      String defaultClockExpression     = "'%defaultClockExpression' is not valid here";
+      String defaultMaskingExpression   = "'%defaultMaskingExpression' is not valid here";
+      String symbolicValueExpression    = "'%symbolicValueExpression' is not valid here"; 
+      String register                   = "'%register' is not valid here";
+      String enumParam                  = "'%enumParam' is not valid here";
+      String enumClass                  = "'%enumClass' is not valid here";     
+
 //      if (!controlVarName.isBlank() && (controlVar == null)) {
 //         System.err.println("Unable to find variable " + controlVarName);
 //      }
-      if (!controlVarName.isBlank() && (controlVar != null)) {
-         String macro = controlVarName.toUpperCase();
+      String condition = getAttribute(element, "condition");
+      if (!condition.isBlank()) {
+         String macro = condition.toUpperCase();
          if (macro.endsWith(".")) {
-            macro = macro.substring(0, macro.length()-1);
+            throw new Exception("keys ending with '.' no longer accepted '"+condition+"'");
          }
          if (macro.endsWith("[]")) {
             macro = macro.substring(0, macro.length()-2);
          }
-         description       = controlVar.getDescriptionAsCode();
-         shortDescription  = controlVar.getShortDescription();
-         tooltip           = controlVar.getToolTipAsCode();
-
-         bareValueExpression = "($("+controlVarName+"))";
+         if (macro.endsWith("[0]")) {
+            macro = macro.substring(0, macro.length()-3);
+         }
+         mask = macro+"_MASK";
+         if (element.hasAttribute("mask")) {
+            mask = getAttribute(element, "mask");
+         }
+         bareValueExpression    = "($("+condition+"))";
          defaultValueExpression = macro+bareValueExpression;
+
+         Variable controlVar = fProvider.safeGetVariable(fProvider.makeKey(condition));
+         if (controlVar != null) {
+            String value = controlVar.getDescriptionAsCode();
+            if (value != null) {
+               description = value;
+            }
+            value = controlVar.getShortDescription();
+            if (value != null) {
+               shortDescription = value;
+            }
+            value = controlVar.getToolTipAsCode();
+            if (value != null) {
+               tooltip = value;
+            }
+
+            // enumStem can be on template or sorceVar
+            String enumStem = controlVar.getEnumStem();
+            if (enumStem == null) {
+               enumStem = getAttribute(element, "enumStem");
+            }
+            if (!enumStem.isBlank()) {
+               enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
+               enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
+            }
+            symbolicValueExpression = enumClass+"_$("+condition+".enum[])";
+
+            // Try to deduce defaultClockExpression and defaultMaskingExpression
+            String registerName = controlVar.getRegister();
+            if (registerName != null) {
+               Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
+               Matcher m = p.matcher(condition);
+               if (m.matches()) {
+                  register = m.group(1)+"->"+registerName.toUpperCase();
+                  defaultClockExpression   = register+" = ("+register+"&~"+mask+") | "+enumParam+";";
+                  defaultMaskingExpression = register+"&"+mask;
+               }
+            }
+            else {
+               String peripherals[] = {
+                     fPeripheral.getName().toLowerCase(), 
+                     fPeripheral.getBaseName().toLowerCase()};
+               for (String peripheral:peripherals) {
+                  Pattern p = Pattern.compile(peripheral+"_([a-zA-Z0-9]*)_(.+)");
+                  Matcher m = p.matcher(condition);
+                  if (m.matches()) {
+                     register = peripheral+"->"+(m.group(1).toUpperCase());
+                     defaultClockExpression   = register+" = ("+register+"&~"+mask+") | "+enumParam+";";
+                     defaultMaskingExpression = register+"&"+mask;
+                     break;
+                  }
+               }
+            }
+         }
       }
-      substitutions.add(new Pair("%description",            description));
-      substitutions.add(new Pair("%shortDescription",       shortDescription));
-      substitutions.add(new Pair("%tooltip",                tooltip));
-      substitutions.add(new Pair("%defaultValueExpression", defaultValueExpression));
-      substitutions.add(new Pair("%bareValueExpression",    bareValueExpression));
+      if (element.hasAttribute("mask")) {
+         mask = getAttribute(element, "mask");
+      }
+      
+      substitutions.put("%variable",                  condition);
+      substitutions.put("%mask",                      mask);
+      substitutions.put("%register",                  register);
+      substitutions.put("%enumClass",                 enumClass);
+      substitutions.put("%enumParam",                 enumParam);
+      substitutions.put("%description",               description);
+      substitutions.put("%shortDescription",          shortDescription);
+      substitutions.put("%tooltip",                   tooltip);
+      substitutions.put("%defaultValueExpression",    defaultValueExpression);
+      substitutions.put("%bareValueExpression",       bareValueExpression);
+      substitutions.put("%defaultClockExpression",    defaultClockExpression);
+      substitutions.put("%defaultMaskingExpression",  defaultMaskingExpression);
+      substitutions.put("%symbolicValueExpression",   symbolicValueExpression);
+
       return substitutions;
    }
    
@@ -1409,45 +1461,34 @@ public class ParseMenuXML extends XML_BaseParser {
        * namespace:
        *    class - Template is available in 
        */
-      String name      = doForSubstitutions(element.getAttribute("name"));
-      String namespace = doForSubstitutions(element.getAttribute("namespace"));
-      String condition = doForSubstitutions(element.getAttribute("condition"));
+      String key       = getKeyAttribute(element);
+      String namespace = getAttribute(element, "namespace"); // info|usbdm|class|all
+      String condition = getAttribute(element, "condition");
       
       if (namespace.isBlank()) {
-         throw new Exception("Template is missing namespace, name='" + name + "'");
+         throw new Exception("Template is missing namespace, name='" + key + "'");
       }
-      if (!name.isBlank() && !namespace.equals("all")) {
-         throw new Exception("Named templates must have 'all' namespace, name='" + name + "'");
+      if (!key.isBlank() && !namespace.equals("all")) {
+         throw new Exception("Named templates must have 'all' namespace, name='" + key + "'");
       }
-      if (name.isBlank() && namespace.equals("all")) {
+      if (key.isBlank() && namespace.equals("all")) {
          throw new Exception("Templates must be named in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
       }
       element.getNodeValue();
       if (!fTemplateConditionParser.checkTemplateCondition(condition)) {
          return;
       }
-      ArrayList<Pair> substitutions = getTemplateSubstitutions(element, condition);
+      Map<String,String> substitutions = getTemplateSubstitutions(element);
       
-      TemplateInformation templateInfo = addTemplate(name, namespace);
+      TemplateInformation templateInfo = addTemplate(key, namespace);
       for (Node node = element.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            String bodyText = doForSubstitutions(node.getTextContent());
+            String bodyText = getText(node);
             bodyText = doTemplateSubstitutions(bodyText, substitutions);
             templateInfo.addText(bodyText);
             continue;
-         }
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element childElement = (Element) node;
-         String  forTagName   = childElement.getTagName();
-         if (forTagName.equals("for")) {
-            parseForElement(childElement, templateInfo);
-         }
-         else {
-            throw new Exception("Unexpected child in <template>, value = \'"+forTagName+"\'");
          }
       }
    }
@@ -1457,39 +1498,36 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>&lt;name&gt; - Used to place value at arbitrary location (creates variable of that name)
     * <li>&lt;namespace&gt; (info|usbdm|class|all) - Scope where template is available in
     * <li>&lt;condition&gt; - Name of existing <b>choice</b> or <b>binary</b> variable used as information source
-    * <li>&lt;enumRoot&gt; - Stem of enum names e.g. SimUsbPower => SimUsbPower_xxx, SimUsbPower_yyy
     * <li>&lt;valueFormat&gt; - Used for writing enum value e.g. String.format("XXXX(%s)", enumName)
     * <li>&lt;template&gt; - Used for writing entire enum entry e.g. String.format("...%s...%s...%s", enumName, value, comment)<br><br>
     * 
-    * &lt;condition&gt; Usually of form 'peripheral_register_bitfield' to allow deduction<br>
     * &lt;valueFormat&gt; defaults to upper-cased value based on &lt;condition&gt; if needed<br>
-    * &lt;template&gt; and &lt;enumRoot&gt;+&lt;valueFormat&gt; are alternatives<br><br>
+    * &lt;template&gt; and &lt;enumStem&gt;+&lt;valueFormat&gt; are alternatives<br><br>
     * 
     * Substitutions in Text :<br>
-    * <li>%enumClass  - Based on enumRoot with capitalised first letter
-    * <li>%tooltip - From &lt;condition&gt; variable
-    * <li>%description - From &lt;condition&gt; variable
     * <li>%body - Constructed enum clauses
     * 
     * @param element    Element to parse
     * 
     * @throws Exception
+    *
+    * @see  getTemplateSubstitutions
     */
    private void parseEnumTemplate(Element element) throws Exception {
+      String key             = getKeyAttribute(element);
+      String namespace       = getAttribute(element, "namespace");
+      String condition       = getAttribute(element, "condition");
       
-      String name            = doForSubstitutions(element.getAttribute("name"));
-      String namespace       = doForSubstitutions(element.getAttribute("namespace"));
-      String condition       = doForSubstitutions(element.getAttribute("condition"));
-      String template        = doForSubstitutions(element.getAttribute("template"));
-      String valueFormat     = doForSubstitutions(element.getAttribute("valueFormat"));
+      String template        = getAttribute(element, "template");
+      String valueFormat     = getAttribute(element, "valueFormat");
       
       if (namespace.isBlank()) {
-         throw new Exception("EnumTemplate is missing namespace, name='" + name + "'");
+         throw new Exception("EnumTemplate is missing namespace, key='" + key + "'");
       }
-      if (!name.isBlank() && !namespace.equals("all")) {
-         throw new Exception("Named EnumTemplate must have 'all' namespace, name='" + name + "'");
+      if (!key.isBlank() && !namespace.equals("all")) {
+         throw new Exception("Named EnumTemplate must have 'all' namespace, key='" + key + "'");
       }
-      if (name.isBlank() && namespace.equals("all")) {
+      if (key.isBlank() && namespace.equals("all")) {
          throw new Exception("EnumTemplate must be named in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
       }
       if (condition.isBlank()) {
@@ -1506,27 +1544,26 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String enumStem = choiceVar.getEnumStem();
       if (enumStem == null) {
-         enumStem = doForSubstitutions(element.getAttribute("enumRoot"));
+         enumStem = getAttribute(element, "enumStem");
       }
-      else if (element.hasAttribute("enumRoot")){
-         throw new Exception("EnumTemplate has redundant 'enumRoot' attribute, peripheral='" + 
+      else if (element.hasAttribute("enumStem")){
+         throw new Exception("EnumTemplate has redundant 'enumStem' attribute, peripheral='" + 
                fPeripheral.getName() + "', condition='" + condition + "'");
       }
       if ((template.isBlank() && enumStem.isBlank() || 
             (!template.isBlank() && !enumStem.isBlank()) )) {
-         throw new Exception("EnumTemplate must have either 'template' or 'enumRoot' attributes, peripheral='" + 
+         throw new Exception("EnumTemplate must have either 'template' or 'enumStem' attributes, peripheral='" + 
                fPeripheral.getName() + "', condition='" + condition + "'");
       }
-      TemplateInformation templateInfo = addTemplate(name, namespace);
+      TemplateInformation templateInfo = addTemplate(key, namespace);
       
       StringBuilder body = new StringBuilder();
       ChoiceData[] choiceData = choiceVar.getData();
       
-      String enumClass = "%enumClass not available in this template";
-
       if (template.isBlank()) {
-         // Use enumRoot attribute
-         enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
+         
+         // Use enumStem attribute
+         String enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
 
          String[] enumName  = new String[choiceData.length];
          String[] values    = new String[choiceData.length];
@@ -1561,16 +1598,14 @@ public class ParseMenuXML extends XML_BaseParser {
             body.append(String.format(template+"\n", enumValue, value, comment));
          }
       }
-      ArrayList<Pair> substitutions = getTemplateSubstitutions(element, condition);
-
-      substitutions.add(0, new Pair("%body",     body.toString()));
-      substitutions.add(new Pair("%enumClass",   enumClass));
+      Map<String, String> substitutions = getTemplateSubstitutions(element);
+      substitutions.put("%body",     body.toString());
       
       for (Node node = element.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            String bodyText = doForSubstitutions(node.getTextContent());
+            String bodyText = getText(node);
             bodyText = doTemplateSubstitutions(bodyText, substitutions);
             templateInfo.addText(bodyText);
             continue;
@@ -1586,22 +1621,17 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>&lt;name&gt; - Used to place value at arbitrary location (creates variable of that name)
     * <li>&lt;namespace&gt; (info|usbdm|class|all) - Scope where template is available in
     * <li>&lt;condition&gt; - Name of existing <b>choice</b> or <b>binary</b> variable used as information source
-    * <li>&lt;enumRoot&gt; - Stem of enum names e.g. SimUsbPower => SimUsbPower_xxx, SimUsbPower_yyy
     * <li>&lt;returnFormat&gt; - Used for writing return value e.g. String.format("XXXX(%s)", enumName)<br>
-    * <li>&lt;mask&gt; - Used for masking parameter to obtain case control value e.g. "SIM_SOPT_XXX" (_MASK is added)<br><br>
-    * 
-    * &lt;mask&gt; defaults to upper-cased value based on &lt;condition&gt;<br>
-    * &lt;condition&gt; Usually of form 'peripheral_register_bitfield' to allow deduction
     * 
     * &lt;valueFormat&gt; default to upper-cased value based on &lt;condition&gt; if needed<br>
-    * &lt;template&gt; and &lt;enumRoot&gt;+&lt;valueFormat&gt; are alternatives<br>
+    * &lt;template&gt; and &lt;enumStem&gt;+&lt;valueFormat&gt; are alternatives<br>
     * &lt;returnFormat&gt; is only required if %xxx is used<br><br>
     * 
     * Substitutions in Text :<br>
     * <li>%tooltip - From &lt;condition&gt; variable
     * <li>%description - From &lt;condition&gt; variable
-    * <li>%enumClass  - Based on enumRoot with upper-case first letter
-    * <li>%enumParam  - Based on enumRoot with lower-case first letter
+    * <li>%enumClass  - Based on enumStem with upper-case first letter
+    * <li>%enumParam  - Based on enumStem with lower-case first letter
     * <li>%mask - From &lt;mask&gt; or deduced from &lt;condition&gt;
     * <li>%defaultClockExpression - Based on condition etc. Similar to sim->SOPT2 = (sim->SOPT2&~%mask) | %enumParam;
     * <li>%defaultMaskingExpression - Based on condition etc. Similar to (sim->SOPT2&%mask)
@@ -1612,11 +1642,10 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseClockCodeTemplate(Element element) throws Exception {
       
-      String name         = doForSubstitutions(element.getAttribute("name"));
-      String namespace    = doForSubstitutions(element.getAttribute("namespace"));
-      String condition    = doForSubstitutions(element.getAttribute("condition"));
-      String returnFormat = element.hasAttribute("returnFormat")?doForSubstitutions(element.getAttribute("returnFormat")):null;
-      String mask         = doForSubstitutions(element.getAttribute("mask"));
+      String key          = getKeyAttribute(element);
+      String namespace    = getAttribute(element, "namespace");
+      String condition    = getAttribute(element, "condition");
+      String returnFormat = getAttribute(element, "returnFormat");
 
       VariableWithChoices choiceVar = (VariableWithChoices) safeGetVariable(fProvider.makeKey(condition));
       if (choiceVar == null) {
@@ -1625,27 +1654,27 @@ public class ParseMenuXML extends XML_BaseParser {
       
       String enumStem = choiceVar.getEnumStem();
       if (enumStem == null) {
-         enumStem = doForSubstitutions(element.getAttribute("enumRoot"));
+         enumStem = getAttribute(element, "enumStem");
       }
 
       if (namespace.isBlank()) {
-         throw new Exception("ClockCodeTemplate is missing namespace, name='" + name + "'");
+         throw new Exception("ClockCodeTemplate is missing namespace, name='" + key + "'");
       }
-      if (!name.isBlank() && !namespace.equals("all")) {
-         throw new Exception("Named ClockCodeTemplate must have 'all' namespace, name='" + name + "'");
+      if (!key.isBlank() && !namespace.equals("all")) {
+         throw new Exception("Named ClockCodeTemplate must have 'all' namespace, name='" + key + "'");
       }
-      if (name.isBlank() && namespace.equals("all")) {
+      if (key.isBlank() && namespace.equals("all")) {
          throw new Exception("ClockCodeTemplate must be named in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
       }
       if (condition.isBlank()) {
          throw new Exception("ClockCodeTemplate must have 'condition' attribute, peripheral='" + 
-               fPeripheral.getName() + "', enumRootAttr= '" + enumStem + "'");
+               fPeripheral.getName() + "', enumStemAttr= '" + enumStem + "'");
       }
       if (enumStem.isBlank()) {
-         throw new Exception("ClockCodeTemplate must have 'enumRoot' attribute, peripheral='" + 
+         throw new Exception("ClockCodeTemplate must have 'enumStem' attribute, peripheral='" + 
                fPeripheral.getName() + "', cond= '" + condition + "'");
       }
-      TemplateInformation templateInfo = addTemplate(name, namespace);
+      TemplateInformation templateInfo = addTemplate(key, namespace);
       
       StringBuilder body = new StringBuilder();
       
@@ -1658,10 +1687,7 @@ public class ParseMenuXML extends XML_BaseParser {
       int enumNameMax    = 0;
       int returnValueMax = 0;
       
-      String enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
-      String enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
-      
-      if (returnFormat != null) {
+      if (!returnFormat.isBlank()) {
          // Create body for case statement if used
          for (int index=0; index<choiceData.length; index++) {
 
@@ -1681,31 +1707,14 @@ public class ParseMenuXML extends XML_BaseParser {
             body.append(String.format(format, enumNames[index], returnValues[index], comment));
          }
       }
-      if (mask.isBlank()) {
-         mask = condition.toUpperCase()+"_MASK";
-      }
-      Pattern p = Pattern.compile("sim_sopt(\\d+)_.+");
-      Matcher m = p.matcher(condition);
-      String defaultClockExpression   = "%defaultClockExpression is not valid here";
-      String defaultMaskingExpression = "%defaultMaskingExpression is not valid here";
-      if (m.matches()) {
-         defaultClockExpression   = "sim->SOPT"+m.group(1)+" = (sim->SOPT"+m.group(1)+"&~"+mask+") | "+enumParam+";";
-         defaultMaskingExpression = "sim->SOPT"+m.group(1)+"&"+mask;
-      }
-      ArrayList<Pair> substitutions = getTemplateSubstitutions(element, condition);
-
-      substitutions.add(0, new Pair("%body",       body.toString()));
-      substitutions.add(new Pair("%enumClass",  enumClass));
-      substitutions.add(new Pair("%enumParam",  enumParam));
-      substitutions.add(new Pair("%mask",       mask));
-      substitutions.add(new Pair("%defaultClockExpression",  defaultClockExpression));
-      substitutions.add(new Pair("%defaultMaskingExpression",defaultMaskingExpression));
+      Map<String, String> substitutions = getTemplateSubstitutions(element);
+      substitutions.put("%body",                      body.toString());
 
       for (Node node = element.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            String bodyText = doForSubstitutions(node.getTextContent());
+            String bodyText = getText(node);
             bodyText = doTemplateSubstitutions(bodyText, substitutions);
             templateInfo.addText(bodyText);
             continue;
@@ -1756,8 +1765,8 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (tagName == "template") {
             parseTemplate(element);
          }
-         else if (tagName == "dependency") {
-            fPeripheral.addDependency(element.getAttribute("key"));
+         else if (tagName == "addDependency") {
+            fPeripheral.addDependency(getKeyAttribute(element));
          }
          else if (tagName == "deleteOption") {
             parseDeleteOption(element);
@@ -1787,57 +1796,19 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    private void parseDeleteOption(Element element) throws Exception {
-      String name = element.getAttribute("name");
-      String key  = element.getAttribute("key");
-      boolean mustExist = Boolean.parseBoolean(element.getAttribute("mustExist"));
       
+      String key = getKeyAttribute(element);
       if (key.isBlank()) {
-         key = name;
+         throw new Exception("<deleteOption> must have key attribute");
       }
-      if (key.isBlank()) {
-         throw new Exception("'deleteOption' must have name or key " + element.toString());
-      }
-      boolean wasDeleted = fProvider.removeVariable(fProvider.makeKey(key));
-      
+      fPeripheral.removeClockSelector(safeGetVariable(key));
+
+      boolean mustExist = Boolean.parseBoolean(getAttribute(element, "mustExist"));
+      boolean wasDeleted = fProvider.removeVariable(key);
+
       if (mustExist  && !wasDeleted) {
          throw new Exception("Variable '" + key + "' was not found to delete in deleteOption");
       }
-   }
-
-   /**
-    * 
-    * @param element          Element to parse
-    * @param parentTemplate   Template that contains 'for'
-    * 
-    * @throws Exception 
-    */
-   private void parseForElement(
-         Element              element, 
-         TemplateInformation  parentTemplate) throws Exception {
-      
-      TemplateInformation templateInfo = new TemplateInformation("", "", 0);
-      templateInfo.setIteration(element.getAttribute("var"), element.getAttribute("enumeration"));
-
-      for (Node node = element.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            templateInfo.addText(node.getTextContent());
-            continue;
-         }
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element childElement = (Element) node;
-         String  forTagName   = childElement.getTagName();
-         if (forTagName.equals("for")) {
-            parseForElement(childElement, templateInfo);
-         }
-         else {
-            throw new Exception("Unexpected child in <template>, value = \'"+forTagName+"\'");
-         }
-      }
-      parentTemplate.addChild(templateInfo);
    }
 
    /**
@@ -1907,10 +1878,10 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseChildModel(BaseModel parentModel, Element element) throws Exception {
 
       String tagName     = element.getTagName();
-      String name        = element.getAttribute("name");
+      String key         = getKeyAttribute(element);
       String toolTip     = getToolTip(element);
 
-      //         System.err.println("parseChildModel(): " + tagName + ", " + element.getAttribute("name"));
+      //         System.err.println("parseChildModel(): " + tagName + ", " + getAttribute(element, "name"));
       if (tagName == "fragment") {
          parseChildModels(parentModel, element);
       }
@@ -1962,19 +1933,19 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "for") {
          parseForLoop(parentModel, element);
       }
+      else if (tagName == "if") {
+         parseIfThen(parentModel, element);
+      }
       else if (tagName == "section") {
-         BaseModel model = new ParametersModel(parentModel, name, toolTip);
+         BaseModel model = new ParametersModel(parentModel, key, toolTip);
          parseChildModels(model, element);
       }
       else if (tagName == "list") {
-         BaseModel model = new ListModel(parentModel, name);
+         BaseModel model = new ListModel(parentModel, key);
          parseSectionsOrOther(model, element);
       }
       else if (tagName == "signals") {
          parseSignalsOption(parentModel, element);
-      }
-      else if (tagName == "templateEnable") {
-         parseTemplateEnable(element);
       }
       else {
          parseControlItem( element);
@@ -1984,22 +1955,23 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Create and add template<br>
     * 
-    * @param key        Key used to index template
+    * @param templateKey        Key used to index template
     * @param namespace  Namespace for template (info, usbdm, class)
     * @param dimension  Dimension for array template
     * @param contents   Text contents for template
     * 
     * @throws Exception 
     */
-   private TemplateInformation addTemplate(String name, String namespace, int dimension) throws Exception {
+   private TemplateInformation addTemplate(String key, String namespace, int dimension) throws Exception {
       
-      TemplateInformation templateInfo = new TemplateInformation(name, namespace, dimension);
+      TemplateInformation templateInfo = new TemplateInformation(key, namespace, dimension);
 
-      String key = MenuData.makeKey(name, namespace);
-      ArrayList<TemplateInformation> templateList = fTemplateInfos.get(key);
+      String templateKey = MenuData.makeKey(key, namespace);
+
+      ArrayList<TemplateInformation> templateList = fTemplateInfos.get(templateKey);
       if (templateList == null) {
          templateList = new ArrayList<TemplateInformation>();
-         fTemplateInfos.put(key, templateList);
+         fTemplateInfos.put(templateKey, templateList);
       }
       templateList.add(templateInfo);
       return templateInfo;
@@ -2010,13 +1982,11 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param key        Key used to index template
     * @param namespace  Namespace for template (info, usbdm, class)
-    * @param dimension  Dimension for array template
-    * @param contents   Text contents for template
     * 
     * @throws Exception 
     */
-   private TemplateInformation addTemplate(String name, String namespace) throws Exception {
-      return addTemplate(name, namespace, 1);
+   private TemplateInformation addTemplate(String key, String namespace) throws Exception {
+      return addTemplate(key, namespace, 1);
    }
 
    /**
@@ -2024,13 +1994,13 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param parentModel
     * @param element
-    * @throws UsbdmException 
+    * @throws Exception 
     */
-   private void parseSignalsOption(BaseModel parentModel, Element element) throws UsbdmException {
+   private void parseSignalsOption(BaseModel parentModel, Element element) throws Exception {
       // Initially assume pins refer to current peripheral
       Peripheral peripheral = fPeripheral;
-      boolean optional = Boolean.valueOf(element.getAttribute("optional"));
-      String peripheralName = element.getAttribute("name");
+      boolean optional = Boolean.valueOf(getAttribute(element, "optional"));
+      String peripheralName = getAttribute(element, "name");
       if (!peripheralName.isEmpty()) {
          // Change to referenced peripheral
          peripheral = fPeripheral.getDeviceInfo().getPeripherals().get(peripheralName);
@@ -2041,7 +2011,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return;
       }
-      String filter = element.getAttribute("filter");
+      String filter = getAttribute(element, "filter");
       fPeripheral.addSignalsFromPeripheral(parentModel, peripheral, filter);
    }
 
@@ -2078,16 +2048,15 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("<choice> must have name and value attributes "+element);
          }
          ChoiceData entry = new ChoiceData(
-               doForSubstitutions(element.getAttribute("name")), 
-               doForSubstitutions(element.getAttribute("value")), 
-               doForSubstitutions(element.getAttribute("enum")),
-               doForSubstitutions(element.getAttribute("code")),
-               doForSubstitutions(element.getAttribute("ref"))
+               getAttribute(element, "name"), 
+               getAttribute(element, "value"), 
+               getAttribute(element, "enum"),
+               getAttribute(element, "code"),
+               getAttribute(element, "ref")
                );
-         String requiredPeripheral = element.getAttribute("requiresPeripheral").toUpperCase();
+         String requiredPeripheral = getAttribute(element, "requiresPeripheral").toUpperCase();
          // Check if entry requires a peripheral to be present to be used
          if (!requiredPeripheral.isBlank()) {
-            requiredPeripheral = doForSubstitutions(requiredPeripheral);
             Peripheral p = fPeripheral.getDeviceInfo().getPeripherals().get(requiredPeripheral);
             if (p == null) {
                // Discard choice
@@ -2099,7 +2068,7 @@ public class ParseMenuXML extends XML_BaseParser {
             // Assume 1st entry is default
             defaultValue = entry.getName();
          }
-         if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+         if (getAttribute(element, "isDefault").equalsIgnoreCase("true")) {
             // Explicit default set
             defaultValue = entry.getName();
          }
@@ -2228,7 +2197,7 @@ public class ParseMenuXML extends XML_BaseParser {
       //      }
       //      System.err.println("================================");
       long dimension = getLongAttributeWithVariableSubstitution(validateElement, "dim");
-      ValidatorInformation validator = new ValidatorInformation(validateElement.getAttribute("class"), (int)dimension);
+      ValidatorInformation validator = new ValidatorInformation(getAttribute(validateElement, "class"), (int)dimension);
       
       for (Node node = validateElement.getFirstChild();
             node != null;
@@ -2238,8 +2207,8 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "param") {
-            String type  = element.getAttribute("type");
-            String value = element.getAttribute("value");
+            String type  =getAttribute(element, "type");
+            String value =getAttribute(element, "value");
             
             // Do substitutions on parameter
             value = fProvider.substitute(value);
@@ -2273,11 +2242,11 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private BaseModel parseSectionsOrOther(BaseModel parent, Element element) throws Exception {
 
-      String name = element.getAttribute("name");
+      String name = getAttribute(element, "name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
-//      String description = element.getAttribute("description");
+//      String description = getAttribute(element, "description");
       String toolTip  = getToolTip(element);
 
       BaseModel model = null;
@@ -2335,13 +2304,13 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private BaseModel parseSectionsOrOtherContents(BaseModel parent, Element topElement) throws Exception {
       
-      String name = topElement.getAttribute("name");
+      String name = getAttribute(topElement, "name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
 //      String tagName = topElement.getTagName();
 //      System.err.println("parseSectionsOrOther(<" + tagName + " name="+ name + ">)");
-//      String description = topElement.getAttribute("description");
+//      String description = getAttribute(topElement, "description");
       BaseModel model = null;
 
       for (Node node = topElement.getFirstChild();
@@ -2393,7 +2362,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parsePage(Element element) throws Exception {
       
-      String name = element.getAttribute("name");
+      String name = getAttribute(element, "name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
@@ -2430,7 +2399,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       } catch (Exception e) {
          new ErrorModel(fRootModel, "Parse Error", e.getMessage());
-         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
+         System.err.println("parse(): " + element.getTagName() + ", " + getAttribute(element, "name"));
          e.printStackTrace();
       }
    }

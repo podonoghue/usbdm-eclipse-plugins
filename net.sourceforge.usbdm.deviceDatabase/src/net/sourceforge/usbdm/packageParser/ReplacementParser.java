@@ -365,9 +365,9 @@ public class ReplacementParser {
          index = parseKey(inputText, index, keyBuffer);
          key = keyBuffer.toString();
       }
-      if (key.contains("llwu_me_wume0.description")) {
-         System.err.println("Found "+key);
-      }
+//      if (key.contains("usbphy_anactrl_pfd_frac")) {
+//         System.err.println("Found "+key);
+//      }
       String arg1 = null;
       char c = inputText.charAt(index);
       if (c == ':') {
@@ -469,7 +469,7 @@ public class ReplacementParser {
       }
       if (replaceWith == null) {
          replaceWith = 
-               "---Symbol not found or format incorrect for substitution '"+inputText.substring(0,40)+
+               "---Symbol not found or format incorrect for substitution '"+inputText.substring(0,20)+
                "' => key='" + key +
                "', def='" + arg1 + 
                "', mod='" + arg2 + "'";

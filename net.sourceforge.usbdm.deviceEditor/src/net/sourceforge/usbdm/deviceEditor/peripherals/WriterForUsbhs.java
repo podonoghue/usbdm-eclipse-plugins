@@ -24,7 +24,7 @@ public class WriterForUsbhs extends PeripheralWithState {
    
    @Override
    public int getSignalIndex(Signal function) {
-      final String signalNames[] = {"DM", "DP", "VBUS", "VSS", "ID", "VDD", "CLKIN", "SOF_OUT"};
+      final String signalNames[] = {"DM", "DP", "VBUS", "VSS", "ID", "VDD", "CLKIN", "SOF_OUT", "ID"};
       return getSignalIndex(function, signalNames);
    }
 }

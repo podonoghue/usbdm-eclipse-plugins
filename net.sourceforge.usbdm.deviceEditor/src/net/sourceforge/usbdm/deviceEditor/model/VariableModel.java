@@ -132,6 +132,18 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    }
 
    @Override
+   protected Status getPropagatedStatus() {
+      Status status = getStatus();
+      if (status == null) {
+         return null;
+      }
+      if (status.getSeverity().greaterThan(fVariable.getErrorPropagate())) {
+         return status;
+      }
+      return null;
+   }
+   
+   @Override
    Status getStatus() {
       Status rv =  super.getStatus();
       if ((rv != null) && rv.greaterThan(Severity.INFO)) {

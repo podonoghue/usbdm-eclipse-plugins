@@ -216,19 +216,6 @@ public class SimValidateMKL extends PeripheralValidator {
    }
 
    /**
-    * Determine peripheralClock (prior to post clock divider if any)
-    *  
-    * @return  Active peripheral clock<br>
-    *          mcgpclk, mcgfllclk, mcgpllclk (maybe divided), irc48m, usb1pfdclk or system_peripheral_clock
-    * 
-    * @throws Exception
-    */
-   LongVariable determineClockSource() throws Exception {
-      LongVariable  system_peripheral_clockVar = getLongVariable("system_peripheral_clock");
-      return system_peripheral_clockVar;
-   }
-
-   /**
     * Update system_peripheral_postdivider_clock
     * 
     * @param clockVar Active peripheral clock
@@ -276,12 +263,12 @@ public class SimValidateMKL extends PeripheralValidator {
    void validateIndexVariables(Variable variable) throws Exception {
 
       // Determine peripheralClock
-      LongVariable clockVar = determineClockSource();
+//      LongVariable peripheralCockVar = safeGetLongVariable("system_peripheral_clock");
 
-      updatePostdividerClock(clockVar);
+//      updatePostdividerClock(peripheralCockVar);
       
       // Validate USB clock
-      validateUsbfsClock(clockVar);
+//      validateUsbfsClock(peripheralCockVar);
 
       //======================================
       final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock");
@@ -429,12 +416,12 @@ public class SimValidateMKL extends PeripheralValidator {
       LongVariable system_peripheral_postdivider_clockVar = safeGetLongVariable("system_peripheral_postdivider_clock");
       postClockDividerPresent = (system_peripheral_postdivider_clockVar!=null);
       
-      sim_copc_coptVar            = safeGetChoiceVariable("sim_copc_copt");
+      sim_copc_coptVar   = safeGetChoiceVariable("sim_copc_copt");
       if (sim_copc_coptVar != null) {
-         sim_copc_copwVar            = safeGetBooleanVariable("sim_copc_copw");
-         sim_copc_copdbgenVar        = safeGetBooleanVariable("sim_copc_copdbgen");
-         sim_copc_copstpenwVar       = safeGetBooleanVariable("sim_copc_copstpen");
-         sim_copc_copclkselVar       = safeGetChoiceVariable("sim_copc_copclksel");
+         sim_copc_copwVar       = safeGetBooleanVariable("sim_copc_copw");
+         sim_copc_copdbgenVar   = safeGetBooleanVariable("sim_copc_copdbgen");
+         sim_copc_copstpenwVar  = safeGetBooleanVariable("sim_copc_copstpen");
+         sim_copc_copclkselVar  = safeGetChoiceVariable("sim_copc_copclksel");
       }
       
       addToWatchedVariables(variablesToWatch);

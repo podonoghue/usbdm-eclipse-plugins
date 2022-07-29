@@ -648,7 +648,7 @@ public class ParseFamilyCSV {
 			net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral = fPeripheralMap.get(entry.getKey());
 			if ((dbPeripheral == null)) {
 				if (!peripheral.isSynthetic()) {
-					throw new UsbdmException("Peripheral "+entry.getKey()+" not found");
+					throw new UsbdmException("Peripheral "+entry.getKey()+" not found as peripheral in DB for "+fDevicePeripherals.getName());
 				}
 				continue;
 			}

@@ -96,9 +96,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTrgmux;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbPhy;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhsdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForWdog;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
@@ -1058,7 +1058,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       createPeripheralTemplateInformation(
             "POWER", "", "$0",
-            "(DCDC.*|PSWITCH|VDCDC_IN)|(VOUT33|VBAT|VREFL|VREFH|VSS(A|B|_.*)?|VDD(IO_E|A|B|_.*)?|VREG(IN|_IN|_IN0|_IN1|_OUT|_OUT0))(\\d*(a|b|c)?)",
+            "(DCDC.*|USB1_VSS|PSWITCH|VDCDC_IN)|(VOUT33|VBAT|VREFL|VREFH|VSS(A|B|_.*)?|VDD(IO_E|A|B|_.*)?|VREG(IN|_IN|_IN0|_IN1|_OUT|_OUT0))(\\d*(a|b|c)?)",
             getDeviceFamily(),
             WriterForPower.class);
       
@@ -1273,30 +1273,30 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForUart.class);
          createPeripheralTemplateInformation(
-               "USB", "0", "$5",
-               "((audio)?USB(OTG)?(0)?)_(.*)",
+               "USB", "0", "$3",
+               "(USB(OTG)?)_(.*)",
                getDeviceFamily(),
                WriterForUsb.class);
          createPeripheralTemplateInformation(
-               "USBHS", "0", "$3",
-               "(USB1)(_)(.*)",
+               "USB", "$3", "$4",
+               "(USB(OTG)?)(\\d+)?_(.*)",
                getDeviceFamily(),
-               WriterForUsbhs.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2", "$2",
-               "(USBHS)(\\\\d+)(.*)",
-               getDeviceFamily(),
-               WriterForUsbhs.class);
+               WriterForUsb.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(USBHSDCD)(\\d+)(.*)",
+               "(USBHS)(\\d+)_(.*)",
                getDeviceFamily(),
-               WriterForUsbhsdcd.class);
+               WriterForUsbhs.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "",
-               "(USBHSPHY)(\\d+)(.*)",
+               "(USBPHY)(\\d+)(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForUsbPhy.class);
+         createPeripheralTemplateInformation(
+               "USBPHY", "$2", "",
+               "(USB_(ID))",
+               getDeviceFamily(),
+               WriterForUsbPhy.class);
          createPeripheralTemplateInformation(
                "USBDCD", "$2", "$3",
                "(USBDCD)(\\d+)(.*)",

@@ -901,14 +901,14 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) throws IOException {
       
-//    firstFileToProcess = ("^MKW41Z4.*");
-//    firstFileToReject  = ("^S32K148.*");
+    firstFileToProcess = ("^MK28.*");
+    firstFileToReject  = ("^MK70.*");
 
       System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 
-      doHeaderFiles();
+//      doHeaderFiles();
 //      doInitialRegeneration();
-//      doUsualRegeneration();
+      doUsualRegeneration();
 //      try {
 //         createReducedDeviceList(MAIN_FOLDER.resolve("Raw"), MAIN_FOLDER.resolve("Raw.expanded"));
 //      } catch (Exception e) {

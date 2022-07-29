@@ -277,7 +277,7 @@ public class VariableProvider {
    }
    
    /**
-    * Set editor dirty via deviceInfo
+    * Get deviceInfo
     * @return 
     */
    public DeviceInfo getDeviceInfo() {

@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,6 +11,8 @@ import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -66,52 +69,21 @@ public class PeripheralValidator extends Validator {
     * @throws Exception
     */
    protected void validate(Variable variable) throws Exception {
-      validateInterrupt(variable);
-      validateClockSelectorVariables();
+      if (variable == null) {
+         validateAllClockSelectors();
+      }
    }
 
-   /**
-    * Validates the interrupt portion of the dialogue
-    * 
-    * @param variable   Variable trigger change leading to validation (may be null)
-    * 
-    * @throws Exception
-    */
-   protected void validateInterrupt(Variable variable) throws Exception {
-      
-//      ChoiceVariable irqHandlingMethodVar         = safeGetChoiceVariable("irqHandlingMethod");
-//      StringVariable namedInterruptHandlerVar     = safeGetStringVariable("namedInterruptHandler");
-//      LongVariable   irqLevelVar                  = safeGetLongVariable("irqLevel");
-//
-//     if (irqHandlingMethodVar == null) {
-//        return;
-//     }
-//     
-//     switch((int)irqHandlingMethodVar.getValueAsLong()) {
-//     default:
-//        irqHandlingMethodVar.setValue(0);
-//     case 0: // No handler
-//        namedInterruptHandlerVar.enable(false);
-//        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
-//        irqLevelVar.enable(false);
-//        irqLevelVar.setOrigin("Disabled by irqHandlingMethod");
-//        break;
-//     case 1: // Software (Use setCallback() or class method)
-//        namedInterruptHandlerVar.enable(false);
-//        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
-//        irqLevelVar.enable(true);
-//        irqLevelVar.setOrigin(null);
-//        break;
-//     case 2: // Named function
-//        namedInterruptHandlerVar.enable(true);
-//        namedInterruptHandlerVar.setOrigin(null);
-//        namedInterruptHandlerVar.setStatus(isValidCIdentifier(namedInterruptHandlerVar.getValueAsString()));
-//        irqLevelVar.enable(true);
-//        irqLevelVar.setOrigin(null);
-//        break;
-//    }
+   private void validateAllClockSelectors() throws Exception {
+      ArrayList<Variable> clockSelectors = getPeripheral().getClockSelectors();
+      if (clockSelectors == null) {
+         return;
+      }
+      for (Variable clockSelector:clockSelectors) {
+         validateClockSelectorVariable(clockSelector);
+      }
    }
-   
+      
    /**
     * Validate a clock selector variable
     * 
@@ -120,10 +92,13 @@ public class PeripheralValidator extends Validator {
     * @throws Exception
     */
    private void validateClockSelectorVariable(Variable clockSelectorVar) throws Exception {
-      
+
+      if (clockSelectorVar.getName().contains("PFD clock")) {
+         System.err.println("Validating cs '"+clockSelectorVar+"'");
+      }
       LongVariable targetClockVar = safeGetLongVariable(clockSelectorVar.getTarget());
 
-      // Get clock source
+      // Get clock source (selected input)
       String reference = null;
       if (clockSelectorVar instanceof StringVariable) {
          // String variable with name of clock being used.
@@ -151,21 +126,37 @@ public class PeripheralValidator extends Validator {
       }
       String data[] = reference.split(",");
       
-      LongVariable clockSourceVar = safeGetLongVariable(data[0]);     
+      Variable     clockSourceVar = safeGetVariable(data[0]);     
       long         value          = clockSourceVar.getValueAsLong();
       String       origin         = clockSourceVar.getOrigin();
       
       if (data.length>1) {
-         Pattern p = Pattern.compile("(/|\\*)(\\d+)");
+         Pattern p = Pattern.compile("\\=([a-z]\\w+)");
          Matcher m = p.matcher(data[1]);  
-         if (!m.matches()) {
+         if (m.matches()) {
+            if (m.group(1).equalsIgnoreCase("clkdiv2")) {
+               clkdiv2(clockSourceVar, targetClockVar);
+               return;
+            }
+            if (m.group(1).equalsIgnoreCase("clkdiv3")) {
+               clkdiv2(clockSourceVar, targetClockVar);
+               return;
+            }
             throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
          }
-         origin = "("+origin+")"+data[1];
-         long factor = Long.parseLong(m.group(2));
-         switch(m.group(1).charAt(0)) {
-         case '/' : value = value / factor; break;
-         case '*' : value = value * factor; break;
+         origin = "("+origin+")";
+         p = Pattern.compile("(/|\\*)(\\d+)");
+         for (int index=1; index<data.length; index++) {
+            m = p.matcher(data[index]);  
+            if (!m.matches()) {
+               throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
+            }
+            origin = origin+data[index];
+            long factor = Long.parseLong(m.group(2));
+            switch(m.group(1).charAt(0)) {
+            case '/' : value = value / factor; break;
+            case '*' : value = value * factor; break;
+            }
          }
       }
       targetClockVar.setValue(value);
@@ -173,19 +164,79 @@ public class PeripheralValidator extends Validator {
       targetClockVar.setOrigin(origin);
    }
    
+   void clkdiv2(Variable clockSourceVar, LongVariable targetClockVar) {
+
+      final Variable sim_clkdiv2_usbVar = safeGetVariable("sim_clkdiv2_usb");
+
+      // Peripheral Clock / CLKDIV2
+      int  fracDiv = Long.decode(sim_clkdiv2_usbVar.getSubstitutionValue()).intValue();
+      int  frac    = fracDiv&0x1;
+      int  div     = (fracDiv>>1)&0x7;
+
+      long   frequency = clockSourceVar.getValueAsLong()*(frac+1)/(div+1);
+      String origin    = clockSourceVar.getOrigin() + " after /CLKDIV2";
+      
+      Status status = clockSourceVar.getStatus();
+      if (frequency != 48000000) {
+         status = new Status("Illegal clock frequecy for USB", Severity.WARNING);
+      }
+      targetClockVar.setValue(frequency);
+      targetClockVar.setStatus(status);
+      targetClockVar.setOrigin(origin);
+   }
+   
    /**
-    * Validate all clock selector variables
+    * Update system_peripheral_postdivider_clock
+    * 
+    * @param clockVar Active peripheral clock
+    * 
+    * @return system_peripheral_postdivider_clock if present or clockVar unchanged if not
     * 
     * @throws Exception
     */
-   private void validateClockSelectorVariables() throws Exception {
+   void clkdiv3(Variable clockSourceVar, LongVariable targetClockVar) throws Exception {
+
+      final  Variable sim_clkdiv3_pllfllVar = getVariable("sim_clkdiv3_pllfll");
       
-      // Validate clock selectors
-      ArrayList<Variable> clockSelectors = getPeripheral().getClockSelectors();
-      for (Variable clockSelector:clockSelectors) {
-         validateClockSelectorVariable(clockSelector);
-      }
+      int    fracDiv = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
+      int    frac    = fracDiv&0x1;
+      int    div     = (fracDiv>>1)&0x7;
+      Long   value   = (clockSourceVar.getValueAsLong()*(frac+1))/(div+1);
+      String origin  = clockSourceVar.getOrigin() + " after /CLKDIV3";
+      Status status = clockSourceVar.getStatus();
+
+      targetClockVar.setValue(value);
+      targetClockVar.setOrigin(origin);
+      targetClockVar.setStatus(status);
    }
+   
+   protected class ClockSelectorListener implements IModelChangeListener {
+      
+      final Variable fClockSelector;
+      
+      public ClockSelectorListener(Variable clockSelector) {
+         fClockSelector = clockSelector;
+      }
+      
+      @Override
+      public void modelStructureChanged(ObservableModel observableModel) {
+      }
+      
+      @Override
+      public void modelElementChanged(ObservableModel observableModel) {
+         try {
+//          System.err.println("Validating "+fClockSelector);
+            validateClockSelectorVariable(fClockSelector);
+         } catch (Exception e) {
+            System.err.println("Failed to validate "+fClockSelector);
+            e.printStackTrace();
+         }
+      }
+      
+      @Override
+      public void elementStatusChanged(ObservableModel observableModel) {
+      }
+   };
    
   /**
    * Add clock selectors and their references to watched variables<br>
@@ -195,6 +246,10 @@ public class PeripheralValidator extends Validator {
    */
    private void addClockSelectors() throws Exception {
       ArrayList<Variable> clockSelectors = getPeripheral().getClockSelectors();
+      if (clockSelectors == null) {
+         return;
+      }
+      HashMap<Variable,ClockSelectorListener> addedClockSelectorListeners = null;
       for (Variable clockSelector:clockSelectors) {
          String targetName = clockSelector.getTarget();
          if (targetName == null) {
@@ -203,10 +258,20 @@ public class PeripheralValidator extends Validator {
          Variable target = safeGetVariable(targetName);
          if (target == null) {
             throw new Exception("Target '"+targetName+"' not found for Clock selector var '"+clockSelector+"' have target");
-         }         
+         }
+
+         if (addedClockSelectorListeners == null) {
+            addedClockSelectorListeners = new HashMap<Variable, ClockSelectorListener>();
+         }
+         
+         ClockSelectorListener listener = addedClockSelectorListeners.get(clockSelector);
+         if (listener == null) {
+            listener = new ClockSelectorListener(clockSelector);
+            addedClockSelectorListeners.put(clockSelector, listener);
+         }
          
          // Watch clock selector
-         clockSelector.addListener(getPeripheral());
+         clockSelector.addListener(listener);
 
          if (clockSelector instanceof ChoiceVariable) {
             // ChoiceVar selecting the clock input
@@ -226,7 +291,7 @@ public class PeripheralValidator extends Validator {
                   throw new Exception("Clock reference variable '"+choiceData.getReference()+"' not found for Clock selector var '"+clockSelector+"' have target");
                }
                // Watch references
-               reference.addListener(getPeripheral());
+               reference.addListener(listener);
             }
          }
       }

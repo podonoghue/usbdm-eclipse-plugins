@@ -229,19 +229,6 @@ public class SimValidate extends PeripheralValidator {
    }
 
    /**
-    * Determine peripheralClock (prior to post clock divider if any)
-    *  
-    * @return  Active peripheral clock<br>
-    *          mcgpclk, mcgfllclk, mcgpllclk (maybe divided), irc48m, usb1pfdclk or system_peripheral_clock
-    * 
-    * @throws Exception
-    */
-   LongVariable determineClockSource() throws Exception {
-      LongVariable  system_peripheral_clockVar = getLongVariable("system_peripheral_clock");
-      return system_peripheral_clockVar;
-   }
-
-   /**
     * Update system_peripheral_postdivider_clock
     * 
     * @param clockVar Active peripheral clock
@@ -289,12 +276,12 @@ public class SimValidate extends PeripheralValidator {
    void validateIndexVariables(Variable variable) throws Exception {
 
       // Determine peripheralClock
-      LongVariable clockVar = determineClockSource();
+      LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock");
 
-      updatePostdividerClock(clockVar);
+      updatePostdividerClock(peripheralClockVar);
       
       // Validate USB clock
-      validateUsbfsClock(clockVar);
+      validateUsbfsClock(peripheralClockVar);
 
       //======================================
       final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock");

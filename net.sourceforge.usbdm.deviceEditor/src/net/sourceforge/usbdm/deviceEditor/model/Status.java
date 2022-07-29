@@ -4,15 +4,29 @@ public class Status {
 
    public enum Severity {
       OK, INFO, WARNING, ERROR;
+      
       /**
-       * Checks if the level is less than the given level
+       * Checks if the level is less than the given level <br>
+       * Null is treated as greater than ERROR i.e. always false
        * 
        * @param other
        * 
        * @return this&lt;other?
        */
       public boolean lessThan(Severity other) {
-         return this.ordinal() < other.ordinal();
+         return (other != null) && (this.ordinal() < other.ordinal());
+      }
+
+      /**
+       * Checks if the level is greater than the given level
+       * Null is treated as less than OK i.e. result is true
+       * 
+       * @param other
+       * 
+       * @return this&gt;other?
+       */
+      public boolean greaterThan(Severity other) {
+         return (other == null) || (this.ordinal() > other.ordinal());
       }
 
       /**
@@ -22,8 +36,8 @@ public class Status {
        * 
        * @return this&gt;other?
        */
-      public boolean greaterThan(Severity other) {
-         return this.ordinal() > other.ordinal();
+      public boolean greaterThanOrEqual(Severity other) {
+         return this.ordinal() >= other.ordinal();
       }
 
    };
