@@ -63,7 +63,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public MenuData loadModels() throws Exception {
       try {
-         fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralVersionName(), this);
+         fMenuData = ParseMenuXML.parsePeripheralFile(getPeripheralVersionName(), this);
       } catch (Exception e) {
          System.err.println("Warning: Failed to load model "+getPeripheralVersionName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
       }

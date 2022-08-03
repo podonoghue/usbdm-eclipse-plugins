@@ -360,7 +360,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       String filename = fHardwarePath.getFileName().toString();
       if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
          ParseFamilyXML parser = new ParseFamilyXML();
-         parser.parseFile(this, fHardwarePath);
+         parser.parseHardwareFile(this, fHardwarePath);
 
          fVariableProvider = new VariableProvider("Common Settings", this) {
             // Add change lister to mark editor dirty
@@ -393,6 +393,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          for (PeripheralWithState p:peripheralWithStateList) {
             p.loadModels();
          }
+         enumTemplateMap.clear();
          for (PeripheralWithState p:peripheralWithStateList) {
             p.instantiateAliases();
          }
@@ -1747,6 +1748,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          for (String key:settings.getKeys()) {
             Variable var   = fVariables.safeGet(key);
             String   value = settings.get(key);
+            if (key.startsWith("/MCG/clock_mode")) {
+               // Old clock names
+               key = key.replace("/MCG/clock_mode","/MCG/mcgClockMode");
+            }
             if (var != null) {
                if (!var.isDerived()) {
                   // Load persistent value associated with variable
@@ -2393,6 +2398,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       String packageName = element.getAttribute("package");
       String deviceName  = element.getAttribute("deviceName");
       return createDeviceInformation(variantName, manual, packageName, deviceName);
+   }
+
+   /** Used to prevent repeated templates for iterated enums */
+   private final HashSet<String> enumTemplateMap = new HashSet<String>(); 
+   
+   public HashSet<String> getEnumTemplateMap() {
+      return enumTemplateMap;
    }
 
 //   /**

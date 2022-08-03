@@ -177,7 +177,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Get base name of the peripheral e.g. FTM0 => FTM, PTA =. PT 
+    * Get base name of the peripheral e.g. FTM0 => FTM, PTA => PT 
     * 
     * @return
     */
@@ -195,7 +195,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Get base name of C peripheral class e.g. Ftm
+    * Get base name of C peripheral class e.g. FTM0 => Ftm
     * 
     * @return
     */
@@ -204,7 +204,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Get name of C peripheral class e.g. Ftm2 
+    * Get name of C peripheral class e.g. FTM2 => Ftm2 
     * 
     * @return
     */

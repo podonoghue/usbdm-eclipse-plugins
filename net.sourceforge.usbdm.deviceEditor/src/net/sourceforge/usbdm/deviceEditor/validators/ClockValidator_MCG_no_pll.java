@@ -62,15 +62,12 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
 
       super.validate(variable);
 
-      // Fix enabling of clock configurations
+      // Check configuration name is valid C identifier
       StringVariable clockConfig = getStringVariable("ClockConfig");
       clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
 
+      // Enable whole category from clock enable variable
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
-      if (fIndex == 0) {
-         // Clock configuration 0 is always true to enable 1st clock configuration
-         enableClockConfigurationVar.setDefault(true);
-      }
       clockConfig.enable(enableClockConfigurationVar.getValueAsBoolean());
       
       // OSC0 LOC Clock monitor (if present)
@@ -111,36 +108,36 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       Variable system_fast_irc_clockVar   = getVariable("system_fast_irc_clock");
       Variable system_slow_irc_clockVar   = getVariable("system_slow_irc_clock");
       Variable mcg_c2_ircsVar             = getVariable("mcg_c2_ircs");
-      Variable system_mcgir_ungated_clock = new LongVariable("system_mcgir_ungated", null);
+      Variable system_mcgirclk_ungated_clock = new LongVariable("system_mcgir_ungated", null);
       
       if (mcg_c2_ircsVar.getValueAsBoolean()) {
          // Fast IRC selected
          if (mcg_sc_fcrdivVar != null) {
             // Variable divisor
             long mcg_sc_fcrdiv = mcg_sc_fcrdivVar.getValueAsLong();
-            system_mcgir_ungated_clock.setOrigin("(Fast IRC)/FCRDIV");
-            system_mcgir_ungated_clock.setValue(system_fast_irc_clockVar.getValueAsLong() / (1<<mcg_sc_fcrdiv));
+            system_mcgirclk_ungated_clock.setOrigin("(Fast IRC)/FCRDIV");
+            system_mcgirclk_ungated_clock.setValue(system_fast_irc_clockVar.getValueAsLong() / (1<<mcg_sc_fcrdiv));
          }
          else {
             // Fixed divisor of 2
-            system_mcgir_ungated_clock.setOrigin("(Fast IRC)/2");
-            system_mcgir_ungated_clock.setValue(system_fast_irc_clockVar.getValueAsLong() / 2);
+            system_mcgirclk_ungated_clock.setOrigin("(Fast IRC)/2");
+            system_mcgirclk_ungated_clock.setValue(system_fast_irc_clockVar.getValueAsLong() / 2);
          }
       }
       else {
          // Slow IRC selected
-         system_mcgir_ungated_clock.setOrigin("Slow IRC");
-         system_mcgir_ungated_clock.setValue(system_slow_irc_clockVar.getValueAsLong());
+         system_mcgirclk_ungated_clock.setOrigin("Slow IRC");
+         system_mcgirclk_ungated_clock.setValue(system_slow_irc_clockVar.getValueAsLong());
       }
       
       Variable system_mcgirclk_clockVar = getVariable("system_mcgirclk_clock");
-      system_mcgirclk_clockVar.setOrigin(system_mcgir_ungated_clock.getOrigin());
+      system_mcgirclk_clockVar.setOrigin(system_mcgirclk_ungated_clock.getOrigin());
 
       Variable mcg_c1_irclkenVar  = getVariable("mcg_c1_irclken");
       Variable mcg_c1_irefstenVar = getVariable("mcg_c1_irefsten");
       if (mcg_c1_irclkenVar.getValueAsBoolean()) {
          // Enabled
-         system_mcgirclk_clockVar.setValue(system_mcgir_ungated_clock.getValueAsLong());
+         system_mcgirclk_clockVar.setValue(system_mcgirclk_ungated_clock.getValueAsLong());
          system_mcgirclk_clockVar.setStatus((Status)null);
          system_mcgirclk_clockVar.enable(true);
          mcg_c1_irefstenVar.enable(true);
@@ -162,51 +159,52 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       
       // Main clock mode
       //====================
-      Variable clock_modeVar = getVariable("clock_mode");
-      ClockMode clock_mode = ClockMode.valueOf(clock_modeVar.getSubstitutionValue());
-      Variable fll_enabledVar                   = getVariable("fll_enabled");
-      Variable fllInputFrequencyVar             = getVariable("fllInputFrequency");
+      ChoiceVariable mcgClockModeVar   = getChoiceVariable("mcgClockMode");
+      McgClockMode   clock_mode        = McgClockMode.valueOf(mcgClockModeVar.getEnumValue());
+      
+      Variable   fll_enabledVar        = getVariable("fll_enabled");
+      Variable   fllInputFrequencyVar  = getVariable("fllInputFrequency");
 
       boolean mcg_c2_ircsVar_StatusWarning = false;
-      
+
       switch (clock_mode) {
       default:
-      case ClockMode_None:
+      case McgClockMode_None:
          mcg_c1_clks  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
          fll_enabledVar.setValue(true);
          break;
-      case ClockMode_FEI:
+      case McgClockMode_FEI:
          mcg_c1_clks  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
          fll_enabledVar.setValue(true);
          break;
-      case ClockMode_FEE:
+      case McgClockMode_FEE:
          mcg_c1_clks  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
          fll_enabledVar.setValue(true);
          break;
-      case ClockMode_FBI:
+      case McgClockMode_FBI:
          mcg_c1_clks  = 1;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
          fll_enabledVar.setValue(true);
          break;
-      case ClockMode_FBE:
+      case McgClockMode_FBE:
          mcg_c1_clks  = 2;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
          fll_enabledVar.setValue(true);
          break;
-      case ClockMode_BLPI:
+      case McgClockMode_BLPI:
          mcg_c1_clks  = 1;
          mcg_c2_lp    = 1;
          mcg_c1_irefs = true;
@@ -215,7 +213,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
          // Add BLPE/BLPI warning
          mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
          break;
-      case ClockMode_BLPE:
+      case McgClockMode_BLPE:
          mcg_c1_clks  = 2;
          mcg_c2_lp    = 1;
          mcg_c1_irefs = false;
@@ -286,38 +284,38 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
 
       switch (clock_mode) {
       default:
-      case ClockMode_None:
+      case McgClockMode_None:
          system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Status)null);
          clock_mode_Status = new Status("No clock settings are applied", Severity.WARNING);
          break;
-      case ClockMode_FEI:
+      case McgClockMode_FEI:
          system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(system_mcgfllclk_clockVar.getFilteredStatus());
          break;
-      case ClockMode_FEE:
+      case McgClockMode_FEE:
          system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(system_mcgfllclk_clockVar.getFilteredStatus());
          break;
-      case ClockMode_FBI:
-         system_mcgoutclk_clockVar.setValue(system_mcgir_ungated_clock.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(system_mcgir_ungated_clock.getOrigin());
-         system_mcgoutclk_clockVar.setStatus(system_mcgir_ungated_clock.getFilteredStatus());
+      case McgClockMode_FBI:
+         system_mcgoutclk_clockVar.setValue(system_mcgirclk_ungated_clock.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_mcgirclk_ungated_clock.getOrigin());
+         system_mcgoutclk_clockVar.setStatus(system_mcgirclk_ungated_clock.getFilteredStatus());
          break;
-      case ClockMode_FBE:
+      case McgClockMode_FBE:
          system_mcgoutclk_clockVar.setValue(mcg_erc_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(mcg_erc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(mcg_erc_clockVar.getFilteredStatus());
          break;
-      case ClockMode_BLPI:
-         system_mcgoutclk_clockVar.setValue(system_mcgir_ungated_clock.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(system_mcgir_ungated_clock.getOrigin());
-         system_mcgoutclk_clockVar.setStatus(system_mcgir_ungated_clock.getFilteredStatus());
+      case McgClockMode_BLPI:
+         system_mcgoutclk_clockVar.setValue(system_mcgirclk_ungated_clock.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_mcgirclk_ungated_clock.getOrigin());
+         system_mcgoutclk_clockVar.setStatus(system_mcgirclk_ungated_clock.getFilteredStatus());
          break;
-      case ClockMode_BLPE:
+      case McgClockMode_BLPE:
          system_mcgoutclk_clockVar.setValue(mcg_erc_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(mcg_erc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(mcg_erc_clockVar.getFilteredStatus());
@@ -329,7 +327,8 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
    
    @Override
    protected void createDependencies() throws Exception {
-
+      super.createDependencies();
+      
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
@@ -353,13 +352,9 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       
       addToWatchedVariables(variablesToWatch);
 
-      // Clock configuration 0 is always true to enable 1st clock configuration
-      // Disable variable so user can't change it
+      // enableClockConfiguration[0] is always true to enable 1st clock configuration
+      // Hide from user
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
-      enableClockConfigurationVar.setValue(true);
-      enableClockConfigurationVar.setDisabledValue(true);
-      enableClockConfigurationVar.enable(false);
-      enableClockConfigurationVar.setToolTip("Clock configuration 0 must always be enabled");
-      enableClockConfigurationVar.setDerived(true);
+      enableClockConfigurationVar.setHidden(true);
    }
 }

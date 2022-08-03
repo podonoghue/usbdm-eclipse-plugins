@@ -21,15 +21,21 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class SimValidate extends PeripheralValidator {
 
-   private final long MAX_CORE_CLOCK_FREQ;
-   private final long MAX_BUS_CLOCK_FREQ;
-   private final long MAX_FLASH_CLOCK_FREQ;
-   private final long MAX_FLEXBUS_CLOCK_FREQ;
+   private final long MAX_RUN_CORE_CLOCK_FREQ;
+   private final long MAX_RUN_BUS_CLOCK_FREQ;
+   private final long MAX_RUN_FLASH_CLOCK_FREQ;
+   private final long MAX_RUN_FLEXBUS_CLOCK_FREQ;
 
-   private LongVariable     system_usb_clkin_clockVar  = null;
+   private final long MAX_VLPR_CORE_CLOCK_FREQ;
+   private final long MAX_VLPR_BUS_CLOCK_FREQ;
+   private final long MAX_VLPR_FLASH_CLOCK_FREQ;
+   private final long MAX_VLPR_FLEXBUS_CLOCK_FREQ;
 
-   private boolean          postClockDividerPresent    = false;
-   
+   private final long MAX_HSRUN_CORE_CLOCK_FREQ;
+   private final long MAX_HSRUN_BUS_CLOCK_FREQ;
+   private final long MAX_HSRUN_FLASH_CLOCK_FREQ;
+   private final long MAX_HSRUN_FLEXBUS_CLOCK_FREQ;
+
    private ChoiceVariable  sim_copc_coptVar            = null;
    private BooleanVariable sim_copc_copwVar            = null;
    private BooleanVariable sim_copc_copdbgenVar        = null;
@@ -40,40 +46,24 @@ public class SimValidate extends PeripheralValidator {
       super(peripheral, dimension);
 
       ListIterator<Object> it = values.listIterator();
-      MAX_CORE_CLOCK_FREQ     = (Long)it.next();
-      MAX_BUS_CLOCK_FREQ      = (Long)it.next();
-      MAX_FLASH_CLOCK_FREQ    = (Long)it.next();
-      MAX_FLEXBUS_CLOCK_FREQ  = (Long)it.next();
-
-      for(int index=0; index<dimension; index++) {
-         fIndex = index;
-         try {
-            LongVariable system_core_clockVar = getLongVariable("system_core_clock");
-            system_core_clockVar.setMin(0);
-            system_core_clockVar.setMax(MAX_CORE_CLOCK_FREQ);
-
-            LongVariable system_bus_clockVar = getLongVariable("system_bus_clock");
-            system_bus_clockVar.setMin(0);
-            system_bus_clockVar.setMax(MAX_BUS_CLOCK_FREQ);
-
-            LongVariable system_flash_clockVar = getLongVariable("system_flash_clock");
-            system_flash_clockVar.setMin(0);
-            system_flash_clockVar.setMax(MAX_FLASH_CLOCK_FREQ);
-
-            LongVariable system_flexbus_clockVar = safeGetLongVariable("system_flexbus_clock");
-            if (system_flexbus_clockVar != null) {
-               system_flexbus_clockVar.setMin(0);
-               system_flexbus_clockVar.setMax(MAX_FLEXBUS_CLOCK_FREQ);
-            }
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
-      }
-      fIndex = 0;
+      
+      MAX_RUN_CORE_CLOCK_FREQ       = (Long)it.next();
+      MAX_RUN_BUS_CLOCK_FREQ        = (Long)it.next();
+      MAX_RUN_FLEXBUS_CLOCK_FREQ    = (Long)it.next();
+      MAX_RUN_FLASH_CLOCK_FREQ      = (Long)it.next();
+      
+      MAX_VLPR_CORE_CLOCK_FREQ      = (Long)it.next();
+      MAX_VLPR_BUS_CLOCK_FREQ       = (Long)it.next();
+      MAX_VLPR_FLEXBUS_CLOCK_FREQ   = (Long)it.next();
+      MAX_VLPR_FLASH_CLOCK_FREQ     = (Long)it.next();
+      
+      MAX_HSRUN_CORE_CLOCK_FREQ     = (values.size()>8)?(Long)it.next():0;
+      MAX_HSRUN_BUS_CLOCK_FREQ      = (values.size()>8)?(Long)it.next():0;
+      MAX_HSRUN_FLEXBUS_CLOCK_FREQ  = (values.size()>8)?(Long)it.next():0;
+      MAX_HSRUN_FLASH_CLOCK_FREQ    = (values.size()>8)?(Long)it.next():0;
    }
 
    /**
-    * Class to determine oscillator settings
     * 
     * @throws Exception 
     */
@@ -109,13 +99,7 @@ public class SimValidate extends PeripheralValidator {
      };
      
    /**
-    * Updates
-    *  - system_erclk32k_clock
-    *  - sim_sopt1_osc32ksel
-    *  - sim_sopt2_rtcclkoutsel
-    *  - rtc_clkout
-    *  - system_usbfs_clock
-    *  
+    * 
     * @param variable
     * @throws Exception
     */
@@ -172,12 +156,12 @@ public class SimValidate extends PeripheralValidator {
             }
             sim_clkdiv2_usbVar.enable(true);
             if (usbCalcValue>=0) {
-               long temp = sim_clkdiv2_usbVar.getValueAsLong();
+//               long temp = sim_clkdiv2_usbVar.getValueAsLong();
                sim_clkdiv2_usbVar.setSubstitutionValue(usbCalcValue);
-               if (sim_clkdiv2_usbVar.getValueAsLong() != temp) {
-                  // Trigger update on change
-                  sim_clkdiv2_usbVar.notifyListeners();
-               }
+//               if (sim_clkdiv2_usbVar.getValueAsLong() != temp) {
+//                  // Trigger update on change
+//                  sim_clkdiv2_usbVar.notifyListeners();
+//               }
                sim_clkdiv2_usbVar.setOrigin("Automatically calculated from input clock");
                sim_clkdiv2_usbVar.setLocked(true);
             }
@@ -187,76 +171,8 @@ public class SimValidate extends PeripheralValidator {
             }
          }
       }
-      // Update USB clock
-
-      long usbClockFreq; 
-      Status usbStatus;  
-      String usbOrigin;  
-
-      if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
-         // Using USB_CLKIN
-         usbClockFreq = system_usb_clkin_clockVar.getValueAsLong();
-         usbStatus    = system_usb_clkin_clockVar.getStatus();
-         usbOrigin    = system_usb_clkin_clockVar.getOrigin();
-      }
-      else {
-         // Using internal clock
-         if (sim_clkdiv2_usbVar != null) {
-            // Peripheral Clock / CLKDIV2
-            int  usbValue = Long.decode(sim_clkdiv2_usbVar.getSubstitutionValue()).intValue();
-            int  usbfrac  = usbValue&0x1;
-            int  usbdiv   = (usbValue>>1)&0x7;
-            long usbPostDiv2 = system_peripheral_clockVar.getValueAsLong()*(usbfrac+1)/(usbdiv+1);
-
-            usbClockFreq = usbPostDiv2;
-            usbStatus    = system_peripheral_clockVar.getStatus();
-            usbOrigin    = system_peripheral_clockVar.getOrigin()+" after /CLKDIV2";
-         }
-         else {
-            // Directly using peripheral clock
-            usbClockFreq = system_peripheral_clockVar.getValueAsLong();
-            usbStatus    = system_peripheral_clockVar.getStatus();
-            usbOrigin    = system_peripheral_clockVar.getOrigin();
-         }
-      }
-      if (usbClockFreq != 48000000) {
-         usbStatus = new Status("Illegal clock frequecy for USB", Severity.WARNING);
-      }
-      LongVariable system_usbfs_clockVar = getLongVariable("system_usbfs_clock");
-      system_usbfs_clockVar.setValue(usbClockFreq);
-      system_usbfs_clockVar.setStatus(usbStatus);
-      system_usbfs_clockVar.setOrigin(usbOrigin);
    }
 
-   /**
-    * Update system_peripheral_postdivider_clock
-    * 
-    * @param clockVar Active peripheral clock
-    * 
-    * @return system_peripheral_postdivider_clock if present or clockVar unchanged if not
-    * 
-    * @throws Exception
-    */
-   LongVariable updatePostdividerClock(LongVariable clockVar) throws Exception {
-
-      if (!postClockDividerPresent) {
-         return clockVar;
-      }
-
-      final  LongVariable system_peripheral_postdivider_clockVar = getLongVariable("system_peripheral_postdivider_clock");
-      final  Variable     sim_clkdiv3_pllfllVar                  = getVariable("sim_clkdiv3_pllfll");
-      
-      int    pllValue     = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
-      int    pllfllfrac   = pllValue&0x1;
-      int    pllflldiv    = (pllValue>>1)&0x7;
-      Long   pllPostDiv3Value  = (clockVar.getValueAsLong()*(pllfllfrac+1))/(pllflldiv+1);
-      String pllPostDiv3Origin = clockVar.getOrigin() + " after /CLKDIV3";
-
-      system_peripheral_postdivider_clockVar.setValue(pllPostDiv3Value);
-      system_peripheral_postdivider_clockVar.setOrigin(pllPostDiv3Origin);
-      return system_peripheral_postdivider_clockVar;
-   }
-   
    /**
     * Updates
     * - sim_sopt2_pllfllsel[x]
@@ -278,8 +194,6 @@ public class SimValidate extends PeripheralValidator {
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock");
 
-      updatePostdividerClock(peripheralClockVar);
-      
       // Validate USB clock
       validateUsbfsClock(peripheralClockVar);
 
@@ -294,16 +208,53 @@ public class SimValidate extends PeripheralValidator {
       final LongVariable   sim_clkdiv1_outdiv3Var       = safeGetLongVariable("sim_clkdiv1_outdiv3");
       final LongVariable   sim_clkdiv1_outdiv4Var       = getLongVariable("sim_clkdiv1_outdiv4");
 
+      final ChoiceVariable smc_pmctrl_runmVar           = getChoiceVariable("/SMC/smc_pmctrl_runm");
+
+      long maxCoreClockFreq      = 0;
+      long maxBusClockFreq       = 0;
+      long maxFlexbusClockFreq   = 0;
+      long maxFlashClockFreq     = 0;
+
+      switch(Integer.parseInt(smc_pmctrl_runmVar.getSubstitutionValue())) {
+      case 0: // RUN mode
+         maxCoreClockFreq     = MAX_RUN_CORE_CLOCK_FREQ;    
+         maxBusClockFreq      = MAX_RUN_BUS_CLOCK_FREQ;     
+         maxFlexbusClockFreq  = MAX_RUN_FLEXBUS_CLOCK_FREQ; 
+         maxFlashClockFreq    = MAX_RUN_FLASH_CLOCK_FREQ;   
+         break;
+      case 2: // VLPR mode
+         maxCoreClockFreq     = MAX_VLPR_CORE_CLOCK_FREQ;    
+         maxBusClockFreq      = MAX_VLPR_BUS_CLOCK_FREQ;     
+         maxFlexbusClockFreq  = MAX_VLPR_FLEXBUS_CLOCK_FREQ; 
+         maxFlashClockFreq    = MAX_VLPR_FLASH_CLOCK_FREQ;   
+         break;
+      case 3: // HSRUN mode
+         maxCoreClockFreq     = MAX_HSRUN_CORE_CLOCK_FREQ;    
+         maxBusClockFreq      = MAX_HSRUN_BUS_CLOCK_FREQ;     
+         maxFlexbusClockFreq  = MAX_HSRUN_FLEXBUS_CLOCK_FREQ; 
+         maxFlashClockFreq    = MAX_HSRUN_FLASH_CLOCK_FREQ;   
+         break;
+      }
+      
+      if ((variable == null) || (variable == smc_pmctrl_runmVar)) {
+         system_core_clockVar.setMax(maxCoreClockFreq);    
+         system_bus_clockVar.setMax(maxBusClockFreq);     
+         if (system_flexbus_clockVar != null) {
+            system_flexbus_clockVar.setMax(maxFlexbusClockFreq); 
+         }
+         system_flash_clockVar.setMax(maxFlashClockFreq);   
+      }
+      
       // Core Clock
       //===========================================
       // Attempt to find acceptable divisor
       final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
 
       long inputFrequency = system_mcgoutclk_clockVar.getValueAsLong();
-      final FindDivisor coreDivisor = new FindDivisor(inputFrequency, system_core_clockVar.getValueAsLong()) {
+      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, inputFrequency, system_core_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
-            return frequency<=MAX_CORE_CLOCK_FREQ;
+            return frequency<=maximum;
          }
       };
       Severity      severity = Severity.OK;
@@ -334,10 +285,10 @@ public class SimValidate extends PeripheralValidator {
       // Bus Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final FindDivisor busDivisor = new FindDivisor(inputFrequency, system_bus_clockVar.getValueAsLong()) {
+      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, inputFrequency, system_bus_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
-            return (frequency<=MAX_BUS_CLOCK_FREQ) &&
+            return (frequency<=maximum) &&
                   ((divisor % coreDivisor.divisor) == 0) &&  // Even multiple
                   ((divisor/coreDivisor.divisor)<=8);        // Differ from core < 8
          }
@@ -371,10 +322,10 @@ public class SimValidate extends PeripheralValidator {
       //===========================================
       if (sim_clkdiv1_outdiv3Var != null) {
          // Attempt to find acceptable divisor
-         final FindDivisor flexDivisor = new FindDivisor(inputFrequency, system_flexbus_clockVar.getValueAsLong()) {
+         final FindDivisor flexDivisor = new FindDivisor(maxFlexbusClockFreq, inputFrequency, system_flexbus_clockVar.getValueAsLong()) {
             @Override
             boolean okValue(int divisor, double frequency) {
-               return (frequency<=MAX_FLEXBUS_CLOCK_FREQ) &&
+               return (frequency<=maximum) &&
                      (frequency<=busDivisor.nearestTargetFrequency) &&
                      ((divisor % coreDivisor.divisor) == 0) && // Even multiple
                      ((divisor/coreDivisor.divisor)<=8);       // Differ from core < 8
@@ -412,10 +363,10 @@ public class SimValidate extends PeripheralValidator {
 
       // Flash Clock
       //===========================================
-      final FindDivisor flashDivisor = new FindDivisor(inputFrequency, system_flash_clockVar.getValueAsLong()) {
+      final FindDivisor flashDivisor = new FindDivisor(maxFlashClockFreq, inputFrequency, system_flash_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
-            return (frequency<=MAX_FLASH_CLOCK_FREQ) &&
+            return (frequency<=maximum) &&
                   (frequency<=busDivisor.nearestTargetFrequency) &&
                   ((divisor % coreDivisor.divisor) == 0) &&    // Even multiple
                   ((divisor/coreDivisor.divisor)<=8);   // Differ from core < 8
@@ -453,14 +404,15 @@ public class SimValidate extends PeripheralValidator {
       public final long   nearestTargetFrequency;
       public final int    divisor;
       public final String divisors;
-
+      public final long   maximum;
       /**
        * Creates table of acceptable frequencies and determines the nearest to target frequency
        * 
        * @param inputFrequency   Input frequency being divided
        * @param targetFrequency  Desired frequency
        */
-      public FindDivisor(long inputFrequency, long targetFrequency) {
+      public FindDivisor(long maximum, long inputFrequency, long targetFrequency) {
+         this.maximum = maximum; 
          HashSet<String> divisorSet= new HashSet<String>();
          double nearestValue   = Double.MAX_VALUE;
          int    nearestDivisor = 0;
@@ -484,7 +436,13 @@ public class SimValidate extends PeripheralValidator {
                }
             }
          }
-         nearestTargetFrequency = Math.round(nearestValue);
+         if (divisorSet.isEmpty()) {
+            nearestTargetFrequency = 0;
+            sb.append(" No suitable values found");
+         }
+         else {
+            nearestTargetFrequency = Math.round(nearestValue);
+         }
          divisor  = nearestDivisor;
          divisors = sb.toString();
       }
@@ -506,12 +464,6 @@ public class SimValidate extends PeripheralValidator {
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-      system_usb_clkin_clockVar = safeCreateLongVariableReference("/SIM/system_usb_clkin_clock", variablesToWatch);
-
-      // Post PLLFLLSEL multiplexor divider (divided peripheral clock)
-      LongVariable system_peripheral_postdivider_clockVar = safeGetLongVariable("system_peripheral_postdivider_clock");
-      postClockDividerPresent = (system_peripheral_postdivider_clockVar!=null);
-      
       sim_copc_coptVar            = safeGetChoiceVariable("sim_copc_copt");
       if (sim_copc_coptVar != null) {
          sim_copc_copwVar            = safeGetBooleanVariable("sim_copc_copw");
@@ -528,6 +480,7 @@ public class SimValidate extends PeripheralValidator {
             "/MCG/system_mcgpllclk_clock",
             "/MCG/system_mcgoutclk_clock",
             "/MCG/usb1pfdclk_Clock",
+            "/SMC/smc_pmctrl_runm",
       };
       addToWatchedVariables(externalVariables);
    }

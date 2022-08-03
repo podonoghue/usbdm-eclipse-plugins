@@ -191,6 +191,7 @@ public class ChoiceVariable extends VariableWithChoices {
 
    /**
     * Get the variable value interpreted as a Long
+    * This will be the index of the currently selected value
     * 
     * @return
     */
@@ -213,7 +214,6 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       return fData[index].getValue();
    }
-
 
    @Override
    public String getPersistentValue() {
@@ -286,15 +286,17 @@ public class ChoiceVariable extends VariableWithChoices {
 //         System.err.println("mcg_c7_oscsel.getData()");
 //      }
       if (fChoices == null) {
+         // Construct new list
+         ArrayList<String> choices = new ArrayList<String>();
+         
          fChoices = new String[fData.length];
          for (int index=0; index<fData.length; index++) {
             if (fData[index].isHidden()) {
-               fChoices[index] = "Unavailable";
+               continue;
             }
-            else {
-               fChoices[index] = fData[index].getName();
-            }
+            choices.add(fData[index].getName());
          }
+         fChoices = choices.toArray(new String[choices.size()]);
          if (fValue == null) {
             // Value not set yet - set default
             fValue   = fChoices[0];
@@ -395,6 +397,15 @@ public class ChoiceVariable extends VariableWithChoices {
    @Override
    public boolean isLocked() {
       return super.isLocked() || (getChoices().length <= 1);
+   }
+
+   public String getDefaultEnumValue() throws Exception {
+      // Use index of current selected item
+      int index = getIndex(fDefaultValue);
+      if (index<0) {
+         throw new Exception("Failed to get default");
+      }
+      return makeEnum(getData()[index].getEnumName());
    }
 
 //   final Pattern fFieldPattern = Pattern.compile("^(data|name|value)(\\[(\\d+)\\])?$");

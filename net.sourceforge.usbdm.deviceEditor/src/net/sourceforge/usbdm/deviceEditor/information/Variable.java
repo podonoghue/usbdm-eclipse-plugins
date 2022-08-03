@@ -309,7 +309,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @return The default value
     */
-   public abstract Object getDefault();
+   abstract Object getDefault();
 
    private String getSimpleClassName() {
       String s = getClass().toString();
@@ -856,7 +856,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       else if (field.equals("data")) {
          return fDataValue;
       }
-      return "field '"+field+"' not found in variable";
+      return "field "+field+" not found in variable";
    }
 
    /**

@@ -1,13 +1,15 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
  
 public class BooleanVariable extends VariableWithChoices {
    
-   private ChoiceData fTrue  = new ChoiceData("true",  "true");
-   private ChoiceData fFalse = new ChoiceData("false", "false");
+   private ChoiceData fTrue  = null;
+   private ChoiceData fFalse = null;
    
    /** Current value (user format i.e name) */
    private boolean fValue = false;
@@ -57,10 +59,21 @@ public class BooleanVariable extends VariableWithChoices {
       }
       if (value instanceof String) {
          String sValue = value.toString();
-         return (sValue.equalsIgnoreCase(fTrue.getName()))||
-                (sValue.equalsIgnoreCase(fTrue.getValue()))||
-                (sValue.equalsIgnoreCase("true"))||
-                (sValue.equalsIgnoreCase("1"));
+         Boolean res = null;
+         if (fTrue != null) {
+            res = (sValue.equalsIgnoreCase(fTrue.getName()))||
+                  (sValue.equalsIgnoreCase(fTrue.getValue()))||
+                  (sValue.equalsIgnoreCase("true"))||
+                  (sValue.equalsIgnoreCase("1"));
+            return res;
+         }
+         if (fFalse != null) {
+            res =  (sValue.equalsIgnoreCase(fFalse.getName()))||
+                   (sValue.equalsIgnoreCase(fFalse.getValue()))||
+                   (sValue.equalsIgnoreCase("false"))||
+                   (sValue.equalsIgnoreCase("0"));
+            return !res;
+         }
       }
       throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with BooleanVariable");
    }
@@ -100,7 +113,10 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String getValueAsString() {
-      return getValueAsBoolean()?fTrue.getName():fFalse.getName();
+      if (getValueAsBoolean()) {
+         return (fTrue==null)?"TTTT":fTrue.getName();
+      }
+      return (fFalse==null)?"FFFF":fFalse.getName();
    }
    
    @Override
@@ -115,7 +131,10 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String getSubstitutionValue() {
-      return getValueAsBoolean()?fTrue.getValue():fFalse.getValue();
+      if (getValueAsBoolean()) {
+         return (fTrue==null)?"TTTT":fTrue.getValue();
+      }
+      return (fFalse==null)?"FFFF":fFalse.getValue();
    }
 
    @Override
@@ -213,8 +232,24 @@ public class BooleanVariable extends VariableWithChoices {
 
    @Override
    public ChoiceData[] getData() {
-      ChoiceData[] choices = {fFalse, fTrue};
-      return choices;
+      ArrayList<ChoiceData> data = new ArrayList<ChoiceData>();
+      if (fFalse != null) {
+         data.add(fFalse);
+      }
+      if (fTrue != null) {
+         data.add(fTrue);
+      }
+      return data.toArray(new ChoiceData[data.size()]);
+   }
+   
+   @Override
+   public String getDefaultEnumValue() throws Exception {
+      return makeEnum(fDefaultValue?fTrue.getEnumName():fFalse.getEnumName());
+   }
+
+   @Override
+   public boolean isLocked() {
+      return (fTrue==null) || (fFalse == null) || super.isLocked();
    }
 
 }

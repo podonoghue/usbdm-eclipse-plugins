@@ -122,7 +122,7 @@ public class ReplacementParser {
          char c = inputText.charAt(index);
          pendingChar = null;
          if (!Character.isLetterOrDigit(c) && ("$:()[]_/.".indexOf(c)<0)) {
-            throw new Exception("Illegal character in key '"+ sb.toString()+c+"'");
+            throw new Exception("Illegal character in key "+ sb.toString()+c);
          }
          switch(state) {
             case KEY:
@@ -469,10 +469,10 @@ public class ReplacementParser {
       }
       if (replaceWith == null) {
          replaceWith = 
-               "---Symbol not found or format incorrect for substitution '"+inputText.substring(0,20)+
-               "' => key='" + key +
-               "', def='" + arg1 + 
-               "', mod='" + arg2 + "'";
+               "---Symbol not found or format incorrect for substitution "+
+               " => key=" + key +
+               ", def=" + arg1 + 
+               ", mod=" + arg2;
       }
       sb.append(replaceWith);
       return index;

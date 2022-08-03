@@ -6,11 +6,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
+import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -104,16 +104,10 @@ public class PeripheralValidator extends Validator {
          // String variable with name of clock being used.
          reference = clockSelectorVar.getValueAsString();
       }
-      else if (clockSelectorVar instanceof ChoiceVariable) {
-         // ChoiceVar selecting the clock input
-         ChoiceVariable cv = (ChoiceVariable)clockSelectorVar;
-         ChoiceData[] choiceData = cv.getData();
-         int index = (int)cv.getValueAsLong();
-         if (index<0) {
-            cv.getValueAsLong();
-            index = 0;
-         }
-         reference = choiceData[index].getReference();
+      else if (clockSelectorVar instanceof VariableWithChoices) {
+         VariableWithChoices cv = (VariableWithChoices)clockSelectorVar;
+         ChoiceData choiceData = cv.getSelectedItemData();
+         reference = choiceData.getReference();
       }
       else {
          throw new Exception("Clock source control variable not of correct type" + clockSelectorVar);
@@ -121,7 +115,8 @@ public class PeripheralValidator extends Validator {
       if ("disabled".equalsIgnoreCase(reference)) {
          targetClockVar.setValue(0);
          targetClockVar.setStatus((Status)null);
-         targetClockVar.setOrigin("Disabled");
+         targetClockVar.setOrigin("Disabled by "+clockSelectorVar.getName());
+         targetClockVar.enable(false);
          return;
       }
       String data[] = reference.split(",");
@@ -131,23 +126,10 @@ public class PeripheralValidator extends Validator {
       String       origin         = clockSourceVar.getOrigin();
       
       if (data.length>1) {
-         Pattern p = Pattern.compile("\\=([a-z]\\w+)");
-         Matcher m = p.matcher(data[1]);  
-         if (m.matches()) {
-            if (m.group(1).equalsIgnoreCase("clkdiv2")) {
-               clkdiv2(clockSourceVar, targetClockVar);
-               return;
-            }
-            if (m.group(1).equalsIgnoreCase("clkdiv3")) {
-               clkdiv2(clockSourceVar, targetClockVar);
-               return;
-            }
-            throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
-         }
          origin = "("+origin+")";
-         p = Pattern.compile("(/|\\*)(\\d+)");
+         Pattern p = Pattern.compile("(/|\\*)(\\d+)");
          for (int index=1; index<data.length; index++) {
-            m = p.matcher(data[index]);  
+            Matcher m = p.matcher(data[index]);  
             if (!m.matches()) {
                throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
             }
@@ -158,56 +140,12 @@ public class PeripheralValidator extends Validator {
             case '*' : value = value * factor; break;
             }
          }
+         origin = origin + " [controlled by "+clockSelectorVar.getName() +"]";
       }
       targetClockVar.setValue(value);
       targetClockVar.setStatus(clockSourceVar.getStatus());
       targetClockVar.setOrigin(origin);
-   }
-   
-   void clkdiv2(Variable clockSourceVar, LongVariable targetClockVar) {
-
-      final Variable sim_clkdiv2_usbVar = safeGetVariable("sim_clkdiv2_usb");
-
-      // Peripheral Clock / CLKDIV2
-      int  fracDiv = Long.decode(sim_clkdiv2_usbVar.getSubstitutionValue()).intValue();
-      int  frac    = fracDiv&0x1;
-      int  div     = (fracDiv>>1)&0x7;
-
-      long   frequency = clockSourceVar.getValueAsLong()*(frac+1)/(div+1);
-      String origin    = clockSourceVar.getOrigin() + " after /CLKDIV2";
-      
-      Status status = clockSourceVar.getStatus();
-      if (frequency != 48000000) {
-         status = new Status("Illegal clock frequecy for USB", Severity.WARNING);
-      }
-      targetClockVar.setValue(frequency);
-      targetClockVar.setStatus(status);
-      targetClockVar.setOrigin(origin);
-   }
-   
-   /**
-    * Update system_peripheral_postdivider_clock
-    * 
-    * @param clockVar Active peripheral clock
-    * 
-    * @return system_peripheral_postdivider_clock if present or clockVar unchanged if not
-    * 
-    * @throws Exception
-    */
-   void clkdiv3(Variable clockSourceVar, LongVariable targetClockVar) throws Exception {
-
-      final  Variable sim_clkdiv3_pllfllVar = getVariable("sim_clkdiv3_pllfll");
-      
-      int    fracDiv = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
-      int    frac    = fracDiv&0x1;
-      int    div     = (fracDiv>>1)&0x7;
-      Long   value   = (clockSourceVar.getValueAsLong()*(frac+1))/(div+1);
-      String origin  = clockSourceVar.getOrigin() + " after /CLKDIV3";
-      Status status = clockSourceVar.getStatus();
-
-      targetClockVar.setValue(value);
-      targetClockVar.setOrigin(origin);
-      targetClockVar.setStatus(status);
+      targetClockVar.enable(clockSourceVar.isEnabled());
    }
    
    protected class ClockSelectorListener implements IModelChangeListener {
@@ -273,9 +211,9 @@ public class PeripheralValidator extends Validator {
          // Watch clock selector
          clockSelector.addListener(listener);
 
-         if (clockSelector instanceof ChoiceVariable) {
+         if (clockSelector instanceof VariableWithChoices) {
             // ChoiceVar selecting the clock input
-            ChoiceVariable cv = (ChoiceVariable)clockSelector;
+            VariableWithChoices cv = (VariableWithChoices)clockSelector;
             ChoiceData[] choiceDatas = cv.getData();
             for (ChoiceData choiceData:choiceDatas) {
                String referenceString = choiceData.getReference();

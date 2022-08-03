@@ -15,6 +15,16 @@ public abstract class VariableWithChoices extends Variable {
    public abstract ChoiceData[] getData();
 
    /**
+    * COnvert an enum value into a complete enum for code use
+    * 
+    * @param enumValue
+    * 
+    * @return Converted value e.g. Disable => LowPower_Disabled
+    */
+   protected String makeEnum(String enumValue) {
+      return getEnumStem()+"_"+enumValue;
+   }
+   /**
     * Get index of current value in choice entries
     * 
     * @return index or -1 if not found
@@ -29,13 +39,21 @@ public abstract class VariableWithChoices extends Variable {
       return -1;
    }
    
+   public ChoiceData getSelectedItemData() {
+      int index = getIndex(getValueAsString());
+      if (index<0) {
+         index = (int)getValueAsLong();
+      }
+      return getData()[index];
+   }
+   
    final Pattern fFieldPattern = Pattern.compile("^(\\w+)(\\[(\\d+)?\\])?$");
 
    @Override
    public String getField(String field) {
       Matcher m = fFieldPattern.matcher(field);
       if (!m.matches()) {
-         return "Field '"+field+"' not matched";
+         return "Field "+field+" not matched";
       }
 
       if (m.group(2) == null) {
@@ -50,27 +68,39 @@ public abstract class VariableWithChoices extends Variable {
          // Parse required index
          index = Integer.parseInt(m.group(3));
          if (index>= getData().length) {
-            return "Index '"+index+"' out of range for variable '"+getName() + "', field ="+field+"'";
+            return "Index "+index+" out of range for variable "+getName() + ", field ="+field;
          }
       }
       else {
          // Use index of current selected item
          index = getIndex(getValueAsString());
          if (index<0) {
-            return "No current choice value to retrieve data!!! '"+getValueAsString()+"' not found for field ="+field+"'";
+            return "No current choice value to retrieve data "+getValueAsString()+" not found for field ="+field;
          }
       }
       ChoiceData fData = getData()[index];
       if (fieldName.equals("code")) {
          return fData.getCodeValue();
       } else if ("enum".equals(fieldName)) {
-         return fData.getEnumName();
+         return makeEnum(fData.getEnumName());
       } else if ("name".equals(fieldName)) {
          return fData.getName();
       } else if ("value".equals(fieldName)) {
          return fData.getValue();
       }
-      return "Field '"+field+"' not matched in choice";
+      return "Field "+field+" not matched in choice";
    }
+
+   public String getEnumValue() {
+      // Use index of current selected item
+      int index = getIndex(getValueAsString());
+      if (index<0) {
+         return "No current value for" + getName();
+      }
+      ChoiceData fData = getData()[index];
+      return makeEnum(fData.getEnumName());
+   }
+   
+   public abstract String getDefaultEnumValue() throws Exception ;
 
 }

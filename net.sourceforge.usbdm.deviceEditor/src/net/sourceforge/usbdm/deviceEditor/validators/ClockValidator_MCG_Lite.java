@@ -117,11 +117,11 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       // Main clock mode (MCGOUTCLK)
       //=============================
-      ClockMode clock_mode = ClockMode.valueOf(clock_modeVar.getSubstitutionValue());
+      McgClockMode clock_mode = McgClockMode.valueOf(clock_modeVar.getSubstitutionValue());
 
       switch (clock_mode) {
       default:
-      case ClockMode_None:
+      case McgClockMode_None:
          mcg_c1_clksVar.setValue(0);
          mcg_c2_ircsVar.setLocked(false);
 
@@ -131,7 +131,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
          break;
 
-      case ClockMode_HIRC_48M:
+      case McgClockMode_HIRC_48M:
          mcg_c1_clksVar.setValue(0);
          mcg_c2_ircsVar.setLocked(false);
 
@@ -141,7 +141,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("HIRC 48M (IRCLK48MCLK)");
          break;
 
-      case ClockMode_LIRC_2M:
+      case McgClockMode_LIRC_2M:
          mcg_c1_clksVar.setValue(1);
          mcg_c2_ircsVar.setValue(0);
          mcg_c2_ircsVar.setLocked(true);
@@ -152,7 +152,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
          break;
 
-      case ClockMode_LIRC_8M:
+      case McgClockMode_LIRC_8M:
          mcg_c1_clksVar.setValue(1);
          mcg_c2_ircsVar.setValue(1);
          mcg_c2_ircsVar.setLocked(true);
@@ -163,7 +163,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("LIRC8");
          break;
 
-      case ClockMode_EXT:
+      case McgClockMode_EXT:
          mcg_c1_clksVar.setValue(2);
          mcg_c2_ircsVar.setLocked(false);
 
@@ -177,7 +177,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       // HIRC related clocks
       //============================================
-      if (mcg_mc_hircenVar.getValueAsBoolean() || (clock_mode == ClockMode.ClockMode_HIRC_48M)) {
+      if (mcg_mc_hircenVar.getValueAsBoolean() || (clock_mode == McgClockMode.McgClockMode_HIRC_48M)) {
          // HIRC Enabled 
          system_mcgpclk_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
          system_mcgpclk_clockVar.enable(true);
@@ -192,7 +192,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       // LIRC related clocks
       //========================================
       if (mcg_c1_irclkenVar.getValueAsBoolean() || 
-            (clock_mode == ClockMode.ClockMode_LIRC_2M) || (clock_mode == ClockMode.ClockMode_LIRC_8M) ) {
+            (clock_mode == McgClockMode.McgClockMode_LIRC_2M) || (clock_mode == McgClockMode.McgClockMode_LIRC_8M) ) {
          // LIRC Enabled
          mcg_c1_irefstenVar.enable(true);
          system_lirc_clockVar.enable(true);

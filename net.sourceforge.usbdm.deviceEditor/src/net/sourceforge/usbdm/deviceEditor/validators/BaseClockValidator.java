@@ -4,12 +4,12 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public abstract class BaseClockValidator extends PeripheralValidator {
 
-   public enum ClockMode {
-      ClockMode_None, 
-      ClockMode_FEI, ClockMode_FEE, ClockMode_FBI,
-      ClockMode_FBE, ClockMode_PBE,  ClockMode_PEE, ClockMode_BLPI, ClockMode_BLPE, 
-      ClockMode_LIRC_8M, ClockMode_LIRC_2M, ClockMode_HIRC_48M, ClockMode_EXT,
-      ClockMode_SOSC, ClockMode_SIRC, ClockMode_FIRC, ClockMode_SPLL }
+   public enum McgClockMode {
+      McgClockMode_None, 
+      McgClockMode_FEI,     McgClockMode_FEE,      McgClockMode_FBI,
+      McgClockMode_FBE,     McgClockMode_PBE,      McgClockMode_PEE,       McgClockMode_BLPI, McgClockMode_BLPE, 
+      McgClockMode_LIRC_8M, McgClockMode_LIRC_2M,  McgClockMode_HIRC_48M,  McgClockMode_EXT,
+      McgClockMode_SOSC,    McgClockMode_SIRC,     McgClockMode_FIRC,      McgClockMode_SPLL }
 
    protected BaseClockValidator(PeripheralWithState peripheral, int dimension) {
       super(peripheral, dimension);

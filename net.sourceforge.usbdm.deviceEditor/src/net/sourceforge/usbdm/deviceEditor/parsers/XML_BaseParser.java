@@ -269,7 +269,7 @@ public class XML_BaseParser {
     * 
     * @throws NumberFormatException if format is invalid
     */
-   protected static Long parseLong(String longValue) {
+   protected static Long parseLong(String longValue) throws NumberFormatException {
       
       long value      = 0;
       long multiplier = 1;

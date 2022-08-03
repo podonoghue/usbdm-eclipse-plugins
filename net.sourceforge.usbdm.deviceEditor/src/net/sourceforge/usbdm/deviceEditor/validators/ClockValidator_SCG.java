@@ -360,7 +360,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
       
       // Default clock mode 
       //=============================
-      ClockMode clock_transition_mode = ClockMode.valueOf(clock_transition_modeVar.getSubstitutionValue());
+      McgClockMode clock_transition_mode = McgClockMode.valueOf(clock_transition_modeVar.getSubstitutionValue());
 //      if (index == 0) {
 //         System.err.println("clock_transition_mode = " + clock_transition_mode);
 //      }
@@ -375,10 +375,10 @@ public class ClockValidator_SCG extends BaseClockValidator {
 
       switch (clock_transition_mode) {
       default:
-      case ClockMode_None:
+      case McgClockMode_None:
          runModeEnable  = false;
          break;
-      case ClockMode_SOSC:
+      case McgClockMode_SOSC:
          systemClockFrequency = sosc_frequency;
          systemClockStatus    = soscStatus;
          systemClockOrigin    = "SOSC";
@@ -386,7 +386,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
          scg_altccr_scsVar.setSubstitutionValue("0001");
          runModeValue  = "RUN mode - SOSC";
          break;
-      case ClockMode_SIRC:
+      case McgClockMode_SIRC:
          systemClockFrequency = sirc_frequency;
          systemClockStatus    = sircStatus;
          systemClockOrigin    = "SIRC";
@@ -399,7 +399,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
          alt_mode_core_clockVar.setMax(vlpr_mode_max_core_frequency);
          alt_mode_flash_clockVar.setMax(vlpr_mode_max_flash_frequency);
          break;
-      case ClockMode_FIRC:
+      case McgClockMode_FIRC:
          systemClockFrequency = system_firc_frequency;
          systemClockStatus    = fircStatus;
          systemClockOrigin    = "FIRC";
@@ -413,7 +413,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
          alt_mode_core_clockVar.setMax(hsrun_mode_max_core_frequency);
          alt_mode_flash_clockVar.setMax(hsrun_mode_max_flash_frequency);
          break;
-      case ClockMode_SPLL:
+      case McgClockMode_SPLL:
          systemClockFrequency = spll_clock;
          systemClockStatus    = spllOutputStatus;
          systemClockOrigin    = "SPLL";

@@ -15,4 +15,11 @@ public class CategoryVariable extends StringVariable {
    protected CategoryVariableModel privateCreateModel(BaseModel parent) {
       return new CategoryVariableModel(parent, this);
    }
+
+   @Override
+   public String getValueAsString() {
+      // Show value even if disabled
+      return super.getPersistentValue();
+   }
+   
 }
