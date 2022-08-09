@@ -172,12 +172,16 @@ public class DeviceLinkerInformation {
     * 
     * @param deviceName  Name of device to get memory map for
     * @param paramMap    Map to add information to
+    * @throws Exception 
     */
-   public static void addLinkerMemoryMap(String deviceName, VariableMap paramMap) {
+   public static void addLinkerMemoryMap(String deviceName, VariableMap paramMap) throws Exception {
 
       DeviceDatabase deviceDatabase = DeviceDatabase.getDeviceDatabase(TargetType.T_ARM);
       Device device = deviceDatabase.getDevice(deviceName);    
-
+      
+      if (device == null) {
+         throw new Exception("Unable to find device data for '"+deviceName+"'");
+      }
       int ioRangeCount    = 0;
       int romCount        = 0;
       int unknownCount    = 0;

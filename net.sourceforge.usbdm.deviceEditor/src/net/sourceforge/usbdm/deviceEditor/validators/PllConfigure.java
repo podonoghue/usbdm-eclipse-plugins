@@ -69,7 +69,7 @@ public class PllConfigure {
          Variable mcg_c6_vdiv0Var ) {
 
       // Main clock used by FLL
-      long mcg_erc_clock = mcg_erc_clockNode.getValueAsLong();
+      long mcg_erc_clockFreq = mcg_erc_clockNode.getValueAsLong();
 
       long pllTargetFrequency = pll0OutputFrequencyVar.getRawValueAsLong();
 
@@ -92,7 +92,7 @@ public class PllConfigure {
             //            System.err.println(sb.toString());
             sb = new StringBuilder();
          }
-         double pllInFrequency = mcg_erc_clock/mcg_prdiv_probe;
+         double pllInFrequency = mcg_erc_clockFreq/mcg_prdiv_probe;
          sb.append(String.format("(prdiv = %d, pllIn=%f) => ", mcg_prdiv_probe, pllInFrequency));
          if (pllInFrequency>PLL_IN_MAX) {
             // Invalid as input to PLL
@@ -142,13 +142,13 @@ public class PllConfigure {
       mcg_c6_vdiv0Var.setValue(mcg_vdiv);
       mcg_c6_vdiv0Var.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_vdiv-PLL_POST_DIV), Severity.OK));
 
-      pll0InputFrequencyVar.setValue(mcg_erc_clock/mcg_prdiv);
+      pll0InputFrequencyVar.setValue(mcg_erc_clockFreq/mcg_prdiv);
       pll0InputFrequencyVar.setOrigin("("+mcg_erc_clockNode.getOrigin()+")/mcg.c7.prdiv0");
       pll0OutputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
 
       if (!pllInputValid) {
          String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]", 
-               EngineeringNotation.convert(mcg_erc_clock,3),
+               EngineeringNotation.convert(mcg_erc_clockFreq,3),
                EngineeringNotation.convert(PLL_IN_MIN,3),EngineeringNotation.convert(PLL_IN_MAX,3));
          Status status = new Status(msg, Severity.WARNING);
          pll0InputFrequencyVar.setStatus(status);

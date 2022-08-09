@@ -102,6 +102,7 @@ public class StringVariable extends Variable {
 
    @Override
    public void setDefault(Object value) {
+      defaultHasChanged = (fDefault != null) && (fDefault != value.toString());
       fDefault = value.toString();
    }
 
@@ -135,7 +136,7 @@ public class StringVariable extends Variable {
 
    @Override
    public boolean isDefault() {
-      return getPersistentValue().equals(fDefault);
+      return !defaultHasChanged && getPersistentValue().equals(fDefault);
    }
 
    @Override

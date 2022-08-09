@@ -15,7 +15,7 @@ public class BooleanVariable extends VariableWithChoices {
    private boolean fValue = false;
    
    /** Default value of variable */
-   private boolean fDefaultValue = false;
+   private Boolean fDefaultValue = null;
    
    /** Disabled value of variable */
    private boolean fDisabledValue = false;
@@ -61,19 +61,26 @@ public class BooleanVariable extends VariableWithChoices {
          String sValue = value.toString();
          Boolean res = null;
          if (fTrue != null) {
-            res = (sValue.equalsIgnoreCase(fTrue.getName()))||
-                  (sValue.equalsIgnoreCase(fTrue.getValue()))||
-                  (sValue.equalsIgnoreCase("true"))||
-                  (sValue.equalsIgnoreCase("1"));
+            res = sValue.equalsIgnoreCase(fTrue.getName())||
+                  sValue.equalsIgnoreCase(fTrue.getValue()) ||
+                  sValue.equalsIgnoreCase("true") ||
+                  sValue.equalsIgnoreCase("1");
             return res;
          }
          if (fFalse != null) {
-            res =  (sValue.equalsIgnoreCase(fFalse.getName()))||
-                   (sValue.equalsIgnoreCase(fFalse.getValue()))||
-                   (sValue.equalsIgnoreCase("false"))||
-                   (sValue.equalsIgnoreCase("0"));
+            res =  sValue.equalsIgnoreCase(fFalse.getName()) ||
+                   sValue.equalsIgnoreCase(fFalse.getValue()) ||
+                   sValue.equalsIgnoreCase("false") ||
+                   sValue.equalsIgnoreCase("0");
             return !res;
          }
+         if (sValue.equalsIgnoreCase("true")|| sValue.equalsIgnoreCase("1")) {
+            return true;
+         }
+         if (sValue.equalsIgnoreCase("false")|| sValue.equalsIgnoreCase("0")) {
+            return false;
+         }
+         
       }
       throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with BooleanVariable");
    }
@@ -172,7 +179,9 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public void setDefault(Object value) {
-      fDefaultValue = translate(value);
+      boolean v = translate(value);
+      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != v);
+      fDefaultValue = v;
    }
    
    @Override
@@ -182,7 +191,7 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public boolean isDefault() {
-      return fValue == fDefaultValue;
+      return !defaultHasChanged && ((Boolean)fValue == fDefaultValue);
    }
    
    /*
@@ -243,7 +252,7 @@ public class BooleanVariable extends VariableWithChoices {
    }
    
    @Override
-   public String getDefaultEnumValue() throws Exception {
+   public String getDefaultParameterValue() throws Exception {
       return makeEnum(fDefaultValue?fTrue.getEnumName():fFalse.getEnumName());
    }
 

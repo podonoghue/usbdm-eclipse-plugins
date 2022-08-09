@@ -12,6 +12,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    
    static DeviceInfo fDeviceInfo=null;
    
+   protected boolean defaultHasChanged = false;
+   
    /**
     * Set device info object used to register variables
     * 
@@ -189,7 +191,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    private String fTarget;
 
    /** stem for enum generation e.g. XXXX => XXX_yyyy enums */
-   private String fEnumStem;
+   private String fTypeName;
 
    /** Whether to propagate errors form this variable up through categories */
    private Severity fSeverityPropagate;
@@ -287,8 +289,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * Listeners are not affected
     * 
     * @param value The value to restore
+    * @throws Exception 
     */
-   public abstract void setPersistentValue(String value);
+   public abstract void setPersistentValue(String value) throws Exception;
 
    /**
     * Sets variable default value
@@ -878,21 +881,21 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * Set stem for enum generation e.g. XXXX => XXX_yyyy enums
+    * Set type for code generation e.g. used for enum generation e.g. ttttt => Tttt_yyyy enums
     * 
     * @param enumStem
     */
-   public void setEnumStem(String enumStem) {
-      fEnumStem = enumStem;
+   public void setTypeName(String enumStem) {
+      fTypeName = enumStem;
    }
    
    /**
-    * Get stem for enum generation e.g. XXXX => XXX_yyyy enums
+    * Get type for code generation e.g. used for enum generation e.g. ttttt => Tttt_yyyy enums
     * 
     * @param enumStem
     */
-   public String getEnumStem() {
-      return fEnumStem;
+   public String getTypeName() {
+      return fTypeName;
    }
 
    public void setErrorPropagate(String attributeWithFor) {
@@ -921,4 +924,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public String getRegister() {
       return fRegister;
    }
+   
+   /**
+    * Get value to use as default for parameter in setter function
+    * 
+    * @return
+    * 
+    * @throws Exception
+    */
+   public String getDefaultParameterValue() throws Exception {
+      return getDefault().toString();
+   }
+
 }

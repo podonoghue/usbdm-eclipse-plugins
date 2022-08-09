@@ -29,8 +29,6 @@ public class AdcValidate extends PeripheralValidator {
    private static final long FADC_LP0_HS0_MAX = 5200000;
    private static final long FADC_LP0_HS1_MAX = 6200000;
 
-   private LongVariable    system_adc_clockVar      = null;
-   private Variable        adc_cfg1_adivVar         = null;
    private Variable        adcInternalClockVar      = null;
    private Variable        adc_cfg1_adlpcVar        = null;
    private Variable        adc_cfg2_adhscVar        = null;
@@ -40,7 +38,7 @@ public class AdcValidate extends PeripheralValidator {
    private LongVariable    adc_cv1Var               = null;
    private LongVariable    adc_cv2Var               = null;
    private ChoiceVariable  adc_sc2_compareVar       = null;
-   private LongVariable    clockFrequencyVar        = null;
+   private LongVariable    adcClockFrequencyVar        = null;
    
    private static long ADC_CLOCK_VALUES[] = {FADC_LP0_HS0_MAX, FADC_LP0_HS1_MAX, FADC_LP1_HS0_MAX, FADC_LP1_HS1_MAX};
 
@@ -77,31 +75,28 @@ public class AdcValidate extends PeripheralValidator {
       adc_cv1Var.setValue(cv1);
       adc_cv2Var.setValue(cv2);
 
-      // Varies with power settings etc
-      adcInternalClockVar.setValue(ADC_CLOCK_VALUES[(int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong())]);
+      // Internal clock frequency varies with ADC power settings etc
+      int index = (int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong());
+      adcInternalClockVar.setValue(ADC_CLOCK_VALUES[index]);
 
-      // Set MIN and MAX before updating value
+      // Update MIN and MAX
       if (adc_cfg1_modeVar.getValueAsLong()>=2) {
-         clockFrequencyVar.setMin(FADC_HIGH_RES_MIN);
-         clockFrequencyVar.setMax(FADC_HIGH_RES_MAX);
+         adcClockFrequencyVar.setMin(FADC_HIGH_RES_MIN);
+         adcClockFrequencyVar.setMax(FADC_HIGH_RES_MAX);
       }
       else {
-         clockFrequencyVar.setMin(FADC_LOW_RES_MIN);
-         clockFrequencyVar.setMax(FADC_LOW_RES_MAX);
+         adcClockFrequencyVar.setMin(FADC_LOW_RES_MIN);
+         adcClockFrequencyVar.setMax(FADC_LOW_RES_MAX);
       }
-      long clockFrequency = system_adc_clockVar.getValueAsLong();
-      clockFrequency = clockFrequency/(1L<<adc_cfg1_adivVar.getValueAsLong());
-      clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setStatus(system_adc_clockVar.getFilteredStatus());
-      clockFrequencyVar.setOrigin(system_adc_clockVar.getOrigin() + " divided by adc_cfg1_adiv");
    }
 
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
+      
       // Variable to watch
-      ArrayList<String> variablesToWatch = new ArrayList<String>();
+//      ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-      adc_cfg1_adivVar          = getVariable("adc_cfg1_adiv");
       adcInternalClockVar       = getVariable("adcInternalClock");
       adc_cfg1_adlpcVar         = getVariable("adc_cfg1_adlpc");
       adc_cfg2_adhscVar         = getVariable("adc_cfg2_adhsc");
@@ -114,12 +109,9 @@ public class AdcValidate extends PeripheralValidator {
                                 
       adc_sc2_compareVar        = getChoiceVariable("adc_sc2_compare");
                                 
-      clockFrequencyVar         = getLongVariable("clockFrequency");
+      adcClockFrequencyVar      = getLongVariable("adcClockFrequency");
       
-      system_adc_clockVar = createLongVariableReference(
-            "/SIM/system_adc"+getPeripheral().getInstance()+"_clock", variablesToWatch);
-      
-      addToWatchedVariables(variablesToWatch);
+//      addToWatchedVariables(variablesToWatch);
    }
 
 }

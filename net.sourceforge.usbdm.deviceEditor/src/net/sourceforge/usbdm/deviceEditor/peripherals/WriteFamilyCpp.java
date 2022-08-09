@@ -167,13 +167,13 @@ public class WriteFamilyCpp {
       // Write these classes in order as they declare dependent information etc.
       ArrayList<Pattern> priorityClasses = new ArrayList<Pattern>();
       priorityClasses.add(Pattern.compile("GPIO.*"));
+      priorityClasses.add(Pattern.compile("PMC"));
       priorityClasses.add(Pattern.compile("OSC.*"));
       priorityClasses.add(Pattern.compile("SCG"));
       priorityClasses.add(Pattern.compile("PCC"));
       priorityClasses.add(Pattern.compile("RTC"));
       priorityClasses.add(Pattern.compile("MCG.*"));
       priorityClasses.add(Pattern.compile("SIM"));
-      priorityClasses.add(Pattern.compile("PMC"));
       
       for (Pattern pattern : priorityClasses) {
          for (Peripheral peripheral : allperipherals) {

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
-import net.sourceforge.usbdm.jni.UsbdmException;
 
 public class DeviceVariantModel extends SelectionModel implements IModelChangeListener {
 
@@ -33,7 +32,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
          fSelection = 0;
          try {
             fDeviceInfo.setVariantName(fChoices[0]);
-         } catch (UsbdmException e) {
+         } catch (Exception e) {
             e.printStackTrace();
          }
       }
@@ -46,7 +45,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
       if (oldSelection != fSelection) {
          try {
             fDeviceInfo.setVariantName(value);
-         } catch (UsbdmException e) {
+         } catch (Exception e) {
             e.printStackTrace();
          }
          refresh();

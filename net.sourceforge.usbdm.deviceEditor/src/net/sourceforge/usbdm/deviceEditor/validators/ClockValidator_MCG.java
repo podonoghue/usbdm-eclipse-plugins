@@ -37,17 +37,8 @@ public class ClockValidator_MCG extends BaseClockValidator {
    
    private final long  DRST_DRS_MAX;
 
-//   String         osc0_peripheralName       = null;
-//   String         osc0_description          = null;
-//   LongVariable   osc0_osc_clockVar         = null;
    Variable       osc0_osc_cr_erclkenVar    = null;
    Variable       osc0_oscillatorRangeVar   = null;
-
-//   LongVariable   osc1_osc_clockVar         = null;
-//   String         osc1_description          = null;
-//
-//   LongVariable   osc2_osc_clockVar         = null;
-//   String         osc2_description          = null;
 
    Variable       usb1pfdclk_ClockVar       = null;
 
@@ -203,19 +194,10 @@ public class ClockValidator_MCG extends BaseClockValidator {
       Variable   fllInputFrequencyVar  = getVariable("fllInputFrequency");
 
       boolean mcg_c2_ircsVar_StatusWarning = false;
-      Variable mcg_c2_ircsVar             = getVariable("mcg_c2_ircs");
+      Variable mcg_c2_ircsVar              = getVariable("mcg_c2_ircs");
 
       switch (clock_mode) {
       default:
-      case McgClockMode_None:
-         mcg_c1_clks  = 0;
-         mcg_c6_plls  = 0;
-         mcg_c2_lp    = 0;
-         mcg_c1_irefs = true;
-         system_mcgoutclk_clock_sourceVar.setValue("FLL output");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
-         fll_enabledVar.setValue(true);
-         break;
       case McgClockMode_FEI:
          mcg_c1_clks  = 0;
          mcg_c6_plls  = 0;
@@ -306,8 +288,8 @@ public class ClockValidator_MCG extends BaseClockValidator {
 
       // Determine MCG external reference clock [mcg_erc_clock]
       //========================================================
-      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("/SIM/mcg_c7_oscsel");
-      Variable       mcg_erc_clockVar = getVariable("/SIM/mcg_erc_clock");
+      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
+      Variable       mcg_erc_clockVar = getVariable("mcg_erc_clock");
 
       Variable system_slow_irc_clockVar   = getVariable("system_slow_irc_clock");
 
@@ -331,33 +313,6 @@ public class ClockValidator_MCG extends BaseClockValidator {
 
       mcg_c1_frdivVar.setValue(fllCheck.mcg_c1_frdiv);
       mcg_c4_drst_drsVar.setValue(fllCheck.mcg_c4_drst_drs);
-
-      // External PLLs
-      //=================================================
-//      if (usb1pfdclk_ClockVar != null) {
-//         // Check USB HS PLL
-//         long irClockFreq = osc0_osc_clockVar.getValueAsLong();
-//         String failedPreCondition = null;
-//         if (!osc0_osc_cr_erclkenVar.getValueAsBoolean()) {
-//            failedPreCondition = "Disabled: to use PFDCLK, OSCCLK clock must be enabled by osc_cr_erclkenVar";
-//         }
-//         else if (!mcg_c1_irclkenVar.getValueAsBoolean()) {
-//            failedPreCondition = "Disabled: to use PFDCLK, IRC clock must be enabled by mcg_c1_irclken";
-//         }
-//         else if ((irClockFreq!=12000000)&&(irClockFreq!=16000000)&&(irClockFreq!=24000000)) {
-//            failedPreCondition = "Disabled: to use PFDCLK, OSCCLK must be in [12Mhz, 16MHz, 24MHz]";
-//         }
-//         if (failedPreCondition==null) {
-//            usb1pfdclk_ClockVar.enable(true);
-//            usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL"); 
-//            usb1pfdclk_ClockVar.setStatus((Status)null);
-//         }
-//         else {
-//            usb1pfdclk_ClockVar.enable(false);
-//            usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL (disabled)"); 
-//            usb1pfdclk_ClockVar.setStatus(new Status(failedPreCondition, Severity.WARNING));
-//         }
-//      }
       
       // Internal PLL
       //========================================
@@ -373,32 +328,38 @@ public class ClockValidator_MCG extends BaseClockValidator {
             VDIV_MAX, 
             PLL_POST_DIV);
 
-      pllConfigure.validate(mcg_erc_clockVar, pll0InputFrequencyVar, pll0OutputFrequencyVar, mcg_c5_prdiv0Var, mcg_c6_vdiv0Var);
+      pllConfigure.validate(
+            mcg_erc_clockVar, 
+            pll0InputFrequencyVar, 
+            pll0OutputFrequencyVar, 
+            mcg_c5_prdiv0Var, 
+            mcg_c6_vdiv0Var);
 
       pll0OutputFrequencyVar.enable(pll0InputFrequencyVar.getFilteredStatus() == null);
-      String pllToolTip = "Output of PLL. Available as MCGPLLCLK and used for MGCOUTCLK in PEE clock mode";
-      if (pllIsInternal) {
-         // Internal PLL
-         system_mcgpllclk_clockVar.setOrigin(pll0OutputFrequencyVar.getOrigin());
-         if (pll0EnabledVar.getValueAsBoolean()) {
-            system_mcgpllclk_clockVar.enable(true);
-            system_mcgpllclk_clockVar.setStatus(pll0OutputFrequencyVar.getFilteredStatus());
-         }
-         else {
-            pllToolTip = "Unavailable in this clock mode unless mcg_c5_pllclken is selected";
-            system_mcgpllclk_clockVar.enable(false);
-            system_mcgpllclk_clockVar.setStatus(new Status("PLL clock unavailable", Severity.WARNING));
-         }
-         system_mcgpllclk_clockVar.setValue(pll0OutputFrequencyVar.getValueAsLong());
-      }
-      else {
-         // External PLL (USB1 (HS) PHY)
-         system_mcgpllclk_clockVar.enable(true);
-         system_mcgpllclk_clockVar.setValue(usb1pfdclk_ClockVar.getValueAsLong());
-         system_mcgpllclk_clockVar.setOrigin(usb1pfdclk_ClockVar.getOrigin());
-         system_mcgpllclk_clockVar.setStatus(usb1pfdclk_ClockVar.getFilteredStatus());
-      }
-      system_mcgpllclk_clockVar.setToolTip(pllToolTip);
+      
+//      String pllToolTip = "Output of PLL. Available as MCGPLLCLK and used for MGCOUTCLK in PEE clock mode";
+//      if (pllIsInternal) {
+//         // Internal PLL
+//         system_mcgpllclk_clockVar.setOrigin(pll0OutputFrequencyVar.getOrigin());
+//         if (pll0EnabledVar.getValueAsBoolean()) {
+//            system_mcgpllclk_clockVar.enable(true);
+//            system_mcgpllclk_clockVar.setStatus(pll0OutputFrequencyVar.getFilteredStatus());
+//         }
+//         else {
+//            pllToolTip = "Unavailable in this clock mode unless mcg_c5_pllclken is selected";
+//            system_mcgpllclk_clockVar.enable(false);
+//            system_mcgpllclk_clockVar.setStatus(new Status("PLL clock unavailable", Severity.WARNING));
+//         }
+//         system_mcgpllclk_clockVar.setValue(pll0OutputFrequencyVar.getValueAsLong());
+//      }
+//      else {
+//         // External PLL (USB1 (HS) PHY)
+//         system_mcgpllclk_clockVar.enable(true);
+//         system_mcgpllclk_clockVar.setValue(usb1pfdclk_ClockVar.getValueAsLong());
+//         system_mcgpllclk_clockVar.setOrigin(usb1pfdclk_ClockVar.getOrigin());
+//         system_mcgpllclk_clockVar.setStatus(usb1pfdclk_ClockVar.getFilteredStatus());
+//      }
+//      system_mcgpllclk_clockVar.setToolTip(pllToolTip);
 
       //======================================
       // system_mcgfllclk_clock update
@@ -426,12 +387,6 @@ public class ClockValidator_MCG extends BaseClockValidator {
 
       switch (clock_mode) {
       default:
-      case McgClockMode_None:
-         system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
-         system_mcgoutclk_clockVar.setStatus((Status)null);
-         clock_mode_Status = new Status("No clock settings are applied", Severity.WARNING);
-         break;
       case McgClockMode_FEI:
          system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
@@ -488,14 +443,14 @@ public class ClockValidator_MCG extends BaseClockValidator {
       variablesToWatch.add("/SIM/mcg_erc_clock");
 
       // mcg_erc Selection
-      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("/SIM/mcg_c7_oscsel");
+      ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
       ChoiceData[] choiceData = mcg_c7_oscselVar.getData();
       
       //  mcg_erc[0] = OSC0, input must always exists
       int index = choiceData[0].getReference().lastIndexOf("/");
       String osc0Name = choiceData[0].getReference().substring(0, index);
-      osc0_osc_cr_erclkenVar     = getBooleanVariable(osc0Name+"/osc_cr_erclken");
-      osc0_oscillatorRangeVar    = getVariable(osc0Name+"/oscillatorRange");
+      osc0_osc_cr_erclkenVar     = safeGetBooleanVariable(osc0Name+"/osc_cr_erclken");
+      osc0_oscillatorRangeVar    = safeGetVariable(osc0Name+"/oscillatorRange");
 
       usb1pfdclk_ClockVar = safeGetVariable("usb1pfdclk_Clock");
       if (usb1pfdclk_ClockVar != null) {

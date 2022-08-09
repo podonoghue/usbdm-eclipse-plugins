@@ -26,7 +26,7 @@ public class LongVariable extends Variable {
    private long fValue = 0;
    
    /** Default value of variable */
-   private long fDefaultValue = 0;
+   private Long fDefaultValue = null;
    
    /** Disabled value of variable */
    private long fDisabledValue = 0;
@@ -240,7 +240,9 @@ public class LongVariable extends Variable {
    
    @Override
    public void setDefault(Object value) {
-      fDefaultValue = translate(value);
+      Long v = translate(value);
+      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != v);
+      fDefaultValue = v;
    }
    
    @Override
@@ -250,7 +252,7 @@ public class LongVariable extends Variable {
    
    @Override
    public boolean isDefault() {
-      return fValue == fDefaultValue;
+      return !defaultHasChanged && ((Long)fValue == fDefaultValue);
    }
 
    /**
@@ -334,7 +336,8 @@ public class LongVariable extends Variable {
    public void setMin(long min) {
       boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
       fMin = min;
-      if (fDefaultValue<fMin) {
+      if ((fDefaultValue == null) || (fDefaultValue<fMin)) {
+         setDefault(fMin);
          fDefaultValue = fMin;
       }
       if (fDisabledValue<fMin) {
@@ -362,8 +365,8 @@ public class LongVariable extends Variable {
     */
    public void setMax(long max) {
       fMax = max;
-      if (fDefaultValue>fMax) {
-         fDefaultValue = fMax;
+      if ((fDefaultValue == null) ||(fDefaultValue>fMax)) {
+         setDefault(fMax);
       }
       if (fDisabledValue>fMax) {
          fDisabledValue = fMax;

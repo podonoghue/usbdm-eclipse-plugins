@@ -375,9 +375,6 @@ public class ClockValidator_SCG extends BaseClockValidator {
 
       switch (clock_transition_mode) {
       default:
-      case McgClockMode_None:
-         runModeEnable  = false;
-         break;
       case McgClockMode_SOSC:
          systemClockFrequency = sosc_frequency;
          systemClockStatus    = soscStatus;

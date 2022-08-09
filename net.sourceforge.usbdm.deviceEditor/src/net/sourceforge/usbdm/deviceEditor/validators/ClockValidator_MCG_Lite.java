@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -55,15 +56,12 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       super.validate(variable);
 
-      // Fix enabling of clock configurations
+      // Check configuration name is valid C identifier
       StringVariable clockConfig = getStringVariable("ClockConfig");
       clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
 
+      // Enable whole category from clock enable variable
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
-      if (fIndex == 0) {
-         // Clock configuration 0 is always true to enable 1st clock configuration
-         enableClockConfigurationVar.setDefault(true);
-      }
       clockConfig.enable(enableClockConfigurationVar.getValueAsBoolean());
 
       // C1
@@ -99,9 +97,6 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable system_irc48m_clockVar  = safeGetVariable("system_irc48m_clock");
                                        
       //=================================
-      Variable clock_modeVar           = getVariable("clock_mode");
-
-      //=================================
       Variable system_mcgoutclk_clock_sourceVar = getVariable("system_mcgoutclk_clock_source");
       Variable system_mcgoutclk_clockVar        = getVariable("system_mcgoutclk_clock");
       Variable system_mcgpclk_clockVar          = getVariable("system_mcgpclk_clock");
@@ -114,24 +109,16 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       else {
          mcg_c2_rangeVar.enable(false);
       }
-
-      // Main clock mode (MCGOUTCLK)
-      //=============================
-      McgClockMode clock_mode = McgClockMode.valueOf(clock_modeVar.getSubstitutionValue());
+      
+      // Main clock mode
+      //====================
+      ChoiceVariable mcgClockModeVar   = getChoiceVariable("mcgClockMode");
+      McgClockMode   clock_mode        = McgClockMode.valueOf(mcgClockModeVar.getEnumValue());
+      
 
       switch (clock_mode) {
       default:
-      case McgClockMode_None:
-         mcg_c1_clksVar.setValue(0);
-         mcg_c2_ircsVar.setLocked(false);
-
-         system_mcgoutclk_clockVar.setValue(system_slow_irc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(system_slow_irc_clockVar.getOrigin());
-         system_mcgoutclk_clockVar.setStatus(new Status("No clock settings are applied", Severity.WARNING));
-         system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
-         break;
-
-      case McgClockMode_HIRC_48M:
+      case McgClockMode_HIRC_48MHz:
          mcg_c1_clksVar.setValue(0);
          mcg_c2_ircsVar.setLocked(false);
 
@@ -141,7 +128,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("HIRC 48M (IRCLK48MCLK)");
          break;
 
-      case McgClockMode_LIRC_2M:
+      case McgClockMode_LIRC_2MHz:
          mcg_c1_clksVar.setValue(1);
          mcg_c2_ircsVar.setValue(0);
          mcg_c2_ircsVar.setLocked(true);
@@ -152,7 +139,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
          break;
 
-      case McgClockMode_LIRC_8M:
+      case McgClockMode_LIRC_8MHz:
          mcg_c1_clksVar.setValue(1);
          mcg_c2_ircsVar.setValue(1);
          mcg_c2_ircsVar.setLocked(true);
@@ -177,7 +164,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       // HIRC related clocks
       //============================================
-      if (mcg_mc_hircenVar.getValueAsBoolean() || (clock_mode == McgClockMode.McgClockMode_HIRC_48M)) {
+      if (mcg_mc_hircenVar.getValueAsBoolean() || (clock_mode == McgClockMode.McgClockMode_HIRC_48MHz)) {
          // HIRC Enabled 
          system_mcgpclk_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
          system_mcgpclk_clockVar.enable(true);
@@ -192,7 +179,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       // LIRC related clocks
       //========================================
       if (mcg_c1_irclkenVar.getValueAsBoolean() || 
-            (clock_mode == McgClockMode.McgClockMode_LIRC_2M) || (clock_mode == McgClockMode.McgClockMode_LIRC_8M) ) {
+            (clock_mode == McgClockMode.McgClockMode_LIRC_2MHz) || (clock_mode == McgClockMode.McgClockMode_LIRC_8MHz) ) {
          // LIRC Enabled
          mcg_c1_irefstenVar.enable(true);
          system_lirc_clockVar.enable(true);

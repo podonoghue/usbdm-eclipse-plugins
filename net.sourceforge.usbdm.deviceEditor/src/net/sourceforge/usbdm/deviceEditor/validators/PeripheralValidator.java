@@ -93,9 +93,6 @@ public class PeripheralValidator extends Validator {
     */
    private void validateClockSelectorVariable(Variable clockSelectorVar) throws Exception {
 
-      if (clockSelectorVar.getName().contains("PFD clock")) {
-         System.err.println("Validating cs '"+clockSelectorVar+"'");
-      }
       LongVariable targetClockVar = safeGetLongVariable(clockSelectorVar.getTarget());
 
       // Get clock source (selected input)
@@ -163,7 +160,7 @@ public class PeripheralValidator extends Validator {
       @Override
       public void modelElementChanged(ObservableModel observableModel) {
          try {
-//          System.err.println("Validating "+fClockSelector);
+//            System.err.println("Validating "+fClockSelector);
             validateClockSelectorVariable(fClockSelector);
          } catch (Exception e) {
             System.err.println("Failed to validate "+fClockSelector);
@@ -210,15 +207,30 @@ public class PeripheralValidator extends Validator {
          
          // Watch clock selector
          clockSelector.addListener(listener);
-
-         if (clockSelector instanceof VariableWithChoices) {
+         if (clockSelector instanceof StringVariable) {
+            StringVariable sv = (StringVariable) clockSelector;
+            String referenceString = sv.getValueAsString();
+            if ((referenceString == null) || (referenceString.isBlank())) {
+               throw new Exception("Clock reference is missing for Clock selector var '"+clockSelector+"'");
+            }
+            if ("disabled".equalsIgnoreCase(referenceString)) {
+               continue;
+            }
+            Variable reference = safeGetVariable(referenceString);
+            if (reference == null) {
+               throw new Exception("Clock reference variable '"+referenceString+"' not found for Clock selector var '"+clockSelector+"'");
+            }
+            // Watch references
+            reference.addListener(listener);
+         }
+         else if (clockSelector instanceof VariableWithChoices) {
             // ChoiceVar selecting the clock input
             VariableWithChoices cv = (VariableWithChoices)clockSelector;
             ChoiceData[] choiceDatas = cv.getData();
             for (ChoiceData choiceData:choiceDatas) {
                String referenceString = choiceData.getReference();
-               if (referenceString == null) {
-                  throw new Exception("Clock reference is missing for Clock selector var '"+clockSelector+"' have target");
+               if ((referenceString == null) || (referenceString.isBlank())) {
+                  throw new Exception("Clock reference is missing for Clock selector var '"+clockSelector+"'");
                }
                if ("disabled".equalsIgnoreCase(referenceString)) {
                   continue;

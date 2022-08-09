@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -294,8 +293,7 @@ public class OscValidate extends PeripheralValidator {
       osc_clockVar                   =  getLongVariable("osc_clock");
       osc_input_freqVar              =  getLongVariable("osc_input_freq");
 
-      StringVariable rtcSharesPinsVar = safeGetStringVariable("/SIM/rtcSharesPins");
-      rtcSharesPins = (rtcSharesPinsVar != null) && rtcSharesPinsVar.getValueAsBoolean();
+      rtcSharesPins                  =  safeGetStringVariable("/SIM/rtc_shared") != null;
 
       rtc_cr_osceVar                 =  safeCreateBooleanVariableReference("/RTC/rtc_cr_osce", externalVariablesList);
       

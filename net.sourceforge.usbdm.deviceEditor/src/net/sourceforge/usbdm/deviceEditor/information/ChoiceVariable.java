@@ -163,7 +163,7 @@ public class ChoiceVariable extends VariableWithChoices {
    }
 
    @Override
-   public void setPersistentValue(String value) {
+   public void setPersistentValue(String value) throws Exception {
       for (int index=0; index<fData.length; index++) {
          if (fData[index].getValue().equalsIgnoreCase(value)) {
             fValue = fData[index].getName();
@@ -184,9 +184,7 @@ public class ChoiceVariable extends VariableWithChoices {
          fValue = value;
          return;
       }
-      // Use default
-      fValue = fDefaultValue;
-      return;
+      throw new Exception("Value '"+value+"' Not suitable for choice variable");
    }
 
    /**
@@ -272,7 +270,7 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public boolean isDefault() {
-      return fValue == fDefaultValue;
+      return !defaultHasChanged && (fValue == fDefaultValue);
    }
    
    /*
@@ -358,10 +356,15 @@ public class ChoiceVariable extends VariableWithChoices {
    }
    
    /**
+    * Set choice data
+    * 
     * @param entries The name/value entries to set
     */
    public void setData(ArrayList<ChoiceData> entries) {
       fData          = entries.toArray(new ChoiceData[entries.size()]);
+      if (fDefaultValue != null) {
+         defaultHasChanged = true;
+      }
       fDefaultValue  = null;
       fValue         = null;
       fChoices       = null;
@@ -373,6 +376,7 @@ public class ChoiceVariable extends VariableWithChoices {
     * @param entries Entries to add
     */
    public void addChoices(ArrayList<ChoiceData> entries, String defaultValue) {
+      
       ArrayList<ChoiceData> consolidatedEntries = new ArrayList<ChoiceData>();
       for (ChoiceData item:fData) {
          consolidatedEntries.add(item);
@@ -399,7 +403,7 @@ public class ChoiceVariable extends VariableWithChoices {
       return super.isLocked() || (getChoices().length <= 1);
    }
 
-   public String getDefaultEnumValue() throws Exception {
+   public String getDefaultParameterValue() throws Exception {
       // Use index of current selected item
       int index = getIndex(fDefaultValue);
       if (index<0) {
@@ -407,39 +411,5 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       return makeEnum(getData()[index].getEnumName());
    }
-
-//   final Pattern fFieldPattern = Pattern.compile("^(data|name|value)(\\[(\\d+)\\])?$");
-//
-//   @Override
-//   public String getField(String field) {
-//      // Try data from variable
-//      String data = super.getField(field);
-//      if (data != null) {
-//         return data;
-//      }
-//      Matcher m = fFieldPattern.matcher(field);
-//      if (!m.matches()) {
-//         return "Field '"+field+"' not matched";
-//      }
-//      int index;
-//      // Return data from choice
-//      if (m.group(3) != null) {
-//         index = Integer.parseInt(m.group(3));
-//      }
-//      else {
-//         index = getIndex(getValueAsString());
-//         if (index<0) {
-//            return "Choice value '"+getValueAsString()+"' not found]";
-//         }
-//      }
-//      if (m.group(1).equals("data")) {
-//         return fData[index].getData();
-//      } else if (m.group(1).equals("name")) {
-//         return fData[index].getName();
-//      } else if (m.group(1).equals("value")) {
-//         return fData[index].getValue();
-//      }
-//      return "Field '"+field+"' not matched";
-//   }
 
 }

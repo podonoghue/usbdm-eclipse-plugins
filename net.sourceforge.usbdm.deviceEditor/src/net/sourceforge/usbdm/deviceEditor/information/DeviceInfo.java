@@ -280,8 +280,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    
    /**
     * Create device hardware description from settings file
-    * @param device 
     * 
+    * @param device 
     * @param filePath   Path to <b>.usbdmProject</b>  file
     * 
     * @return Create hardware description for device
@@ -1427,10 +1427,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Set device variant name (and variant information) 
     * 
     * @param variantName Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M 
-    * 
-    * @throws UsbdmException if variantName does not name a valid variant
+    * @throws Exception 
     */
-   public void setVariantName(String variantName) throws UsbdmException {
+   public void setVariantName(String variantName) throws Exception {
       if ((fVariantName != null) && (fVariantName.compareTo(variantName) == 0)) {
          return;
       }
@@ -1719,11 +1718,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          // Create dependencies between peripherals
          for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
             Peripheral peripheral =  entry.getValue();
-               ArrayList<Validator> validators = peripheral.getValidators();
-               for (Validator validator:validators) {
-//                  validator.createDependencies();
-                  validator.addDependencies();
-               }
+            ArrayList<Validator> validators = peripheral.getValidators();
+            for (Validator validator:validators) {
+               //                  validator.createDependencies();
+               validator.addDependencies();
+            }
          }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
@@ -1756,12 +1755,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                if (!var.isDerived()) {
                   // Load persistent value associated with variable
                   var.setPersistentValue(value);
-//                  System.err.println("Setting Variable "+key+" to "+value);
                }
             }
             else if (key.startsWith("$")) {
                // Ignore these as loaded earlier
-//               System.err.println("WARNING: Discarding system setting "+key+" to "+value);
+               //               System.err.println("WARNING: Discarding system setting "+key+" to "+value);
             }
             else if (key.startsWith("/")) {
                // Shouldn't be any unmatched peripheral settings
@@ -1778,8 +1776,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                addVariable(var);
             }
          }
-//         System.err.println("Make sure peripherals have been updated");
-         
+         //         System.err.println("Make sure peripherals have been updated");
+
          // Allow variable change notifications
          for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
             Peripheral peripheral =  entry.getValue();
@@ -1813,18 +1811,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                p.variableChanged(null);
             }
          }
-//       System.err.println("Notify changes of persistent variables");
-       /*
-        * Notify changes of persistent variables, 
-        * even on variables that were not loaded
-        * Shouldn't be necessary
-        */
-       for (Entry<String, Variable> entry:fVariables.entrySet()) {
-          Variable var = entry.getValue();
-          if (!var.isDerived()) {
-             var.notifyListeners();
-          }
-       }
+         //       System.err.println("Notify changes of persistent variables");
+         /*
+          * Notify changes of persistent variables, 
+          * even on variables that were not loaded
+          * Shouldn't be necessary
+          */
+         for (Entry<String, Variable> entry:fVariables.entrySet()) {
+            Variable var = entry.getValue();
+            if (!var.isDerived()) {
+               var.notifyListeners();
+            }
+         }
          /**
           * Sanity check - (usually) no persistent variables should change value initially
           */
@@ -2364,7 +2362,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return Device name
     */
    public static String getDeviceName(String variantName) {
-      final String packageSuffixes = "(VLF|VFT|VDC|VLH|VLL|VMP|VMP|VMC|VFK|VLC|VFM)";
+      final String packageSuffixes = "(VLF|VFT|VDC|VLH|VLL|VMP|VMP|VMC|VFK|VLC|VFM|VLQ|VMD)";
       DeviceNamePattern patterns[] = {
             new DeviceNamePattern("^(MK(L)?\\d+(Z|DN|DX|FN|FX)\\d+(M\\d+)?)"+packageSuffixes+"(\\d+)$", "$1M$6"), // MK20DN32VLF5 -> MK20D5
       };
@@ -2377,7 +2375,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             return deviceName;
          }
       }
-      System.err.println("Unable to find device name for '" + variantName + "'");
       return variantName;
    }
 

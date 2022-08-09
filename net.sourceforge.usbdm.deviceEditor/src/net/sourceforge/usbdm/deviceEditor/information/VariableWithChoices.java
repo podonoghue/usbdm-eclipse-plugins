@@ -22,7 +22,7 @@ public abstract class VariableWithChoices extends Variable {
     * @return Converted value e.g. Disable => LowPower_Disabled
     */
    protected String makeEnum(String enumValue) {
-      return getEnumStem()+"_"+enumValue;
+      return getTypeName()+"_"+enumValue;
    }
    /**
     * Get index of current value in choice entries
@@ -100,7 +100,5 @@ public abstract class VariableWithChoices extends Variable {
       ChoiceData fData = getData()[index];
       return makeEnum(fData.getEnumName());
    }
-   
-   public abstract String getDefaultEnumValue() throws Exception ;
 
 }

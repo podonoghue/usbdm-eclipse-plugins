@@ -20,7 +20,7 @@ public class DoubleVariable extends Variable {
    private double fValue = 0;
    
    /** Default value of variable */
-   private double fDefaultValue = 0;
+   private Double fDefaultValue = null;
    
    /** Disabled value of variable */
    private double fDisabledValue = 0;
@@ -210,7 +210,9 @@ public class DoubleVariable extends Variable {
    
    @Override
    public void setDefault(Object value) {
-      fDefaultValue = translate(value);
+      Double v = translate(value);
+      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != v);
+      fDefaultValue = v;
    }
    
    @Override
@@ -220,7 +222,7 @@ public class DoubleVariable extends Variable {
    
    @Override
    public boolean isDefault() {
-      return fValue == fDefaultValue;
+      return !defaultHasChanged && (fDefaultValue == (Double)fValue);
    }
 
    /**
@@ -293,8 +295,8 @@ public class DoubleVariable extends Variable {
    public void setMin(double min) {
       boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
       fMin = min;
-      if (fDefaultValue<fMin) {
-         fDefaultValue = fMin;
+      if ((fDefaultValue == null) || (fDefaultValue<fMin)) {
+         setDefault(min);
       }
       if (statusChanged) {
          notifyStatusListeners();
@@ -319,8 +321,8 @@ public class DoubleVariable extends Variable {
    public void setMax(double max) {
       boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
       fMax = max;
-      if (fDefaultValue>fMax) {
-         fDefaultValue = fMax;
+      if ((fDefaultValue == null) || (fDefaultValue>fMax)) {
+         setDefault(max);
       }
       if (statusChanged) {
          notifyStatusListeners();

@@ -45,7 +45,7 @@ public class RtcValidate extends PeripheralValidator {
    private BooleanVariable  rtc_cr_osceVar        = null;
    private BooleanVariable  rtc_cr_clkoVar        = null;
 
-   /** /OSC0/osc_input_freq (only used of shared RTC/OSC0 share crystal pins */
+   /** /OSC0/osc_input_freq (only used if shared RTC/OSC0 share crystal pins */
    private LongVariable     osc0_input_freqVar    = null;
    
    /** /OSC0/osc32k_clock (only used of shared RTC/OSC0 share crystal pins */
@@ -198,8 +198,7 @@ public class RtcValidate extends PeripheralValidator {
       
       rtcNoteVar = getStringVariable("Note");
       
-      StringVariable rtcSharesPinsVar = safeGetStringVariable("/SIM/rtcSharesPins");
-      rtcSharesPins =  (rtcSharesPinsVar != null) && rtcSharesPinsVar.getValueAsBoolean();
+      rtcSharesPins         = safeGetStringVariable("/SIM/rtc_shared") != null;
       
       rtc_osc_input_freqVar = getLongVariable("osc_input_freq");
       rtc_cr_osceVar        = getBooleanVariable("rtc_cr_osce");
@@ -216,7 +215,7 @@ public class RtcValidate extends PeripheralValidator {
          String osc0_peripheralName        = osc0_peripheralVar.getValueAsString();
 
          osc0_input_freqVar   = createLongVariableReference(osc0_peripheralName+"/osc_input_freq", externalVariablesList);
-         osc0_osc32k_clockVar = createLongVariableReference(osc0_peripheralName+"/osc32k_clock",      externalVariablesList);
+         osc0_osc32k_clockVar = createLongVariableReference(osc0_peripheralName+"/osc32k_clock",   externalVariablesList);
          
          rtc_osc_clockVar.setDescription(osc0_osc32k_clockVar.getDescription());
          rtc_osc_clockVar.setToolTip(osc0_osc32k_clockVar.getToolTip());
@@ -230,6 +229,7 @@ public class RtcValidate extends PeripheralValidator {
          rtc_osc_input_freqVar.setToolTip(osc0_input_freqVar.getToolTip());
          rtc_osc_input_freqVar.setMin(osc0_input_freqVar.getMin());
          rtc_osc_input_freqVar.setMax(osc0_input_freqVar.getMax());
+         rtc_osc_input_freqVar.setOrigin(osc0_input_freqVar.getOrigin());
          rtc_osc_input_freqVar.setDerived(true);
 
          // Hide variables associated with RTC OSC

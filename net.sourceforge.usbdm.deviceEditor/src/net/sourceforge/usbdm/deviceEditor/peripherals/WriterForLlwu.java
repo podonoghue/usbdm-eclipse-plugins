@@ -378,7 +378,10 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
    @Override
    public void modifyPeripheral() throws Exception {
       // Update list of devices
-      Variable devicesListVar = safeGetVariable(makeKey("device_list"));
+      Variable devicesListVar = safeGetVariable(makeKey("/SIM/llwu_device_list"));
+      if (devicesListVar == null) {
+         devicesListVar = safeGetVariable(makeKey("device_list"));
+      }
       if (devicesListVar != null) {
          String devices = devicesListVar.getValueAsString();
          if (!devices.isBlank() && !devices.equalsIgnoreCase("none")) {
