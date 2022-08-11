@@ -363,6 +363,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseForLoop(BaseModel parentModel, Element element) throws Exception {
+
+      if (!checkCondition(element)) {
+         return;
+      }
       String keys   = getAttribute(element, "keys");
       String values = getAttribute(element, "values");
       String dim    = getAttribute(element, "dim");
@@ -408,16 +412,12 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseIfThen(BaseModel parentModel, Element element) throws Exception {
+      
       if (!element.hasAttribute("condition")) {
          throw new Exception("<if> requires 'condition' attribute '"+element+"'");
       }
-      String  condition     = getAttribute(element, "condition");
-
-      if (condition.contains("sim_sopt2_rtcclkoutsel")) {
-         System.err.println("Checking condition '"+condition+"'");
-      }
-
-      Boolean processNodes  = fTemplateConditionParser.evaluateVariablePresentCondition(condition);
+      
+      Boolean processNodes  = checkCondition(element);
       Boolean skipRemainder = processNodes;
       
       for (Node node = element.getFirstChild();
@@ -435,10 +435,11 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          else if (tagName == "else_if") {
+            if (!elem.hasAttribute("condition")) {
+               throw new Exception("<else_if> requires 'condition' attribute '"+elem+"'");
+            }
             // Get condition for this clause
-            condition    = getAttribute(elem, "condition");
-            
-            processNodes = !skipRemainder && fTemplateConditionParser.evaluateVariablePresentCondition(condition);
+            processNodes = !skipRemainder && checkCondition(elem);
 
             // Skip remainder if processing an active else_if clause 
             skipRemainder = skipRemainder||processNodes;
@@ -610,7 +611,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String key  = getKeyAttribute(varElement);
       String name = getAttribute(varElement, "name");
       if (name.isBlank()) {
-         name = getNameFromKey(key);
+         name = Variable.getNameFromKey(key);
       }
       
       boolean replace = Boolean.valueOf(getAttribute(varElement, "replace"));
@@ -725,6 +726,10 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDefault(value);
          variable.setDisabledValue(value);
       }
+      if (varElement.hasAttribute("valueFormat")) {
+         // Value is used as disabled value
+         variable.setValueFormat(getAttribute(varElement, "valueFormat"));
+      }
       if (varElement.hasAttribute("disabledValue")) {
          // Value is used as disabled value
          variable.setDisabledValue(getAttribute(varElement, "disabledValue"));
@@ -776,6 +781,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseLongOption(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
       LongVariable variable = (LongVariable) createVariable(varElement, LongVariable.class);
 
       LongVariable otherVariable = (LongVariable)getDerived(varElement);
@@ -788,8 +796,12 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMin(otherVariable.getMin());
          variable.setMax(otherVariable.getMax());
          variable.setUnits(((LongVariable)otherVariable).getUnits());
+         variable.setValueFormat(otherVariable.getValueFormat());
       }
       parseCommonAttributes(parent, varElement, variable);
+      if (variable.getValueFormat() == null) {
+         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
+      }
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getLongAttribute(varElement, "min"));
@@ -819,6 +831,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseDoubleOption(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
       DoubleVariable variable = (DoubleVariable) createVariable(varElement, DoubleVariable.class);
       
       Variable otherVariable = getDerived(varElement);
@@ -852,6 +867,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseBitmaskOption(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       try {
@@ -862,6 +880,21 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   /** 
+    * Check if condition attached to element
+    * 
+    * @param element Element to examing
+    * 
+    * @return true  Condition is true or not present
+    * @return false Condition id present and false
+    * 
+    * @throws Exception
+    */
+   boolean checkCondition(Element element) throws Exception {
+      String  condition     = getAttribute(element, "condition");
+      return fTemplateConditionParser.evaluateVariablePresentCondition(condition);
+   }
+   
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
@@ -870,6 +903,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
@@ -883,14 +919,14 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
-   /// FOrmat string with parameters: description, tooltip, enumClass, body
+   /// Format string with parameters: description, tooltip, enumClass, body
    String enumTemplate = ""
          + "      \\t/**\n"
          + "      \\t * %s\n"
          + "      \\t *\n"
          + "      \\t * %s\n"
          + "      \\t */\n"
-         + "      \\tenum %s {\n"
+         + "      \\tenum %s%s {\n"
          + "      %s\n"
          + "      \\t};\\n\\n\n";
    
@@ -898,7 +934,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
       HashSet<String> enumTemplateMap = fPeripheral.getDeviceInfo().getEnumTemplateMap();
       
-      String macroName       = getBaseNameFromKey(variable.getKey()).toUpperCase();
+      String macroName       = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
 
       String enumStem        = variable.getTypeName();
       if (enumTemplateMap.contains(enumStem)) {
@@ -906,6 +942,11 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       enumTemplateMap.add(enumStem);
 
+      String enumType = getAttribute(varElement, "enumType");
+      if (!enumType.isBlank()) {
+         enumType = " : "+enumType;
+      }
+      
       String namespace       = "usbdm";
       String description     = variable.getDescriptionAsCode();
       String tooltip         = variable.getToolTipAsCode();
@@ -947,7 +988,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       // Create enum declaration
-      String entireEnum = String.format(enumTemplate, description, tooltip, enumClass, body);
+      String entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body);
       templateInfo.addText(entireEnum);
    }
 
@@ -1024,36 +1065,6 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
-    * Get name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock[2]
-    * 
-    * @param key
-    * 
-    * @return
-    */
-   String getNameFromKey(String key) {
-      int index = key.lastIndexOf('/');
-      if (index<0) {
-         return key;
-      }
-      return key.substring(index+1);
-   }
-   
-   /**
-    * Get base name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock
-    * 
-    * @param key 
-    * 
-    * @return
-    */
-   String getBaseNameFromKey(String key) {
-      key = getNameFromKey(key);
-      if (key.matches(".*\\[\\d\\]$")) {
-         key = key.substring(0, key.length()-3);
-      }
-      return key;
-   }
-   
-   /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
     * @param varElement
@@ -1081,6 +1092,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseStringOption(BaseModel parent, Element varElement) throws Exception {
       
+      if (!checkCondition(varElement)) {
+         return;
+      }
       StringVariable variable = (StringVariable) createVariable(varElement, StringVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       
@@ -1179,6 +1193,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
       BooleanVariable variable = (BooleanVariable)createVariable(varElement, BooleanVariable.class);
       if (variable == null) {
          return;
@@ -1228,6 +1245,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseIrqOption(BaseModel parent, Element irqElement) throws Exception {
       
+      if (!checkCondition(irqElement)) {
+         return;
+      }
       IrqVariable variable = (IrqVariable) createVariable(irqElement, IrqVariable.class);
       parseCommonAttributes(parent, irqElement, variable).getVariable();
 
@@ -1245,6 +1265,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
       PinListVariable variable = (PinListVariable) createVariable(varElement, PinListVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       variable.setPeripheral(fPeripheral);
@@ -1290,6 +1313,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private void parseConstant(BaseModel parentModel, Element element) throws Exception {
+
+      if (!checkCondition(element)) {
+         return;
+      }
       String key         = getKeyAttribute(element);
       String name        = getAttribute(element, "name");
       String value       = getAttribute(element, "value");
@@ -1300,7 +1327,7 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("<constant> must have 'key' attribute, value='"+value+"'");
       }
       if (name.isBlank()) {
-         name = getNameFromKey(key);
+         name = Variable.getNameFromKey(key);
       }
          
       boolean isDerived  = true;
@@ -1340,9 +1367,6 @@ public class ParseMenuXML extends XML_BaseParser {
          var.setDescription(description);
          var.setDerived(isDerived);
          var.setHidden(isHidden);
-         if (key.contains("sim_sopt2_rtcclkoutsel")) {
-            System.err.println("Creating constant "+var);
-         }
          fProvider.addVariable(var);
       }
    }
@@ -1509,7 +1533,7 @@ public class ParseMenuXML extends XML_BaseParser {
       // Replace body first!
       String bodyText = substitutions.get("%body");
       if (bodyText != null) {
-      text = text.replace("%body", bodyText);
+         text = text.replace("%body", bodyText);
       }
       
       BiconsumerReplacer br = new BiconsumerReplacer(text);
@@ -1523,8 +1547,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param controlVar    Variable to obtain information from
     * 
     * @note The controlVar is used to obtain an (optional) register name.<br>
-    *       The register name may be necessary as some registers have '_' as part of their name ao<br>
-    *       slicing on '_' is ambiguous.  <br>
+    *       The register attribute name may be necessary as some registers have '_' as part of their<br>
+    *       name and slicing on '_' is ambiguous.  <br>
     *       If not provided, the register name is assumed to not contain '_'.
     *       
     * @return Full register name
@@ -1532,8 +1556,7 @@ public class ParseMenuXML extends XML_BaseParser {
    String deduceRegister(Variable controlVar) {
       
       String register = null;
-
-      String variableKey  = getBaseNameFromKey(controlVar.getKey());
+      String variableKey  = controlVar.getBaseNameFromKey();
       String registerName = controlVar.getRegister();
       
       if (registerName != null) {
@@ -1707,10 +1730,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseTemplate(Element element) throws Exception {
-      /**
-       * namespace:
-       *    class - Template is available in 
-       */
+
+      if (!checkCondition(element)) {
+         return;
+      }
       String key       = getKeyAttribute(element);
       String namespace = getAttribute(element, "namespace"); // info|usbdm|class|all
       String variable  = getAttribute(element, "variable");
@@ -1727,6 +1750,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!variable.isBlank() && (safeGetVariable(variable) == null)) {
          return;
       }
+      
       Map<String,String> substitutions = getTemplateSubstitutions(element);
       
       TemplateInformation templateInfo = addTemplate(key, namespace);
@@ -1761,10 +1785,9 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseSetTemplate(Element element) throws Exception {
-      /**
-       * namespace:
-       *    class - Template is available in 
-       */
+      if (!checkCondition(element)) {
+         return;
+      }
       String key       = getKeyAttribute(element);
       String namespace = getAttribute(element, "namespace"); // info|usbdm|class|all
       
@@ -1876,10 +1899,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseInitialValueTemplate(Element element) throws Exception {
-      /**
-       * namespace:
-       *    class - Template is available in 
-       */
+      
+      if (!checkCondition(element)) {
+         return;
+      }
       String key       = getKeyAttribute(element);
       String namespace = getAttribute(element, "namespace"); // info|usbdm|class|all
       
@@ -1892,6 +1915,13 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isBlank() && namespace.equals("all")) {
          throw new Exception("initialValueTemplate must have 'key' attribute in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
       }
+      String terminator = ";";
+      if (element.hasAttribute("terminator")) {
+         terminator = getAttribute(element, "terminator");
+      }
+//      if (key.contains("McgClockInfoEntries")) {
+//         System.err.println("parseInitialValueTemplate '"+key+"'");
+//      }
 
       String varNames[] = getAttribute(element, "variables").split(",");
       if (varNames.length == 0) {
@@ -1921,13 +1951,14 @@ public class ParseMenuXML extends XML_BaseParser {
             value = "$("+var.getKey()+".enum[])";
          }
          else {
-            value = "$("+var.getKey()+")";
+            value = "$("+var.getKey()+".formattedValue)";
+//            value = "$("+var.getKey()+")";
          }
          String comment       = var.getShortDescription();
 
          expression.append("\n\\t   " + value);
          if (var == lastVar) {
-            expression.append(";  // "); 
+            expression.append(terminator+"  // "); 
          }
          else {
             expression.append(" | // "); 
@@ -1936,6 +1967,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       String register = deduceRegister(variables.get(0));
+      if (register == null) {
+         register = "'%register' is not valid here";
+      }
       
       Map<String,String> substitutions = getTemplateSubstitutions(element);
       substitutions.put("%expression",  expression.toString());
@@ -1982,6 +2016,9 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseClockCodeTemplate(Element element) throws Exception {
       
       String key          = getKeyAttribute(element);
+      if (!checkCondition(element)) {
+         return;
+      }
       String namespace    = getAttribute(element, "namespace");
       String variable     = getAttribute(element, "variable");
       String returnFormat = getAttribute(element, "returnFormat");
@@ -2069,6 +2106,9 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private void parseDeleteOption(Element element) throws Exception {
       
+      if (!checkCondition(element)) {
+         return;
+      }
       String key = getKeyAttribute(element);
       if (key.isBlank()) {
          throw new Exception("<deleteOption> must have key attribute");
@@ -2312,6 +2352,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private void parseSignalsOption(BaseModel parentModel, Element element) throws Exception {
+      
       // Initially assume pins refer to current peripheral
       Peripheral peripheral = fPeripheral;
       boolean optional = Boolean.valueOf(getAttribute(element, "optional"));

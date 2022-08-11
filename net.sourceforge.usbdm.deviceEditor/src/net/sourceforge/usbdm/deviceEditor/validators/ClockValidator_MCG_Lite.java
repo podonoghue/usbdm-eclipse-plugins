@@ -72,7 +72,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
                                        
       // C2
       //=================================
-      Variable mcg_c2_rangeVar                  = getVariable("mcg_c2_range");
+      Variable mcg_c2_range0Var                 = getVariable("mcg_c2_range0");
       Variable mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
                                        
       // SC
@@ -103,11 +103,11 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       
       long rangeIn = osc0_oscillatorRangeVar.getValueAsLong();
       if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {
-         mcg_c2_rangeVar.enable(true);
-         mcg_c2_rangeVar.setValue(osc0_oscillatorRangeVar.getValueAsLong());
+         mcg_c2_range0Var.enable(true);
+         mcg_c2_range0Var.setValue(osc0_oscillatorRangeVar.getValueAsLong());
       }
       else {
-         mcg_c2_rangeVar.enable(false);
+         mcg_c2_range0Var.enable(false);
       }
       
       // Main clock mode

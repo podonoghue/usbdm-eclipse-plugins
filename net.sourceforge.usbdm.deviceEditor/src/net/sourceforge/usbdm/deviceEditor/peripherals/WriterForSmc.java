@@ -19,4 +19,9 @@ public class WriterForSmc extends PeripheralWithState {
       return "System Mode Controller";
    }
 
+   @Override
+   public int getPriority() {
+      return 875;
+   }
+
 }

@@ -190,9 +190,12 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** Target for clock selector */
    private String fTarget;
 
-   /** stem for enum generation e.g. XXXX => XXX_yyyy enums */
+   /** stem for enum generation e.g. XXXX => XXXX_yyyy enums */
    private String fTypeName;
 
+   /** Format for printing value e.g. CMP_CR0_FILTER_CNT(%s) */
+   private String fValueFormat;
+   
    /** Whether to propagate errors form this variable up through categories */
    private Severity fSeverityPropagate;
 
@@ -842,10 +845,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          if (eol>=0) {
             description = description.substring(0, eol);
          }
+         eol = description.indexOf("\\n");
+         if (eol>=0) {
+            description = description.substring(0, eol);
+         }
       }
          return description;
    }
       
+   public String getFormattedValue() {
+      String format = getValueFormat();
+      if (format == null) {
+         return getSubstitutionValue();
+      }
+      return String.format(format, getSubstitutionValue());
+   }
+   
    public String getField(String field) {
       if (field.equals("tooltip")) {
          return getToolTipAsCode();
@@ -853,11 +868,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       if (field.equals("description")) {
          return getDescriptionAsCode();
       }
-      else if (field.equals("value")) {
+      if (field.equals("value")) {
          return getSubstitutionValue();
       }
-      else if (field.equals("data")) {
+      if (field.equals("data")) {
          return fDataValue;
+      }
+      if (field.equals("formattedValue")) {
+         return getFormattedValue();
       }
       return "field "+field+" not found in variable";
    }
@@ -936,4 +954,81 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return getDefault().toString();
    }
 
+   /**
+    * Get format for printing value e.g. CMP_CR0_FILTER_CNT(%s) 
+    * 
+    * @return
+    */
+   public String getValueFormat() {
+      return fValueFormat;
+   }
+
+   /**
+    * Set format for printing value e.g. CMP_CR0_FILTER_CNT(%s) 
+    * 
+    * @param valueFormat
+    */
+   public void setValueFormat(String valueFormat) {
+      fValueFormat = valueFormat;
+   }
+
+   /**
+    * Get name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock[2]
+    * 
+    * @param key
+    * 
+    * @return
+    */
+   public String getNameFromKey() {
+      int index = fKey.lastIndexOf('/');
+      if (index<0) {
+         return fKey;
+      }
+      return fKey.substring(index+1);
+   }
+   
+   /**
+    * Get base name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock
+    * 
+    * @param key 
+    * 
+    * @return
+    */
+   public String getBaseNameFromKey() {
+      String key = getNameFromKey();
+      if (key.matches(".*\\[\\d\\]$")) {
+         key = key.substring(0, key.length()-3);
+      }
+      return key;
+   }
+   /**
+    * Get name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock[2]
+    * 
+    * @param key
+    * 
+    * @return
+    */
+   public static String getNameFromKey(String key) {
+      int index = key.lastIndexOf('/');
+      if (index<0) {
+         return key;
+      }
+      return key.substring(index+1);
+   }
+   
+   /**
+    * Get base name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock
+    * 
+    * @param key 
+    * 
+    * @return
+    */
+   public static String getBaseNameFromKey(String key) {
+      key = getNameFromKey(key);
+      if (key.matches(".*\\[\\d\\]$")) {
+         key = key.substring(0, key.length()-3);
+      }
+      return key;
+   }
+   
 }

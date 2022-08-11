@@ -161,7 +161,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
       Variable pll0EnabledVar                   = getVariable("pll0Enabled");
       Variable pll0InputFrequencyVar            = getVariable("pll0InputFrequency");
       Variable pll0OutputFrequencyVar           = getVariable("pll0OutputFrequency");
-      Variable mcg_c5_pllclkenVar               = getVariable("mcg_c5_pllclken");
+      Variable mcg_c5_pllclken0Var              = getVariable("mcg_c5_pllclken0");
       Variable mcg_c5_prdiv0Var                 = getVariable("mcg_c5_prdiv0");
       Variable mcg_c6_vdiv0Var                  = getVariable("mcg_c6_vdiv0");
 
@@ -204,7 +204,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_FEE:
@@ -213,7 +213,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_FBI:
@@ -222,7 +222,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_FBE:
@@ -231,7 +231,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_BLPI:
@@ -240,7 +240,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 1;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(false);
          // Add BLPE/BLPI warning
          mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
@@ -251,7 +251,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 1;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(false);
          // Add BLPE/BLPI warning
          mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
@@ -262,7 +262,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
-         pll0EnabledVar.setValue(pllIsInternal||mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllIsInternal||mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(false);
          break;
       case McgClockMode_PEE:
@@ -271,7 +271,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("PLL output");
-         pll0EnabledVar.setValue(pllIsInternal||mcg_c5_pllclkenVar.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllIsInternal||mcg_c5_pllclken0Var.getValueAsBoolean());
          fll_enabledVar.setValue(false);
          break;
       }     
@@ -298,7 +298,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
       FllConfigure fllCheck = new FllConfigure(
             osc0_osc_cr_erclkenVar,
             osc0_oscillatorRangeVar,
-            getVariable("mcg_c2_range"),
+            getVariable("mcg_c2_range0"),
             mcg_c1_irefs,
             mcg_erc_clockVar,
             system_slow_irc_clockVar.getValueAsLong(),
@@ -346,7 +346,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
 //            system_mcgpllclk_clockVar.setStatus(pll0OutputFrequencyVar.getFilteredStatus());
 //         }
 //         else {
-//            pllToolTip = "Unavailable in this clock mode unless mcg_c5_pllclken is selected";
+//            pllToolTip = "Unavailable in this clock mode unless mcg_c5_pllclken0 is selected";
 //            system_mcgpllclk_clockVar.enable(false);
 //            system_mcgpllclk_clockVar.setStatus(new Status("PLL clock unavailable", Severity.WARNING));
 //         }
@@ -444,6 +444,9 @@ public class ClockValidator_MCG extends BaseClockValidator {
 
       // mcg_erc Selection
       ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
+      if (mcg_c7_oscselVar == null) {
+         mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel_fixed");
+      }
       ChoiceData[] choiceData = mcg_c7_oscselVar.getData();
       
       //  mcg_erc[0] = OSC0, input must always exists

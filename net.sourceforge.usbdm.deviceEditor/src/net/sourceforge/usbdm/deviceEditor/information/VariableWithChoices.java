@@ -82,6 +82,9 @@ public abstract class VariableWithChoices extends Variable {
       if (fieldName.equals("code")) {
          return fData.getCodeValue();
       } else if ("enum".equals(fieldName)) {
+         if (fData.getEnumName() == null) {
+            return getFormattedValue();
+         }
          return makeEnum(fData.getEnumName());
       } else if ("name".equals(fieldName)) {
          return fData.getName();
@@ -101,4 +104,13 @@ public abstract class VariableWithChoices extends Variable {
       return makeEnum(fData.getEnumName());
    }
 
+   @Override
+   public String getValueFormat() {
+      String format = super.getValueFormat();
+      if (format != null) {
+         return format;
+      }
+      return  getBaseNameFromKey(getKey()).toUpperCase()+"(%s)";
+   }
+   
 }
