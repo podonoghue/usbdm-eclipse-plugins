@@ -222,7 +222,8 @@ public class DoubleVariable extends Variable {
    
    @Override
    public boolean isDefault() {
-      return !defaultHasChanged && (fDefaultValue == (Double)fValue);
+
+      return !defaultHasChanged && ((Double)fValue).equals(fDefaultValue);
    }
 
    /**

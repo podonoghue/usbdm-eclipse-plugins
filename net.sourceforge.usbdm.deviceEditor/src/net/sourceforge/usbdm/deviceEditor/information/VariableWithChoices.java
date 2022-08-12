@@ -22,6 +22,12 @@ public abstract class VariableWithChoices extends Variable {
     * @return Converted value e.g. Disable => LowPower_Disabled
     */
    protected String makeEnum(String enumValue) {
+      if (getTypeName() == null) {
+         return null;
+      }
+      if (enumValue == null) {
+         return null;
+      }
       return getTypeName()+"_"+enumValue;
    }
    /**
@@ -82,10 +88,11 @@ public abstract class VariableWithChoices extends Variable {
       if (fieldName.equals("code")) {
          return fData.getCodeValue();
       } else if ("enum".equals(fieldName)) {
-         if (fData.getEnumName() == null) {
-            return getFormattedValue();
+         String enumname = makeEnum(fData.getEnumName()); 
+         if (enumname != null) {
+            return enumname;
          }
-         return makeEnum(fData.getEnumName());
+         return getFormattedValue();
       } else if ("name".equals(fieldName)) {
          return fData.getName();
       } else if ("value".equals(fieldName)) {

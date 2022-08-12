@@ -62,9 +62,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       public ChoiceData(String name, String value, String enumName, String codeValue, String reference) {
          fName        = name;
          fValue       = value;
-         fEnumName    = enumName.isBlank()?null:enumName;
-         fCodeValue   = codeValue.isBlank()?null:codeValue;
-         fReference   = reference.isBlank()?null:reference;
+         fEnumName    = enumName;
+         fCodeValue   = codeValue;
+         fReference   = reference;
       }
       
       /**

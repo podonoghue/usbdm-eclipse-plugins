@@ -86,11 +86,14 @@ public class WriterForAdc extends PeripheralWithState {
             type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          }
          String constType = "const "+ type;
-         if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", description, cIdentifier, constType, trailingComment);
-         }
-         else {
-            writeTypeDeclaration("", description, cIdentifier, type, trailingComment);
+         String[] cIdentifiers = cIdentifier.split("/");
+         for (String cIdent:cIdentifiers) {
+            if (signal.getCreateInstance()) {
+               writeVariableDeclaration("", description, cIdent, constType, trailingComment);
+            }
+            else {
+               writeTypeDeclaration("", description, cIdent, type, trailingComment);
+            }
          }
       }
    }

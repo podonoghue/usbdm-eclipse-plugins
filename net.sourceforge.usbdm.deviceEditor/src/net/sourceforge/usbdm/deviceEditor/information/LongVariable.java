@@ -252,7 +252,7 @@ public class LongVariable extends Variable {
    
    @Override
    public boolean isDefault() {
-      return !defaultHasChanged && ((Long)fValue == fDefaultValue);
+      return !defaultHasChanged && ((Long)fValue).equals(fDefaultValue);
    }
 
    /**

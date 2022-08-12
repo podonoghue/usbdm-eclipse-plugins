@@ -409,10 +409,15 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       InfoTable signalTable = getUniqueSignalTable();
       for (int index = 0; index<=31; index++) {
          Variable peEntry = safeGetVariable(makeKey("llwu_pe"+((index/4)+1)+"_wupe"+index));
+         if (peEntry == null) {
+            continue;
+            // XXX Fix me!
+         }
          if (index<signalTable.table.size()) {
             // peEntry MUST exists and needs to be modified or cleared
             Signal signal = signalTable.table.get(index);
             String pinName = null;
+            String enumName = null;
             if ((signal != null) && (signal != Signal.DISABLED_SIGNAL)) {
                final StringBuilder nameCollector = new StringBuilder();
                TreeSet<MappingInfo> mapping = signal.getPinMapping();
@@ -422,12 +427,16 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
                   public void accept(MappingInfo mapInfo) {
                      Pin pin = mapInfo.getPin();
                      if ((pin != Pin.UNASSIGNED_PIN) && pin.isAvailableInPackage()) {
+                        if (nameCollector.length() > 0) {
+                           nameCollector.append("/" + pin.getName());
+                        }
                         nameCollector.append(pin.getName());
                      }
                   }
                });
                if (!nameCollector.toString().isEmpty()) {
-                  pinName = "Pin " + nameCollector.toString();
+                  pinName  = "Pin " + nameCollector.toString();
+                  enumName = nameCollector.toString().replace("/", "_");
                }
             }
             if (pinName == null) {
@@ -437,7 +446,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             else {
                // Input associated with pin
                peEntry.setDescription(pinName);
-               ChoiceData entry = new ChoiceData(pinName, Integer.toString(index));
+               ChoiceData entry = new ChoiceData(pinName, Integer.toString(index), enumName, "", "");
                choiceData.add(entry);
             }
          }

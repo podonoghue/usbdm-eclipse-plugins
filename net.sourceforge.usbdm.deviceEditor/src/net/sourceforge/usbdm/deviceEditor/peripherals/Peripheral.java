@@ -1378,10 +1378,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (fSignalPeripherals == null) {
          fSignalPeripherals = new ArrayList<PeripheralSignals>();
       }
-      if (filter.isBlank()) {
-         // Remove empty filter
-         filter = null;
-      }
       fSignalPeripherals.add(new PeripheralSignals(peripheral, filter));
    }
 

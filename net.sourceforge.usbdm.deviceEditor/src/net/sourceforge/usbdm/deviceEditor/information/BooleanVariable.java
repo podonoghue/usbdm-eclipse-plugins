@@ -191,7 +191,7 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public boolean isDefault() {
-      return !defaultHasChanged && ((Boolean)fValue == fDefaultValue);
+      return !defaultHasChanged && ((Boolean)fValue).equals(fDefaultValue);
    }
    
    /*
