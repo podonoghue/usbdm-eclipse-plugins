@@ -242,8 +242,8 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          if (fValues.length != fKeys.length) {
             throw new ForloopException(
-               "Number of values " + fValueList[iter]+
-               "does not match number of keys"+fKeys.length);
+               "Number of values '" + fValueList[iter]+
+               "' does not match number of keys = "+fKeys.length);
          }
          for (int index=0; index<fKeys.length; index++) {
             text = text.replace("%("+fKeys[index].trim()+")", fValues[index].trim());
