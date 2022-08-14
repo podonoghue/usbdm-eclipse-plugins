@@ -26,7 +26,7 @@ public abstract class BaseModel implements Cloneable {
    private String                fDescription = null;
    
    /** Name of model */
-   protected String              fName;
+   protected String              fName = null;
    
    /** Parent node */
    protected BaseModel           fParent;
@@ -150,9 +150,6 @@ public abstract class BaseModel implements Cloneable {
     * @note Added as child of parent if not null
     */
    public BaseModel(BaseModel parent, String name) {
-      if (name == null) {
-         name = "No name";
-      }
       fParent      = parent;
       fName        = name;
       if (parent != null) {

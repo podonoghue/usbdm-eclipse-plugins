@@ -915,9 +915,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
-      if (getKeyAttribute(varElement).contains("llwu_pe1_wupe0")) {
-         System.err.println("Found " + getKeyAttribute(varElement));
-      }
+//      if (getKeyAttribute(varElement).contains("llwu_pe1_wupe0")) {
+//         System.err.println("Found " + getKeyAttribute(varElement));
+//      }
       if (!checkCondition(varElement)) {
          return;
       }
@@ -1315,18 +1315,17 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private AliasPlaceholderModel parseAliasOption(BaseModel parent, Element stringElement) throws Exception {
       String  key          = getKeyAttribute(stringElement);
-      String  displayName  = getAttribute(stringElement, "displayName");
+      String  name         = getAttribute(stringElement, "name");
       String  description  = getAttribute(stringElement, "description");
       String  toolTip      = getToolTip(stringElement);
 
       if (key.isEmpty()) {
-         throw new Exception("Alias requires key "+displayName);
+         throw new Exception("Alias requires key "+name);
       }
-      
       boolean isConstant  = Boolean.valueOf(getAttribute(stringElement, "constant"));
       boolean isOptional  = Boolean.valueOf(getAttribute(stringElement, "optional"));
       
-      AliasPlaceholderModel placeholderModel = new AliasPlaceholderModel(parent, displayName, description);
+      AliasPlaceholderModel placeholderModel = new AliasPlaceholderModel(parent, name, description);
       placeholderModel.setkey(key);
       placeholderModel.setConstant(isConstant);
       placeholderModel.setOptional(isOptional);
@@ -1964,9 +1963,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varNames.length == 0) {
          throw new Exception("initialValueTemplate is missing 'variables' attribute, key='" + key + "'");
       }
-      if (varNames[0].contains("sim_sopt1_osc32kout")) {
-         System.err.println("Found " + varNames[0]);
-      }
+//      if (varNames[0].contains("sim_sopt1_osc32kout")) {
+//         System.err.println("Found " + varNames[0]);
+//      }
          
       ArrayList<Variable> variables = new ArrayList<Variable>();
       for (String varName:varNames) {
@@ -2853,7 +2852,7 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean isConstant = aliasModel.isConstant();
       model.setConstant(isConstant);
       String displayName = aliasModel.getName();
-      if (!displayName.isEmpty()) {
+      if (displayName != null) {
          model.setName(displayName);
       }
       return model;
