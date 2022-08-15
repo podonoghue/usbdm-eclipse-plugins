@@ -2075,10 +2075,16 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("ClockCodeTemplate must have 'variable' attribute, peripheral='" + 
                fPeripheral.getName() + "', key= '" + key + "'");
       }
-      VariableWithChoices choiceVar = (VariableWithChoices) safeGetVariable(variable);
-      if (choiceVar == null) {
+      
+      Variable var = safeGetVariable(variable);
+      if (var == null) {
          return;
       }
+      if (!(var instanceof VariableWithChoices)) {
+         throw new Exception("Var is not of expected type 'VariableWithChoices', var = " + var);
+      }
+      
+      VariableWithChoices choiceVar = (VariableWithChoices) var;
       String enumStem = choiceVar.getTypeName();
       if (enumStem == null) {
          enumStem = getAttribute(element, "enumStem");
