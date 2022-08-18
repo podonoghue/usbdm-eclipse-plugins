@@ -62,6 +62,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       public ChoiceData(String name, String value, String enumName, String codeValue, String reference) {
          fName        = name;
          fValue       = value;
+         if ((enumName != null) && enumName.equals("*")) {
+            enumName = name;
+         }
          fEnumName    = enumName;
          fCodeValue   = codeValue;
          fReference   = reference;
@@ -210,8 +213,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     */
    public Variable(String name, String key) {
       if (name == null) {
-         String[] pathNames = key.split("/");
-         name = pathNames[pathNames.length-1];
+         name = getBaseNameFromKey(key);
       }
       fName = name;
       fKey  = key;
@@ -1030,5 +1032,5 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       }
       return key;
    }
-   
+  
 }

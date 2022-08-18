@@ -393,7 +393,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          for (PeripheralWithState p:peripheralWithStateList) {
             p.loadModels();
          }
-         enumTemplateMap.clear();
+         repeatedItemMap.clear();
          for (PeripheralWithState p:peripheralWithStateList) {
             p.instantiateAliases();
          }
@@ -1049,13 +1049,19 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void initialiseTemplates() throws Exception {
       /*
-       *  TODO Add peripheral types here 
+       *  TODO Where peripheral types are found 
        */
       createPeripheralTemplateInformation(
             "GPIO", "$2", "$4",
             "^(GPIO|PORT)([A-I])(_(\\d+))?$",
             getDeviceFamily(),
             WriterForGpio.class);
+      
+//      createPeripheralTemplateInformation(
+//            "PORT", "$2", "$4",
+//            "^(PORT)([A-I])(_(\\d+))?$",
+//            getDeviceFamily(),
+//            WriterForPort.class);
       
       createPeripheralTemplateInformation(
             "POWER", "", "$0",
@@ -2397,11 +2403,37 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return createDeviceInformation(variantName, manual, packageName, deviceName);
    }
 
-   /** Used to prevent repeated templates for iterated enums */
-   private final HashSet<String> enumTemplateMap = new HashSet<String>(); 
+   /** Map used to prevent repeated items for iterated enums, templates etc */
+   private final HashSet<String> repeatedItemMap = new HashSet<String>(); 
    
-   public HashSet<String> getEnumTemplateMap() {
-      return enumTemplateMap;
+   /**
+    * Check if item has already been generated in the C code.
+    * It is immediately added to the list of repeated items.
+    * 
+    * @param key Key used to identify item
+    * 
+    * @return true if already generated
+    * @return false if not already generated
+    */
+   public boolean addAndCheckIfRepeatedItem(String key) {
+      if (repeatedItemMap.contains(key)) {
+         return true;
+      }
+      repeatedItemMap.add(key);
+      return false;
+   }
+
+   /**
+    * Check if item has already been generated in the C code
+    * It is not added to the list of repeated items.
+    * 
+    * @param key Key used to identify item
+    * 
+    * @return true if already generated
+    * @return false if not already generated
+    */
+   public boolean checkIfRepeatedItem(String key) {
+      return repeatedItemMap.contains(key);
    }
 
 //   /**

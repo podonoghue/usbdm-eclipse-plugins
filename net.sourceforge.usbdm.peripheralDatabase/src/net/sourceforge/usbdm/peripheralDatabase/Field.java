@@ -576,13 +576,13 @@ public class Field extends ModeControl implements Cloneable {
 
       String width = getCWidth(fOwner.getWidth());
       if (isUseNamesInFieldMacros()) {
-         // Write #define XXX_YYY(x) (((uint32_t)(((uint32_t)(x))<<XXX_YYY_SHIFT))&XXX_YYY_MASK) //!< XXX.YYY Field
+         // Write #define XXX_YYY(x) (((uint32_t)(((uint32_t)(x))<<XXX_YYY_SHIFT))&XXX_YYY_MASK) //!< xxx.yyy Field
          writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
                String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field"))); 
       }
       else {
-         // Write #define XXX_YYY(x) (((uint32_t)(((uint32_t)(x))<<0U))&0x1FUL) //!< XXX.YYY Field
+         // Write #define XXX_YYY(x) (((uint32_t)(((uint32_t)(x))<<0U))&0x1FUL) //!< xxx.yyy Field
          writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_FIELD_NUM_FORMAT, fieldname+"(x)", width, width, getBitOffset(), mask), 
                String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field"))); 

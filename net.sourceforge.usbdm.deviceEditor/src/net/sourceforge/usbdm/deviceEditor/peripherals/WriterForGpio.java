@@ -426,5 +426,10 @@ public class WriterForGpio extends PeripheralWithState {
    public ModifierEditorInterface getModifierEditor() {
       return modifierEditingSupport;
    }
-   
+
+   @Override
+   public int getPriority() {
+      return 800;
+   }
+
 }

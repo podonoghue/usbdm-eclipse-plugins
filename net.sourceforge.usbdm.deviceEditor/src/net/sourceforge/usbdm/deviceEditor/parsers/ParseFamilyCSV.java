@@ -26,10 +26,15 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSmc;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Cluster;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.Field;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.Register;
 
 public class ParseFamilyCSV {
 
@@ -654,7 +659,6 @@ public class ParseFamilyCSV {
 			}
 			String version   = peripheral.getOverriddenPeripheralVersionName();
 			String dbVersion = dbPeripheral.getBasePeripheral().getSourceFilename().toLowerCase();
-			
 			if ((version==null) && (dbVersion.startsWith("ftfe") || dbVersion.startsWith("ftfl"))) {
             System.err.println("Flash version (size) should be explicitly given for'" + dbVersion + "'");
 			}
@@ -673,7 +677,95 @@ public class ParseFamilyCSV {
 	         }
    			peripheral.setPeripheralVersion(dbVersion);
 			}
-			
+         if (peripheral instanceof WriterForGpio) {
+            WriterForGpio gpio = (WriterForGpio) peripheral;
+            net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral = fPeripheralMap.get(peripheral.getName().replace("GPIO", "PORT"));
+            if ((dbPortPeripheral == null)) {
+               throw new UsbdmException("Unable to get PORT DB Peripheral for "+entry.getKey());
+            }
+            for(Cluster cl:dbPortPeripheral.getRegisters()) {
+               if (!(cl instanceof Register)) {
+                  continue;
+               }
+               Register reg = (Register) cl;
+               if (reg.getName().startsWith("PCR")) {
+                  for (Field field:reg.getFields()) {
+                     String key = "/PCR/"+field.getName().toLowerCase()+"_present";
+                     if (gpio.safeGetVariable(key) == null) {
+                        StringVariable var = new StringVariable(null, key);
+                        var.setValue("true");
+                        gpio.addVariable(var);
+                        gpio.addParam(var.getKey());
+                     }
+                  }
+               } else if (reg.getName().equalsIgnoreCase("DFER")) {
+                  String key = "/PCR/dfer_register_present";
+                  if (gpio.safeGetVariable(key) == null) {
+                     StringVariable var = new StringVariable(null, key);
+                     var.setValue("true");
+                     gpio.addVariable(var);
+                     gpio.addParam(var.getKey());
+                  }
+                  StringVariable var = new StringVariable(null, peripheral.makeKey("dfer_register_present"));
+                  var.setValue("true");
+                  gpio.addVariable(var);
+                  gpio.addParam(var.getKey());
+                  break;
+               }
+            }
+         }
+
+//			if (peripheral instanceof WriterForSim) {
+//			   WriterForSim gpio = (WriterForSim) peripheral;
+//	         net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral = fPeripheralMap.get(peripheral.getName());
+//	         if ((dbPortPeripheral == null)) {
+//	            throw new UsbdmException("Unable to get SIM DB Peripheral for "+entry.getKey());
+//	         }
+//	         for(Cluster cl:dbPortPeripheral.getRegisters()) {
+//	            if (!(cl instanceof Register)) {
+//	               continue;
+//	            }
+//	            Register reg = (Register) cl;
+//	            String regs="SOPT2,SOPT4";
+//	            if (regs.indexOf(reg.getName())>=0) {
+//	               for (Field field:reg.getFields()) {
+//	                  String key = "/SIM/"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present";
+//	                  if (gpio.safeGetVariable(key) == null) {
+//	                     StringVariable var = new StringVariable(null, key);
+//	                     var.setValue("true");
+//	                     gpio.addVariable(var);
+//	                     gpio.addParam(var.getKey());
+//	                  }
+//	               }
+//	            }
+//	         }
+//			}
+         
+         if (peripheral instanceof WriterForSmc) {
+            WriterForSmc smc = (WriterForSmc) peripheral;
+            net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral = fPeripheralMap.get(peripheral.getName());
+            if ((dbPortPeripheral == null)) {
+               throw new UsbdmException("Unable to get SIM DB Peripheral for "+entry.getKey());
+            }
+            for(Cluster cl:dbPortPeripheral.getRegisters()) {
+               if (!(cl instanceof Register)) {
+                  continue;
+               }
+               Register reg = (Register) cl;
+//               String regs="SOPT2,SOPT4";
+//               if (regs.indexOf(reg.getName())>=0) {
+                  for (Field field:reg.getFields()) {
+                     String key = smc.makeKey("smc_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
+                     if (smc.safeGetVariable(key) == null) {
+                        StringVariable var = new StringVariable(null, key);
+                        var.setValue("true");
+                        smc.addVariable(var);
+                        smc.addParam(var.getKey());
+                     }
+//                  }
+               }
+            }
+         }
 			// Add version to cumulative list
 			HashSet<String> listOfVersions = peripheralVersions.get(peripheral.getBaseName());
 			if (listOfVersions == null) {

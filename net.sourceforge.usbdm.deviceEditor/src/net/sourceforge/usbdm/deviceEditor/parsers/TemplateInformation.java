@@ -13,8 +13,8 @@ public class TemplateInformation {
    private final String fNameSpace;
    /** Buffer to accumulate text contents for template */
    private StringBuilder fBuilder;
-   /** Dimension for array template */
-   private final int fDimension;
+//   /** Dimension for array template */
+//   private final int fDimension;
    /** Processed text contents for template - cached */
    private String fText = null;
    /** Iteration has been applied to this template */
@@ -29,12 +29,11 @@ public class TemplateInformation {
     * 
     * @param key        Key used to index template
     * @param namespace  Namespace for template (info, usbdm, class)
-    * @param dimension  Dimension for array template
     */
-   public TemplateInformation(String key, String nameSpace, int dimension) {
+   public TemplateInformation(String key, String nameSpace) {
       fKey        = key;
       fNameSpace  = nameSpace;
-      fDimension  = dimension;
+//      fDimension  = dimension;
       fBuilder    = new StringBuilder(100); 
    }
    
@@ -195,12 +194,12 @@ public class TemplateInformation {
       return fText;
    }
 
-   /**
-    * @return Dimension for array template
-    */
-   public int getDimension() {
-      return fDimension;
-   }
+//   /**
+//    * @return Dimension for array template
+//    */
+//   public int getDimension() {
+//      return fDimension;
+//   }
 
    /**
     * @return Namespace for template (info, usbdm, class)
