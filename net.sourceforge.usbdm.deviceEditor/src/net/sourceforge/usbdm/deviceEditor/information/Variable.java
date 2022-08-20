@@ -870,6 +870,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       if (field.equals("description")) {
          return getDescriptionAsCode();
       }
+      if (field.equals("shortDescription")) {
+         return getShortDescription();
+      }
       if (field.equals("value")) {
          return getSubstitutionValue();
       }
@@ -879,7 +882,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       if (field.equals("formattedValue")) {
          return getFormattedValue();
       }
-      return "field "+field+" not found in variable";
+      return "field '"+field+"' not found in variable '"+getKey()+"'";
    }
 
    /**
@@ -953,7 +956,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @throws Exception
     */
    public String getDefaultParameterValue() throws Exception {
-      return getDefault().toString();
+      Object t = getDefault();
+      if (t==null) {
+         return null;
+      }
+      return t.toString();
    }
 
    /**

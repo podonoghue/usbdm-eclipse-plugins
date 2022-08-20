@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -918,9 +918,6 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
-      if (getKeyAttribute(varElement).contains("port_pcr_dse")) {
-         System.err.println("Found " + getKeyAttribute(varElement));
-      }
       if (!checkCondition(varElement)) {
          return;
       }
@@ -976,8 +973,8 @@ public class ParseMenuXML extends XML_BaseParser {
       String description     = variable.getDescriptionAsCode();
       String tooltip         = variable.getToolTipAsCode();
       
-      String valueFormat     = varElement.getAttribute("valueFormat");
-      if (valueFormat.isBlank()) {
+      String valueFormat     = getAttribute(varElement, "valueFormat");
+      if (valueFormat == null) {
          valueFormat = macroName+"(%s)";
       }
       
@@ -1007,7 +1004,9 @@ public class ParseMenuXML extends XML_BaseParser {
          
          String[] valueFormats = valueFormat.split(",");
          String[] vals         = choiceData[index].getValue().split(",");
-         
+         if (valueFormats.length != vals.length) {
+            throw new Exception("valueFormat '"+valueFormat+"' does not match value '"+vals[index]+"'" );
+         }
          StringBuilder sb = new StringBuilder();
          for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
             if (valIndex>0) {
@@ -1364,9 +1363,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          throw new Exception("Alias requires key "+name);
       }
-//      if (key.contains("dfer")) {
-//         System.err.println("Found " + key);
-//      }
       boolean isConstant  = Boolean.valueOf(getAttribute(stringElement, "constant", "true"));
       boolean isOptional  = Boolean.valueOf(getAttribute(stringElement, "optional", "false"));
       
@@ -1574,28 +1570,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
       
-   private static class BiconsumerReplacer implements BiConsumer<String, String> {
-      String text;
-      
-      BiconsumerReplacer(String text) {
-         this.text = text;
-         if (text == null) {
-            System.err.println("text is null");
-         }
-      }
-      
-      @Override
-      public void accept(String key, String value) {
-         if (key==null) {
-            System.err.println("key is null, value = "+value);
-         }
-         if (value==null) {
-            System.err.println("value is null, res = "+key);
-         }
-         text = text.replace(key, value);
-      }
-   }
-
    /**
     * Apply a set of template substitutions of form <b>%name</b> in template text
     * 
@@ -1604,19 +1578,23 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @return Modified test
     */
-   private String doTemplateSubstitutions(String text, Map<String, String> substitutions) {
+   private String doTemplateSubstitutions(String text, List<StringPair> substitutions) {
       if (text == null) {
          return null;
       }
-      // Replace body first!
-      String bodyText = substitutions.get("%body");
-      if (bodyText != null) {
-         text = text.replace("%body", bodyText);
+      if (substitutions == null) {
+         return text;
       }
-      
-      BiconsumerReplacer br = new BiconsumerReplacer(text);
-      substitutions.forEach(br);
-      return br.text;
+      for (StringPair p:substitutions) {
+         if (p.key==null) {
+            System.err.println("key is null, value = "+p.value);
+         }
+         if (p.value==null) {
+            System.err.println("value is null, res = "+p.key);
+         }
+         text = text.replace(p.key, p.value);
+      }
+      return text;
    }
    
    /**
@@ -1661,6 +1639,15 @@ public class ParseMenuXML extends XML_BaseParser {
       return register;
    }
    
+   class StringPair {
+      String key;
+      String value;
+      StringPair(String key, String value) {
+         this.key   = key;
+         this.value  = value;
+      }
+   };
+   
    /**
     * Construct template substitutions<br><br>
     * 
@@ -1673,9 +1660,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>%tooltip                  Tool-tip from controlVar
     * <li>%enumClass                Based on enumStem with upper-case first letter
     * <li>%enumParam                Based on enumStem with lower-case first letter
-    * <li>%bareValueExpression      Of form <b>$(controlVarName)</b>
+    * <li>%valueExpression          Of form <b>$(controlVarName)</b>
     * <li>%symbolicValueExpression  Of form <b>$(controlVarName.enum[])</b>
-    * <li>%defaultValueExpression   Of form <b>CONTROL_VAR_NAME($(control_var_name))</b>
     * <li>%defaultClockExpression   Based on controlVarName etc. Similar to sim->SOPT2 = (sim->SOPT2&~%mask) | %enumParam;
     * <li>%defaultMaskingExpression Based on controlVarName etc. Similar to (sim->SOPT2&%mask)
     * <br><br>
@@ -1687,111 +1673,317 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element          Element 
     * @param condition   Control var to obtain information from
     * 
-    * @return  List of substitutions
-    * @throws Exception 
+    * @return  List of substitutions or null if variableAttributeName==null or no corresponding attribute found
+    * 
+    * @throws  Exception 
     */
-   Map<String,String> getTemplateSubstitutions(Element element, Variable variable) throws Exception {
-      
-      Map<String,String> substitutions = new HashMap<String,String>();
-      
-      String description                = "'%description' not available in this template";
-      String shortDescription           = "'%shortDescription' not available in this template";
-      String tooltip                    = "'%tooltip' not available in this template";
-      String defaultValueExpression     = "'%defaultValueExpression' not available in this template";
-      String bareValueExpression        = "'%bareValueExpression' not available in this template";
-      String mask                       = "'%mask' not available in this template";
-      String symbolicValueExpression    = "'%symbolicValueExpression' is not valid here"; 
-      String enumParam                  = "'%enumParam' is not valid here";
-      String enumClass                  = "'%enumClass' is not valid here";     
-      String defaultClockExpression     = "'%defaultClockExpression' is not valid here";
-      String defaultMaskingExpression   = "'%defaultMaskingExpression' is not valid here";
-      String variable_key               = "'%variable' is not available here";
+   List<StringPair> getTemplateSubstitutions(Element element, String variableAttributeName) throws Exception {
 
-//      if (!controlVarName.isBlank() && (controlVar == null)) {
-//         System.err.println("Unable to find variable " + controlVarName);
-//      }
-      String register = null;
+      ArrayList<StringPair> substitutions = new ArrayList<StringPair>();
 
-      if (variable != null) {
-         variable_key = variable.getKey();
-         String macro = Variable.getBaseNameFromKey(variable_key).toUpperCase();
-         if (macro.endsWith(".")) {
-            throw new Exception("keys ending with '.' no longer accepted '"+variable_key+"'");
+      StringBuilder maskSb                    = new StringBuilder();  // Combined mask e.g. MASK1|MASK2
+      StringBuilder valueExpressionSb         = new StringBuilder();  // Combined values $(var1)|$(var2)
+      StringBuilder symbolicValueExpressionSb = new StringBuilder();  // Combined values $(var1.enum[])|$(var2.enum[])
+      StringBuilder initExpressionSb          = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
+      StringBuilder paramExprSb               = new StringBuilder();  // Combined expression param1|param2
+      StringBuilder paramsSb                  = new StringBuilder();  // Parameter list with defaults etc. 
+      StringBuilder commentsSb                = new StringBuilder();  // @param style comments for parameters
+
+      if (getAttribute(element, "enumStem") != null) {
+         throw new Exception(" 'enumStem' no longer accepted on template " + getAttribute(element, "key"));
+      }
+
+      String terminator = getAttribute(element, "terminator");
+      if (terminator == null) {
+         terminator = ";";
+      }
+
+      boolean expressionOnOneLine = Boolean.valueOf(getAttribute(element, "expressionOnOneLine"));
+
+      String  register           = null;
+      boolean registeNameChanged = false;
+
+      if (variableAttributeName == null) {
+         // Returns empty list to indicate template should be processed
+         return new ArrayList<StringPair>();
+      }
+      String variables = getAttribute(element, variableAttributeName);
+      if (variables == null) {
+         return new ArrayList<StringPair>();
+      }
+
+      String varNames[] = variables.split(",");
+
+      Long numberOfNonDefaultParams = safeGetLongAttribute(element, "nonDefaultParams");
+      if (numberOfNonDefaultParams == null) {
+         numberOfNonDefaultParams = (long) 1;
+      }
+
+      String defaultParamValue = getAttribute(element, "defaultParamValue");
+
+      ArrayList<Variable> variableList = new ArrayList<Variable>();
+      int paramCount=0;
+      for (String varName:varNames) {
+         String variableKey = fProvider.makeKey(varName.trim());
+         
+         Variable var = safeGetVariable(variableKey);
+         if (var==null) {
+            // Reduce numberOfDefaultParams if related parameter is missing 
+            // but keep at least 1 non-default
+            if ((numberOfNonDefaultParams>1) && (paramCount < numberOfNonDefaultParams)) {
+               numberOfNonDefaultParams--;
+            }
+            continue;
          }
-         if (macro.endsWith("[]")) {
-            macro = macro.substring(0, macro.length()-2);
-         }
-         if (macro.endsWith("[0]")) {
-            macro = macro.substring(0, macro.length()-3);
-         }
-         mask = macro+"_MASK";
-         if (element.hasAttribute("mask")) {
-            mask = getAttribute(element, "mask");
-         }
-         bareValueExpression    = "($("+variable_key+"))";
-         defaultValueExpression = macro+bareValueExpression;
+         variableList.add(var);
+      }
 
-         if (variable != null) {
-            String value = variable.getDescriptionAsCode();
-            if (value != null) {
-               description = value;
-            }
-            value = variable.getShortDescription();
-            if (value != null) {
-               shortDescription = value;
-            }
-            value = variable.getToolTipAsCode();
-            if (value != null) {
-               tooltip = value;
-            }
+      if (variableList.isEmpty()) {
+         // No variables exist - don't generate method
+         return null;
+      }
+      // Find maximum name length
+      int maxNameLength = 10;
+      for (int index=0; index<variableList.size(); index++) {
+         String typeName = variableList.get(index).getTypeName();
+         if (typeName == null) {
+            continue;
+         }
+         maxNameLength = Math.max(maxNameLength, typeName.length());
+      }
 
-            // enumStem can be on template or sorceVar
-            String enumStem = variable.getTypeName();
-            if (enumStem == null) {
-               enumStem = getAttribute(element, "enumStem");
-            }
-            if (enumStem != null) {
-               enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
-               enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
-            }
-            symbolicValueExpression = "$("+variable_key+".enum[])";
+      for (int index=0; index<variableList.size(); index++) {
 
-            // Try to deduce register
-            register = deduceRegister(variable);
-            
-            if (register != null) {
-               defaultClockExpression   = register+" = ("+register+"&~"+mask+") | "+enumParam+";";
-               defaultMaskingExpression = register+"&"+mask;
+         Variable variable    = variableList.get(index); 
+         String   variableKey = variable.getKey();
+         String temp;
+
+         if (index > 0) {
+            maskSb.append('|');
+            valueExpressionSb.append('|');
+            symbolicValueExpressionSb.append('|');
+            initExpressionSb.append("\n");
+            paramExprSb.append('|');
+            paramsSb.append(",\n");
+            commentsSb.append("\n");
+         }
+
+         // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
+         String mask;
+
+         // Value format string 
+         String valueFormat  = variable.getValueFormat();
+
+
+         if (valueFormat != null) {
+            mask = valueFormat.replace(",", "|").replace("(%s)", "_MASK");
+         }
+         else {
+            mask = Variable.getBaseNameFromKey(variableKey).toUpperCase()+"_MASK"; 
+         }
+         maskSb.append(mask);
+
+         // $(variableKey)
+         String valueExpression = "$("+variableKey+")";
+         valueExpressionSb.append(valueExpression);
+
+         // $(variableKey.enum[])
+         String symbolicValueExpression = "$("+variableKey+".enum[])";
+         symbolicValueExpressionSb.append(symbolicValueExpression);
+
+         // Description from variable
+         String description = "'%description' not available in this template";
+         temp = variable.getDescription();
+         if (temp != null) {
+            description = temp;
+         }
+
+         // Short description from variable
+         String shortDescription = "'%shortDescription' not available in this template";
+         temp = variable.getShortDescription();
+         if (temp != null) {
+            shortDescription = temp;
+         }
+
+         // Tool-tip from variable
+         String tooltip                    = "'%tooltip' not available in this template";
+         temp = variable.getToolTipAsCode();
+         if (temp != null) {
+            tooltip = temp;
+         }
+
+         if (!expressionOnOneLine) {
+            if (index == 0) {
+               initExpressionSb.append("\n\\t   ");
             }
             else {
-               register = "'%register' is not valid here";
+               initExpressionSb.append("\\t   ");
             }
+         }
+         if (variable instanceof VariableWithChoices) {
+            initExpressionSb.append(symbolicValueExpression);
+         }
+         else {
+            initExpressionSb.append("$("+variableKey+".formattedValue)");
+            //               value = "$("+var.getKey()+")";
+         }
+         if (index+1 == variableList.size()) {
+            initExpressionSb.append(terminator+"  // ");
+         }
+         else {
+            initExpressionSb.append(" | // ");
+         }
+
+         initExpressionSb.append("$("+variableKey+".shortDescription)");
+
+         // Type from variable with lower-case 1st letter 
+         String enumClass = "'%enumClass' is not valid here";
+
+         // Type from variable with upper-case 1st letter 
+         String enumParam = "'%enumParam' is not valid here";
+
+         String enumStem = variable.getTypeName();
+         if (enumStem != null) {
+            enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
+            enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
+         }
+
+         String comment = "'%comment' is not valid here";
+
+         temp = variable.getToolTipAsCode();
+         if (temp != null) {
+            comment = temp;
+         }
+         String defaultParamV = variable.getDefaultParameterValue();
+         if (defaultParamValue != null) {
+            defaultParamV = defaultParamValue;
+         }
+
+         paramExprSb.append(enumParam);
+
+         commentsSb.append(String.format("\\t * @param %"+(-maxNameLength)+"s %s", enumParam, comment));
+         String padding = "";
+         if (variableList.size() >1) {
+            padding = "\\t      ";
+         }
+         if (index<numberOfNonDefaultParams) {
+            paramsSb.append(String.format(padding + "%"+(-maxNameLength)+"s %s", enumClass, enumParam));
+         }
+         else {
+            paramsSb.append(String.format(padding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", enumClass, enumParam, defaultParamV));
+         }
+
+         // Register name deduced from variable name
+         String registerN = "'%register' is not valid here";
+         // Try to deduce register
+         temp = deduceRegister(variable);
+         if (temp != null) {
+            registerN = temp;
+            if (!registeNameChanged) {
+               if (register == null) {
+                  register = temp;
+               }
+               else if (!temp.equals(register)) {
+                  registeNameChanged = true;
+                  register           = "%register is conflicted";
+               }
+            }
+         }
+         substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
+         substitutions.add(0, new StringPair("%symbolicValueExpression"+index, symbolicValueExpression));
+
+         substitutions.add(0, new StringPair("%variable"+index,                variableKey));
+         substitutions.add(0, new StringPair("%description"+index,             description));
+         substitutions.add(0, new StringPair("%shortDescription"+index,        shortDescription));
+         substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
+         substitutions.add(0, new StringPair("%mask"+index,                    mask));
+         substitutions.add(0, new StringPair("%enumParam"+index,               enumParam));
+         substitutions.add(0, new StringPair("%enumClass"+index,               enumClass));
+         substitutions.add(0, new StringPair("%register"+index,                registerN));
+         if (index == 0) {
+            substitutions.add(new StringPair("%variable",                variableKey));
+            substitutions.add(new StringPair("%description",             description));
+            substitutions.add(new StringPair("%shortDescription",        shortDescription));
+            substitutions.add(new StringPair("%tooltip",                 tooltip));
+            substitutions.add(new StringPair("%enumParam",               enumParam));
+            substitutions.add(new StringPair("%enumClass",               enumClass));
+            substitutions.add(new StringPair("%register",                registerN));
+         }
+      }
+
+      String mask = null;
+      if (maskSb.length() > 0) {
+         mask = maskSb.toString();
+         boolean bracketsRequired = !mask.matches("[a-zA-Z0-9_]*");
+         if (bracketsRequired) {
+            mask = '('+mask+')';
+         }
+      }
+      if (element.hasAttribute("mask")) {
+         throw new Exception("mask no longer supported on template");
+      }
+      String expression = "'%expression' is not valid here";
+      if (valueExpressionSb.length()>0) {
+         expression = valueExpressionSb.toString();
+      }
+
+      String paramExpr = "'%paramExpr' is not valid here";
+      if (paramExprSb.length()>0) {
+         paramExpr = paramExprSb.toString();
+      }
+
+      String defaultMaskingExpression   = "'%defaultMaskingExpression' is not valid here";
+      String defaultFieldExpression     = "'%defaultFieldExpression' is not valid here";
+      if ((register != null) && (mask != null)) {
+         defaultMaskingExpression = register+"&"+mask;
+         if (expression != null) {
+            defaultFieldExpression   = register+" = ("+register+"&~"+mask+") | "+paramExpr+";";
          }
       }
       if (register == null) {
          register = "'%register' is not valid here";
       }
-      if (element.hasAttribute("mask")) {
-         mask = getAttribute(element, "mask");
+      if (mask == null) {
+         mask = "'%mask' not available in this template";
       }
-      
-      substitutions.put("%variable",                  variable_key);
-      substitutions.put("%mask",                      mask);
-      substitutions.put("%enumClass",                 enumClass);
-      substitutions.put("%enumParam",                 enumParam);
-      substitutions.put("%description",               description);
-      substitutions.put("%shortDescription",          shortDescription);
-      substitutions.put("%tooltip",                   tooltip);
-      substitutions.put("%defaultValueExpression",    defaultValueExpression);
-      substitutions.put("%bareValueExpression",       bareValueExpression);
-      substitutions.put("%symbolicValueExpression",   symbolicValueExpression);
-      substitutions.put("%defaultClockExpression",    defaultClockExpression);
-      substitutions.put("%defaultMaskingExpression",  defaultMaskingExpression);
-      substitutions.put("%register",                  register);
+      String params = "'%params' is not valid here";
+      if (paramsSb.length()>0) {
+         params = paramsSb.toString();
+      }
+      String comments = "'%comments' is not valid here";
+      if (commentsSb.length()>0) {
+         comments = commentsSb.toString();
+      }
+
+      String initExpression = "'%initExpression' is not valid here";
+      if (initExpressionSb.length()>0) {
+         initExpression = initExpressionSb.toString();
+      }
+
+      substitutions.add(new StringPair("%initExpression",            initExpression));
+      substitutions.add(new StringPair("%expression",                expression));
+      substitutions.add(new StringPair("%valueExpression",           valueExpressionSb.toString()));
+      substitutions.add(new StringPair("%symbolicValueExpression",   symbolicValueExpressionSb.toString()));
+      substitutions.add(new StringPair("%paramExpression",           paramExpr));
+      substitutions.add(new StringPair("%mask",                      mask));
+      substitutions.add(new StringPair("%defaultFieldExpression",    defaultFieldExpression));
+      substitutions.add(new StringPair("%defaultClockExpression",    defaultFieldExpression));
+      substitutions.add(new StringPair("%defaultMaskingExpression",  defaultMaskingExpression));
+      substitutions.add(new StringPair("%register",                  register));
+      substitutions.add(new StringPair("%params",                    params));
+      substitutions.add(new StringPair("%comments",                  comments));
 
       return substitutions;
    }
    
+   /**
+    * Does a basic check on template attributes
+    * 
+    * @param namespace
+    * @param key
+    * @param title
+    * @throws Exception
+    */
    void templateBasicCheck(String namespace, String key, String title) throws Exception {
       title = "<"+title+">";
       if (namespace.isBlank()) {
@@ -1805,6 +1997,37 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    
+   /**
+    * Processes 'discardRepeats' and 'condition' attributes
+    * 
+    * @param element  Element to obtain attributes from
+    * 
+    * @return  true if template should be use
+    * @return  false if template should be discarded
+    * 
+    * @throws Exception
+    */
+   private boolean checkTemplateConditions(Element element) throws Exception {
+      if (!checkCondition(element)) {
+         return false;
+      }
+      if (element.hasAttribute("discardRepeats")) {
+         
+         // Discard repeated templates rather than accumulate
+         String repeatKey = "$TEMPLATE"+getKeyAttribute(element);
+
+         // Already blocked?
+         if (fPeripheral.getDeviceInfo().checkIfRepeatedItem(repeatKey)) {
+            // These are common!
+            return false;
+         }
+         
+         // Add to list for later blocking
+         repeatedItems.add(repeatKey);
+      }
+      return true;
+   }
+
    /**
     * Expected attributes:<br>
     * <li>&lt;name&gt; - Used to place template at arbitrary location (creates variable of that name)
@@ -1834,19 +2057,12 @@ public class ParseMenuXML extends XML_BaseParser {
 
       templateBasicCheck(namespace, key, "templates");
       
-      Variable variable   = null;
+      List<StringPair> substitutions = getTemplateSubstitutions(element, "variables");
       
-      String variableName = getAttribute(element, "variable");
-      
-      if (variableName != null) {
-         variable = safeGetVariable(variableName);
-         if (variable == null) {
-            return;
-         }
+      if (substitutions == null) {
+         // Non-empty variable list and variables not found
+         return;
       }
-      
-      Map<String,String> substitutions = getTemplateSubstitutions(element, variable);
-      
       TemplateInformation templateInfo = addTemplate(key, namespace);
       
       for (Node node = element.getFirstChild();
@@ -1861,271 +2077,70 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    
-   private boolean checkTemplateConditions(Element element) throws Exception {
-      if (!checkCondition(element)) {
-         return false;
-      }
-      if (element.hasAttribute("discardRepeats")) {
-         
-         // Discard repeated templates rather than accumulate
-         String repeatKey = "$TEMPLATE"+getKeyAttribute(element);
+   String getTemplateCaseStatement(Element element, Variable var) throws Exception {
 
-         // Already blocked?
-         if (fPeripheral.getDeviceInfo().checkIfRepeatedItem(repeatKey)) {
-            // These are common!
-            return false;
-         }
-         
-         // Add to list for later blocking
-         repeatedItems.add(repeatKey);
+      String caseBody = "%body (case statement) not available here";
+
+      String returnFormat = getAttribute(element, "returnFormat");
+      if (returnFormat == null) {
+         return caseBody;
       }
-      return true;
+      
+      if (var == null) {
+         return caseBody + "(var not present)";
+      }
+      if (!(var instanceof VariableWithChoices)) {
+         return caseBody + "(Var not of correct type)";
+      }
+      VariableWithChoices choiceVar = (VariableWithChoices) var;
+
+      StringBuilder caseBodySb = new StringBuilder();
+      String enumStem = choiceVar.getTypeName();
+      if (enumStem.isBlank()) {
+         return caseBody + "(No enumStem)";
+      }
+      ChoiceData[] choiceData = choiceVar.getData();
+
+      String[] enumNames      = new String[choiceData.length];
+      String[] returnValues   = new String[choiceData.length];
+
+      String   comment;
+      int enumNameMax    = 0;
+      int returnValueMax = 0;
+
+      // Create body for case statement
+      for (int index=0; index<choiceData.length; index++) {
+
+         String enumName  = choiceData[index].getEnumName();
+         String codeValue = choiceData[index].getCodeValue();
+         if ((enumName == null) || (codeValue == null)) {
+            throw new Exception("Choice '"+choiceData[index].getName()+"' is missing enum/code value in "+choiceVar);
+         }
+         enumNames[index]     = enumStem+"_"+enumName;
+         enumNameMax          = Math.max(enumNameMax, enumNames[index].length());
+         returnValues[index]  = String.format(returnFormat+";", codeValue);
+         returnValueMax       = Math.max(returnValueMax, returnValues[index].length());
+      }
+      //         if (choiceVar instanceof BooleanVariable) {
+      //            final String bFormat = 
+      //                  "\n"+
+      //                  "\\t   if (%s) {\n" +
+      //                  "\\t      return %s\n" +
+      //                  "\\t   }\n" +
+      //                  "\\t   else {\n" +
+      //                  "\\t      return %s\n" +
+      //                  "\\t   };\n";
+      //            body.append(String.format(bFormat, "(%defaultMaskingExpression) == "+enumNames[0], returnValues[0], returnValues[1]));
+      //         }
+      //         else {
+      final String format = "\\t      case %-"+enumNameMax+"s : return %-"+returnValueMax+"s %s\n";
+      for (int index=0; index<choiceData.length; index++) {
+         comment  = "///< "+choiceData[index].getName();
+         caseBodySb.append(String.format(format, enumNames[index], returnValues[index], comment));
+      }
+      return caseBodySb.toString();
    }
-
-   /**
-    * 
-    * Creates a method to set an entire register given list of variables to use for parameter generation
-    * <p>
-    * 
-    * Extra attributes:
-    * <li> &lt;variables&gt; List of variables being used<br><br>
-    * <li> &lt;nonDefaultParams&gt; Number of parameters to not have default values (defaults to 1)<br><br>
-    * 
-    * Within the template:
-    * <li>%comments     Generated Doxygen @param comments for variables
-    * <li>%params       Generated comma-separated list of variables for use as parameters
-    * <li>%expression   Generated '|'-separated list of variables for use as expression
-    * 
-    * @param element
-    * @throws Exception
-    */
-   private void parseSetTemplate(Element element) throws Exception {
-      if (!checkTemplateConditions(element)) {
-         return;
-      }
-      String key       = getKeyAttribute(element);
-      String namespace = getAttribute(element, "namespace"); // info|usbdm|class|all
-      
-      templateBasicCheck(namespace, key, "setTemplates");
-      
-      Long numberOfNonDefaultParams = safeGetLongAttribute(element, "nonDefaultParams");
-
-      String defaultParamValue = getAttribute(element, "defaultParamValue");
-      
-      String varNames[] = getAttribute(element, "variables").split(",");
-      if (varNames.length == 0) {
-         throw new Exception("setTemplate is missing 'variables' attribute, key='" + key + "'");
-      }
-      
-      ArrayList<Variable> variables = new ArrayList<Variable>();
-      int paramCount=0;
-      for (String varName:varNames) {
-         if (fProvider.getName().contains("CMT")) {
-            System.err.println("Found "+ fProvider);
-         }
-         Variable choiceVar = safeGetVariable(varName.trim());
-         if (choiceVar==null) {
-            // Reduce numberOfDefaultParams if related parameter is missing 
-            // but keep at least 1 non-default
-            if ((numberOfNonDefaultParams>1) && (paramCount < numberOfNonDefaultParams)) {
-               numberOfNonDefaultParams--;
-            }
-            continue;
-         }
-         variables.add(choiceVar);
-      }
-      if (variables.isEmpty()) {
-         // No variables exist - don't generate method
-         return;
-      }
-      int maxNameLength = 0;
-      for (int index=0; index<variables.size(); index++) {
-         maxNameLength = Math.max(maxNameLength, variables.get(index).getTypeName().length());
-      }
-      StringBuilder comments    = new StringBuilder();
-      StringBuilder params      = new StringBuilder();
-      StringBuilder expression  = new StringBuilder();
-      StringBuilder mask        = new StringBuilder();
-      
-      for (int index=0; index<variables.size(); index++) {
-         Variable var = variables.get(index); 
-         String typeName      = var.getTypeName();
-         String paramType     = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-         String paramName     = Character.toLowerCase(typeName.charAt(0)) + typeName.substring(1);
-         String comment       = var.getToolTipAsCode();
-         String defaultParamV = var.getDefaultParameterValue();
-         if (defaultParamValue != null) {
-            defaultParamV = defaultParamValue;
-         }
-         String name         = var.getName();
-         String valueFormat  = var.getValueFormat();
-         if (index>0) {
-            comments.append("\n");
-            params.append(",\n");
-            expression.append('|');
-            mask.append('|');
-         }
-         comments.append(String.format("\\t * @param %"+(-maxNameLength)+"s %s", paramName, comment));
-         String padding = "";
-         if (variables.size() >1) {
-            padding = "\\t      ";
-         }
-         if (index<numberOfNonDefaultParams) {
-            params.append(String.format(padding + "%"+(-maxNameLength)+"s %s", paramType, paramName));
-         }
-         else {
-            params.append(String.format(padding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, paramName, defaultParamV));
-         }
-         expression.append(paramName);
-         if (valueFormat != null) {
-            mask.append(valueFormat.replace(",", "|").replace("(%s)", "_MASK"));
-         }
-         else {
-            mask.append(name.toUpperCase()+"_MASK");
-         }
-      }
-      String register = deduceRegister(variables.get(0));
-      if (register == null) {
-         register = "'%register' is not valid here";
-      }
-      
-      Map<String,String> substitutions;
-      if (variables.size() == 1) {
-         substitutions = getTemplateSubstitutions(element, variables.get(0));
-      }
-      else {
-         substitutions = getTemplateSubstitutions(element, null);
-      }
-      substitutions.put("%comments",    comments.toString());
-      substitutions.put("%params",      params.toString());
-      substitutions.put("%expression",  expression.toString());
-      substitutions.put("%mask",        mask.toString());
-      substitutions.put("%register",    register);
-      
-      TemplateInformation templateInfo = addTemplate(key, namespace);
-      
-      for (Node node = element.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            String bodyText = getText(node);
-            bodyText = doTemplateSubstitutions(bodyText, substitutions);
-            templateInfo.addText(bodyText);
-            continue;
-         }
-      }
-   }
-
-   /**
-    * 
-    * Creates a method to set an entire register given list of variables to use for parameter generation
-    * <p>
-    * 
-    * Extra attributes:
-    * <li> &lt;variables&gt; List of variables being used<br><br>
-    * <li> &lt;nonDefaultParams&gt; Number of parameters to not have default values (defaults to 1)<br><br>
-    * 
-    * Within the template:
-    * <li>%comments     Generated Doxygen @param comments for variables
-    * <li>%params       Generated comma-separated list of variables for use as parameters
-    * <li>%expression   Generated '|'-separated list of variables for use as expression
-    * 
-    * @param element
-    * @throws Exception
-    */
-   private void parseInitialValueTemplate(Element element) throws Exception {
-      
-      if (!checkTemplateConditions(element)) {
-         return;
-      }
-      String key       = getKeyAttribute(element);
-      String namespace = getAttribute(element, "namespace"); // info|usbdm|class|all
-      
-      templateBasicCheck(namespace, key, "initialValueTemplate");
-      
-      String terminator = ";";
-      if (element.hasAttribute("terminator")) {
-         terminator = getAttribute(element, "terminator");
-      }
-//      if (key.contains("McgClockInfoEntries")) {
-//         System.err.println("parseInitialValueTemplate '"+key+"'");
-//      }
-
-      String varNames[] = getAttribute(element, "variables").split(",");
-      if (varNames.length == 0) {
-         throw new Exception("initialValueTemplate is missing 'variables' attribute, key='" + key + "'");
-      }
-//      if (varNames[0].contains("sim_sopt1_osc32kout")) {
-//         System.err.println("Found " + varNames[0]);
-//      }
-         
-      ArrayList<Variable> variables = new ArrayList<Variable>();
-      for (String varName:varNames) {
-         Variable choiceVar = safeGetVariable(varName.trim());
-         if (choiceVar==null) {
-            continue;
-         }
-         variables.add(choiceVar);
-      }
-      if (variables.isEmpty()) {
-         // No variables exist - don't generate method
-         return;
-      }
-
-      StringBuilder expression  = new StringBuilder();
-      
-      Variable lastVar = variables.get(variables.size()-1);
-      
-      for (Variable var:variables) {
-         String value;
-         if (var instanceof VariableWithChoices) {
-            value = "$("+var.getKey()+".enum[])";
-         }
-         else {
-            value = "$("+var.getKey()+".formattedValue)";
-//            value = "$("+var.getKey()+")";
-         }
-         String comment       = "$("+var.getKey()+".description)";
-
-         expression.append("\n\\t   " + value);
-         if (var == lastVar) {
-            expression.append(terminator+"  // "); 
-         }
-         else {
-            expression.append(" | // "); 
-         }
-         expression.append(comment);
-      }
-      
-      String register = deduceRegister(variables.get(0));
-      if (register == null) {
-         register = "'%register' is not valid here";
-      }
-      
-      Map<String,String> substitutions;
-      if (variables.size() == 1) {
-         substitutions = getTemplateSubstitutions(element, variables.get(0));
-      }
-      else {
-         substitutions = getTemplateSubstitutions(element, null);
-      }
-      substitutions.put("%expression",  expression.toString());
-      substitutions.put("%register",    register);
-      
-      TemplateInformation templateInfo = addTemplate(key, namespace);
-      
-      for (Node node = element.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            String bodyText = getText(node);
-            bodyText = doTemplateSubstitutions(bodyText, substitutions);
-            templateInfo.addText(bodyText);
-            continue;
-         }
-      }
-   }
-
+   
    /**
     * Expected attributes:<br>
     * <li>&lt;name&gt; - Used to place value at arbitrary location (creates variable of that name)
@@ -2157,83 +2172,22 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String key          = getKeyAttribute(element);
       String namespace    = getAttribute(element, "namespace");
-      String variable     = getAttribute(element, "variable");
-      String returnFormat = getAttribute(element, "returnFormat");
 
       templateBasicCheck(namespace, key, "clockCodeTemplate");
       
-      if (variable == null) {
-         throw new Exception("ClockCodeTemplate must have 'variable' attribute, peripheral='" + 
-               fPeripheral.getName() + "', key= '" + key + "'");
-      }
+      String variable     = getAttribute(element, "variable");
       Variable var = safeGetVariable(variable);
       if (var == null) {
          return;
       }
-      if (!(var instanceof VariableWithChoices)) {
-         throw new Exception("Var is not of expected type 'VariableWithChoices', var = " + var);
-      }
+      String caseBody = getTemplateCaseStatement(element, var);
       
-      VariableWithChoices choiceVar = (VariableWithChoices) var;
-      String enumStem = choiceVar.getTypeName();
-      if (enumStem == null) {
-         enumStem = getAttribute(element, "enumStem");
-      }
-      if (enumStem.isBlank()) {
-         throw new Exception("ClockCodeTemplate must have 'enumStem' attribute, peripheral='" + 
-               fPeripheral.getName() + "', cond= '" + variable + "'");
-      }
+      List<StringPair> substitutions = getTemplateSubstitutions(element, "variable");
+      
+      substitutions.add(0, new StringPair("%body", caseBody));
+
       TemplateInformation templateInfo = addTemplate(key, namespace);
       
-      StringBuilder body = new StringBuilder();
-      
-      ChoiceData[] choiceData = choiceVar.getData();
-      
-      String[] enumNames      = new String[choiceData.length];
-      String[] returnValues   = new String[choiceData.length];
-      
-      String   comment;
-      int enumNameMax    = 0;
-      int returnValueMax = 0;
-      
-      if (returnFormat != null) {
-         // Create body for case statement if used
-         for (int index=0; index<choiceData.length; index++) {
-
-            String enumName  = choiceData[index].getEnumName();
-            String codeValue = choiceData[index].getCodeValue();
-            if ((enumName == null) || (codeValue == null)) {
-               throw new Exception("Choice '"+choiceData[index].getName()+"' is missing enum/code value in "+choiceVar);
-            }
-            enumNames[index]     = enumStem+"_"+enumName;
-            enumNameMax          = Math.max(enumNameMax, enumNames[index].length());
-            returnValues[index]  = String.format(returnFormat+";", codeValue);
-            returnValueMax       = Math.max(returnValueMax, returnValues[index].length());
-         }
-//         if (choiceVar instanceof BooleanVariable) {
-//            final String bFormat = 
-//                  "\n"+
-//                  "\\t   if (%s) {\n" +
-//                  "\\t      return %s\n" +
-//                  "\\t   }\n" +
-//                  "\\t   else {\n" +
-//                  "\\t      return %s\n" +
-//                  "\\t   };\n";
-//            body.append(String.format(bFormat, "(%defaultMaskingExpression) == "+enumNames[0], returnValues[0], returnValues[1]));
-//         }
-//         else {
-            final String format = "\\t      case %-"+enumNameMax+"s : return %-"+returnValueMax+"s %s\n";
-            for (int index=0; index<choiceData.length; index++) {
-               comment  = "///< "+choiceData[index].getName();
-               body.append(String.format(format, enumNames[index], returnValues[index], comment));
-            }
-//         }
-      }
-      
-      Map<String, String> substitutions = getTemplateSubstitutions(element, var);
-      
-      substitutions.put("%body", body.toString());
-
       for (Node node = element.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -2248,140 +2202,6 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
    }
-
-   /**
-    * Expected attributes:<br>
-    * <li>&lt;name&gt; - Used to place value at arbitrary location (creates variable of that name)
-    * <li>&lt;namespace&gt; (info|usbdm|class|all) - Scope where template is available in
-    * <li>&lt;&gt; - Name of existing <b>choice</b> or <b>binary</b> variable used as information source
-    * <li>&lt;returnFormat&gt; - Used for writing return value e.g. String.format("XXXX(%s)", enumName)<br>
-    * 
-    * &lt;valueFormat&gt; default to upper-cased value based on &lt;&gt; if needed<br>
-    * &lt;template&gt; and &lt;enumStem&gt;+&lt;valueFormat&gt; are alternatives<br>
-    * &lt;returnFormat&gt; is only required if %xxx is used<br><br>
-    * 
-    * Substitutions in Text :<br>
-    * <li>%tooltip - From &lt;&gt; variable
-    * <li>%description - From &lt;&gt; variable
-    * <li>%enumClass  - Based on enumStem with upper-case first letter
-    * <li>%enumParam  - Based on enumStem with lower-case first letter
-    * <li>%mask - From &lt;mask&gt; or deduced from &lt;&gt;
-    * <li>%defaultClockExpression - Based on  etc. Similar to sim->SOPT2 = (sim->SOPT2&~%mask) | %enumParam;
-    * <li>%defaultMaskingExpression - Based on  etc. Similar to (sim->SOPT2&%mask)
-    * <li>%body - Constructed case clauses
-    * 
-    * @param element
-    * @throws Exception
-    */
-//   private void parseMultiVariableTemplate(Element element) throws Exception {
-//      
-//      if (!checkCondition(element)) {
-//         return;
-//      }
-//      String key          = getKeyAttribute(element);
-//      String namespace    = getAttribute(element, "namespace");
-//      String variable     = getAttribute(element, "variable");
-//      String returnFormat = getAttribute(element, "returnFormat");
-//
-//      if (namespace == null) {
-//         throw new Exception("MultiVariableTemplate is missing namespace, key='" + key + "'");
-//      }
-//      if ((key != null) && !namespace.equals("all")) {
-//         throw new Exception("Named MultiVariableTemplate must have 'all' namespace, key='" + key + "'");
-//      }
-//      if ((key == null) && namespace.equals("all")) {
-//         throw new Exception("MultiVariableTemplate must be named in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
-//      }
-//      if (variable == null) {
-//         throw new Exception("MultiVariableTemplate must have 'variable' attribute, peripheral='" + 
-//               fPeripheral.getName() + "', key= '" + key + "'");
-//      }
-//      ArrayList<VariableWithChoices> variablesList = new ArrayList<VariableWithChoices>(); 
-//      for (String varName:variable.split(",")) {
-//         Variable var = safeGetVariable(variable);
-//         if (var == null) {
-//            continue;
-//         }
-//         if (!(var instanceof VariableWithChoices)) {
-//            throw new Exception("Var is not of expected type 'VariableWithChoices', var = " + var);
-//         }
-//         variablesList.add((VariableWithChoices)var);
-//      }
-//      if (variablesList.isEmpty()) {
-//         return;
-//      }
-//      VariableWithChoices[] variables = variablesList.toArray(new VariableWithChoices[variablesList.size()]);
-//      String[] enumStems = new String[variables.length];
-//      for (VariableWithChoices var:variables) {
-//         String enumStem = var.getTypeName();
-//         if (enumStem.isBlank()) {
-//            throw new Exception("Variable '"+var.getKey()+"'missing 'enumStem' attribute in ClockCodeTemplate, peripheral='" + 
-//                  fPeripheral.getName() + "', cond= '" + variable + "'");
-//         }
-//      }
-//      TemplateInformation templateInfo = addTemplate(key, namespace);
-//      
-//      StringBuilder body = new StringBuilder();
-//      
-//      ChoiceData[] choiceData = choiceVar.getData();
-//      
-//      String[] enumNames      = new String[choiceData.length];
-//      String[] returnValues   = new String[choiceData.length];
-//      
-//      String   comment;
-//      int enumNameMax    = 0;
-//      int returnValueMax = 0;
-//      
-//      if (returnFormat != null) {
-//         // Create body for case statement if used
-//         for (int index=0; index<choiceData.length; index++) {
-//
-//            String enumName  = choiceData[index].getEnumName();
-//            String codeValue = choiceData[index].getCodeValue();
-//            if ((enumName == null) || (codeValue == null)) {
-//               throw new Exception("Choice '"+choiceData[index].getName()+"' is missing enum/code value in "+choiceVar);
-//            }
-//            enumNames[index]     = enumStem+"_"+enumName;
-//            enumNameMax          = Math.max(enumNameMax, enumNames[index].length());
-//            returnValues[index]  = String.format(returnFormat+";", codeValue);
-//            returnValueMax       = Math.max(returnValueMax, returnValues[index].length());
-//         }
-////         if (choiceVar instanceof BooleanVariable) {
-////            final String bFormat = 
-////                  "\n"+
-////                  "\\t   if (%s) {\n" +
-////                  "\\t      return %s\n" +
-////                  "\\t   }\n" +
-////                  "\\t   else {\n" +
-////                  "\\t      return %s\n" +
-////                  "\\t   };\n";
-////            body.append(String.format(bFormat, "(%defaultMaskingExpression) == "+enumNames[0], returnValues[0], returnValues[1]));
-////         }
-////         else {
-//            final String format = "\\t      case %-"+enumNameMax+"s : return %-"+returnValueMax+"s %s\n";
-//            for (int index=0; index<choiceData.length; index++) {
-//               comment  = "///< "+choiceData[index].getName();
-//               body.append(String.format(format, enumNames[index], returnValues[index], comment));
-//            }
-////         }
-//      }
-//      Map<String, String> substitutions = getTemplateSubstitutions(element);
-//      substitutions.put("%body",                      body.toString());
-//
-//      for (Node node = element.getFirstChild();
-//            node != null;
-//            node = node.getNextSibling()) {
-//         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-//            String bodyText = getText(node);
-//            bodyText = doTemplateSubstitutions(bodyText, substitutions);
-//            templateInfo.addText(bodyText);
-//            continue;
-//         }
-//         if (node.getNodeType() != Node.ELEMENT_NODE) {
-//            continue;
-//         }
-//      }
-//   }
 
    private void parseDeleteOption(Element element) throws Exception {
       
@@ -2548,16 +2368,25 @@ public class ParseMenuXML extends XML_BaseParser {
          fValidators.add(parseValidate(element));
       }
       else if (tagName == "clockCodeTemplate") {
+         if (!element.hasAttribute("variable")) {
+            throw new Exception("<clockCodeTemplate> must have 'variables' attribute, key='" + key + "'");
+         }
          parseClockCodeTemplate(element);
       }
       else if (tagName == "template") {
          parseTemplate(element);
       }
       else if (tagName == "initialValueTemplate") {
-         parseInitialValueTemplate(element);
+         if (!element.hasAttribute("variables")) {
+            throw new Exception("<initialValueTemplate> must have 'variables' attribute, key='" + key + "'");
+         }
+         parseTemplate(element);
       }
       else if (tagName == "setTemplate") {
-         parseSetTemplate(element);
+         if (!element.hasAttribute("variables")) {
+            throw new Exception("<setTemplate> must have 'variables' attribute, key='" + key + "'");
+         }
+         parseTemplate(element);
       }
       else if (tagName == "addDependency") {
          fPeripheral.addDependency(getKeyAttribute(element));
