@@ -9,24 +9,20 @@ import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 /**
  * Class encapsulating the code for writing an instance of UART
  */
-public class WriterForSmc extends PeripheralWithState {
+public class WriterForFmc extends PeripheralWithState {
 
-   public WriterForSmc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
+   public WriterForFmc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 
    @Override
    public String getTitle() {
-      return "System Mode Controller";
-   }
-
-   @Override
-   public int getPriority() {
-      return 875;
+      return "Flash Memory Controller";
    }
 
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
       extractAllRegisterNames(dbPortPeripheral);
    }
+
 }

@@ -60,6 +60,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexio;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtmShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
@@ -1399,6 +1400,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "(KBI)(\\d)?_(.*)",
                getDeviceFamily(),
                WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(FMC)",
+               getDeviceFamily(),
+               WriterForFmc.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
                "(MCM)",

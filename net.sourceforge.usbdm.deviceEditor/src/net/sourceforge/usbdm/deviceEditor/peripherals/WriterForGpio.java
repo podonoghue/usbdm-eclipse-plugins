@@ -19,6 +19,10 @@ import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Cluster;
+import net.sourceforge.usbdm.peripheralDatabase.Field;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
+import net.sourceforge.usbdm.peripheralDatabase.Register;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
@@ -432,4 +436,27 @@ public class WriterForGpio extends PeripheralWithState {
       return 800;
    }
 
+   String registersToRecord[] = {"PCR"};
+   
+   @Override
+   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      for(Cluster cl:dbPortPeripheral.getRegisters()) {
+         if (!(cl instanceof Register)) {
+            continue;
+         }
+         Register reg = (Register) cl;
+         if (reg.getName().startsWith("PCR")) {
+            for (Field field:reg.getFields()) {
+               String key = "/PCR/"+field.getName().toLowerCase()+"_present";
+               addOrIgnoreStringConstant(key);
+            }
+         } else if (reg.getName().equalsIgnoreCase("DFER")) {
+            String key = "dfer_register_present";
+            addOrIgnoreStringConstant("/PCR/"+key);
+            addOrIgnoreStringConstant(key);
+            break;
+         }
+      }
+   }
+   
 }

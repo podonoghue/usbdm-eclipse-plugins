@@ -267,6 +267,8 @@ public class ParseMenuXML extends XML_BaseParser {
       
       /// Stack for for-loops
       private Stack<ForLoop> forStack = new Stack<ForLoop>();
+      private boolean continueFound = false;
+      private boolean breakFound    = false;
       
       /**
        * Apply for-loop substitutions
@@ -307,10 +309,26 @@ public class ParseMenuXML extends XML_BaseParser {
        */
       public void dropLevel() {
          forStack.pop();
+         breakFound    = false;
+         continueFound = false;
       }
 
       public boolean next() {
-         return forStack.lastElement().next();
+         continueFound = false;
+         boolean res = forStack.lastElement().next();
+         return res && !breakFound;
+      }
+
+      public boolean skipRemanderOfLoop() {
+         return breakFound || continueFound;
+      }
+      
+      public void setBreakFound() {
+         breakFound = true;
+      }
+      
+      public void setContinueFound() {
+         continueFound = true;
       }
    }
   
@@ -356,6 +374,28 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    String doForSubstitutions(String text) throws Exception {
       return fForStack.doForSubstitutions(text);
+   }
+   
+   /**
+    * Parse &lt;for&gt;
+    * 
+    * @param parentModel
+    * @param element
+    * @throws Exception
+    */
+   private void parseBreak(BaseModel parentModel, Element element) throws Exception {
+      fForStack.setBreakFound();
+   }
+   
+   /**
+    * Parse &lt;for&gt;
+    * 
+    * @param parentModel
+    * @param element
+    * @throws Exception
+    */
+   private void parseContinue(BaseModel parentModel, Element element) throws Exception {
+      fForStack.setContinueFound();
    }
    
    /**
@@ -578,7 +618,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String attr = getAttribute(element, name);
       if (Character.isDigit(attr.charAt(0))) {
-         return safeGetLongAttribute(element, name);
+         return getLongAttribute(element, name);
       }
       // Try variable
       Variable var = safeGetVariable(getAttribute(element, name));
@@ -819,10 +859,10 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getLongAttribute(varElement, "min"));
+            variable.setMin(getRequiredLongAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getLongAttribute(varElement, "max"));
+            variable.setMax(getRequiredLongAttribute(varElement, "max"));
          }
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
@@ -831,10 +871,10 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
       }
       if (varElement.hasAttribute("step")) {
-         variable.setStep(getLongAttribute(varElement, "step"));
+         variable.setStep(getRequiredLongAttribute(varElement, "step"));
       }
       if (varElement.hasAttribute("offset")) {
-         variable.setOffset(getLongAttribute(varElement, "offset"));
+         variable.setOffset(getRequiredLongAttribute(varElement, "offset"));
       }
    }
 
@@ -888,7 +928,7 @@ public class ParseMenuXML extends XML_BaseParser {
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       try {
-         variable.setPermittedBits(getLongAttribute(varElement, "bitmask"));
+         variable.setPermittedBits(getRequiredLongAttribute(varElement, "bitmask"));
          variable.setBitList(getAttribute(varElement, "bitList"));
       } catch( NumberFormatException e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
@@ -922,6 +962,11 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
+
+      if (variable.getName().contains("llwu_filt1_filtsel")) {
+         System.err.println("Found " + variable);
+      }
+      
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       
@@ -965,6 +1010,8 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          enumType = "";
       }
+
+      String enumText = getAttribute(varElement, "enumText", "");
       
       String namespace       = "usbdm";
       if (templateKey != null) {
@@ -989,18 +1036,24 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
 
-      String[] enumName  = new String[choiceData.length];
-      String[] values    = new String[choiceData.length];
+      ArrayList<String> enumNamesList = new ArrayList<String>();
+      ArrayList<String> valuesList    = new ArrayList<String>();
+      ArrayList<String> commentsList  = new ArrayList<String>();
       int enumNameMax    = 0;
       int valueMax       = 0;
 
       for (int index=0; index<choiceData.length; index++) {
 
-         String enumValue = choiceData[index].getEnumName();
-         if ((enumValue == null) || enumValue.isBlank()) {
+         String enumName = choiceData[index].getEnumName();
+         if ((enumName == null) || enumName.isBlank()) {
             throw new Exception("enumTemplate - enum data is incomplete in choice '" + choiceData[index].getName() + "' ='"+variable+"'");
          }
-         enumName[index] = enumClass+"_"+enumValue;
+         if (enumName.equals("-deleted-")) {
+            continue;
+         }
+         String completeEnumName = enumClass+"_"+enumName;
+         enumNamesList.add(completeEnumName);
+         enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
          
          String[] valueFormats = valueFormat.split(",");
          String[] vals         = choiceData[index].getValue().split(",");
@@ -1014,17 +1067,17 @@ public class ParseMenuXML extends XML_BaseParser {
             }
             sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
          }
-         values[index]   = sb.toString()+",";
+         String completeValue = sb.toString()+",";
+         valuesList.add(completeValue);
+         valueMax        = Math.max(valueMax, completeValue.length());
          
-         enumNameMax     = Math.max(enumNameMax, enumName[index].length());
-         valueMax        = Math.max(valueMax, values[index].length());
+         commentsList.add(choiceData[index].getName());
       }
       // Create enums body
-      for (int index=0; index<choiceData.length; index++) {
-         String comment  = choiceData[index].getName();
-         body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumName[index], values[index], comment));
+      for (int index=0; index<enumNamesList.size(); index++) {
+         body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
       }
-      
+      body.append(enumText);
       // Create enum declaration
       String entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body);
       templateInfo.addText(entireEnum);
@@ -1063,13 +1116,8 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
-    * Get an attribute and apply usual substitutions
-    *  <li>"$(_name)"         => e.g FTM2                    (fProvider.getName())
-    *  <li>"$(_base_class)"   => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
-    *  <li>"$(_instance)"     => e.g FTM0 => 0, PTA => A     (fPeripheral.getInstance())
-    *  <li>"$(_class)"        => e.g FTM2 => Ftm2            (fPeripheral.getClassName())
-    *  <li>"$(_basename)"     => e.g FTM0 => FTM, PTA => PT  (fPeripheral.getBaseName())
-    *  <li>For loop substitution
+    * Get an attribute and apply usual substitutions @ref getAttribute.
+    * If the attribute is not present then the default parameter is returned.
     *  
     * @param element       Element to obtain attribute from
     * @param attrName      Name of attribute
@@ -1084,6 +1132,25 @@ public class ParseMenuXML extends XML_BaseParser {
          return defaultValue;
       }
       return getAttribute(element, attrName);
+   }
+   
+   /**
+    * Get an attribute and apply usual substitutions @ref getAttribute.
+    * If the attribute is not present then the default parameter is returned.
+    *  
+    * @param element       Element to obtain attribute from
+    * @param attrName      Name of attribute
+    * @param defaultValue  Value to return if attribute is not present
+    * 
+    * @return  modified attribute or null if attribute doesn't exist
+    * 
+    * @throws Exception If for-loop completed  
+    */
+   boolean getBooleanAttribute(Element element, String attrName, boolean defaultValue) throws Exception {
+      if (!element.hasAttribute(attrName)) {
+         return defaultValue;
+      }
+      return Boolean.valueOf(getAttribute(element, attrName));
    }
    
    /**
@@ -1240,13 +1307,13 @@ public class ParseMenuXML extends XML_BaseParser {
       parseCommonAttributes(parent, varElement, variable);
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getLongAttribute(varElement, "min"));
+            variable.setMin(getRequiredLongAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getLongAttribute(varElement, "max"));
+            variable.setMax(getRequiredLongAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("size")) {
-            variable.setMaxListLength(getLongAttribute(varElement, "size"));
+            variable.setMaxListLength(getRequiredLongAttribute(varElement, "size"));
          }
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max/size value in " + variable.getName(), e);
@@ -1341,7 +1408,7 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setPeripheral(fPeripheral);
       try {
          if (varElement.hasAttribute("size")) {
-            variable.setMaxListLength(getLongAttribute(varElement, "size"));
+            variable.setMaxListLength(getRequiredLongAttribute(varElement, "size"));
          }
       } catch( NumberFormatException e) {
          throw new Exception("Illegal size value in " + variable.getName(), e);
@@ -1679,6 +1746,23 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    List<StringPair> getTemplateSubstitutions(Element element, String variableAttributeName) throws Exception {
 
+      if (getAttribute(element, "enumStem") != null) {
+         throw new Exception(" 'enumStem' no longer accepted on template " + getAttribute(element, "key"));
+      }
+
+      if (variableAttributeName == null) {
+         // Returns empty list to indicate template should still be processed
+         return new ArrayList<StringPair>();
+      }
+      
+      String variables = getAttribute(element, variableAttributeName);
+      if (variables == null) {
+         // Returns empty list to indicate template should still be processed
+         return new ArrayList<StringPair>();
+      }
+
+      String temp;
+
       ArrayList<StringPair> substitutions = new ArrayList<StringPair>();
 
       StringBuilder maskSb                    = new StringBuilder();  // Combined mask e.g. MASK1|MASK2
@@ -1687,45 +1771,34 @@ public class ParseMenuXML extends XML_BaseParser {
       StringBuilder initExpressionSb          = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
       StringBuilder paramExprSb               = new StringBuilder();  // Combined expression param1|param2
       StringBuilder paramsSb                  = new StringBuilder();  // Parameter list with defaults etc. 
-      StringBuilder commentsSb                = new StringBuilder();  // @param style comments for parameters
+      StringBuilder paramDescriptionSb        = new StringBuilder();  // @param style comments for parameters
 
-      if (getAttribute(element, "enumStem") != null) {
-         throw new Exception(" 'enumStem' no longer accepted on template " + getAttribute(element, "key"));
-      }
+      // Padding applied to comments (before * @param)
+      String linePadding = getAttribute(element, "linePadding", "").replace("x", " ");
+      
+      // Terminator for initExpression
+      String terminator     = getAttribute(element, "terminator"    , ";");
 
-      String terminator = getAttribute(element, "terminator");
-      if (terminator == null) {
-         terminator = ";";
-      }
+      // Separator for initExpression
+      String separator     = getAttribute(element, "separator"    , "|");
 
-      boolean expressionOnOneLine = Boolean.valueOf(getAttribute(element, "expressionOnOneLine"));
-
+      // No newline before initExpression (suitable for a single initialisation value)
+      boolean initExpressionOnSameLine = getBooleanAttribute(element, "initExpressionOnSameLine", false);
+      
       String  register           = null;
+      String  registerName       = null;
       boolean registeNameChanged = false;
-
-      if (variableAttributeName == null) {
-         // Returns empty list to indicate template should be processed
-         return new ArrayList<StringPair>();
-      }
-      String variables = getAttribute(element, variableAttributeName);
-      if (variables == null) {
-         return new ArrayList<StringPair>();
-      }
 
       String varNames[] = variables.split(",");
 
-      Long numberOfNonDefaultParams = safeGetLongAttribute(element, "nonDefaultParams");
-      if (numberOfNonDefaultParams == null) {
-         numberOfNonDefaultParams = (long) 1;
-      }
-
+      Long numberOfNonDefaultParams = getLongAttribute(element, "nonDefaultParams", 1);
+      
       String defaultParamValue = getAttribute(element, "defaultParamValue");
 
       ArrayList<Variable> variableList = new ArrayList<Variable>();
       int paramCount=0;
       for (String varName:varNames) {
          String variableKey = fProvider.makeKey(varName.trim());
-         
          Variable var = safeGetVariable(variableKey);
          if (var==null) {
             // Reduce numberOfDefaultParams if related parameter is missing 
@@ -1756,16 +1829,15 @@ public class ParseMenuXML extends XML_BaseParser {
 
          Variable variable    = variableList.get(index); 
          String   variableKey = variable.getKey();
-         String temp;
 
          if (index > 0) {
             maskSb.append('|');
-            valueExpressionSb.append('|');
-            symbolicValueExpressionSb.append('|');
+            valueExpressionSb.append(separator);
+            symbolicValueExpressionSb.append(separator);
             initExpressionSb.append("\n");
-            paramExprSb.append('|');
+            paramExprSb.append(separator);
             paramsSb.append(",\n");
-            commentsSb.append("\n");
+            paramDescriptionSb.append("\n");
          }
 
          // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
@@ -1807,19 +1879,27 @@ public class ParseMenuXML extends XML_BaseParser {
 
          // Tool-tip from variable
          String tooltip                    = "'%tooltip' not available in this template";
-         temp = variable.getToolTipAsCode();
+         temp = variable.getToolTipAsCode(linePadding);
          if (temp != null) {
             tooltip = temp;
          }
-
-         if (!expressionOnOneLine) {
-            if (index == 0) {
-               initExpressionSb.append("\n\\t   ");
-            }
-            else {
-               initExpressionSb.append("\\t   ");
+         if (index == 0) {
+            if (!initExpressionOnSameLine) {
+               initExpressionSb.append("\n\\t   "+linePadding);
             }
          }
+         else {
+            initExpressionSb.append("\\t   "+linePadding);
+         }
+
+//         if (!initExpressionOnSameLine) {
+//            if (index == 0) {
+//               initExpressionSb.append("\n\\t   "+linePadding);
+//            }
+//            else {
+//               initExpressionSb.append("\\t   "+linePadding);
+//            }
+//         }
          if (variable instanceof VariableWithChoices) {
             initExpressionSb.append(symbolicValueExpression);
          }
@@ -1831,7 +1911,7 @@ public class ParseMenuXML extends XML_BaseParser {
             initExpressionSb.append(terminator+"  // ");
          }
          else {
-            initExpressionSb.append(" | // ");
+            initExpressionSb.append(" "+separator+" // ");
          }
 
          initExpressionSb.append("$("+variableKey+".shortDescription)");
@@ -1850,10 +1930,12 @@ public class ParseMenuXML extends XML_BaseParser {
 
          String comment = "'%comment' is not valid here";
 
-         temp = variable.getToolTipAsCode();
+         temp = variable.getToolTipAsCode(linePadding);
          if (temp != null) {
             comment = temp;
          }
+//         comment = comment.replace("", "");
+         
          String defaultParamV = variable.getDefaultParameterValue();
          if (defaultParamValue != null) {
             defaultParamV = defaultParamValue;
@@ -1861,31 +1943,36 @@ public class ParseMenuXML extends XML_BaseParser {
 
          paramExprSb.append(enumParam);
 
-         commentsSb.append(String.format("\\t * @param %"+(-maxNameLength)+"s %s", enumParam, comment));
-         String padding = "";
-         if (variableList.size() >1) {
-            padding = "\\t      ";
-         }
+         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", enumParam, comment); 
+         paramDescriptionSb.append(paramDescriptionN);
+
+         // Padding applied to parameters
+         String paramPadding = (varNames.length<=1)?"":"\\t      "+linePadding;
+         
          if (index<numberOfNonDefaultParams) {
-            paramsSb.append(String.format(padding + "%"+(-maxNameLength)+"s %s", enumClass, enumParam));
+            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %s", enumClass, enumParam));
          }
          else {
-            paramsSb.append(String.format(padding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", enumClass, enumParam, defaultParamV));
+            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", enumClass, enumParam, defaultParamV));
          }
 
-         // Register name deduced from variable name
-         String registerN = "'%register' is not valid here";
+         String registerN     = "'register' is not valid here";
+         String registerNameN = "'registerName' is not valid here";
+         
          // Try to deduce register
          temp = deduceRegister(variable);
          if (temp != null) {
-            registerN = temp;
+            registerN     = temp;
+            registerNameN = temp.replaceAll("([a-zA-Z0-9]*)->", "").toLowerCase();
             if (!registeNameChanged) {
                if (register == null) {
-                  register = temp;
+                  register     = registerN;
+                  registerName = registerNameN;
                }
                else if (!temp.equals(register)) {
                   registeNameChanged = true;
-                  register           = "%register is conflicted";
+                  register     = "'register' is conflicted";
+                  registerName = "'registerName' is conflicted";
                }
             }
          }
@@ -1899,7 +1986,10 @@ public class ParseMenuXML extends XML_BaseParser {
          substitutions.add(0, new StringPair("%mask"+index,                    mask));
          substitutions.add(0, new StringPair("%enumParam"+index,               enumParam));
          substitutions.add(0, new StringPair("%enumClass"+index,               enumClass));
+         substitutions.add(0, new StringPair("%registerName"+index,            registerNameN));
          substitutions.add(0, new StringPair("%register"+index,                registerN));
+         substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
+         
          if (index == 0) {
             substitutions.add(new StringPair("%variable",                variableKey));
             substitutions.add(new StringPair("%description",             description));
@@ -1907,7 +1997,7 @@ public class ParseMenuXML extends XML_BaseParser {
             substitutions.add(new StringPair("%tooltip",                 tooltip));
             substitutions.add(new StringPair("%enumParam",               enumParam));
             substitutions.add(new StringPair("%enumClass",               enumClass));
-            substitutions.add(new StringPair("%register",                registerN));
+            substitutions.add(new StringPair("%registerName",            registerNameN));
          }
       }
 
@@ -1922,18 +2012,18 @@ public class ParseMenuXML extends XML_BaseParser {
       if (element.hasAttribute("mask")) {
          throw new Exception("mask no longer supported on template");
       }
-      String expression = "'%expression' is not valid here";
+      String expression = "'expression' is not valid here";
       if (valueExpressionSb.length()>0) {
          expression = valueExpressionSb.toString();
       }
 
-      String paramExpr = "'%paramExpr' is not valid here";
+      String paramExpr = "'paramExpr' is not valid here";
       if (paramExprSb.length()>0) {
          paramExpr = paramExprSb.toString();
       }
 
-      String defaultMaskingExpression   = "'%defaultMaskingExpression' is not valid here";
-      String defaultFieldExpression     = "'%defaultFieldExpression' is not valid here";
+      String defaultMaskingExpression   = "'defaultMaskingExpression' is not valid here";
+      String defaultFieldExpression     = "'defaultFieldExpression' is not valid here";
       if ((register != null) && (mask != null)) {
          defaultMaskingExpression = register+"&"+mask;
          if (expression != null) {
@@ -1941,21 +2031,22 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
       if (register == null) {
-         register = "'%register' is not valid here";
+         register     = "'register' is not valid here";
+         registerName = "'registerName' is not valid here";
       }
       if (mask == null) {
-         mask = "'%mask' not available in this template";
+         mask = "'mask' not available in this template";
       }
-      String params = "'%params' is not valid here";
+      String params = "'params' is not valid here";
       if (paramsSb.length()>0) {
          params = paramsSb.toString();
       }
-      String comments = "'%comments' is not valid here";
-      if (commentsSb.length()>0) {
-         comments = commentsSb.toString();
+      String paramDescription = "'comments' is not valid here";
+      if (paramDescriptionSb.length()>0) {
+         paramDescription = paramDescriptionSb.toString();
       }
 
-      String initExpression = "'%initExpression' is not valid here";
+      String initExpression = "'initExpression' is not valid here";
       if (initExpressionSb.length()>0) {
          initExpression = initExpressionSb.toString();
       }
@@ -1970,8 +2061,10 @@ public class ParseMenuXML extends XML_BaseParser {
       substitutions.add(new StringPair("%defaultClockExpression",    defaultFieldExpression));
       substitutions.add(new StringPair("%defaultMaskingExpression",  defaultMaskingExpression));
       substitutions.add(new StringPair("%register",                  register));
+      substitutions.add(new StringPair("%registerName",              registerName));
       substitutions.add(new StringPair("%params",                    params));
-      substitutions.add(new StringPair("%comments",                  comments));
+      substitutions.add(new StringPair("%comments",                  paramDescription));
+      substitutions.add(new StringPair("%paramDescription",          paramDescription));
 
       return substitutions;
    }
@@ -2349,6 +2442,12 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (tagName == "for") {
          parseForLoop(parentModel, element);
+      }
+      else if (tagName == "break") {
+         parseBreak(parentModel, element);
+      }
+      else if (tagName == "continue") {
+         parseContinue(parentModel, element);
       }
       else if (tagName == "if") {
          parseIfThen(parentModel, element);
@@ -2796,7 +2895,12 @@ public class ParseMenuXML extends XML_BaseParser {
       for (Node node = topElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
+         
          parseSingleNode(parent, node);
+         
+         if(fForStack.skipRemanderOfLoop()) {
+            break;
+         }
       }
    }
 

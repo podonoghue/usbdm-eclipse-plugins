@@ -36,9 +36,12 @@ public abstract class VariableWithChoices extends Variable {
     * @return index or -1 if not found
     */
    protected int getIndex(String name) {
-      ChoiceData[] fData = getData();
-      for (int index=0; index<fData.length; index++) {
-         if (fData[index].getName().equalsIgnoreCase(name)) {
+      ChoiceData[] data = getData();
+      if (data == null) {
+         return -1;
+      }
+      for (int index=0; index<data.length; index++) {
+         if (data[index].getName().equalsIgnoreCase(name)) {
             return index;
          }
       }

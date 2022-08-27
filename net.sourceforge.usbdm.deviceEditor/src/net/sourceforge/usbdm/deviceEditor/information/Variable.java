@@ -824,12 +824,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return fDataValue;
    }
 
-   public String getToolTipAsCode() {
+   public String getToolTipAsCode(String padding) {
       String tooltip = getToolTip();
       if (tooltip != null) {
-         tooltip = tooltip.replace("\n", "\n\\t * ");
+         tooltip = tooltip.replace("\n", "\n\\t"+padding+" * ");
       }
       return tooltip;
+   }
+   
+   public String getToolTipAsCode() {
+      return getToolTipAsCode("");
    }
    
    public String getDescriptionAsCode() {

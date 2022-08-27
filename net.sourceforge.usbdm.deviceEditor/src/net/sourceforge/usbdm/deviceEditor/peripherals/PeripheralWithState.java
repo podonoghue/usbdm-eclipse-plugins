@@ -19,6 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
@@ -33,7 +34,10 @@ import net.sourceforge.usbdm.deviceEditor.parsers.TemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
+import net.sourceforge.usbdm.peripheralDatabase.Cluster;
+import net.sourceforge.usbdm.peripheralDatabase.Field;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.Register;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
@@ -654,6 +658,53 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public ArrayList<Variable> getClockSelectors() {
       return fClockSelectorVariables;
+   }
+
+   /**
+    * Create string variable with "true" value
+    * If the constant already exists no action if taken
+    * 
+    * @param key Key for new variable
+    */
+   protected void addOrIgnoreStringConstant(String key) {
+      key = makeKey(key);
+      if (safeGetVariable(key) == null) {
+         StringVariable var = new StringVariable(null, key);
+         var.setValue("true");
+         addVariable(var);
+         addParam(var.getKey());
+      }
+   }
+   
+   /**
+    * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+    * 
+    * @param dbPortPeripheral Associated database peripheral
+    */
+   protected void extractAllRegisterNames(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
+
+      // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+      for(Cluster cl:dbPortPeripheral.getRegisters()) {
+         if (!(cl instanceof Register)) {
+            continue;
+         }
+         Register reg = (Register) cl;
+         if (reg.isHidden()) {
+            continue;
+         }
+         for (Field field:reg.getFields()) {
+            String key = makeKey(getName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
+            addOrIgnoreStringConstant(key);
+         }
+      }
+   }
+   
+   /**
+    * Extract information from device data base
+    * 
+    * @param dbPortPeripheral Database peripheral
+    */
+   public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
    }
 
 }

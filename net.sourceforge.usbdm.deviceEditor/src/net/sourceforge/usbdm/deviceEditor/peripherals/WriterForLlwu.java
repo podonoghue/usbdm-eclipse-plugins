@@ -96,10 +96,10 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       throw new RuntimeException("Signal does not match expected pattern " + function.getSignalName());
    }
    
-   static final String PIN_FORMAT   = "   %-50s = %-13s %s\n";
+   static final String PIN_FORMAT   = "      %-20s = %-13s %s\n";
    
    /**
-    * Generate set of enum symbols for comparator inputs that are mapped to pins.
+    * Generate set of enum symbols for llwu inputs that are mapped to pins.
     * 
     * <pre>
     *   // Mapped pins
@@ -180,9 +180,21 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       // Create or replace Input Pin Mapping variable as needed
       fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputPinMapping"), sb.toString(), true);
 
+      // Generate enums for llwu modules (peripherals) from configuration parameter
+      enumName    = getClassName()+"Peripheral";
+
       if (peripherals != null) {
-         // Generate enums for llwu modules (peripherals) from configuration parameter
-         enumName    = getClassName()+"Peripheral";
+         // Find size to allow alignment in columns
+         int maximumNameLength = 5;
+         for (String deviceNames:peripherals) {
+            if ((deviceNames != null) && !deviceNames.isBlank()) {
+               for (String deviceName:deviceNames.split("/")) {
+                  String moduleName = makeCTypeIdentifier(enumName+"_"+prettyPinName(deviceName));
+                  maximumNameLength = Math.max(maximumNameLength, moduleName.length()+3);
+               }
+            }
+         }
+         
          sb = new StringBuffer();
          int peripheralCount = 0;
          for (String deviceNames:peripherals) {
@@ -194,7 +206,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
                   if (inUse) {
                      moduleName = "// "+moduleName; 
                   }
-                  sb.append(String.format(PIN_FORMAT,  moduleName, mapName+",", ""));
+                  sb.append(String.format("      %"+(-maximumNameLength)+"s = %-13s %s\n",  moduleName, mapName+",", ""));
                   
                   Peripheral peripheral = fDeviceInfo.getPeripherals().get(deviceName);
                   if (peripheral != null) {
@@ -409,6 +421,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       InfoTable signalTable = getUniqueSignalTable();
       for (int index = 0; index<=31; index++) {
          Variable peEntry = safeGetVariable(makeKey("llwu_pe"+((index/4)+1)+"_wupe"+index));
+//         ((VariableWithChoices)peEntry).getField(PIN_FORMAT)
          if (peEntry == null) {
             continue;
             // XXX Fix me!
@@ -442,10 +455,14 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             if (pinName == null) {
                // Input not used
                peEntry.setHidden(true);
+               // Can't remove variable as already generated template includes reference 
+               // removeVariable(peEntry);
             }
             else {
                // Input associated with pin
                peEntry.setDescription(pinName);
+               peEntry.setTypeName("LlwuPinMode");
+               enumName = prettyPinName(enumName);
                ChoiceData entry = new ChoiceData(pinName, Integer.toString(index), enumName, "", "");
                choiceData.add(entry);
             }
@@ -457,14 +474,23 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             }
          }
       }
+      // Choice used if FILT is disabled
+      choiceData.add(new ChoiceData("Disabled", "0", "0", "0", null));
       for(int index=0; index<6; index++) {
          ChoiceVariable filter = (ChoiceVariable) safeGetVariable(makeKey("llwu_filt"+index+"_filtsel"));
          if (filter != null) {
+            filter.setTypeName("LlwuPin");
             filter.setData(choiceData);
             filter.setValue(choiceData.get(0).getName());
-            filter.setDisabledValue(choiceData.get(0).getName());
+//            filter.setDisabledValue(choiceData.get(0).getName());
          }
       }
       fMenuData.prune();
    }
+
+   @Override
+   public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
+      extractAllRegisterNames(dbPortPeripheral);
+   }
+   
 }

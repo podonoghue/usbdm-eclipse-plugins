@@ -321,7 +321,7 @@ public class XML_BaseParser {
     *  
     * @throws NumberFormatException if attribute is found but invalid long
     */
-   protected static Long safeGetLongAttribute(Element element, String name) throws NumberFormatException {
+   protected static Long getLongAttribute(Element element, String name) throws NumberFormatException {
       String attr = element.getAttribute(name);
       if (attr.isBlank()) {
          return null;
@@ -334,6 +334,25 @@ public class XML_BaseParser {
    }
 
    /**
+    * Get a long attribute
+    * 
+    * @param element       Element being examined
+    * @param name          Attribute name
+    * @param defaultValue  Value to return if attribute not present
+    * 
+    * @return Attribute parsed as Long or defaultValue if attribute not present
+    *  
+    * @throws NumberFormatException if attribute is found but invalid long
+    */
+   protected static Long getLongAttribute(Element element, String name, long defaultValue) throws NumberFormatException {
+      Long value = getLongAttribute(element, name);
+      if (value == null) {
+         return defaultValue;
+      }
+      return value;
+   }
+   
+   /**
     * Parse a long attribute
     * 
     * @param element Element being examined
@@ -344,8 +363,8 @@ public class XML_BaseParser {
     * @throws Exception if attribute not found
     * @throws NumberFormatException if attribute found but invalid
     */
-   protected static Long getLongAttribute(Element element, String name) throws Exception {
-      Long value = safeGetLongAttribute(element, name);
+   protected static Long getRequiredLongAttribute(Element element, String name) throws Exception {
+      Long value = getLongAttribute(element, name);
       if (value == null) {
          throw new Exception("Attribute '"+name+"', not found in '"+element+"'");
       }
@@ -427,7 +446,7 @@ public class XML_BaseParser {
     * @throws ArithmeticException - if the argument overflows an integer
     */
    protected static Integer getIntAttribute(Element element, String name) throws IllegalArgumentException, Exception {
-      return safeLongToInt(getLongAttribute(element, name));
+      return safeLongToInt(getRequiredLongAttribute(element, name));
    }
 
    /**
@@ -440,7 +459,7 @@ public class XML_BaseParser {
     * @throws ArithmeticException - if the argument overflows an integer
     */
    protected static Integer safeGetIntAttribute(Element element, String name) throws IllegalArgumentException, Exception {
-      return safeLongToInt(safeGetLongAttribute(element, name));
+      return safeLongToInt(getLongAttribute(element, name));
    }
 
    protected static Document parseXmlString(String xmlString, Path path) throws ParserConfigurationException, SAXException, IOException {
