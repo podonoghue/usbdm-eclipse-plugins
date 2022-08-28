@@ -963,10 +963,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
 
-      if (variable.getName().contains("llwu_filt1_filtsel")) {
-         System.err.println("Found " + variable);
-      }
-      
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       

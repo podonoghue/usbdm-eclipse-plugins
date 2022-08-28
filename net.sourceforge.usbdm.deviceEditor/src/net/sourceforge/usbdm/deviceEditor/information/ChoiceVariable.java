@@ -280,9 +280,6 @@ public class ChoiceVariable extends VariableWithChoices {
     * @return the choices
     */
    public String[] getChoices() {
-//      if (getName().startsWith("mcg_c7_oscsel")) {
-//         System.err.println("mcg_c7_oscsel.getData()");
-//      }
       if (fChoices == null) {
          // Construct new list
          ArrayList<String> choices = new ArrayList<String>();

@@ -87,62 +87,79 @@ public class PeripheralValidator extends Validator {
    /**
     * Validate a clock selector variable
     * 
-    * @param clockSelectorVar This variable is controlling a clock multiplexor
+    * @param selectorVar This variable is controlling a target
     * 
     * @throws Exception
     */
-   private void validateClockSelectorVariable(Variable clockSelectorVar) throws Exception {
-
-      LongVariable targetClockVar = safeGetLongVariable(clockSelectorVar.getTarget());
+   private void validateClockSelectorVariable(Variable selectorVar) throws Exception {
 
       // Get clock source (selected input)
       String reference = null;
-      if (clockSelectorVar instanceof StringVariable) {
-         // String variable with name of clock being used.
-         reference = clockSelectorVar.getValueAsString();
+      if (selectorVar instanceof StringVariable) {
+         // String variable with name of reference being used.
+         reference = selectorVar.getValueAsString();
       }
-      else if (clockSelectorVar instanceof VariableWithChoices) {
-         VariableWithChoices cv = (VariableWithChoices)clockSelectorVar;
+      else if (selectorVar instanceof VariableWithChoices) {
+         VariableWithChoices cv = (VariableWithChoices)selectorVar;
          ChoiceData choiceData = cv.getSelectedItemData();
          reference = choiceData.getReference();
       }
       else {
-         throw new Exception("Clock source control variable not of correct type" + clockSelectorVar);
+         throw new Exception("Selector control variable not of correct type" + selectorVar);
       }
-      if ("disabled".equalsIgnoreCase(reference)) {
-         targetClockVar.setValue(0);
-         targetClockVar.setStatus((Status)null);
-         targetClockVar.setOrigin("Disabled by "+clockSelectorVar.getName());
-         targetClockVar.enable(false);
+      Variable targetVariable = safeGetVariable(selectorVar.getTarget());
+      if (targetVariable instanceof LongVariable) {
+         LongVariable targetClockVar = (LongVariable)targetVariable;
+         if ("disabled".equalsIgnoreCase(reference)) {
+            targetClockVar.setValue(0);
+            targetClockVar.setStatus((Status)null);
+            targetClockVar.setOrigin("Disabled by "+selectorVar.getName());
+            targetClockVar.enable(false);
+            return;
+         }
+         String data[] = reference.split(",");
+
+         // Simple math operations
+         Variable     clockSourceVar = safeGetVariable(data[0]);     
+         long         value          = clockSourceVar.getValueAsLong();
+         String       origin         = clockSourceVar.getOrigin();
+
+         if (data.length>1) {
+            origin = "("+origin+")";
+            Pattern p = Pattern.compile("(/|\\*)(\\d+)");
+            for (int index=1; index<data.length; index++) {
+               Matcher m = p.matcher(data[index]);  
+               if (!m.matches()) {
+                  throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
+               }
+               origin = origin+data[index];
+               long factor = Long.parseLong(m.group(2));
+               switch(m.group(1).charAt(0)) {
+               case '/' : value = value / factor; break;
+               case '*' : value = value * factor; break;
+               }
+            }
+            origin = origin + " [controlled by "+selectorVar.getName() +"]";
+         }
+         targetClockVar.setValue(value);
+         targetClockVar.setStatus(clockSourceVar.getStatus());
+         targetClockVar.setOrigin(origin);
+         targetClockVar.enable(clockSourceVar.isEnabled());
          return;
       }
-      String data[] = reference.split(",");
-      
-      Variable     clockSourceVar = safeGetVariable(data[0]);     
-      long         value          = clockSourceVar.getValueAsLong();
-      String       origin         = clockSourceVar.getOrigin();
-      
-      if (data.length>1) {
-         origin = "("+origin+")";
-         Pattern p = Pattern.compile("(/|\\*)(\\d+)");
-         for (int index=1; index<data.length; index++) {
-            Matcher m = p.matcher(data[index]);  
-            if (!m.matches()) {
-               throw new Exception("Clock source factor '" + data[1] + "' does not match expected pattern");
-            }
-            origin = origin+data[index];
-            long factor = Long.parseLong(m.group(2));
-            switch(m.group(1).charAt(0)) {
-            case '/' : value = value / factor; break;
-            case '*' : value = value * factor; break;
-            }
+      if (targetVariable instanceof StringVariable) {
+         StringVariable targetStringVariable = (StringVariable)targetVariable;
+         if ("disabled".equalsIgnoreCase(reference)) {
+            targetStringVariable.setValue(0);
+            targetStringVariable.setStatus((Status)null);
+            targetStringVariable.setOrigin("Disabled by "+selectorVar.getName());
+            targetStringVariable.enable(false);
+            return;
          }
-         origin = origin + " [controlled by "+clockSelectorVar.getName() +"]";
+         Variable sourceVar = safeGetVariable(reference);     
+         String data = sourceVar.getValueAsString();
+         targetVariable.setValue(data);
       }
-      targetClockVar.setValue(value);
-      targetClockVar.setStatus(clockSourceVar.getStatus());
-      targetClockVar.setOrigin(origin);
-      targetClockVar.enable(clockSourceVar.isEnabled());
    }
    
    protected class ClockSelectorListener implements IModelChangeListener {
@@ -399,7 +416,7 @@ public class PeripheralValidator extends Validator {
    
    @Override
    protected void createDependencies() throws Exception {
-      addToWatchedVariables(getPeripheral().getDepenedencies());
+      addToWatchedVariables(getPeripheral().getDependencies());
       addClockSelectors();
    }
 

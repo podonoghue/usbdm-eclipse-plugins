@@ -207,21 +207,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       // Final template after substitutions
       StringBuffer sb = new StringBuffer();
       for (TemplateInformation fileTemplate:fileTemplateList) {
-
-//         // Check for dimension
-//         int dimension = fileTemplate.getDimension();
-//         if (dimension > 0) {
-//            for (int index=0; index<dimension; index++) {
-//               String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), new IndexKeyMaker(fKeyMaker, index));
-//               sb.append(expandedTemplate);
-//               //                     sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, new IndexKeyMaker(index)));
-//            }
-//         }
-//         else {
-            String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), fKeyMaker);
-            sb.append(expandedTemplate);
-            //                  sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), substitutionMap, fKeyMaker));
-//         }
+         String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), fKeyMaker);
+         sb.append(expandedTemplate);
       }
       return sb.toString();
    }
@@ -617,7 +604,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       fDepenedencies.add(dependencyVarName);
    }
    
-   public ArrayList<String> getDepenedencies() {
+   public ArrayList<String> getDependencies() {
       return fDepenedencies;
    }
 
