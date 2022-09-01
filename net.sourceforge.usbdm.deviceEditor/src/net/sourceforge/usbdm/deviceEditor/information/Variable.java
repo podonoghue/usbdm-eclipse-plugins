@@ -205,6 +205,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** Register name if known */
    private String fRegister;
 
+   /** Reference for variable that is dependent or another */
+   private String fReference;
+
    /**
     * Constructor
     * 
@@ -908,6 +911,26 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
+    * Set reference for dependent variable
+    * This is the key for the variable this variable depends on
+    * 
+    * @param reference
+    */
+   public void setReference(String reference) {
+      fReference = reference;
+   }
+  
+   /**
+    * Get reference for dependent variable
+    * This is the key for the variable this variable depends on
+    * 
+    * @return reference or null if none 
+    */
+   public String getReference() {
+      return fReference;
+   }
+  
+   /**
     * Set type for code generation e.g. used for enum generation e.g. ttttt => Tttt_yyyy enums
     * 
     * @param enumStem
@@ -1043,5 +1066,4 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       }
       return key;
    }
-  
 }

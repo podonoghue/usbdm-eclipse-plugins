@@ -609,19 +609,19 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    // List of clock selectors to update on validation
-   private ArrayList<Variable> fClockSelectorVariables = null;
+   private ArrayList<Variable> fMonitoredVariables = null;
    
    /**
     * Add variable as clock selector
     * 
     * @param clockSelector Clock selector to add
     */
-   public void addClockSelector(Variable clockSelector) {
-      if (fClockSelectorVariables == null) {
-         fClockSelectorVariables = new ArrayList<Variable>();
+   public void addMonitoredVariable(Variable clockSelector) {
+      if (fMonitoredVariables == null) {
+         fMonitoredVariables = new ArrayList<Variable>();
       }
-      if (!fClockSelectorVariables.contains(clockSelector)) {
-         fClockSelectorVariables.add(clockSelector);
+      if (!fMonitoredVariables.contains(clockSelector)) {
+         fMonitoredVariables.add(clockSelector);
       }
    }
    
@@ -631,11 +631,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param clockSelector Clock selector to add
     * @throws Exception 
     */
-   public void removeClockSelector(Variable clockSelector) throws Exception {
-      if (fClockSelectorVariables == null) {
+   public void removeMonitoredVariable(Variable clockSelector) throws Exception {
+      if (fMonitoredVariables == null) {
          return;
       }
-      fClockSelectorVariables.remove(clockSelector);
+      fMonitoredVariables.remove(clockSelector);
    }
    
    /**
@@ -643,8 +643,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @return list of clock selectors
     */
-   public ArrayList<Variable> getClockSelectors() {
-      return fClockSelectorVariables;
+   public ArrayList<Variable> getMonitoredVariables() {
+      return fMonitoredVariables;
    }
 
    /**
@@ -680,7 +680,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             continue;
          }
          for (Field field:reg.getFields()) {
-            String key = makeKey(getName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
+            String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
             addOrIgnoreStringConstant(key);
          }
       }

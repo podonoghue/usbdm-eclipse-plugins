@@ -143,8 +143,8 @@ public class PllConfigure {
       mcg_c6_vdiv0Var.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_vdiv-PLL_POST_DIV), Severity.OK));
 
       pll0InputFrequencyVar.setValue(mcg_erc_clockFreq/mcg_prdiv);
-      pll0InputFrequencyVar.setOrigin("("+mcg_erc_clockNode.getOrigin()+")/mcg.c7.prdiv0");
-      pll0OutputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
+      pll0InputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+"\n/mcg.c7.prdiv0");
+      pll0OutputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+"\n via PLL");
 
       if (!pllInputValid) {
          String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]", 

@@ -33,6 +33,7 @@ import net.sourceforge.usbdm.deviceEditor.model.DevicePackageModel;
 import net.sourceforge.usbdm.deviceEditor.model.DeviceVariantModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
+import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyXML;
@@ -2209,8 +2210,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public Variable safeGetVariable(String key) {
       Variable var = fVariables.safeGet(key);
       if (var == null) {
-         // Try 0 index as well
-         var = fVariables.safeGet(key+"[0]");
+         // Try active clock selection as well
+         var = fVariables.safeGet(key+"["+fActiveClockSelection+"]");
       }
       if ((var == null) && key.endsWith(".")) {
          // Try 0 index as well
@@ -2410,7 +2411,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /** Map used to prevent repeated items for iterated enums, templates etc */
-   private final HashSet<String> repeatedItemMap = new HashSet<String>(); 
+   private final HashSet<String> repeatedItemMap = new HashSet<String>();
+
+   private int fActiveClockSelection;
+
+   private ModelFactory fModelFactory; 
    
    /**
     * Check if item has already been generated in the C code.
@@ -2442,6 +2447,21 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return repeatedItemMap.contains(key);
    }
 
+   public void setActiveClockSelection(int index) {
+      fActiveClockSelection = index;
+      if (fModelFactory != null) {
+         fModelFactory.refresh();
+      }
+   }
+
+   public int getActiveClockSelection() {
+      return fActiveClockSelection;
+   }
+
+   public void setModelFactory(ModelFactory modelFactory) {
+      fModelFactory = modelFactory;
+   }
+   
 //   /**
 //    * Test main
 //    * 

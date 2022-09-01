@@ -25,6 +25,7 @@ import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ClockSelectionVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
@@ -220,7 +221,10 @@ public class ParseMenuXML extends XML_BaseParser {
        * @param values  List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
        */
       public ForLoop(String keys, String values) {
-         fKeys       = keys.split(",");
+         if (keys.contains(",")) {
+            throw new ForloopException("Can't have ' in keys '" + keys + "'");
+         }
+         fKeys       = keys.split(":");
          fValueList  = values.split(";");
       }
       
@@ -238,7 +242,14 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new ForloopException("doSubstitution() called after for-loop completed");
          }
          if (fValues == null) {
-            fValues = fValueList[iter].split(",");
+            fValues = fValueList[iter].split(":");
+            for (int index=0; index<fKeys.length; index++) {
+               String s = fValues[index].trim();
+               if (s.startsWith("'") && s.endsWith("'")) {
+                  s = s.substring(1,s.length()-1);
+               }
+               fValues[index] = s;
+            }
          }
          if (fValues.length != fKeys.length) {
             throw new ForloopException(
@@ -246,7 +257,7 @@ public class ParseMenuXML extends XML_BaseParser {
                "' does not match number of keys = "+fKeys.length);
          }
          for (int index=0; index<fKeys.length; index++) {
-            text = text.replace("%("+fKeys[index].trim()+")", fValues[index].trim());
+            text = text.replace("%("+fKeys[index].trim()+")", fValues[index]);
          }
          return text;
       }
@@ -669,7 +680,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((existingVariable != null) && replace) {
          // Replacing existing variable - just delete the one found
          removeVariable(existingVariable);
-         fPeripheral.removeClockSelector(existingVariable);
+         fPeripheral.removeMonitoredVariable(existingVariable);
          existingVariable = null;
       }
       if (existingVariable == null) {
@@ -798,6 +809,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("target")) {
          variable.setTarget(getAttribute(varElement, "target"));
       }
+      if (varElement.hasAttribute("ref")) {
+         variable.setReference(getAttribute(varElement, "ref"));
+      }
       if (varElement.hasAttribute("register")) {
          variable.setRegister(getAttribute(varElement, "register"));
       }
@@ -808,8 +822,8 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          variable.setTypeName(enumStem);
       }
-      if (varElement.hasAttribute("type")) {
-         String type = getAttribute(varElement, "type");
+      if (varElement.hasAttribute("typeName")) {
+         String type = getAttribute(varElement, "typeName");
          if (type.isBlank()) {
             type = null;
          }
@@ -912,6 +926,10 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("units")) {
          variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
       }
+      if (variable.getReference() != null) {
+         // Add as clock selector
+         fPeripheral.addMonitoredVariable(variable);
+      }
    }
 
    /**
@@ -956,6 +974,31 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param varElement
     * @throws Exception 
     */
+   private void parseClockSelectionOption(BaseModel parent, Element varElement) throws Exception {
+
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ClockSelectionVariable.class);
+
+      parseCommonAttributes(parent, varElement, variable);
+      parseChoices(variable, varElement);
+      
+      if (variable.getTarget() != null) {
+         // Add as clock selector
+         fPeripheral.addMonitoredVariable(variable);
+      }
+      if (variable.getTypeName() != null) {
+         generateEnum(varElement, variable);
+      }
+   }
+
+   /**
+    * Parse &lt;choiceOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception 
+    */
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
       if (!checkCondition(varElement)) {
@@ -968,7 +1011,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       if (variable.getTarget() != null) {
          // Add as clock selector
-         fPeripheral.addClockSelector(variable);
+         fPeripheral.addMonitoredVariable(variable);
       }
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
@@ -1231,7 +1274,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       if (variable.getTarget() != null) {
          // Add as clock selector
-         fPeripheral.addClockSelector(variable);
+         fPeripheral.addMonitoredVariable(variable);
       }
    }
 
@@ -1338,7 +1381,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (variable.getTarget() != null) {
          // Add as clock selector
-         fPeripheral.addClockSelector(variable);
+         fPeripheral.addMonitoredVariable(variable);
       }
    }
 
@@ -1691,7 +1734,7 @@ public class ParseMenuXML extends XML_BaseParser {
                fPeripheral.getName().toLowerCase(),      // e.g. FTM2
                fPeripheral.getBaseName().toLowerCase()}; // e.g. FTM0 => FTM, PTA => PT
          for (String peripheral:peripherals) {
-            Pattern p = Pattern.compile(peripheral+"_([a-zA-Z0-9]*)_(.+)");
+            Pattern p = Pattern.compile("^"+peripheral+"_([a-zA-Z0-9]*)(_(.+))?$");
             Matcher m = p.matcher(variableKey);
             if (m.matches()) {
                register = peripheral+"->"+(m.group(1).toUpperCase());
@@ -1734,7 +1777,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>&lt;register&gt;          Used to help extract mask etc from condition if required e.g. pll_sic <br><br>
     *  
     * @param element          Element 
-    * @param condition   Control var to obtain information from
+    * @param fExpression   Control var to obtain information from
     * 
     * @return  List of substitutions or null if variableAttributeName==null or no corresponding attribute found
     * 
@@ -2138,11 +2181,16 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseTemplate(Element element) throws Exception {
 
+      String key           = getKeyAttribute(element);
+      String namespace     = getAttribute(element, "namespace"); // info|usbdm|class|all
+
+//      String variables = getAttribute(element, "variables");
+//      if ((variables != null) && variables.contains("ftm_sc_clks")) {
+//         System.err.println("Found '"+variables + "', key '"+key+"', namespace '"+namespace+"'");
+//      }
       if (!checkTemplateConditions(element)) {
          return;
       }
-      String key           = getKeyAttribute(element);
-      String namespace     = getAttribute(element, "namespace"); // info|usbdm|class|all
 
       templateBasicCheck(namespace, key, "templates");
       
@@ -2301,7 +2349,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isBlank()) {
          throw new Exception("<deleteOption> must have key attribute");
       }
-      fPeripheral.removeClockSelector(safeGetVariable(key));
+      fPeripheral.removeMonitoredVariable(safeGetVariable(key));
 
       boolean mustExist = Boolean.parseBoolean(getAttribute(element, "mustExist"));
       boolean wasDeleted = fProvider.removeVariable(key);
@@ -2414,6 +2462,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (tagName == "irqOption") {
          parseIrqOption(parentModel, element);
+      }
+      else if (tagName == "clockSelectionOption") {
+         parseClockSelectionOption(parentModel, element);
       }
       else if (tagName == "choiceOption") {
          parseChoiceOption(parentModel, element);

@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -23,7 +22,7 @@ public class TpmValidate extends PeripheralValidator {
    }
 
    /**
-    * Class to determine LPTMR settings
+    * Class to determine TPM settings
     * @throws Exception 
     */
    @Override
@@ -32,48 +31,21 @@ public class TpmValidate extends PeripheralValidator {
       super.validate(variable);
       
       //=================================
-      
-      LongVariable      system_tpm_clockVar        =  getLongVariable("/SIM/system_tpm_clock");
-      DoubleVariable    clockFrequencyVar          =  getDoubleVariable("clockFrequency");
+       
+      LongVariable      clockFrequencyVar          =  getLongVariable("clockFrequency");
       DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
-      ChoiceVariable    tpm_sc_cmodVar             =  getChoiceVariable("tpm_sc_cmod");
-      ChoiceVariable    tpm_sc_psVar               =  getChoiceVariable("tpm_sc_ps");
       LongVariable      tpm_modVar                 =  getLongVariable("tpm_mod");
       DoubleVariable    tpm_mod_periodVar          =  getDoubleVariable("tpm_mod_period");
       BooleanVariable   tpm_sc_cpwmsVar            =  getBooleanVariable("tpm_sc_cpwms");
       
-      LongVariable clockSourceVar = null;
+//      String clockOrigin    = clockFrequencyVar.getOrigin();
+      long clockFrequency = clockFrequencyVar.getValueAsLong();
       
-      switch((int)tpm_sc_cmodVar.getValueAsLong()) {
-      case 0: 
-      case 3:
-         clockSourceVar = new LongVariable("Disabled", "/Tpm/Disabled");
-         clockSourceVar.setOrigin("Disabled");
-         clockSourceVar.setValue(0);
-         break;
-      default:
-         tpm_sc_cmodVar.setValue(1);
-      case 1:
-         clockSourceVar = system_tpm_clockVar;
-         break;
-      case 2:
-         clockSourceVar = getLongVariable("tpmExternalClock");;
-         break;
-      }
-      double clockFrequency = clockSourceVar.getValueAsDouble();
-      String clockOrigin = clockSourceVar.getOrigin();
-
-      clockFrequency = clockFrequency/(1L<<tpm_sc_psVar.getValueAsLong());
+//      clockPeriodVar.setOrigin("period(" + clockOrigin + ")");
+//      clockPeriodVar.setStatus(clockFrequencyVar.getFilteredStatus());
       
-      clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setOrigin(clockOrigin + " frequency / prescaler");
-      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
-
-      clockPeriodVar.setOrigin(clockOrigin + " period * prescaler");
-      clockPeriodVar.setStatus(clockSourceVar.getFilteredStatus());
-      
-      clockFrequencyVar.enable(clockFrequency != 0);
-      clockPeriodVar.enable(clockFrequency != 0);
+//      clockFrequencyVar.enable(clockFrequency != 0);
+//      clockPeriodVar.enable(clockFrequency != 0);
       tpm_mod_periodVar.enable(clockFrequency != 0);
 
       if (clockFrequency != 0){
@@ -105,15 +77,17 @@ public class TpmValidate extends PeripheralValidator {
          double tpm_mod_periodMax = clockPeriod * (tpm_sc_cpwms?(2*(65535.5)):((65536.5)));
          tpm_mod_periodVar.setValue(tpm_mod_period);
          tpm_mod_periodVar.setMax(tpm_mod_periodMax);
-         
       }
    }
-   
+
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
+
       final String[] externalVariables = {
             "/SIM/system_tpm_clock"
       };
       addToWatchedVariables(externalVariables);
    }
+
 }

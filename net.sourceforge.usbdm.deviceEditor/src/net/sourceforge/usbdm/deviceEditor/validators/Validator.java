@@ -13,11 +13,10 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public abstract class Validator {
 
-   protected final VariableProvider fProvider;
+   protected final Peripheral       fProvider;
    protected final int              fDimension;
    protected int                    fIndex=0;
    protected boolean                fVerbose = false;
@@ -28,7 +27,7 @@ public abstract class Validator {
     * @param provider  Associated variable provider
     * @param dimension Dimension of index variables
     */
-   public Validator(VariableProvider provider, int dimension) {
+   public Validator(Peripheral provider, int dimension) {
       fProvider  = provider;
       fDimension = dimension;
    }
@@ -39,7 +38,7 @@ public abstract class Validator {
     * @param provider  Associated variable provider
     * @param dimension Dimension of index variables
     */
-   public Validator(VariableProvider provider) {
+   public Validator(Peripheral provider) {
       fProvider  = provider;
       fDimension = 0;
    }

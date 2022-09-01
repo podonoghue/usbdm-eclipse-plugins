@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -23,7 +22,7 @@ public class FtmValidate extends PeripheralValidator {
    }
 
    /**
-    * Class to determine LPTMR settings
+    * Class to determine FTM settings
     * @throws Exception 
     */
    @Override
@@ -33,48 +32,20 @@ public class FtmValidate extends PeripheralValidator {
       
       //=================================
       
-      DoubleVariable    clockFrequencyVar          =  getDoubleVariable("clockFrequency");
+      LongVariable      clockFrequencyVar          =  getLongVariable("clockFrequency");
       DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
-      ChoiceVariable    ftm_sc_clksVar             =  getChoiceVariable("ftm_sc_clks");
-      ChoiceVariable    ftm_sc_psVar               =  getChoiceVariable("ftm_sc_ps");
       LongVariable      ftm_modVar                 =  getLongVariable("ftm_mod");
       DoubleVariable    ftm_mod_periodVar          =  getDoubleVariable("ftm_mod_period");
       BooleanVariable   ftm_sc_cpwmsVar            =  getBooleanVariable("ftm_sc_cpwms");
       
-      Variable clockSourceVar = null;
+//      String clockOrigin    = clockFrequencyVar.getOrigin();
+      long clockFrequency = clockFrequencyVar.getValueAsLong();
       
-      switch((int)ftm_sc_clksVar.getValueAsLong()) {
-      case 0: 
-         clockSourceVar = new LongVariable("Disabled", "/Ftm/Disabled");
-         clockSourceVar.setOrigin("Disabled");
-         clockSourceVar.setValue(0);
-         break;
-      default:
-         ftm_sc_clksVar.setValue(1);
-      case 1:
-         clockSourceVar = getParameterSelectedVariable("/SIM/ftm"+getPeripheral().getInstance()+"_input1_clock", "/SIM/system_bus_clock");
-         break;
-      case 2:
-         clockSourceVar = getParameterSelectedVariable("/SIM/ftm"+getPeripheral().getInstance()+"_input2_clock", "/MCG/system_mcgffclk_clock");
-         break;
-      case 3:
-         clockSourceVar = getParameterSelectedVariable("/SIM/ftm"+getPeripheral().getInstance()+"_input3_clock", "ftmExternalClock");
-         break;
-      }
-      double clockFrequency = clockSourceVar.getValueAsDouble();
-      String clockOrigin    = clockSourceVar.getOrigin();
-
-      clockFrequency = clockFrequency/(1L<<ftm_sc_psVar.getValueAsLong());
+//      clockPeriodVar.setOrigin("period(" + clockOrigin + ")");
+//      clockPeriodVar.setStatus(clockFrequencyVar.getFilteredStatus());
       
-      clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setOrigin("frequency("+clockOrigin + ")/prescaler");
-      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
-
-      clockPeriodVar.setOrigin("period("+clockOrigin + ")*prescaler");
-      clockPeriodVar.setStatus(clockSourceVar.getFilteredStatus());
-      
-      clockFrequencyVar.enable(clockFrequency != 0);
-      clockPeriodVar.enable(clockFrequency != 0);
+//      clockFrequencyVar.enable(clockFrequency != 0);
+//      clockPeriodVar.enable(clockFrequency != 0);
       ftm_mod_periodVar.enable(clockFrequency != 0);
 
       if (clockFrequency != 0){
@@ -111,6 +82,8 @@ public class FtmValidate extends PeripheralValidator {
 
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
+
       final String[] externalVariables = {
             "/MCG/system_mcgffclk_clock",
             "/SIM/system_bus_clock",

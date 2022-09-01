@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of FTM or TPM
@@ -208,6 +209,11 @@ public class WriterForFtm extends PeripheralWithState {
          return fQuadSignals.table.size()>0;
       }
       return super.okTemplate(key);
+   }
+
+   @Override
+   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      extractAllRegisterNames(dbPortPeripheral);
    }
 
 }

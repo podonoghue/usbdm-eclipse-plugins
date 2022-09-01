@@ -337,6 +337,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       
       underConstruction     = false;
       
+      deviceInfo.setModelFactory(this);
+      
       fDeviceInfo           = deviceInfo;
       fCurrentDeviceVariant = fDeviceInfo.getVariant();
 
