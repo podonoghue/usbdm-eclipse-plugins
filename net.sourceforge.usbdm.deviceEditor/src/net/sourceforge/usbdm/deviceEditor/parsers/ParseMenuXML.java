@@ -1855,7 +1855,7 @@ public class ParseMenuXML extends XML_BaseParser {
          return null;
       }
       // Find maximum name length
-      int maxNameLength = 10;
+      int maxNameLength = 4;
       for (int index=0; index<variableList.size(); index++) {
          String typeName = variableList.get(index).getTypeName();
          if (typeName == null) {
@@ -1918,7 +1918,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
          // Tool-tip from variable
          String tooltip                    = "'%tooltip' not available in this template";
-         temp = variable.getToolTipAsCode(linePadding);
+         temp = variable.getToolTipAsCode(linePadding+" *        ");
          if (temp != null) {
             tooltip = temp;
          }
@@ -1969,7 +1969,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
          String comment = "'%comment' is not valid here";
 
-         temp = variable.getToolTipAsCode(linePadding);
+         temp = variable.getToolTipAsCode(linePadding+" *        ");
          if (temp != null) {
             comment = temp;
          }

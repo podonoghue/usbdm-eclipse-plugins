@@ -37,13 +37,13 @@ public class LptmrValidate extends PeripheralValidator {
       DoubleVariable    maximumPeriodVar           =  getDoubleVariable("maximumPeriod");
 
       Variable          lptmr_psr_pcsVar           =  getVariable("lptmr_psr_pcs");
-      BooleanVariable   lptmr_psr_pbypVar          =  getBooleanVariable("lptmr_psr_pbyp");
       Variable          lptmr_psr_prescalerVar     =  getVariable("lptmr_psr_prescaler");
+      Variable          lptmr_psr_glitchFilterVar  =  getVariable("lptmr_psr_glitchFilter");
       BooleanVariable   lptmr_csr_tmsVar           =  getBooleanVariable("lptmr_csr_tms");
       Variable          lptmr_csr_tpsVar           =  getVariable("lptmr_csr_tps");
       Variable          lptmr_csr_tppVar           =  getVariable("lptmr_csr_tpp");
 
-      LongVariable      lptmr_cmrVar               =  getLongVariable("lptmr_cmr");
+      LongVariable      lptmr_cmrVar               =  getLongVariable("lptmr_cmr_compare");
       DoubleVariable    lptmr_cmrPeriodVar         =  getDoubleVariable("lptmr_cmrPeriod");
       DoubleVariable    lptmr_cmrFrequencyVar      =  getDoubleVariable("lptmr_cmrFrequency");
 
@@ -53,9 +53,14 @@ public class LptmrValidate extends PeripheralValidator {
       lptmr_csr_tppVar.enable(lptmr_csr_tms);
       lptmr_cmrPeriodVar.enable(!lptmr_csr_tms);
       lptmr_cmrFrequencyVar.enable(!lptmr_csr_tms);
-
+      lptmr_psr_glitchFilterVar.enable(lptmr_csr_tms);
+      lptmr_psr_prescalerVar.enable(!lptmr_csr_tms);
+      maximumPeriodVar.enable(!lptmr_csr_tms);
+      lptmr_cmrPeriodVar.enable(!lptmr_csr_tms);
+      lptmr_cmrFrequencyVar.enable(!lptmr_csr_tms);
+      
       Variable clockSourceVar = null;
-
+      
       switch((int)lptmr_psr_pcsVar.getValueAsLong()) {
       default:
          lptmr_psr_pcsVar.setValue(0);
@@ -72,34 +77,36 @@ public class LptmrValidate extends PeripheralValidator {
          clockSourceVar = getVariable(osc0_peripheral+"/oscer_clock");
          break;
       }
-      boolean clockChanged = (variable == null) || // Initial setup
-            (variable == lptmr_psr_pcsVar) ||      // Clock source selection change
-            (variable == clockSourceVar) ||        // Change in the currently selected clock source
-            (variable == lptmr_psr_pbypVar) ||     // Prescaler bypass
-            (variable == lptmr_psr_prescalerVar);  // Prescaler changed
+      boolean clockChanged = (variable == null) ||    // Initial setup
+            (variable == lptmr_csr_tmsVar) ||         // Switch divider used
+            (variable == lptmr_psr_pcsVar) ||         // Clock source selection change
+            (variable == clockSourceVar) ||           // Change in the currently selected clock source
+            (variable == lptmr_psr_glitchFilterVar)|| // Prescaler changed
+            (variable == lptmr_psr_prescalerVar);     // Prescaler changed
 
-      if (variable == lptmr_psr_pbypVar) {
+      boolean isPulseMode = lptmr_csr_tmsVar.getValueAsBoolean();
+      
+      Variable prescaleOrGlitch = isPulseMode?lptmr_psr_glitchFilterVar:lptmr_psr_prescalerVar;
+      boolean pbypass           = (prescaleOrGlitch.getValueAsLong() & 0b100) != 0;
+      
+      if (variable == prescaleOrGlitch) {
          // Update bypass affected things
-         if (lptmr_psr_pbypVar.getValueAsBoolean()) {
+         if (pbypass) {
             // Clock divider bypassed
-            lptmr_psr_prescalerVar.enable(false);
-            lptmr_psr_prescalerVar.setOrigin("Disabled by lptmr_psr_pbyp");
             clockFrequencyVar.setOrigin(clockSourceVar.getOrigin());
             clockPeriodVar.setOrigin(clockSourceVar.getOrigin());
          }
          else {
             // Clock divider used
-            lptmr_psr_prescalerVar.enable(true);
-            lptmr_psr_prescalerVar.setOrigin(null);
             clockFrequencyVar.setOrigin(clockSourceVar.getOrigin() + " frequency divided by lptmr_psr_prescaler");
             clockPeriodVar.setOrigin(clockSourceVar.getOrigin() + " period multiplied by lptmr_psr_prescaler");
          }
       }
       // Current values
       double clockFrequency = clockSourceVar.getValueAsLong();
-      if (!lptmr_psr_pbypVar.getValueAsBoolean()) {
+      if (!pbypass) {
          // Clock divider used
-         clockFrequency = clockFrequency/(1L<<(lptmr_psr_prescalerVar.getValueAsLong()+1));
+         clockFrequency = clockFrequency/(1L<<(prescaleOrGlitch.getValueAsLong()+1));
       }
       double clockPeriod    = (clockFrequency==0)?0:(1/clockFrequency);
 

@@ -827,16 +827,27 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return fDataValue;
    }
 
+   /**
+    * Get tool-tip as multi-line comment
+    *  
+    * @param padding  This is the padding string to apply to start of additional comment lines e.g. " * "
+    * @return
+    */
    public String getToolTipAsCode(String padding) {
       String tooltip = getToolTip();
       if (tooltip != null) {
-         tooltip = tooltip.replace("\n", "\n\\t"+padding+" * ");
+         tooltip = tooltip.replace("\n", "\n\\t"+padding);
       }
       return tooltip;
    }
    
+   /**
+    * Get tool-tip as multi-line comment
+    *  
+    * @return
+    */
    public String getToolTipAsCode() {
-      return getToolTipAsCode("");
+      return getToolTipAsCode(" * ");
    }
    
    public String getDescriptionAsCode() {
