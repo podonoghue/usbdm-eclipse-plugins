@@ -48,14 +48,14 @@ public class ClockValidator_MCG extends BaseClockValidator {
       ListIterator<Object> it = values.listIterator();
       DRST_DRS_MAX     = (Long)it.next();
       PLL_IN_MIN   = (Long)it.next();
-      PLL_IN_MAX   = (Long)it.next();  
-      PLL_OUT_MIN  = (Long)it.next();   
-      PLL_OUT_MAX  = (Long)it.next();   
-      PRDIV_MIN    = (Long)it.next();   
-      PRDIV_MAX    = (Long)it.next();   
-      VDIV_MIN     = (Long)it.next();    
-      VDIV_MAX     = (Long)it.next();    
-      PLL_POST_DIV = (Long)it.next();  
+      PLL_IN_MAX   = (Long)it.next();
+      PLL_OUT_MIN  = (Long)it.next();
+      PLL_OUT_MAX  = (Long)it.next();
+      PRDIV_MIN    = (Long)it.next();
+      PRDIV_MAX    = (Long)it.next();
+      VDIV_MIN     = (Long)it.next();
+      VDIV_MAX     = (Long)it.next();
+      PLL_POST_DIV = (Long)it.next();
 
       addVariable(new LongVariable(null, "/MCG/pll_vdiv_min",     Long.toString(VDIV_MIN)));
       addVariable(new LongVariable(null, "/MCG/pll_post_divider", Long.toString(PLL_POST_DIV)));
@@ -79,8 +79,8 @@ public class ClockValidator_MCG extends BaseClockValidator {
    }
 
    /**
-    *    
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    @Override
    protected void validate(Variable variable) throws Exception {
@@ -196,6 +196,8 @@ public class ClockValidator_MCG extends BaseClockValidator {
       boolean mcg_c2_ircsVar_StatusWarning = false;
       Variable mcg_c2_ircsVar              = getVariable("mcg_c2_ircs");
 
+      boolean pllEnabled = mcg_c5_pllclken0Var.getValueAsBoolean();
+      
       switch (clock_mode) {
       default:
       case McgClockMode_FEI:
@@ -204,7 +206,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
-         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_FEE:
@@ -213,7 +215,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
-         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_FBI:
@@ -222,7 +224,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_FBE:
@@ -231,7 +233,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
          break;
       case McgClockMode_BLPI:
@@ -240,7 +242,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 1;
          mcg_c1_irefs = true;
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
          // Add BLPE/BLPI warning
          mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
@@ -251,7 +253,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 1;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
-         pll0EnabledVar.setValue(mcg_c5_pllclken0Var.getValueAsBoolean());
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
          // Add BLPE/BLPI warning
          mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
@@ -262,7 +264,8 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
-         pll0EnabledVar.setValue(pllIsInternal||mcg_c5_pllclken0Var.getValueAsBoolean());
+         pllEnabled = pllEnabled || pllIsInternal;
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
          break;
       case McgClockMode_PEE:
@@ -271,10 +274,11 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
          system_mcgoutclk_clock_sourceVar.setValue("PLL output");
-         pll0EnabledVar.setValue(pllIsInternal||mcg_c5_pllclken0Var.getValueAsBoolean());
+         pllEnabled = pllEnabled || pllIsInternal;
+         pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
          break;
-      }     
+      }
       mcg_c1_clksVar.setValue(mcg_c1_clks);
       mcg_c6_pllsVar.setValue(mcg_c6_plls);
       mcg_c2_lpVar.setValue(mcg_c2_lp);
@@ -302,7 +306,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
             mcg_c1_irefs,
             mcg_erc_clockVar,
             system_slow_irc_clockVar.getValueAsLong(),
-            (mcg_c7_oscselVar == null)?0:mcg_c7_oscselVar.getValueAsLong(), 
+            (mcg_c7_oscselVar == null)?0:mcg_c7_oscselVar.getValueAsLong(),
             mcg_c4_dmx32Var.getValueAsBoolean(),
             fll_enabledVar,
             fllInputFrequencyVar,
@@ -318,24 +322,24 @@ public class ClockValidator_MCG extends BaseClockValidator {
       //========================================
       // Find PLL divider
       PllConfigure pllConfigure = new PllConfigure(
-            PLL_OUT_MIN, 
-            PLL_OUT_MAX, 
-            PLL_IN_MIN, 
-            PLL_IN_MAX, 
-            PRDIV_MIN, 
-            PRDIV_MAX, 
-            VDIV_MIN, 
-            VDIV_MAX, 
+            PLL_OUT_MIN,
+            PLL_OUT_MAX,
+            PLL_IN_MIN,
+            PLL_IN_MAX,
+            PRDIV_MIN,
+            PRDIV_MAX,
+            VDIV_MIN,
+            VDIV_MAX,
             PLL_POST_DIV);
 
       pllConfigure.validate(
-            mcg_erc_clockVar, 
-            pll0InputFrequencyVar, 
-            pll0OutputFrequencyVar, 
-            mcg_c5_prdiv0Var, 
+            mcg_erc_clockVar,
+            pll0InputFrequencyVar,
+            pll0OutputFrequencyVar,
+            mcg_c5_prdiv0Var,
             mcg_c6_vdiv0Var);
 
-      pll0OutputFrequencyVar.enable(pll0InputFrequencyVar.getFilteredStatus() == null);
+      pll0OutputFrequencyVar.enable(pllEnabled && (pll0InputFrequencyVar.getFilteredStatus() == null));
       
 //      String pllToolTip = "Output of PLL. Available as MCGPLLCLK and used for MGCOUTCLK in PEE clock mode";
 //      if (pllIsInternal) {
@@ -427,7 +431,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          system_mcgoutclk_clockVar.setOrigin(system_mcgpllclk_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(system_mcgpllclk_clockVar.getFilteredStatus());
          break;
-      }     
+      }
       system_mcgoutclk_clock_sourceVar.setStatus(clock_mode_Status);
       system_mcgoutclk_clock_sourceVar.setOrigin(system_mcgoutclk_clockVar.getOrigin());
    }
