@@ -23,7 +23,7 @@ public class FtmValidate extends PeripheralValidator {
 
    /**
     * Class to determine FTM settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -35,48 +35,54 @@ public class FtmValidate extends PeripheralValidator {
       LongVariable      clockFrequencyVar          =  getLongVariable("clockFrequency");
       DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
       LongVariable      ftm_modVar                 =  getLongVariable("ftm_mod");
-      DoubleVariable    ftm_mod_periodVar          =  getDoubleVariable("ftm_mod_period");
+      DoubleVariable    ftm_modPeriodVar           =  getDoubleVariable("ftm_modPeriod");
       BooleanVariable   ftm_sc_cpwmsVar            =  getBooleanVariable("ftm_sc_cpwms");
       
-//      String clockOrigin    = clockFrequencyVar.getOrigin();
       long clockFrequency = clockFrequencyVar.getValueAsLong();
       
-//      clockPeriodVar.setOrigin("period(" + clockOrigin + ")");
-//      clockPeriodVar.setStatus(clockFrequencyVar.getFilteredStatus());
-      
-//      clockFrequencyVar.enable(clockFrequency != 0);
-//      clockPeriodVar.enable(clockFrequency != 0);
-      ftm_mod_periodVar.enable(clockFrequency != 0);
+      ftm_modPeriodVar.enable(clockFrequency != 0);
 
       if (clockFrequency != 0){
-         long ftm_mod = ftm_modVar.getValueAsLong();
+         long   ftm_mod       = ftm_modVar.getValueAsLong();
+         double ftm_modPeriod = ftm_modPeriodVar.getValueAsDouble();
 
          double clockPeriod = 1.0/clockFrequency;
          clockPeriodVar.setValue(clockPeriod);
          
          boolean ftm_sc_cpwms = ftm_sc_cpwmsVar.getValueAsBoolean();
          
-         double ftm_mod_period = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
-         
          if (variable != null) {
             // Update selectively
-            if (variable.equals(ftm_mod_periodVar)) {
-               ftm_mod_period = ftm_mod_periodVar.getValueAsDouble();
+            if (variable.equals(ftm_modPeriodVar)) {
                // Calculate rounded value
                if (ftm_sc_cpwms) {
-                  ftm_mod        = Math.max(0, Math.round((ftm_mod_period/clockPeriod)/2));
+                  ftm_mod        = Math.max(0, Math.round((ftm_modPeriod/clockPeriod)/2));
                }
                else {
-                  ftm_mod        = Math.max(0, Math.round((ftm_mod_period/clockPeriod)-1));
+                  ftm_mod        = Math.max(0, Math.round((ftm_modPeriod/clockPeriod)-1));
                }
-               ftm_mod_period = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
+               ftm_modPeriod = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
                // Update
                ftm_modVar.setValue(ftm_mod);
+               return;
+            }
+            if (variable.equals(ftm_modVar)) {
+               // Calculate rounded value
+               if (ftm_sc_cpwms) {
+                  ftm_modPeriod  = 2*ftm_mod*clockPeriod;
+               }
+               else {
+                  ftm_modPeriod  = (ftm_mod+1)*clockPeriod;
+               }
+               // Update
+               ftm_modPeriodVar.setValue(ftm_modPeriod);
+               return;
             }
          }
-         double ftm_mod_periodMax = clockPeriod * (ftm_sc_cpwms?(2*(65535.5)):((65536.5)));
-         ftm_mod_periodVar.setValue(ftm_mod_period);
-         ftm_mod_periodVar.setMax(ftm_mod_periodMax);
+         ftm_modPeriod = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
+         double ftm_modPeriodMax = clockPeriod * (ftm_sc_cpwms?(2*(65535.5)):((65536.5)));
+         ftm_modPeriodVar.setValue(ftm_modPeriod);
+         ftm_modPeriodVar.setMax(ftm_modPeriodMax);
       }
    }
 

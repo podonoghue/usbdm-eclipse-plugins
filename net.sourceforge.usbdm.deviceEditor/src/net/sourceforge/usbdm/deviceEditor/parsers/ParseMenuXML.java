@@ -1424,10 +1424,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       IrqVariable variable = (IrqVariable) createVariable(irqElement, IrqVariable.class);
       parseCommonAttributes(parent, irqElement, variable).getVariable();
-
       variable.setPattern(getAttribute(irqElement, "pattern"));
       variable.setClassHandler(getAttribute(irqElement, "classHandler"));
-      
+      variable.setDefault(false);
       fPeripheral.addIrqVariable(variable);
    }
 
@@ -1837,6 +1836,9 @@ public class ParseMenuXML extends XML_BaseParser {
       ArrayList<Variable> variableList = new ArrayList<Variable>();
       int paramCount=0;
       for (String varName:varNames) {
+         if (varName.contains("irqHandlingMethod")) {
+            System.err.println("Found " + variables);
+         }
          String variableKey = fProvider.makeKey(varName.trim());
          Variable var = safeGetVariable(variableKey);
          if (var==null) {
