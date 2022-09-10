@@ -101,10 +101,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Proxy used to support ObservableModel interface */
    private final ObservableModel fProxy;
    
-   /** 
+   /**
     * Indicates the class representing this peripheral is const - default true
     * - May be placed in ROM
-    * - Has only static methods (or are overloaded by same) 
+    * - Has only static methods (or are overloaded by same)
     * - This means that an instance need not be created
     */
    protected boolean fIsConstType = true;
@@ -112,7 +112,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Indicates the peripheral as synthetic i.e. no hardware is associated - default false */
    protected boolean fIsSynthetic = false;
 
-   /** Indicates that code for a user instance of the peripheral class should be created */ 
+   /** Indicates that code for a user instance of the peripheral class should be created */
    protected boolean fCreateInstance = false;
    
    /** Can create type declarations for this peripheral - most can */
@@ -128,7 +128,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    protected boolean fCanCreateSignalInstance = false;
 
    /**
-    * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM 
+    * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM
     */
    protected void clearConstType() {
       fIsConstType = false;
@@ -136,9 +136,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /**
     * Indicates the class representing this peripheral is const
-    *  - May be placed in ROM - Has only static methods (or are overloaded by same) 
+    *  - May be placed in ROM - Has only static methods (or are overloaded by same)
     *  - This means that an instance need not be created
-    *  
+    * 
     * @return true is const
     */
    public boolean isConstType() {
@@ -151,10 +151,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param baseName      Base name e.g. FTM3 => FTM
     * @param instance      Instance e.g. FTM3 => 3
     * @param writerBase    Description of peripheral
-    * @param template      The template associated with this peripheral 
-    * @param deviceInfo 
-    * @throws UsbdmException 
-    * @throws IOException 
+    * @param template      The template associated with this peripheral
+    * @param deviceInfo
+    * @throws UsbdmException
+    * @throws IOException
     */
    protected Peripheral(String baseName, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(baseName+instance, deviceInfo);
@@ -177,7 +177,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Get base name of the peripheral e.g. FTM0 => FTM, PTA => PT 
+    * Get base name of the peripheral e.g. FTM0 => FTM, PTA => PT
     * 
     * @return
     */
@@ -186,7 +186,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Get instance name/number of the peripheral instance e.g. FTM0 => 0, PTA => A 
+    * Get instance name/number of the peripheral instance e.g. FTM0 => 0, PTA => A
     * 
     * @return
     */
@@ -204,7 +204,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Get name of C peripheral class e.g. FTM2 => Ftm2 
+    * Get name of C peripheral class e.g. FTM2 => Ftm2
     * 
     * @return
     */
@@ -379,8 +379,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * @param documentUtilities Where to write
     * 
-    * @throws IOException 
-    * @throws UsbdmException 
+    * @throws IOException
+    * @throws UsbdmException
     */
    void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
       documentUtilities.openTag("peripheral");
@@ -471,8 +471,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
    }
 
-   /** 
-    * Class used to hold different classes of peripheral signals 
+   /**
+    * Class used to hold different classes of peripheral signals
     */
    public class InfoTable {
       /** Signals that use this writer indexed by signal index */
@@ -552,7 +552,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param mappingInfo    Mapping information (pin and signal)
     * @param fnIndex        Index into list of signals mapped to pin
     * 
-    * @return  String 
+    * @return  String
     */
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
@@ -630,13 +630,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /**
     *  Write variable declaration
-    *  
+    * 
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>}
     *  {// <i><b>error</b></i>}
     *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>( <i><b>args</b></i> ); {// <i><b>trailingComment</b></i>}
     *  </pre>
-    * @param error            Error message to precede declaration (empty to suppress) 
+    * @param error            Error message to precede declaration (empty to suppress)
     * @param description      Comment describing declaration
     * @param cIdentifier      C identifier to use
     * @param cType            C Type to use
@@ -672,13 +672,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
    /**
     *  Write variable declaration
-    *  
+    * 
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>}
     *  {// <i><b>error</b></i>}
     *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>; {// <i><b>trailingComment</b></i>}
     *  </pre>
-    * @param error            Error message to precede declaration (empty to suppress) 
+    * @param error            Error message to precede declaration (empty to suppress)
     * @param description      Comment describing declaration
     * @param cIdentifier      C identifier to use
     * @param cType            C Type to use
@@ -690,13 +690,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /**
     *  Write type declaration
-    *  
+    * 
     *  <pre> {} = optional
-    *  {/// <i><b>description</b></i>} 
+    *  {/// <i><b>description</b></i>}
     *  {// <i><b>error</b></i>}
     *  typedef <i><b>type</b></i> <i><b>identifier</b></i>; {// <i><b>trailingComment</b></i>}
     *  </pre>
-    * @param error            Error message to precede declaration (empty to suppress) 
+    * @param error            Error message to precede declaration (empty to suppress)
     * @param description      Comment describing declaration
     * @param cIdentifier      C identifier to use
     * @param cType            C Type to use
@@ -737,7 +737,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @return true if a declaration or definition was created
     */
    protected void writeDefaultPeripheralDeclaration(String className) {
-      // Default action is to create a declaration for the device itself 
+      // Default action is to create a declaration for the device itself
       if (getCodeIdentifier().isBlank()) {
          return;
       }
@@ -758,7 +758,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Write PCR style type declarations for all mapped signals in peripheral<br>
+    * Write PCR style type declarations for all named and mapped signals in peripheral<br>
     * 
     * <pre>
     * /// Clkout
@@ -783,7 +783,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             String trailingComment  = pin.getNameWithLocation();
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             if (!cIdentifier.isBlank()) {
-               String type = String.format("PcrTable_T<%sInfo,%d>", getClassBaseName(), infoTableIndex);
+               String type = String.format("PcrTable_T<%sInfo,%d>", getClassName(), infoTableIndex);
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
          }
@@ -798,15 +798,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * // An example peripheral
     * extern const <i><b>Adc1</b></i> myAdc;
     * 
-    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>3</b></i>&gt;    myAdcChannel1; // p9   
-    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>6</b></i>&gt;    myAdcChannel2; // p11 
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>3</b></i>&gt;    myAdcChannel1; // p9
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>6</b></i>&gt;    myAdcChannel2; // p11
     * </pre>
     * Default action is to create a declaration for the device itself.<br>
     * Overridden in some peripherals to add declarations for signals
-    * @throws Exception 
+    * @throws Exception
     */
    protected void writeDeclarations() {
-      // Default action is to create a declaration for the device itself 
+      // Default action is to create a declaration for the device itself
       writeDefaultPeripheralDeclaration(getClassName());
    }
 
@@ -820,7 +820,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    // Collects declarations of user objects for hardware.cpp
    StringBuilder fHardwareDeclarations          = null;
    
-   // Indicates that user objects were created for this peripheral 
+   // Indicates that user objects were created for this peripheral
    boolean fCreatedUserDeclarations = false;
    
    /**
@@ -831,20 +831,20 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * // An example peripheral
     * extern const <i><b>Adc1</b></i> myAdc;
     * 
-    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>3</b></i>&gt;    myAdcChannel1; // p9   
-    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>6</b></i>&gt;    myAdcChannel2; // p11 
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>3</b></i>&gt;    myAdcChannel1; // p9
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>6</b></i>&gt;    myAdcChannel2; // p11
     * </pre>
     * 
     * @param usedIdentifiers        Set used to prevent repeated C identifiers
     * @param hardwareIncludeFiles   Collects include files need for user declared objects (->hardware.h)
     * @param hardwareDeclarations   Collects declarations of user objects (->hardware.h)
     * @param hardwareDefinitions    Collects definitions of user objects (->hardware.cpp)
-    * @throws Exception 
+    * @throws Exception
     */
    final synchronized void createDeclarations(
-         Set<String>       usedIdentifiers, 
+         Set<String>       usedIdentifiers,
          HashSet<String>   hardwareIncludeFiles,
-         StringBuilder     hardwareDeclarations, 
+         StringBuilder     hardwareDeclarations,
          StringBuilder     hardwareDefinitions) {
       
       // Used by by peripheral to record shared information for hardware file
@@ -866,7 +866,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * Default implementation checks the size of the signal table.
     * 
     * @return
-    * @throws Exception 
+    * @throws Exception
     */
    public boolean isPcrTableNeeded() {
       // Assume required if signals are present
@@ -896,7 +896,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * @param documentUtilities
     * @throws IOException
-    * @throws Exception 
+    * @throws Exception
     */
    void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
    }
@@ -917,14 +917,14 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * @param pinMappingHeaderFile   Where to write definitions
     * 
-    * @throws IOException 
-    * @throws Exception 
+    * @throws IOException
+    * @throws Exception
     */
    abstract void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException;
 
    /**
     * Write extra information within the class
-    *  
+    * 
     * @param documentUtilities
     * @throws IOException
     */
@@ -963,7 +963,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (signalIndex>=fInfoTable.table.size()) {
          fInfoTable.table.setSize(signalIndex+1);
       }
-      if ((fInfoTable.table.get(signalIndex) != null) && 
+      if ((fInfoTable.table.get(signalIndex) != null) &&
             (fInfoTable.table.get(signalIndex) != signal)) {
          throw new RuntimeException(
                "Multiple signals mapped to index\n new = " + signal + ",\n old = " + fInfoTable.table.get(signalIndex));
@@ -1040,7 +1040,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          MappingInfo mappedPin = null;
          do {
             if (!mappingInfo.getPin().isAvailableInPackage()) {
-               // Discard unmapped signals on this package 
+               // Discard unmapped signals on this package
                continue;
             }
             if (mappingInfo.getMux() == MuxSelection.unassigned) {
@@ -1057,7 +1057,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
                mappedPin = mappingInfo;
                String pinInfoInitString = SignalTemplate.getPinInfoInitString(mappingInfo.getPin());
                pinMappingHeaderFile.write(
-                     String.format(indent+USED_TEMPLATE, index, signal.getName(), 
+                     String.format(indent+USED_TEMPLATE, index, signal.getName(),
                            mappingInfo.getPin().getNameWithLocation(), pinInfoInitString, PcrInitialiser.longTo5Hex(mappingInfo.getPcr())));
             }
          } while(false);
@@ -1080,7 +1080,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
    /**
     *  Writes pin information tables
-    *  
+    * 
     * <pre>
     * //! Information for each signal of peripheral
     * static constexpr PinInfo  info[] = {
@@ -1095,7 +1095,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param pinMappingHeaderFile
     * @throws IOException
     */
-   protected void writeInfoTables(DocumentUtilities pinMappingHeaderFile) throws IOException {      
+   protected void writeInfoTables(DocumentUtilities pinMappingHeaderFile) throws IOException {
 
       if (!isPcrTableNeeded()) {
          return;
@@ -1116,10 +1116,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     *   };
     * </pre>
     * 
-    * @param  deviceInformation 
+    * @param  deviceInformation
     * @param  pinMappingHeaderFile Where to write
     * 
-    * @throws IOException 
+    * @throws IOException
     */
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
 
@@ -1127,8 +1127,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 //      pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED");
 
       pinMappingHeaderFile.writeDocBanner(
-            "Peripheral information for " + getGroupTitle() + ".\n\n" + 
-            "This may include pin information, constants, register addresses, and default register values,\n" + 
+            "Peripheral information for " + getGroupTitle() + ".\n\n" +
+            "This may include pin information, constants, register addresses, and default register values,\n" +
             "along with simple accessor functions.");
 
       writeNamespaceInfo(pinMappingHeaderFile);
@@ -1177,21 +1177,21 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * Write initPCRs() function
     * 
     * @param pinMappingHeaderFile
-    * @param indent 
+    * @param indent
     * @param signalTable
     * 
     * @throws IOException
     */
    public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
 
-      final String INIT_PCR_FUNCTION_TEMPLATE = 
+      final String INIT_PCR_FUNCTION_TEMPLATE =
             indent+"   /**\n"+
             indent+"    * Initialise pins used by peripheral\n\n"+
             indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
             indent+"    */\n"+
             indent+"   static void initPCRs() {\n";
 
-      final String CLEAR_PCR_FUNCTION_TEMPLATE = 
+      final String CLEAR_PCR_FUNCTION_TEMPLATE =
             indent+"   /**\n"+
             indent+"    * Resets pins used by peripheral\n\n"+
             indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
@@ -1224,7 +1224,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
      
    /**
     * Search vector table for handler and replace with class static method name or user function name.<br>
-    * By default, matches any handler starting with the peripheral name e.g. FTM0<br> 
+    * By default, matches any handler starting with the peripheral name e.g. FTM0<br>
     * and replaces with class name e.g. <i><b>FTM0_IRQHandler</b></i> => <i><b>Ftm0::irqHandler</b></i><br>
     * Uses class name to create handler name<br>
     * Overridden to do special replacement
@@ -1306,7 +1306,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    private void createMySignalModels(BaseModel parent, String filter) {
       Pattern pattern = null;
       if (filter != null) {
-         pattern = Pattern.compile(filter);  
+         pattern = Pattern.compile(filter);
       }
       TreeMap<String, Signal> signals = getSignals();
       if (signals == null) {
@@ -1331,7 +1331,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * @param parent Parent model to contain pins created
     * 
-    * @note May add related pins e.g. RTC may contains OSC pins 
+    * @note May add related pins e.g. RTC may contains OSC pins
     */
    public void createSignalModels(BaseModel parent) {
 
@@ -1349,7 +1349,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
    /**
     * Create models representing the signals for this peripheral.<br>
-    * <i><b>May add related pins e.g. RTC may contains OSC pins</b></i> 
+    * <i><b>May add related pins e.g. RTC may contains OSC pins</b></i>
     * 
     * @param parent Model to attach PeripheralSignalsModel to
     * 
@@ -1440,12 +1440,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
    @Override
    public void addListener(IModelChangeListener listener) {
-      fProxy.addListener(listener);      
+      fProxy.addListener(listener);
    }
 
    @Override
    public void removeAllListeners() {
-      fProxy.removeAllListeners();      
+      fProxy.removeAllListeners();
    }
 
    @Override
@@ -1488,8 +1488,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       fProxy.setRefreshPending(refreshPending);
    }
 
-   /** 
-    * Set description of pin use 
+   /**
+    * Set description of pin use
     */
    public void setUserDescription(String userDescription) {
       if ((getUserDescription().compareTo(userDescription) == 0)) {
@@ -1500,7 +1500,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       notifyListeners();
    }
 
-   /** 
+   /**
     * Get user description of peripheral
     */
    public String getUserDescription() {

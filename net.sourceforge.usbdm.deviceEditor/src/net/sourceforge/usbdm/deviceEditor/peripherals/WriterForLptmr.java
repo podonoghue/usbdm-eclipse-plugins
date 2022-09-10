@@ -13,6 +13,15 @@ public class WriterForLptmr extends PeripheralWithState {
 
    public WriterForLptmr(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+
+      // Can create type instances of this peripheral
+      fCanCreateInstance = true;
+      
+      // Can create type declarations for signals belonging to this peripheral
+      fcanCreateSignalType = true;
+
+      // Can create instances for signals belonging to this peripheral
+      fCanCreateSignalInstance = true;
    }
 
    @Override
@@ -24,5 +33,11 @@ public class WriterForLptmr extends PeripheralWithState {
    public int getSignalIndex(Signal function) {
       final String signalNames[] = {"ALT0", "ALT1", "ALT2", "ALT3"};
       return getSignalIndex(function, signalNames);
+   }
+
+   @Override
+   protected void writeDeclarations() {
+      super.writeDeclarations();
+      writeSignalPcrDeclarations();
    }
 }

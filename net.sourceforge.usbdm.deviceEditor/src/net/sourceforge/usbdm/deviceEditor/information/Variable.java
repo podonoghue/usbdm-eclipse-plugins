@@ -86,8 +86,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          fReference   = null;
       }
       
-      /** 
-       * Get name of this choice 
+      /**
+       * Get name of this choice
        * 
        * @return data value or null if none
        */
@@ -95,8 +95,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          return fName;
       }
       
-      /** 
-       * Get value associated with this choice 
+      /**
+       * Get value associated with this choice
        * 
        * @return value
        */
@@ -297,7 +297,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * Listeners are not affected
     * 
     * @param value The value to restore
-    * @throws Exception 
+    * @throws Exception
     */
    public abstract void setPersistentValue(String value) throws Exception;
 
@@ -331,9 +331,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    @Override
    public String toString() {
       String value = getSubstitutionValue();
-      boolean wrap = value.length()>40; 
+      boolean wrap = value.length()>40;
       return String.format(getSimpleClassName()+
-            "(Name=%s, Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))", 
+            "(Name=%s, Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))",
             getName(), getKey(), getSubstitutionValue(), getValueAsString());
    }
 
@@ -695,28 +695,28 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       }
    }
    
-   /** 
-    * Set if this variable is derived (calculated) from other variables 
+   /**
+    * Set if this variable is derived (calculated) from other variables
     * 
-    * @param derived 
+    * @param derived
     */
    public void setDerived(boolean derived) {
       fDerived = derived;
    }
    
-   /** 
-    * Get if this variable is derived (calculated) from other variables 
+   /**
+    * Get if this variable is derived (calculated) from other variables
     * 
-    * @return true if derived 
+    * @return true if derived
     */
    public boolean getDerived() {
       return fDerived;
    }
    
-   /** 
-    * Get if this variable is derived (calculated) from other variables 
+   /**
+    * Get if this variable is derived (calculated) from other variables
     * 
-    * @return  
+    * @return
     */
    public boolean isDerived() {
       return fDerived;
@@ -732,11 +732,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Return clone of object
     * 
-    * @param name 
+    * @param name
     * @param symbols
     * 
     * @return Clone
-    * @throws Exception 
+    * @throws Exception
     * 
     * @note All listeners are removed from clone
     */
@@ -829,7 +829,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    /**
     * Get tool-tip as multi-line comment
-    *  
+    * 
     * @param padding  This is the padding string to apply to start of additional comment lines e.g. " * "
     * @return
     */
@@ -843,7 +843,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    
    /**
     * Get tool-tip as multi-line comment
-    *  
+    * 
     * @return
     */
    public String getToolTipAsCode() {
@@ -935,7 +935,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * Get reference for dependent variable
     * This is the key for the variable this variable depends on
     * 
-    * @return reference or null if none 
+    * @return reference or null if none
     */
    public String getReference() {
       return fReference;
@@ -998,11 +998,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       if (t==null) {
          return null;
       }
-      return t.toString();
+      String tValue = t.toString();
+      String format = getValueFormat();
+      if (format == null) {
+         return tValue;
+      }
+      return String.format(format, tValue);
    }
 
    /**
-    * Get format for printing value e.g. CMP_CR0_FILTER_CNT(%s) 
+    * Get format for printing value e.g. CMP_CR0_FILTER_CNT(%s)
     * 
     * @return
     */
@@ -1011,7 +1016,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * Set format for printing value e.g. CMP_CR0_FILTER_CNT(%s) 
+    * Set format for printing value e.g. CMP_CR0_FILTER_CNT(%s)
     * 
     * @param valueFormat
     */
@@ -1037,7 +1042,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Get base name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock
     * 
-    * @param key 
+    * @param key
     * 
     * @return
     */
@@ -1066,7 +1071,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Get base name from key e.g. /SIM/system_usb_clkin_clock[2] => system_usb_clkin_clock
     * 
-    * @param key 
+    * @param key
     * 
     * @return
     */

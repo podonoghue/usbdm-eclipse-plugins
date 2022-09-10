@@ -83,7 +83,7 @@ public class LongVariable extends Variable {
             return (Long) value;
          }
          if (value instanceof Integer) {
-            return (long)(Integer) value;
+            return (Integer) value;
          }
          if (value instanceof String) {
             if (((String) value).isEmpty()) {
@@ -262,7 +262,7 @@ public class LongVariable extends Variable {
     * 
     * @return Error message or null of valid
     */
-   public String isValid(Long value) {   
+   public String isValid(Long value) {
       if (value<getMin()) {
          return "Value too small";
       }
