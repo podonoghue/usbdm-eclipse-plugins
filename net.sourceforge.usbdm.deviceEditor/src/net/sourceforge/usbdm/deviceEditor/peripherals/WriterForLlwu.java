@@ -490,7 +490,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
 
    @Override
    public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
-      extractAllRegisterNames(dbPortPeripheral);
+      extractAllRegisterFields(dbPortPeripheral);
    }
    
 }

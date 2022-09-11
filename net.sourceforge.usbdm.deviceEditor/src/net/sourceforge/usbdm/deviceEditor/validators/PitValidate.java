@@ -2,8 +2,10 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -23,8 +25,8 @@ public class PitValidate extends PeripheralValidator {
     * Class to determine PIT settings
     * 
     * Outputs pit_ldval
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -33,55 +35,74 @@ public class PitValidate extends PeripheralValidator {
       
       // Clocks
       //=================================
-      LongVariable     clockVar                   = getLongVariable("/SIM/system_bus_clock");
-      LongVariable     pit_ldvalVar               = getLongVariable("pit_ldval");
-      DoubleVariable   pit_periodVar              = getDoubleVariable("pit_period");
-      DoubleVariable   pit_frequencyVar           = getDoubleVariable("pit_frequency");
+      LongVariable     pitInputClockVar           = getLongVariable("pitInputClock");
+      StringVariable   numChannelsVar             = getStringVariable("numChannels");
 
-      double busFrequency = clockVar.getValueAsDouble();
-      long   pit_ldval    = pit_ldvalVar.getValueAsLong();
+      double inputClockFrequency = pitInputClockVar.getValueAsDouble();
+      int numberOfChannels       = (int) numChannelsVar.getValueAsLong();
       
-      if (variable != null) {
-         if (variable.equals(pit_periodVar)) {
-            // Default period ->  ldval, frequency
-            //         System.err.println("pit_period");
-            double pit_period = pit_periodVar.getValueAsDouble();
-            if (pit_period == 0) {
-               pit_ldval = 0;
+      for (int ch=0; ch<numberOfChannels; ch++) {
+         BooleanVariable pit_tctrl_tenVar  = getBooleanVariable("pit_tctrl_ten["+ch+"]");
+         LongVariable    pit_ldvalVar      = getLongVariable("pit_ldval_tsv["+ch+"]");
+         DoubleVariable  pit_periodVar     = getDoubleVariable("pit_period["+ch+"]");
+         DoubleVariable  pit_frequencyVar  = getDoubleVariable("pit_frequency["+ch+"]");
+         BooleanVariable pit_tctrl_chnVar  = safeGetBooleanVariable("pit_tctrl_chn["+ch+"]");
+         BooleanVariable pit_tctrl_tieVar  = getBooleanVariable("pit_tctrl_tie["+ch+"]");
+
+         Boolean channelEnabled = pit_tctrl_tenVar.getValueAsBoolean();
+         pit_ldvalVar.enable(channelEnabled);
+         pit_periodVar.enable(channelEnabled);
+         pit_frequencyVar.enable(channelEnabled);
+         if (pit_tctrl_chnVar != null) {
+            pit_tctrl_chnVar.enable(channelEnabled&&(ch != 0));
+         }
+         pit_tctrl_tieVar.enable(channelEnabled);
+         
+         long pit_ldval = pit_ldvalVar.getValueAsLong();
+         
+         if ((variable != null) && variable.isEnabled()) {
+            if (variable.equals(pit_periodVar)) {
+               // period ->  ldval, frequency
+               //         System.err.println("pit_period");
+               double pit_period = pit_periodVar.getValueAsDouble();
+               if (pit_period == 0) {
+                  pit_ldval = 0;
+               }
+               else {
+                  pit_ldval = Math.max(0, Math.round((pit_period*inputClockFrequency)-1));
+               }
             }
-            else {
-               pit_ldval = Math.max(0, Math.round((pit_period*busFrequency)-1));
+            else if (variable.equals(pit_frequencyVar)) {
+               // Default frequency ->  period, ldval
+               //         System.err.println("pit_frequency");
+               double pit_frequency = pit_frequencyVar.getValueAsDouble();
+               if (pit_frequency == 0) {
+                  pit_ldval = 0;
+               }
+               else {
+                  pit_ldval = Math.max(0, Math.round(inputClockFrequency/pit_frequency-1));
+               }
             }
          }
-         else if (variable.equals(pit_frequencyVar)) {
-            // Default frequency ->  period, ldval
-            //         System.err.println("pit_frequency");
-            double pit_frequency = pit_frequencyVar.getValueAsDouble();
-            if (pit_frequency == 0) {
-               pit_ldval = 0;
+         if (pit_ldvalVar.isEnabled()) {
+            pit_periodVar.setMax((pit_ldvalVar.getMax()+1)/inputClockFrequency);
+            pit_ldvalVar.setValue(pit_ldval);
+            if (pit_ldval == 0) {
+               pit_periodVar.setValue(0);
+               pit_frequencyVar.setValue(0);
             }
             else {
-               pit_ldval = Math.max(0, Math.round(busFrequency/pit_frequency-1));
+               pit_periodVar.setValue((pit_ldval+1)/inputClockFrequency);
+               pit_frequencyVar.setValue(inputClockFrequency/(pit_ldval+1));
             }
          }
-      }
-      pit_periodVar.setMax((pit_ldvalVar.getMax()+1)/busFrequency);
-      pit_ldvalVar.setValue(pit_ldval);
-      if (pit_ldval == 0) {
-         pit_periodVar.setValue(0);
-         pit_frequencyVar.setValue(0);
-      }
-      else {
-         pit_periodVar.setValue((pit_ldval+1)/busFrequency);
-         pit_frequencyVar.setValue(busFrequency/(pit_ldval+1));
       }
    }
    
    @Override
    protected void createDependencies() throws Exception {
-      final String[] externalVariables = {
-            "/SIM/system_bus_clock",
-      };
-      addToWatchedVariables(externalVariables);
+      super.createDependencies();
+      
+//      addToWatchedVariables(externalVariables);
    }
 }

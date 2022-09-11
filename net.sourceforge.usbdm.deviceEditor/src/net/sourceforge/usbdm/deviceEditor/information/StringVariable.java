@@ -70,6 +70,11 @@ public class StringVariable extends Variable {
    }
 
    @Override
+   public long getValueAsLong() {
+      return Long.valueOf(getPersistentValue());
+   }
+
+   @Override
    public Object getDefault() {
       return fDefault;
    }

@@ -22,7 +22,7 @@ public class WriterForFmc extends PeripheralWithState {
 
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterNames(dbPortPeripheral);
+      extractAllRegisterFields(dbPortPeripheral);
    }
 
 }

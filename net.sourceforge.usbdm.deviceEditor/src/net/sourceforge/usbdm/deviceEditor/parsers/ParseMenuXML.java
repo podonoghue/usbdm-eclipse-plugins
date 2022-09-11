@@ -527,6 +527,18 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param key     Key to lookup variable
     * 
     * @return variable or null if not found
+    * @throws Exception
+    */
+   private Variable getVariable(String key) throws Exception {
+      return fProvider.getVariable(fProvider.makeKey(key));
+   }
+   
+   /**
+    * Get variable with given key from provider
+    * 
+    * @param key     Key to lookup variable
+    * 
+    * @return variable or null if not found
     */
    private Variable safeGetVariable(String key) {
       return fProvider.safeGetVariable(fProvider.makeKey(key));
@@ -596,16 +608,24 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param value This may be a number string or the name of a variable
     * 
     * @return Value as Long
-    * 
-    * @throws NumberFormatException if format is invalid
+    * @throws Exception
     */
-   protected Long getLongWithVariableSubstitution(String value) throws NumberFormatException {
+   protected Long getLongWithVariableSubstitution(String value) throws Exception {
       try {
          if (Character.isDigit(value.charAt(0))) {
             return parseLong(value);
          }
          // Try variable
-         return safeGetVariable(value).getValueAsLong();
+         Variable var = safeGetVariable(value);
+         if (var != null) {
+            if (var instanceof LongVariable) {
+               return var.getValueAsLong();
+            }
+            else {
+               return Long.parseLong(var.getValueAsString());
+            }
+         }
+         throw new NumberFormatException();
       } catch (NumberFormatException e) {
          throw new NumberFormatException("Number not found for " + value);
       }
@@ -799,7 +819,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDerived(Boolean.valueOf(getAttribute(varElement, "derived")));
       }
       if (varElement.hasAttribute("data")) {
-         // Internal data vale
+         // Internal data value
          String value = getAttribute(varElement, "data");
          variable.setDataValue(value);
       }
@@ -889,6 +909,10 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("offset")) {
          variable.setOffset(getRequiredLongAttribute(varElement, "offset"));
+      }
+      if (variable.getReference() != null) {
+         // Add as clock selector
+         fPeripheral.addMonitoredVariable(variable);
       }
    }
 
@@ -1836,9 +1860,6 @@ public class ParseMenuXML extends XML_BaseParser {
       ArrayList<Variable> variableList = new ArrayList<Variable>();
       int paramCount=0;
       for (String varName:varNames) {
-         if (varName.contains("irqHandlingMethod")) {
-            System.err.println("Found " + variables);
-         }
          String variableKey = fProvider.makeKey(varName.trim());
          Variable var = safeGetVariable(variableKey);
          if (var==null) {

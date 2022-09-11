@@ -60,10 +60,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /**
     * Load the models and validators for this class of peripheral
-    * @return 
+    * @return
     * 
     * @return
-    * @throws Exception 
+    * @throws Exception
     */
    public MenuData loadModels() throws Exception {
       try {
@@ -95,7 +95,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       BaseModel rootModel = fMenuData.getRootModel();
       if (rootModel != null) {
          rootModel.setParent(parent);
-      }    
+      }
       if (fSignalsModel != null) {
          fSignalsModel.removeChildren();
          removeListener(fSignalsModel);
@@ -110,12 +110,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    public void writeDefaultPinInstances(final DocumentUtilities pinMappingHeaderFile) throws IOException {
-      for (int index=0; index<fInfoTable.table.size(); index++) { 
+      for (int index=0; index<fInfoTable.table.size(); index++) {
          Signal signal = fInfoTable.table.get(index);
 
          MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
          if (!mappingInfo.getPin().isAvailableInPackage()) {
-            // Discard unmapped signals on this package 
+            // Discard unmapped signals on this package
             continue;
          }
          if (mappingInfo.getMux() == MuxSelection.unassigned) {
@@ -139,15 +139,15 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * <pre>
     *    // Template:usb0_mk
     *
-    *    //! Hardware base address as uint32_t 
+    *    //! Hardware base address as uint32_t
     *    static constexpr uint32_t baseAddress = USB0_BasePtr;
     *    ...
     * </pre>
     * 
     * @param pinMappingHeaderFile   Where to write definitions
     * 
-    * @throws IOException 
-    * @throws Exception 
+    * @throws IOException
+    * @throws Exception
     */
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException  {
       pinMappingHeaderFile.writeBanner("   ", "Template:" + getPeripheralVersionName());
@@ -173,8 +173,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     *    ...
     * </pre>
     * 
-    * @throws IOException 
-    * @throws Exception 
+    * @throws IOException
+    * @throws Exception
     */
    @Override
    public void addClassTemplates() {
@@ -226,7 +226,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    /**
     * Add shared templates from peripheral
-    * @param sharedTemplates 
+    * @param sharedTemplates
     */
    protected void updateSharedVariables(ISubstitutionMap substitutionMap, Map<String, String> sharedTemplates) {
       if (fMenuData == null) {
@@ -257,7 +257,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    /**
-    * @param processProjectActions 
+    * @param processProjectActions
     * @param project
     * @param monitor
     * 
@@ -276,9 +276,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Absolute templates are skipped
     * 
     * @param substitutionMap  Map to symbols add to
-    *  
+    * 
     * @return Modified map
-    * @throws Exception 
+    * @throws Exception
     */
    protected ISubstitutionMap addTemplatesToSymbolMap(ISubstitutionMap substitutionMap) {
       substitutionMap.addValue("_instance",   getInstance());       // FTM0 => 0
@@ -312,6 +312,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @throws Exception if variable already exists
     */
+   @Override
    public void addVariable(Variable variable) {
       super.addVariable(variable);
       variable.addListener(this);
@@ -330,6 +331,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @return Modified string or original if no changes
     */
+   @Override
    public String substitute(String input) {
       ISubstitutionMap map = fDeviceInfo.getVariablesSymbolMap();
       map.addValue(makeKey("_instance"),   getInstance());
@@ -378,8 +380,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     *    <li> $n reference to regex group in pattern
     *    </ul>
     * </ul>
-    * @param className  Base name of C peripheral class e.g. Ftm 
-    * @throws Exception 
+    * @param className  Base name of C peripheral class e.g. Ftm
+    * @throws Exception
     */
    public void modifyVectorTable(VectorTable vectorTable, IrqVariable irqVariable, String className) throws Exception {
 
@@ -629,7 +631,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Add variable as clock selector
     * 
     * @param clockSelector Clock selector to add
-    * @throws Exception 
+    * @throws Exception
     */
    public void removeMonitoredVariable(Variable clockSelector) throws Exception {
       if (fMonitoredVariables == null) {
@@ -648,7 +650,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Create string variable with "true" value
+    * Create string variable with "true" value<br>
     * If the constant already exists no action if taken
     * 
     * @param key Key for new variable
@@ -663,35 +665,63 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
    
-   /**
-    * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
-    * 
-    * @param dbPortPeripheral Associated database peripheral
-    */
-   protected void extractAllRegisterNames(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
-
-      // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+   public void extractRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral, String registerName) {
       for(Cluster cl:dbPortPeripheral.getRegisters()) {
          if (!(cl instanceof Register)) {
             continue;
          }
          Register reg = (Register) cl;
-         if (reg.isHidden()) {
-            continue;
+         if (reg.getName().equalsIgnoreCase(registerName)) {
+            for (Field field:reg.getFields()) {
+               String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
+               addOrIgnoreStringConstant(key);
+            }
          }
-         for (Field field:reg.getFields()) {
-            String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
-            addOrIgnoreStringConstant(key);
+      }
+   }
+   
+   /**
+    * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+    * 
+    * @param dbPortPeripheral Associated database peripheral
+    */
+   protected void extractClusterRegisterFields(Cluster cluster) {
+
+      if (cluster instanceof Register) {
+         Register reg = (Register) cluster;
+         if (!reg.isHidden()) {
+            for (Field field:reg.getFields()) {
+               String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
+               addOrIgnoreStringConstant(key);
+            }
          }
+      }
+      else {
+         for(Cluster cl:cluster.getRegisters()) {
+            extractClusterRegisterFields(cl);
+         }
+      }
+   }
+   
+   /**
+    * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+    * 
+    * @param dbPortPeripheral Associated database peripheral
+    */
+   protected void extractAllRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
+
+      // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+      for(Cluster cl:dbPortPeripheral.getRegisters()) {
+         extractClusterRegisterFields(cl);
       }
    }
    
    /**
     * Extract information from device data base
     * 
-    * @param dbPortPeripheral Database peripheral
+    * @param dbPeripheral Database peripheral
     */
-   public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
+   public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral) {
    }
 
 }
