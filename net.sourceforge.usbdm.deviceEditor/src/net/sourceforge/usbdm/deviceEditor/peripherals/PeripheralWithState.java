@@ -226,6 +226,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    /**
     * Add shared templates from peripheral
+    * 
     * @param sharedTemplates
     */
    protected void updateSharedVariables(ISubstitutionMap substitutionMap, Map<String, String> sharedTemplates) {

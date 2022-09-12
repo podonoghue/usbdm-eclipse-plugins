@@ -786,6 +786,8 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setLocked(otherVariable.isLocked());
          variable.setDerived(otherVariable.getDerived());
          variable.setTypeName(otherVariable.getTypeName());
+         variable.setValueFormat(otherVariable.getValueFormat());
+         variable.setDataValue(otherVariable.getDataValue());
       }
       if (varElement.hasAttribute("description")) {
          variable.setDescription(getAttribute(varElement, "description"));
@@ -1057,11 +1059,9 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
       
-      String templateKey = getAttribute(varElement, "templateKey");
-      
       String enumStem  = variable.getTypeName();
       
-      if (fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+enumStem)) {
+      if ((fPeripheral != null) && fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+enumStem)) {
          // These are common!
          return;
       }
@@ -1076,10 +1076,13 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String enumText = getAttribute(varElement, "enumText", "");
       
-      String namespace       = "usbdm";
+      String namespace = "usbdm";
+      String templateKey = getAttribute(varElement, "templateKey");
       if (templateKey != null) {
          namespace = "all";
       }
+      namespace = getAttribute(varElement, "namespace", namespace);
+      
       String description     = variable.getDescriptionAsCode();
       String tooltip         = variable.getToolTipAsCode();
       
@@ -1754,6 +1757,7 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          String peripherals[] = {
                "port",
+               "nvic",
                fPeripheral.getName().toLowerCase(),      // e.g. FTM2
                fPeripheral.getBaseName().toLowerCase()}; // e.g. FTM0 => FTM, PTA => PT
          for (String peripheral:peripherals) {
@@ -1922,7 +1926,13 @@ public class ParseMenuXML extends XML_BaseParser {
          valueExpressionSb.append(valueExpression);
 
          // $(variableKey.enum[])
-         String symbolicValueExpression = "$("+variableKey+".enum[])";
+         String symbolicValueExpression;
+         if (variable instanceof VariableWithChoices) {
+            symbolicValueExpression = "$("+variableKey+".enum[])";
+         }
+         else {
+            symbolicValueExpression = "$("+variableKey+".formattedValue)";
+         }
          symbolicValueExpressionSb.append(symbolicValueExpression);
 
          // Description from variable
@@ -1954,21 +1964,7 @@ public class ParseMenuXML extends XML_BaseParser {
             initExpressionSb.append("\\t   "+linePadding);
          }
 
-//         if (!initExpressionOnSameLine) {
-//            if (index == 0) {
-//               initExpressionSb.append("\n\\t   "+linePadding);
-//            }
-//            else {
-//               initExpressionSb.append("\\t   "+linePadding);
-//            }
-//         }
-         if (variable instanceof VariableWithChoices) {
-            initExpressionSb.append(symbolicValueExpression);
-         }
-         else {
-            initExpressionSb.append("$("+variableKey+".formattedValue)");
-            //               value = "$("+var.getKey()+")";
-         }
+         initExpressionSb.append(symbolicValueExpression);
          if (index+1 == variableList.size()) {
             initExpressionSb.append(terminator+"  // ");
          }
@@ -1977,7 +1973,10 @@ public class ParseMenuXML extends XML_BaseParser {
          }
 
          initExpressionSb.append("$("+variableKey+".shortDescription)");
-
+         if (variable instanceof VariableWithChoices) {
+            initExpressionSb.append(" - $("+variableKey+".name[])");
+         }
+         
          // Type from variable with lower-case 1st letter
          String enumClass = "'%enumClass' is not valid here";
 
@@ -2207,10 +2206,10 @@ public class ParseMenuXML extends XML_BaseParser {
       String key           = getKeyAttribute(element);
       String namespace     = getAttribute(element, "namespace"); // info|usbdm|class|all
 
-      String variables = getAttribute(element, "variables");
-      if ((variables != null) && variables.contains("sim_sopt2_pllfllsel[%n]")) {
-         System.err.println("Found '"+variables + "', key '"+key+"', namespace '"+namespace+"'");
-      }
+//      String variables = getAttribute(element, "variables");
+//      if ((variables != null) && variables.contains("sim_sopt2_pllfllsel[%n]")) {
+//         System.err.println("Found '"+variables + "', key '"+key+"', namespace '"+namespace+"'");
+//      }
       if (!checkTemplateConditions(element)) {
          return;
       }

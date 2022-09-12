@@ -106,10 +106,10 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
     *   LlwuPin_Pta4         = LlwuPin_3,    ///< Mapped pin PTA4
     *   LlwuPin_Ptb0         = LlwuPin_5,    ///< Mapped pin PTB0
     *   LlwuPin_Ptc1         = LlwuPin_6,    ///< Mapped pin PTC1
-    * </pre> 
+    * </pre>
     * 
     * @param documentUtilities
-    * @throws Exception 
+    * @throws Exception
     * @throws IOException
     */
    @Override
@@ -172,7 +172,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
             if (inUse) {
                // Repeated value comment out
-               enumIdentifier = "// "+enumIdentifier; 
+               enumIdentifier = "// "+enumIdentifier;
             }
             sb.append(String.format(PIN_FORMAT, enumIdentifier, mapName+",", trailingComment));
          }
@@ -204,7 +204,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
                   String moduleName = makeCTypeIdentifier(enumName+"_"+prettyPinName(deviceName));
                   boolean inUse = !usedEnumIdentifiers.add(moduleName);
                   if (inUse) {
-                     moduleName = "// "+moduleName; 
+                     moduleName = "// "+moduleName;
                   }
                   sb.append(String.format("      %"+(-maximumNameLength)+"s = %-13s %s\n",  moduleName, mapName+",", ""));
                   
@@ -215,7 +215,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
                         identifier = makeCTypeIdentifier(enumName+"_"+identifier);
                         inUse = !usedEnumIdentifiers.add(identifier);
                         if (inUse) {
-                           identifier = "// "+identifier; 
+                           identifier = "// "+identifier;
                         }
                         String description = peripheral.getUserDescription();
                         if (description.isBlank()) {
@@ -260,7 +260,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
     * @param signal Signal to modify
     * @param value  Value controlling sensitivity of pin
     * 
-    * @return True if value changed 
+    * @return True if value changed
     */
    public boolean setPinMode(Signal signal, LlwuPinMode mode) {
       int index = fInfoTable.table.indexOf(signal);
@@ -449,13 +449,13 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
                });
                if (!nameCollector.toString().isEmpty()) {
                   pinName  = "Pin " + nameCollector.toString();
-                  enumName = nameCollector.toString().replace("/", "_");
+                  enumName = Integer.toString(index);
                }
             }
             if (pinName == null) {
                // Input not used
                peEntry.setHidden(true);
-               // Can't remove variable as already generated template includes reference 
+               // Can't remove variable as already generated template includes reference
                // removeVariable(peEntry);
             }
             else {

@@ -24,7 +24,7 @@ public class IrqVariable extends BooleanVariable {
     */
    @Override
    public String getSubstitutionValue() {
-      return super.getValueAsBoolean()?"1":"0";
+      return super.getValueAsBoolean()?"true":"false";
    }
 
    /**
@@ -38,7 +38,7 @@ public class IrqVariable extends BooleanVariable {
    
    @Override
    public String getValueAsString() {
-      return getValueAsBoolean()?"Software (Use setCallback() or override class method)":"No handler installed";
+      return getValueAsBoolean()?"Interrupts supported":"Interrupts not supported";
    }
    
    @Override

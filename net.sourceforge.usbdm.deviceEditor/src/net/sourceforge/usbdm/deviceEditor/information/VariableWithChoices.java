@@ -68,7 +68,7 @@ public abstract class VariableWithChoices extends Variable {
       if (m.group(2) == null) {
          // No index - get field from variable
          return super.getField(field);
-      } 
+      }
       
       // Return data from choice ([] present)
       String fieldName = m.group(1);
@@ -88,10 +88,10 @@ public abstract class VariableWithChoices extends Variable {
          }
       }
       ChoiceData fData = getData()[index];
-      if (fieldName.equals("code")) {
+      if ("code".equals(fieldName)) {
          return fData.getCodeValue();
       } else if ("enum".equals(fieldName)) {
-         String enumname = makeEnum(fData.getEnumName()); 
+         String enumname = makeEnum(fData.getEnumName());
          if (enumname != null) {
             return enumname;
          }
