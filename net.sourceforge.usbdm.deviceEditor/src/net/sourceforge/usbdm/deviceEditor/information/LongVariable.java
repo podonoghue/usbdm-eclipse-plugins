@@ -441,4 +441,9 @@ public class LongVariable extends Variable {
       fRadix = radix;
    }
 
+   @Override
+   public Object getNativeValue() {
+      return getValueAsLong();
+   }
+
 }

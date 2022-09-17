@@ -1,8 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class DoubleVariable extends Variable {
@@ -167,7 +167,8 @@ public class DoubleVariable extends Variable {
 
    @Override
    public String getSubstitutionValue() {
-      return Long.toString(getValueAsLong())+'D';
+//      return Long.toString(getValueAsLong())+'D';
+      return Double.toString(getValueAsDouble());
    }
 
    @Override
@@ -351,6 +352,11 @@ public class DoubleVariable extends Variable {
     */
    public Units getUnits() {
       return fUnits;
+   }
+
+   @Override
+   public Object getNativeValue() {
+      return getValueAsDouble();
    }
 
 }

@@ -17,4 +17,23 @@ public class ClockSelectionVariable extends ChoiceVariable {
       return changed;
    }
 
+   private String displayValue = null;
+   
+   @Override
+   public void setDisplayValue(String value) {
+      String t = displayValue;
+      displayValue = value;
+      if (t == displayValue) {
+         return;
+      }
+      if ((t!=null) && !t.equals(displayValue)) {
+         notifyListeners();
+      }
+   }
+   
+   @Override
+   public String getDisplayValue() {
+      return displayValue;
+   }
+
 }

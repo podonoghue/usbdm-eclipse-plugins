@@ -37,7 +37,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
     * @return Name
     */
    public String getName() {
-      String name = super.getName(); 
+      String name = super.getName();
       if ((name == null) || name.isBlank()) {
          name = fVariable.getName();
       }
@@ -72,6 +72,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    protected void removeMyListeners() {
    }
    
+   @Override
    public abstract CellEditor createCellEditor(Tree tree);
    
    /**
@@ -112,7 +113,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
 
    @Override
    public boolean isEnabled() {
-      return fVariable.isEnabled() && 
+      return fVariable.isEnabled() &&
             (!(fParent instanceof BooleanVariableModel) || ((BooleanVariableModel)fParent).getValueAsBoolean());
    }
 
@@ -161,7 +162,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    public VariableModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException  {
       VariableModel model = (VariableModel) super.clone(parentModel, provider, index);
       // Clone the referenced variable
-      model.fVariable = (Variable) fVariable.clone(provider, index);
+      model.fVariable = fVariable.clone(provider, index);
       model.fVariable.addListener(model);
       return model;
    }

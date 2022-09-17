@@ -40,11 +40,15 @@ public class ChoiceVariableModel extends VariableModel {
    }
 
    static class ChoiceCellEditor extends ComboBoxCellEditor {
-      public ChoiceCellEditor(Composite tree, String[] choices) {
+      ChoiceVariable fVariable;
+      
+      public ChoiceCellEditor(Composite tree, String[] choices, ChoiceVariable variable) {
          super(tree, choices, SWT.READ_ONLY);
+         fVariable = variable;
          setActivationStyle(
                ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
                ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
+         setValue(variable.getValueAsString());
          setValueValid(true);
       }
 
@@ -73,7 +77,17 @@ public class ChoiceVariableModel extends VariableModel {
 
    @Override
    public CellEditor createCellEditor(Tree tree) {
-      return new ChoiceCellEditor(tree, getChoices());
+      return new ChoiceCellEditor(tree, getChoices(), getVariable());
    }
+   
+   @Override
+   public String getValueAsString() {
+      String displayValue = getVariable().getDisplayValue();
+      if (displayValue != null) {
+         return displayValue;
+      }
+      return super.getValueAsString();
+   }
+
 
 }

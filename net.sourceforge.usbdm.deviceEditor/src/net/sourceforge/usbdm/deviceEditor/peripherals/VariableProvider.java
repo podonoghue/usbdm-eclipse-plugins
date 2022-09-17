@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.packageParser.IKeyMaker;
@@ -19,8 +20,6 @@ public class VariableProvider {
    /** Validators for variable changes */
    private final ArrayList<Validator>  fValidators = new ArrayList<Validator>();
 
-   private boolean suspended = true;
-   
    protected final class KeyMaker implements IKeyMaker {
       
       /**
@@ -209,7 +208,7 @@ public class VariableProvider {
     * @param map     Map of key->replacement values
     * 
     * @return Modified string or original if no changes
-    * @throws Exception 
+    * @throws Exception
     */
    public String substitute(String input, ISubstitutionMap map) {
       return map.substitute(input, fKeyMaker);
@@ -247,19 +246,11 @@ public class VariableProvider {
    public ArrayList<Validator> getValidators() {
       return fValidators;
    }
-   /**
-    * Sets whether variable changes are notified to listeners
-    * 
-    * @param suspend true to suspend notiofication
-    */
-   public void setSuspended(boolean suspend) {
-      suspended = suspend;
-   }
    
    public void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
       fDeviceInfo.setDirty(true);
-      if (suspended) {
+      if (fDeviceInfo.getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
       for (Validator v:fValidators) {
@@ -278,7 +269,7 @@ public class VariableProvider {
    
    /**
     * Get deviceInfo
-    * @return 
+    * @return
     */
    public DeviceInfo getDeviceInfo() {
       return fDeviceInfo;

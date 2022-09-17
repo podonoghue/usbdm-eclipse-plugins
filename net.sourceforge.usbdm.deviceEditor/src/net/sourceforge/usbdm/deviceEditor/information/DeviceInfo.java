@@ -178,16 +178,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public static final String USBDM_HARDWARE_LOCATION  = "Stationery/Packages/180.ARM_Peripherals/Hardware";
    
    /** Key for device variant persistence */
-   public static final String USBDMPROJECT_VARIANT_SETTING_KEY       = "$$DeviceInfo_Device_Variant"; 
+   public static final String USBDMPROJECT_VARIANT_SETTING_KEY       = "$$DeviceInfo_Device_Variant";
 
    /** Old Key for target family persistence */
-   public static final String USBDMPROJECT_OLD_SUBFAMILY_SETTING_KEY = "$$DeviceInfo_Target_Device"; 
+   public static final String USBDMPROJECT_OLD_SUBFAMILY_SETTING_KEY = "$$DeviceInfo_Target_Device";
 
    /** Key for target family persistence */
-   public static final String USBDMPROJECT_SUBFAMILY_SETTING_KEY     = "$$DeviceInfo_SubFamily"; 
+   public static final String USBDMPROJECT_SUBFAMILY_SETTING_KEY     = "$$DeviceInfo_SubFamily";
    
    /** Key for hardware source file persistence */
-   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY  = "$$Hardware_Source_Filename"; 
+   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY  = "$$Hardware_Source_Filename";
 
    /**
     * Create empty device information
@@ -283,7 +283,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Create device hardware description from settings file
     * 
-    * @param device 
+    * @param device
     * @param filePath   Path to <b>.usbdmProject</b>  file
     * 
     * @return Create hardware description for device
@@ -440,7 +440,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       setDirty(true);
    }
 
-   /** 
+   /**
     * Get device family for this device
     * 
     * @return Target Device SubFamily e.g. MK20D5, MK22FA12
@@ -465,8 +465,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       setDirty(true);
    }
 
-   /** 
-    * Get device family for this device 
+   /**
+    * Get device family for this device
     * 
     * @return Device family e.g. mk, mke, mkl, mkm, mkv
     */
@@ -507,19 +507,19 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Map of all peripherals<br>
     * name -> peripheral
     */
-   private Map<String, Peripheral> fPeripheralsMap = new TreeMap<String, Peripheral>(); 
+   private Map<String, Peripheral> fPeripheralsMap = new TreeMap<String, Peripheral>();
 
    /**
     * Create peripheral
     * 
     * @param baseName   Base name e.g. FTM3 => FTM
-    * @param instance   Instance of peripheral e.g. FTM2 => 2     
-    * @param template   Template to use to create peripheral 
+    * @param instance   Instance of peripheral e.g. FTM2 => 2
+    * @param template   Template to use to create peripheral
     * @param mode       Failure action
     * 
     * @return
     */
-   public Peripheral createPeripheral(String baseName, String instance, SignalTemplate template, Mode mode) {  
+   public Peripheral createPeripheral(String baseName, String instance, SignalTemplate template, Mode mode) {
       String name = baseName+instance;
       Peripheral peripheral = fPeripheralsMap.get(name);
       if (peripheral != null) {
@@ -605,12 +605,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          peripheral = template.createPeripheral(name, Mode.ignore);
          if (peripheral != null) {
             break;
-         }         
+         }
       }
 //      if (peripheral instanceof WriterForNull) {
 //         System.err.println("Warning: Failed to match peripheral: \'" + name + "\'");
 //         return peripheral;
-//      }         
+//      }
       if (peripheral != null) {
 //         System.err.println("findOrCreatePeripheral() added '"+ peripheral.getName() + "' for '" + name + "'");
          return peripheral;
@@ -622,11 +622,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Find an existing peripheral
     * 
     * @param name   Name e.g. FTM3
-    * @param mode   How to handle failure 
+    * @param mode   How to handle failure
     * 
     * @return
     */
-   public Peripheral findPeripheral(String name, Mode mode) {  
+   public Peripheral findPeripheral(String name, Mode mode) {
       Peripheral p = fPeripheralsMap.get(name);
       if ((p == null) && (mode != Mode.ignore)) {
          throw new RuntimeException("No such instance '" + name + "'");
@@ -639,11 +639,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @param baseName   Base name e.g. FTM3 => FTM
     * @param instance   Name e.g. FTM3 => 3
-    * @param mode       How to handle failure 
+    * @param mode       How to handle failure
     * 
     * @return
     */
-   public Peripheral findPeripheral(String baseName, String instance, Mode mode) {  
+   public Peripheral findPeripheral(String baseName, String instance, Mode mode) {
       return findPeripheral(baseName+instance, mode);
    }
 
@@ -656,7 +656,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return
     * @exception If peripheral doesn't exist
     */
-   public Peripheral findPeripheral(String baseName, String instance) { 
+   public Peripheral findPeripheral(String baseName, String instance) {
       return findPeripheral(baseName, instance, Mode.fail);
    }
 
@@ -694,13 +694,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Map of signals associated with a baseName<br>
     * May be searched by baseName string
     */
-   private Map<String, Map<String, Signal>> fSignalsByBaseName = 
+   private Map<String, Map<String, Signal>> fSignalsByBaseName =
          new TreeMap<String, Map<String, Signal>>();
 
    /**
     * Get map of all signals
     * 
-    * @return map 
+    * @return map
     */
    public Map<String, Signal> getSignals() {
       return fSignals;
@@ -726,9 +726,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param baseName      e.g. FTM0_CH6 = FTM
     * @param instance      e.g. FTM0_CH6 = 0
     * @param signal        e.g. FTM0_CH6 = 6
-    *                      
+    * 
     * @return Signal if found or created, null otherwise
-    * @throws Exception 
+    * @throws Exception
     */
    public Signal createSignal(String name, String baseName, String instance, String signalName) {
 
@@ -778,7 +778,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          signal = signalTemplate.createSignal(name);
          if (signal != null) {
             return signal;
-         }         
+         }
       }
       throw new RuntimeException("Failed to find pattern that matched signal: \'" + name + "\'");
    }
@@ -805,7 +805,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /**
     * A string listing all signals
-    *  
+    * 
     * @return
     */
    public String listSignals() {
@@ -887,7 +887,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Get list of pin mappings associated with given signal
     * 
-    * @param signal 
+    * @param signal
     * 
     * @return
     */
@@ -937,7 +937,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Create pin from name<br>
     * 
     * @param name Name of pin
-    *                      
+    * 
     * @return Created pin
     * 
     * @throws Exception if the pin already exists
@@ -975,7 +975,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Finds pin from name<br>
     * 
     * @param name Name of pin
-    *                      
+    * 
     * @return Pin found or null if not present
     */
    public Pin findPin(String name) {
@@ -1027,14 +1027,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param instanceWriter         InstanceWriter to use
     */
    private SignalTemplate createPeripheralTemplateInformation(
-         String        namePattern,   
-         String        instancePattern, 
-         String        signalPattern, 
-         String        matchTemplate, 
-         DeviceFamily  deviceFamily, 
+         String        namePattern,
+         String        instancePattern,
+         String        signalPattern,
+         String        matchTemplate,
+         DeviceFamily  deviceFamily,
          Class<?>      instanceWriterClass) {
 
-      SignalTemplate template = null; 
+      SignalTemplate template = null;
 
       try {
          template = new SignalTemplate(this, deviceFamily, namePattern, signalPattern, instancePattern, "^"+matchTemplate+"$", instanceWriterClass);
@@ -1051,7 +1051,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void initialiseTemplates() throws Exception {
       /*
-       *  TODO Where peripheral types are found 
+       *  TODO Where peripheral types are found
        */
       createPeripheralTemplateInformation(
             "GPIO", "$2", "$4",
@@ -1437,10 +1437,23 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    private String fVariantName = null;
 
    /**
-    * Set device variant name (and variant information) 
     * 
-    * @param variantName Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M 
-    * @throws Exception 
+    *
+    */
+   public enum InitPhase {
+     VariablePropagationSuspended,     // No variable propagation
+     VariablePropagationAllowed,       // Variable propagation only
+     VariableAndGuiPropagationAllowed, // Propagation from variable and GUI changes allowed
+   };
+   
+   /** Indicates variable update propagation is suspended */
+   private InitPhase fInitPhase = InitPhase.VariablePropagationSuspended;
+   
+   /**
+    * Set device variant name (and variant information)
+    * 
+    * @param variantName Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M
+    * @throws Exception
     */
    public void setVariantName(String variantName) throws Exception {
       if ((fVariantName != null) && (fVariantName.compareTo(variantName) == 0)) {
@@ -1465,7 +1478,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Get device variant name
     * 
-    * @return Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M 
+    * @return Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M
     */
    public String getVariantName() {
       return fVariantName;
@@ -1474,7 +1487,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Get information for current variant
     * 
-    * @return Information about variant e.g. MK20DN32VLH5, FRDM_K20D50M 
+    * @return Information about variant e.g. MK20DN32VLH5, FRDM_K20D50M
     */
    public DeviceVariantInformation getVariant() {
       return fVariantInformation;
@@ -1489,10 +1502,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param deviceName       Device name e.g. MK28FN2M0M15 - Used to obtain device information (linker etc)
 
     * @return class containing given information
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    public DeviceVariantInformation createDeviceInformation(String variantName, String manual, String packageName, String deviceName) throws UsbdmException {
-      DeviceVariantInformation deviceInformation = 
+      DeviceVariantInformation deviceInformation =
             new DeviceVariantInformation(variantName, manual, findOrCreateDevicePackage(packageName), deviceName);
       fVariantInformationTable.put(variantName, deviceInformation);
 
@@ -1547,7 +1560,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /**
     * Used to check if the pin mapping appears sensible
-    *  
+    * 
     * @param deviceFamily  Device family
     * @param pin           Pin to check
     * 
@@ -1687,7 +1700,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    
    /**
     * Load persistent settings
-    * @throws IOException 
+    * @throws IOException
     */
    public Settings getSettings(Path path) throws Exception {
       Activator.log("Loading settings from" + path.toAbsolutePath() + ")");
@@ -1791,14 +1804,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
          //         System.err.println("Make sure peripherals have been updated");
 
-         // Allow variable change notifications
-         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
-            Peripheral peripheral =  entry.getValue();
-            if (peripheral instanceof PeripheralWithState) {
-               PeripheralWithState p = (PeripheralWithState) peripheral;
-               p.setSuspended(false);
-            }
-         }
+         // Allow variable change notifications only (not GUI input only variables)
+         fInitPhase = InitPhase.VariablePropagationAllowed;
+         
          /*
           * Make sure critical peripherals have been updated in order first
           */
@@ -1824,9 +1832,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                p.variableChanged(null);
             }
          }
+         
          //       System.err.println("Notify changes of persistent variables");
+         
          /*
-          * Notify changes of persistent variables, 
+          * Notify changes of persistent variables,
           * even on variables that were not loaded
           * Shouldn't be necessary
           */
@@ -1836,6 +1846,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                var.notifyListeners();
             }
          }
+         
+         // Allow all variable change notifications
+         fInitPhase = InitPhase.VariableAndGuiPropagationAllowed;
+         
          /**
           * Sanity check - (usually) no persistent variables should change value initially
           */
@@ -1871,7 +1885,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       DeviceNamePattern(String pattern, String substitution) {
          fPattern      = pattern;
-         fSubstitution = substitution;         
+         fSubstitution = substitution;
       }
    };
    
@@ -1917,7 +1931,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Indicates if the data has changed since being loaded 
+    * Indicates if the data has changed since being loaded
     * 
     * @return true if changed
     */
@@ -1926,7 +1940,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Indicates if the data has changed since being loaded 
+    * Indicates if the data has changed since being loaded
     * 
     * @return true if changed
     */
@@ -1939,7 +1953,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Create device hardware description from Eclipse project file<br>
     * 
     * @param project    Project to load files from
-    * @param device 
+    * @param device
     * @param monitor
     * 
     * @return Created hardware description for device
@@ -1961,7 +1975,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Creates vector table information and add to variable map
     * 
-    * @param fVariables2         
+    * @param fVariables2
     * @param devicePeripherals
     * @param monitor
     * 
@@ -1969,7 +1983,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    private void generateVectorTable(DevicePeripherals devicePeripherals, IProgressMonitor monitor) throws Exception {
       // Get description of all peripherals for this device
-      SubMonitor progress = SubMonitor.convert(monitor, getPeripherals().size()*100); 
+      SubMonitor progress = SubMonitor.convert(monitor, getPeripherals().size()*100);
       progress.subTask("Modifying vector table");
       
       // Update vector table
@@ -1987,7 +2001,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Generate CPP files (pin_mapping.h, gpio.h)<br>
     * Used for testing (files created relative to executable)
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public void generateCppFiles() throws Exception {
       
@@ -2021,13 +2035,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project
     * 
-    * @param project       Destination Eclipse C++ project 
-    * @param newProject 
+    * @param project       Destination Eclipse C++ project
+    * @param newProject
     * @param monitor
-    * @throws Exception 
+    * @throws Exception
     */
    public synchronized void generateCppFiles(IProject project, boolean isNewProject, IProgressMonitor monitor) throws Exception {
-      SubMonitor subMonitor = SubMonitor.convert(monitor, (fPeripheralsMap.size()+5)*100); 
+      SubMonitor subMonitor = SubMonitor.convert(monitor, (fPeripheralsMap.size()+5)*100);
 
       // Generate device header file
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
@@ -2066,8 +2080,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project<br>
     * <b>Only used during initial project creation</b>
     * 
-    * @param project       Eclipse C++ project 
-    * @param device 
+    * @param project       Eclipse C++ project
+    * @param device
     * @param monitor
     * 
     * @throws Exception
@@ -2240,6 +2254,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception if variable doesn't exist
     */
+   @Override
    public void setVariableValue(String key, String value) {
       Variable variable = fVariables.get(key);
       if (variable == null) {
@@ -2291,7 +2306,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Write information to documentUtilities for information declared at USBDM namespace
     * 
-    * @param documentUtilities 
+    * @param documentUtilities
     * @throws IOException
     */
    public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
@@ -2305,17 +2320,17 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * @param processProjectActions 
+    * @param processProjectActions
     * @param project
-    * @param isNewProject 
+    * @param isNewProject
     * @param monitor
     * 
     * @throws Exception
     */
    public void regenerateProjectFiles(
          StringBuilder         actionRecord,
-         ProcessProjectActions processProjectActions, 
-         IProject              project, 
+         ProcessProjectActions processProjectActions,
+         IProject              project,
          boolean               isNewProject,
          IProgressMonitor      monitor) throws Exception {
       
@@ -2369,7 +2384,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
    
    /**
-    * Get device name e.g. MK20DN32M5 for use with DeviceDatabase lookup<br> 
+    * Get device name e.g. MK20DN32M5 for use with DeviceDatabase lookup<br>
     * This is deduced from the variant name e.g. MK20DN32VLF5
     * 
     * @return Device name
@@ -2397,8 +2412,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param element Element to parse e.g. <br>
     * &lt;device variant="FRDM_K20D50M" manual="K20P64M50SF0RM" package="FRDM_K20D50M" deviceName="" />
     * 
-    * @return DeviceVariantInformation created. 
-    * @throws UsbdmException 
+    * @return DeviceVariantInformation created.
+    * @throws UsbdmException
     * 
     * @note Note DevicePackage may be created but will be empty if it did not previously exist.
     */
@@ -2415,7 +2430,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    private int fActiveClockSelection;
 
-   private ModelFactory fModelFactory; 
+   private ModelFactory fModelFactory;
    
    /**
     * Check if item has already been generated in the C code.
@@ -2461,10 +2476,19 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public void setModelFactory(ModelFactory modelFactory) {
       fModelFactory = modelFactory;
    }
+
+   /**
+    * Indicates variable update propagation is suspended
+    * 
+    * @return
+    */
+   public InitPhase getInitialisationPhase() {
+      return fInitPhase;
+   }
    
 //   /**
 //    * Test main
-//    * 
+//    *
 //    * @param args
 //    */
 //   public static void main(String[] args) {
@@ -2474,13 +2498,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 //            "MK20DN128VFT5",  "MK20DX128VFT5",  "MK22FN512VDC12",  "MK22FN512VLL12", "MK22FN512VLH12",
 //            "MK22FN512VMP12", "MK22FX512VMC12", "MK22FN1M0VMC12",  "MKL05Z8VFK4",    "MKL05Z16VFK4",
 //            "MKL05Z32VFK4",   "MKL05Z8VLC4",    "MKL05Z16VLC4",    "MKL05Z32VLC4",   "MKL05Z8VFM4",
-//            "MKL05Z16VFM4",   "MKL05Z32VFM4",   "MKL05Z16VLF4",    "MKL05Z32VLF4",   
+//            "MKL05Z16VFM4",   "MKL05Z32VFM4",   "MKL05Z16VLF4",    "MKL05Z32VLF4",
 //      };
-//      
+//
 //      for (String variantName:variantNames) {
 //            System.err.println("'" + variantName + "' => '" + getDeviceName(variantName) + "'");
 //      }
-//   
+//
 //   }
 
 }

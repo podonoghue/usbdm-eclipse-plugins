@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
@@ -60,27 +61,30 @@ public class PitValidate extends PeripheralValidator {
          
          long pit_ldval = pit_ldvalVar.getValueAsLong();
          
-         if ((variable != null) && variable.isEnabled()) {
-            if (variable.equals(pit_periodVar)) {
-               // period ->  ldval, frequency
-               //         System.err.println("pit_period");
-               double pit_period = pit_periodVar.getValueAsDouble();
-               if (pit_period == 0) {
-                  pit_ldval = 0;
+         // These updates involves a loop so suppress initially
+         if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed) {
+            if ((variable != null) && variable.isEnabled()) {
+               if (variable.equals(pit_periodVar)) {
+                  // period ->  ldval, frequency
+                  //         System.err.println("pit_period");
+                  double pit_period = pit_periodVar.getValueAsDouble();
+                  if (pit_period == 0) {
+                     pit_ldval = 0;
+                  }
+                  else {
+                     pit_ldval = Math.max(0, Math.round((pit_period*inputClockFrequency)-1));
+                  }
                }
-               else {
-                  pit_ldval = Math.max(0, Math.round((pit_period*inputClockFrequency)-1));
-               }
-            }
-            else if (variable.equals(pit_frequencyVar)) {
-               // Default frequency ->  period, ldval
-               //         System.err.println("pit_frequency");
-               double pit_frequency = pit_frequencyVar.getValueAsDouble();
-               if (pit_frequency == 0) {
-                  pit_ldval = 0;
-               }
-               else {
-                  pit_ldval = Math.max(0, Math.round(inputClockFrequency/pit_frequency-1));
+               else if (variable.equals(pit_frequencyVar)) {
+                  // Default frequency ->  period, ldval
+                  //         System.err.println("pit_frequency");
+                  double pit_frequency = pit_frequencyVar.getValueAsDouble();
+                  if (pit_frequency == 0) {
+                     pit_ldval = 0;
+                  }
+                  else {
+                     pit_ldval = Math.max(0, Math.round(inputClockFrequency/pit_frequency-1));
+                  }
                }
             }
          }

@@ -261,4 +261,9 @@ public class BooleanVariable extends VariableWithChoices {
       return (fTrue==null) || (fFalse == null) || super.isLocked();
    }
 
+   @Override
+   public Object getNativeValue() {
+      return getValueAsBoolean();
+   }
+
 }

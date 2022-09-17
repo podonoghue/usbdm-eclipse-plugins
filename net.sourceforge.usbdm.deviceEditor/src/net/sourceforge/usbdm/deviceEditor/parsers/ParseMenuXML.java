@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -344,8 +345,9 @@ public class ParseMenuXML extends XML_BaseParser {
    }
   
    /** Parser for template conditions */
-   private final TemplateConditionParser fTemplateConditionParser;
-
+//   private final TemplateConditionParser fTemplateConditionParser;
+   private final SimpleExpressionParser  fTemplateConditionParser;
+   
    /** Provider providing the variables used by the menu */
    private final VariableProvider  fProvider;
 
@@ -518,21 +520,10 @@ public class ParseMenuXML extends XML_BaseParser {
 
       fProjectActionList = new ProjectActionList(provider.getName()+" Action list");
 
-      fTemplateConditionParser = new TemplateConditionParser(provider);
+//      fTemplateConditionParser = new TemplateConditionParser(provider);
+      fTemplateConditionParser = new SimpleExpressionParser(provider, SimpleExpressionParser.Mode.CheckIdentifierExistance);
    }
 
-   /**
-    * Get variable with given key from provider
-    * 
-    * @param key     Key to lookup variable
-    * 
-    * @return variable or null if not found
-    * @throws Exception
-    */
-   private Variable getVariable(String key) throws Exception {
-      return fProvider.getVariable(fProvider.makeKey(key));
-   }
-   
    /**
     * Get variable with given key from provider
     * 
@@ -807,7 +798,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDisabledValue(value);
       }
       if (varElement.hasAttribute("valueFormat")) {
-         // Value is used as disabled value
+         // Value is used to format value
          variable.setValueFormat(getAttribute(varElement, "valueFormat"));
       }
       if (varElement.hasAttribute("disabledValue")) {
@@ -991,7 +982,8 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    boolean checkCondition(Element element) throws Exception {
       String  condition     = getAttribute(element, "condition");
-      return fTemplateConditionParser.evaluateVariablePresentCondition(condition);
+      return (boolean) fTemplateConditionParser.evaluate(condition);
+//      return fTemplateConditionParser.evaluateVariablePresentCondition(condition);
    }
    
    /**
@@ -1570,6 +1562,14 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    
+   /**
+    * Parse template condition<br><br>
+    * This consists of a string containing the names of variables.<br>
+    * If a variable is present it is consider true, otherwise false.<br>
+    * An empty expression is considered true.<br><br>
+    * 
+    * Only simple boolean expressions are accepted e.g. var1 || var2 && !var3
+    */
    static class TemplateConditionParser {
       
       private final VariableProvider fProvider;
@@ -1816,6 +1816,14 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception(" 'enumStem' no longer accepted on template " + getAttribute(element, "key"));
       }
 
+      String temp = getAttribute(element, "params");
+      List<String> paramOverride;
+      if (temp != null) {
+         paramOverride = new ArrayList<String>(Arrays.asList(temp.split(",")));
+      }
+      else {
+         paramOverride = new ArrayList<String>();
+      }
       if (variableAttributeName == null) {
          // Returns empty list to indicate template should still be processed
          return new ArrayList<StringPair>();
@@ -1826,8 +1834,6 @@ public class ParseMenuXML extends XML_BaseParser {
          // Returns empty list to indicate template should still be processed
          return new ArrayList<StringPair>();
       }
-
-      String temp;
 
       ArrayList<StringPair> substitutions = new ArrayList<StringPair>();
 
@@ -1862,6 +1868,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String defaultParamValue = getAttribute(element, "defaultParamValue");
 
       ArrayList<Variable> variableList = new ArrayList<Variable>();
+      ArrayList<Integer>  deletedParams = new ArrayList<Integer>();
       int paramCount=0;
       for (String varName:varNames) {
          String variableKey = fProvider.makeKey(varName.trim());
@@ -1872,11 +1879,19 @@ public class ParseMenuXML extends XML_BaseParser {
             if ((numberOfNonDefaultParams>1) && (paramCount < numberOfNonDefaultParams)) {
                numberOfNonDefaultParams--;
             }
+            // Remove corresponding override
+            deletedParams.add(0, paramCount);
+            paramCount++;
             continue;
          }
          variableList.add(var);
+         paramCount++;
       }
-
+      for(int index:deletedParams) {
+         if (paramOverride.size() > index) {
+            paramOverride.remove(index);
+         }
+      }
       if (variableList.isEmpty()) {
          // No variables exist - don't generate method
          return null;
@@ -1988,7 +2003,10 @@ public class ParseMenuXML extends XML_BaseParser {
             enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
             enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
          }
-
+         if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
+            enumParam = paramOverride.get(index);
+         }
+         
          String comment = "'%comment' is not valid here";
 
          temp = variable.getToolTipAsCode(linePadding+" *        ");
@@ -2669,7 +2687,8 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("<choice> must have name and value attributes "+element);
          }
          // Check if entry has condition to be available for choice to be present
-         Boolean keepChoice = fTemplateConditionParser.evaluateVariablePresentCondition(getAttribute(element, "condition"));
+         Boolean keepChoice = (Boolean) fTemplateConditionParser.evaluate(getAttribute(element, "condition"));
+//         Boolean keepChoice = fTemplateConditionParser.evaluateVariablePresentCondition(getAttribute(element, "condition"));
          
          // Check if entry requires peripherals to be available for choice to be present
          String requiredPeripherals = getAttribute(element, "requiredPeripherals");

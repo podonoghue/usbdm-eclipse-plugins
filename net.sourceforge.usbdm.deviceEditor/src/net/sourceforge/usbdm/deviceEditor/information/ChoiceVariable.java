@@ -400,6 +400,7 @@ public class ChoiceVariable extends VariableWithChoices {
       return super.isLocked() || (getChoices().length <= 1);
    }
 
+   @Override
    public String getDefaultParameterValue() throws Exception {
       // Use index of current selected item
       int index = getIndex(fDefaultValue);
@@ -409,4 +410,18 @@ public class ChoiceVariable extends VariableWithChoices {
       return makeEnum(getData()[index].getEnumName());
    }
 
+   @Override
+   public Object getNativeValue() {
+      return getValueAsString();
+   }
+
+   private String displayValue = null;
+   
+   public void setDisplayValue(String value) {
+      displayValue = value;
+   }
+   
+   public String getDisplayValue() {
+      return displayValue;
+   }
 }

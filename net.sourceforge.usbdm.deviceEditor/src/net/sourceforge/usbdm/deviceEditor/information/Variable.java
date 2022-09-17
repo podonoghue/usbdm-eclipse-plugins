@@ -24,6 +24,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
    
    /**
+    * Get device info object used to register variables
+    * 
+    * @return
+    */
+   public static DeviceInfo getDeviceInfo() {
+      return fDeviceInfo;
+   }
+   /**
     * Units for physical quantities
     */
    public enum Units {None, Hz, s};
@@ -1082,4 +1090,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       }
       return key;
    }
+
+   public abstract Object getNativeValue();
+
 }

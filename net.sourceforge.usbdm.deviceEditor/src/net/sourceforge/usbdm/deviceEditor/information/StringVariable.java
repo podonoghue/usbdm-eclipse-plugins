@@ -148,5 +148,10 @@ public class StringVariable extends Variable {
    public void setDisabledValue(Object value) {
       fDisabledValue = value.toString();
    }
-   
+
+   @Override
+   public Object getNativeValue() {
+      return getValueAsString();
+   }
+
 }
