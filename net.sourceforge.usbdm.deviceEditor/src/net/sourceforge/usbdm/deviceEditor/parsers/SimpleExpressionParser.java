@@ -752,47 +752,6 @@ public class SimpleExpressionParser {
 
    /**
     * Constructor
-    * 
-    * @param varProvider    Variable provider
-    * @param variableNames  List of variable names for substitution e.g. var1Name, var2Name
-    * @param expression     Expression to evaluate e.g. <b>%%+(%1*2)+%3</b>
-    * @param dontEvaluate   Treat identifiers as a test of existence rather than their value
-    * 
-    * @throws Exception
-    */
-   public SimpleExpressionParser(VariableProvider varProvider, String variableNames, String expression) throws Exception {
-      fMode = Mode.EvaluateFully;
-      fProvider = varProvider;
-      
-      fExpression  = expression;
-
-      if (fExpression.contains("%")) {
-         System.err.println("Expression has % => " + fExpression);
-      }
-      if (variableNames.isBlank()) {
-         return;
-      }
-      
-      String varNames[] = variableNames.split(",");
-      int index=0;
-      for (String varName:varNames) {
-//         System.err.println("Adding "+index + " : " + varName);
-         
-         String key = fProvider.makeKey(makeClockSpecificVarKey(varName));
-         Variable var = varProvider.safeGetVariable(key);
-         if (var == null) {
-            throw new Exception();
-         }
-         fExpression  = fExpression.replace("%"+index, var.getNativeValue().toString());
-         if (index == 0) {
-            fExpression  = fExpression.replace("%%", var.getNativeValue().toString());
-         }
-         index++;
-      }
-   }
-
-   /**
-    * Constructor
     * Create parser
     * 
     * @param varProvider    Variable provider
@@ -814,9 +773,11 @@ public class SimpleExpressionParser {
     * 
     * @param expression Expression to evaluate
     * 
-    * @return
+    * @return  Expression result
     * 
     * @throws Exception
+    * 
+    * @note A null expression is viewed as 'true'
     */
    public Object evaluate(String expression) throws Exception {
       if (expression == null) {
@@ -841,28 +802,23 @@ public class SimpleExpressionParser {
    }
 
    /**
-    * Evaluate expression supplied in constructor
+    * Immediately evaluate expression
     * 
-    * @return
+    * @param expression          Expression to evaluate
+    * @param variableProvider    Provider for variables used
+    * @param mode                Mode for evaluation
     * 
-    * @throws Exception
+    * @return  Result of evaluation
+    * 
+    * @throws Exception On lots of situations
+    * 
+    * @note A null expression is viewed as 'true'
     */
-   public Object evaluate() throws Exception {
-      try {
-         Object result = evaluateExpression();
-         if ((fIndex) != fExpression.length()) {
-            throw new Exception("Unexpected characters at end of expression");
-         }
-         return result;
-      } catch (Exception e) {
-         String diagnostic =
-               String.format("\nInput     '%s" + "'" +
-                             "\n           %"+(fIndex+1)+"s", fExpression, "^")+
-                              "....." + e.getMessage()+"\n";
-         throw new Exception(diagnostic);
-      }
+   public static Object evaluate(String expression, VariableProvider variableProvider, Mode mode) throws Exception {
+      SimpleExpressionParser parser = new SimpleExpressionParser(variableProvider, mode);
+      return parser.evaluate(expression);
    }
-
+   
    public boolean isClockDependent() {
       return fClockDependent;
    }

@@ -5,6 +5,9 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
+import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
@@ -215,6 +218,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    /** Reference for variable that is dependent or another */
    private String fReference;
+
+   /** Condition for enabling this variable */
+   private String fEnabledBy = null;
 
    /**
     * Constructor
@@ -1092,5 +1098,31 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    public abstract Object getNativeValue();
+
+   /**
+    * Set condition for enabling this variable
+    * 
+    * @param enabledBy
+    */
+   public void setEnabledBy(String enabledBy) {
+      fEnabledBy = enabledBy;
+   }
+
+   /**
+    * Get condition for enabling this variable
+    * 
+    * @param enabledBy
+    */
+   public String getEnabledBy() {
+      return fEnabledBy;
+   }
+
+   public boolean evaluateEnable(Peripheral peripheral) throws Exception {
+      String enableExpression = getEnabledBy();
+      if (enableExpression == null) {
+         return true;
+      }
+      return (Boolean)SimpleExpressionParser.evaluate(enableExpression, peripheral, Mode.EvaluateFully);
+   }
 
 }

@@ -157,7 +157,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
 //      System.err.println("fData for " + getName());
       // Get default template for info class
-      String template = fMenuData.getTemplate("info", "");
+      String template = fMenuData.getTemplate("info", "", this);
       if (template != null) {
          pinMappingHeaderFile.write(substitute(template));
       }
@@ -184,7 +184,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
 //      System.err.println("fData for " + getName());
       // Get default template for info class
-      String template = fMenuData.getTemplate("class", "");
+      String template = fMenuData.getTemplate("class", "", this);
       if (!template.isBlank()) {
          // Create or replace variable
          fDeviceInfo.addOrUpdateStringVariable("Class Info", "/"+getBaseName()+"/classInfo", substitute(template), true);
@@ -197,7 +197,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return;
       }
-      String template = fMenuData.getTemplate("usbdm", "");
+      String template = fMenuData.getTemplate("usbdm", "", this);
       if ((template != null) && (!template.isEmpty())) {
          documentUtilities.write(substitute(template));
       }
@@ -207,7 +207,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       // Final template after substitutions
       StringBuffer sb = new StringBuffer();
       for (TemplateInformation fileTemplate:fileTemplateList) {
-         String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(), fKeyMaker);
+         String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(this), fKeyMaker);
          sb.append(expandedTemplate);
       }
       return sb.toString();
@@ -710,6 +710,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param dbPortPeripheral Associated database peripheral
     */
    protected void extractAllRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
+
+      String key = makeKey("$present");
+      addOrIgnoreStringConstant(key);
 
       // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
       for(Cluster cl:dbPortPeripheral.getRegisters()) {

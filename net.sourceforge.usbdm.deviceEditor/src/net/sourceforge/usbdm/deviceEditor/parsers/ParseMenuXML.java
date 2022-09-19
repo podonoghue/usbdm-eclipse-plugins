@@ -163,7 +163,7 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @return template value or empty string
        */
-      public String getTemplate(String namespace, String key) {
+      public String getTemplate(String namespace, String key, Peripheral peripheral) {
          key = makeKey(key, namespace);
          ArrayList<TemplateInformation> templateList = fTemplatesList.get(key);
          if (templateList == null) {
@@ -171,7 +171,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          StringBuilder sb = new StringBuilder();
          for(TemplateInformation template:templateList) {
-            sb.append(template.getExpandedText());
+            sb.append(template.getExpandedText(peripheral));
          }
          return sb.toString();
       }
@@ -345,8 +345,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
   
    /** Parser for template conditions */
-//   private final TemplateConditionParser fTemplateConditionParser;
-   private final SimpleExpressionParser  fTemplateConditionParser;
+   private final SimpleExpressionParser  fExpressionParser;
    
    /** Provider providing the variables used by the menu */
    private final VariableProvider  fProvider;
@@ -521,7 +520,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fProjectActionList = new ProjectActionList(provider.getName()+" Action list");
 
 //      fTemplateConditionParser = new TemplateConditionParser(provider);
-      fTemplateConditionParser = new SimpleExpressionParser(provider, SimpleExpressionParser.Mode.CheckIdentifierExistance);
+      fExpressionParser = new SimpleExpressionParser(provider, SimpleExpressionParser.Mode.CheckIdentifierExistance);
    }
 
    /**
@@ -821,9 +820,18 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("target")) {
          variable.setTarget(getAttribute(varElement, "target"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
       }
       if (varElement.hasAttribute("ref")) {
          variable.setReference(getAttribute(varElement, "ref"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
+      }
+      if (varElement.hasAttribute("enabledBy")) {
+         variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
       }
       if (varElement.hasAttribute("register")) {
          variable.setRegister(getAttribute(varElement, "register"));
@@ -903,10 +911,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("offset")) {
          variable.setOffset(getRequiredLongAttribute(varElement, "offset"));
       }
-      if (variable.getReference() != null) {
-         // Add as clock selector
-         fPeripheral.addMonitoredVariable(variable);
-      }
    }
 
    /**
@@ -943,10 +947,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("units")) {
          variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
       }
-      if (variable.getReference() != null) {
-         // Add as clock selector
-         fPeripheral.addMonitoredVariable(variable);
-      }
    }
 
    /**
@@ -982,8 +982,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    boolean checkCondition(Element element) throws Exception {
       String  condition     = getAttribute(element, "condition");
-      return (boolean) fTemplateConditionParser.evaluate(condition);
-//      return fTemplateConditionParser.evaluateVariablePresentCondition(condition);
+      return (boolean) fExpressionParser.evaluate(condition);
    }
    
    /**
@@ -1002,10 +1001,6 @@ public class ParseMenuXML extends XML_BaseParser {
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       
-      if (variable.getTarget() != null) {
-         // Add as clock selector
-         fPeripheral.addMonitoredVariable(variable);
-      }
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
       }
@@ -1027,10 +1022,6 @@ public class ParseMenuXML extends XML_BaseParser {
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       
-      if (variable.getTarget() != null) {
-         // Add as clock selector
-         fPeripheral.addMonitoredVariable(variable);
-      }
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
       }
@@ -1083,7 +1074,7 @@ public class ParseMenuXML extends XML_BaseParser {
          valueFormat = macroName+"(%s)";
       }
       
-      TemplateInformation templateInfo = addTemplate(templateKey, namespace);
+      TemplateInformation templateInfo = addTemplate(templateKey, namespace, null);
       ChoiceData[] choiceData = variable.getData();
       
       StringBuilder body = new StringBuilder();
@@ -1291,10 +1282,6 @@ public class ParseMenuXML extends XML_BaseParser {
       StringVariable variable = (StringVariable) createVariable(varElement, StringVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       
-      if (variable.getTarget() != null) {
-         // Add as clock selector
-         fPeripheral.addMonitoredVariable(variable);
-      }
    }
 
    private void parseCategory(BaseModel parent, Element varElement) throws Exception {
@@ -1397,10 +1384,6 @@ public class ParseMenuXML extends XML_BaseParser {
       parseChoices(variable, varElement);
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
-      }
-      if (variable.getTarget() != null) {
-         // Add as clock selector
-         fPeripheral.addMonitoredVariable(variable);
       }
    }
 
@@ -2224,10 +2207,6 @@ public class ParseMenuXML extends XML_BaseParser {
       String key           = getKeyAttribute(element);
       String namespace     = getAttribute(element, "namespace"); // info|usbdm|class|all
 
-//      String variables = getAttribute(element, "variables");
-//      if ((variables != null) && variables.contains("sim_sopt2_pllfllsel[%n]")) {
-//         System.err.println("Found '"+variables + "', key '"+key+"', namespace '"+namespace+"'");
-//      }
       if (!checkTemplateConditions(element)) {
          return;
       }
@@ -2240,7 +2219,7 @@ public class ParseMenuXML extends XML_BaseParser {
          // Non-empty variable list and variables not found
          return;
       }
-      TemplateInformation templateInfo = addTemplate(key, namespace);
+      TemplateInformation templateInfo = addTemplate(key, namespace, getAttribute(element, "codeGenCondition"));
       
       for (Node node = element.getFirstChild();
             node != null;
@@ -2363,7 +2342,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       substitutions.add(0, new StringPair("%body", caseBody));
 
-      TemplateInformation templateInfo = addTemplate(key, namespace);
+      TemplateInformation templateInfo = addTemplate(key, namespace, getAttribute(element, "codeGenCondition"));
       
       for (Node node = element.getFirstChild();
             node != null;
@@ -2606,15 +2585,16 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param templateKey   Key used to index template
     * @param namespace     Namespace for template (info, usbdm, class, all)
+    * @param string
     * 
     * @throws Exception
     */
-   private TemplateInformation addTemplate(String key, String namespace) throws Exception {
+   private TemplateInformation addTemplate(String key, String namespace, String codeGenerationCondition) throws Exception {
       
       if (key == null) {
          key = "";
       }
-      TemplateInformation templateInfo = new TemplateInformation(key, namespace);
+      TemplateInformation templateInfo = new TemplateInformation(key, namespace, codeGenerationCondition);
 
       String templateKey = MenuData.makeKey(key, namespace);
 
@@ -2687,22 +2667,7 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("<choice> must have name and value attributes "+element);
          }
          // Check if entry has condition to be available for choice to be present
-         Boolean keepChoice = (Boolean) fTemplateConditionParser.evaluate(getAttribute(element, "condition"));
-//         Boolean keepChoice = fTemplateConditionParser.evaluateVariablePresentCondition(getAttribute(element, "condition"));
-         
-         // Check if entry requires peripherals to be available for choice to be present
-         String requiredPeripherals = getAttribute(element, "requiredPeripherals");
-         if (requiredPeripherals != null) {
-            requiredPeripherals = requiredPeripherals.toUpperCase();
-            String[] requiredPeriphs = requiredPeripherals.split(",");
-            for (String p:requiredPeriphs) {
-               Peripheral per = fPeripheral.getDeviceInfo().getPeripherals().get(p);
-               if (per == null) {
-                  keepChoice = false;
-                  continue;
-               }
-            }
-         }
+         Boolean keepChoice = (Boolean) fExpressionParser.evaluate(getAttribute(element, "condition"));
          if (!keepChoice) {
             continue;
          }

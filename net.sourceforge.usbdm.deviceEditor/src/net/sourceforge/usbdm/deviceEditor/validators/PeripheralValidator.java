@@ -77,12 +77,12 @@ public class PeripheralValidator extends Validator {
    }
 
    private void validateAllClockSelectors() throws Exception {
-//      ArrayList<Variable> clockSelectors = getPeripheral().getMonitoredVariables();
-//      if (clockSelectors == null) {
+//      ArrayList<Variable> monitoredVariables = getPeripheral().getMonitoredVariables();
+//      if (monitoredVariables == null) {
 //         return;
 //      }
-//      for (Variable clockSelector:clockSelectors) {
-//         validateClockSelectorVariable(clockSelector);
+//      for (Variable monitoredVariable:monitoredVariables) {
+//         monitoredVariable.???
 //      }
    }
 
@@ -171,6 +171,7 @@ public class PeripheralValidator extends Validator {
          }
       }
       if (targetVariable != null) {
+         enabled = enabled && targetVariable.evaluateEnable(getPeripheral());
          targetVariable.setValue(result);
          targetVariable.setOrigin(origin);
          targetVariable.setStatus(status);
@@ -295,6 +296,49 @@ public class PeripheralValidator extends Validator {
                      
          } catch (Exception e) {
             System.err.println("Failed to validate "+fDependentVar);
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void elementStatusChanged(ObservableModel observableModel) {
+      }
+   };
+
+   protected class EnabledByListener implements IModelChangeListener {
+
+      final Variable fEnabledByVar;
+
+      /**
+       * The variable that is enabled by the expression
+       * 
+       * @param enabledByVar
+       */
+      public EnabledByListener(Variable enabledByVar) {
+         fEnabledByVar = enabledByVar;
+      }
+
+      @Override
+      public void modelStructureChanged(ObservableModel observableModel) {
+      }
+
+      @Override
+      public void modelElementChanged(ObservableModel observableModel) {
+         try {
+            /**
+             * Validate a variable referencing another variable
+             * 
+             * reference=... is the controlling source
+             * The variable itself the target
+             */
+            // Reference of form "[varName];expression"
+            String enabledByExpression = fEnabledByVar.getEnabledBy();
+            
+            SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
+            Boolean result = (Boolean)parser.evaluate(enabledByExpression);
+            fEnabledByVar.enable(result);
+         } catch (Exception e) {
+            System.err.println("Failed to validate "+fEnabledByVar);
             e.printStackTrace();
          }
       }
@@ -467,12 +511,29 @@ public class PeripheralValidator extends Validator {
    }
    
    /**
+    * This handles a variable that enabled by other variables
+    * This variable will have a enabledBy="expression"
+    *
+    * @param enabledVariable Variable that is dependent (has enabledBy)
+    * 
+    * @throws Exception
+    */
+   private void addEnabledByListener(Variable enabledVariable, HashMap<String, Object> addedListeners) throws Exception {
+      
+      // Get/create listener to link references to target
+      // No need to check for duplicates as this would require multiple of the same dependent variable
+      String enabledByExpression = enabledVariable.getEnabledBy();
+      EnabledByListener listener = new EnabledByListener(enabledVariable);
+      addExpressionListeners(enabledByExpression, listener, enabledVariable);
+   }
+
+   /**
     * Add clock selectors and their references to watched variables<br>
     * The clock selectors are obtained from the associated peripheral
     * 
     * @throws Exception
     */
-   private void addClockSelectors() throws Exception {
+   private void addMonitoredVariableListeners() throws Exception {
       ArrayList<Variable> monitoredVariables = getPeripheral().getMonitoredVariables();
       if (monitoredVariables == null) {
          return;
@@ -482,12 +543,14 @@ public class PeripheralValidator extends Validator {
       HashMap<String,Object> addedListeners  = new HashMap<String,Object>();
       
       for (Variable monitoredVariable:monitoredVariables) {
-
+         boolean actionFound = false;
          if (monitoredVariable.getReference() != null) {
             // This variable depends on another variable
             addDependentVariableListener(monitoredVariable);
+            actionFound = true;
          }
-         else if (monitoredVariable.getTarget() != null) {
+         if (monitoredVariable.getTarget() != null) {
+            actionFound = true;
             // This variable controllers another variable
             if (monitoredVariable instanceof StringVariable) {
                addStringListener((StringVariable) monitoredVariable, addedListeners);
@@ -499,7 +562,12 @@ public class PeripheralValidator extends Validator {
                throw new Exception("Monitored var '"+monitoredVariable+"' is of unsupported type");
             }
          }
-         else {
+         if (monitoredVariable.getEnabledBy() != null) {
+            actionFound = true;
+            addEnabledByListener(monitoredVariable, addedListeners);
+         }
+         
+         if (!actionFound) {
             throw new Exception("Monitored var '"+monitoredVariable+"' doesn't have target or reference");
          }
       }
@@ -658,7 +726,7 @@ public class PeripheralValidator extends Validator {
    @Override
    protected void createDependencies() throws Exception {
       addToWatchedVariables(getPeripheral().getDependencies());
-      addClockSelectors();
+      addMonitoredVariableListeners();
    }
 
    /**

@@ -2313,7 +2313,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (fMenuData == null) {
          return;
       }
-      String template = fMenuData.getTemplate("usbdm", "");
+      String template = fMenuData.getTemplate("usbdm", "", null);
       if ((template != null) && (!template.isEmpty())) {
          documentUtilities.write(substitute(template));
       }

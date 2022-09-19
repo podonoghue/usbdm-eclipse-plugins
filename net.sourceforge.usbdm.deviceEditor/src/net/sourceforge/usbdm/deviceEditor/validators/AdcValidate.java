@@ -33,8 +33,6 @@ public class AdcValidate extends PeripheralValidator {
    private Variable        adc_cfg1_adlpcVar        = null;
    private Variable        adc_cfg2_adhscVar        = null;
    private Variable        adc_cfg1_modeVar         = null;
-   private LongVariable    low_comparison_valueVar  = null;
-   private LongVariable    high_comparison_valueVar = null;
    private LongVariable    adc_cv1Var               = null;
    private LongVariable    adc_cv2Var               = null;
    private ChoiceVariable  adc_sc2_compareVar       = null;
@@ -48,32 +46,17 @@ public class AdcValidate extends PeripheralValidator {
 
    /**
     * Class to determine LPTMR settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
 
       super.validate(variable);
 
-      int low  = (int)low_comparison_valueVar.getValueAsLong();
-      int high = (int)high_comparison_valueVar.getValueAsLong();
-
       int compareChoice = (int)adc_sc2_compareVar.getValueAsLong();
-
-      int cv1 = low;
-      int cv2 = high;
-      if ((compareChoice == 4)||(compareChoice == 5)) {
-         // Values are swapped for these two cases
-         cv1 = high;
-         cv2 = low;
-      }
 
       adc_cv1Var.enable(compareChoice>=1);
       adc_cv2Var.enable(compareChoice>=3);
-      low_comparison_valueVar.enable(compareChoice>=1);
-      high_comparison_valueVar.enable(compareChoice>=3);
-      adc_cv1Var.setValue(cv1);
-      adc_cv2Var.setValue(cv2);
 
       // Internal clock frequency varies with ADC power settings etc
       int index = (int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong());
@@ -102,8 +85,6 @@ public class AdcValidate extends PeripheralValidator {
       adc_cfg2_adhscVar         = getVariable("adc_cfg2_adhsc");
       adc_cfg1_modeVar          = getVariable("adc_cfg1_mode");
                                 
-      low_comparison_valueVar   = getLongVariable("low_comparison_value");
-      high_comparison_valueVar  = getLongVariable("high_comparison_value");
       adc_cv1Var                = getLongVariable("adc_cv1");
       adc_cv2Var                = getLongVariable("adc_cv2");
                                 
