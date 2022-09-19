@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of Low Power UART
@@ -14,7 +15,7 @@ public class WriterForLpuart extends PeripheralWithState {
    public WriterForLpuart(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       
-      // Can (usually do) create instances of this class 
+      // Can (usually do) create instances of this class
       fCanCreateInstance = true;
       
       // Instance has internal state
@@ -48,4 +49,8 @@ public class WriterForLpuart extends PeripheralWithState {
       validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
    }
 
+   @Override
+   public void extractHardwareInformation(Peripheral dbPeripheral) {
+      extractAllRegisterFields(dbPeripheral);
+   }
 }
