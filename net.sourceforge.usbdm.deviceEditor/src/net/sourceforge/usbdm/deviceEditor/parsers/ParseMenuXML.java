@@ -1912,7 +1912,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
 
          if (valueFormat != null) {
-            mask = valueFormat.replace(",", "|").replace("(%s)", "_MASK");
+            mask = valueFormat.replace(",(%s)", "").replace(",", "|").replace("(%s)", "_MASK");
          }
          else {
             mask = Variable.getBaseNameFromKey(variableKey).toUpperCase()+"_MASK";

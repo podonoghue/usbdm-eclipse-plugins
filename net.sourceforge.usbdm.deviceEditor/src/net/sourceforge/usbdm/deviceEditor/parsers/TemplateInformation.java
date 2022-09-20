@@ -30,9 +30,9 @@ public class TemplateInformation {
    /**
     * Construct template
     * 
-    * @param key        Key used to index template
+    * @param key                       Key used to index template
     * @param codeGenerationCondition
-    * @param namespace  Namespace for template (info, usbdm, class)
+    * @param namespace                 Namespace for template (info, usbdm, class)
     */
    public TemplateInformation(String key, String nameSpace, String codeGenerationCondition) {
       fKey        = key;
