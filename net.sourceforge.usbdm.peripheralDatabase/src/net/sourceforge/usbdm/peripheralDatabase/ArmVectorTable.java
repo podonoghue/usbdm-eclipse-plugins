@@ -15,7 +15,7 @@ public abstract class ArmVectorTable extends VectorTable {
       super(VECTOR_OFFSET, FIRST_IRQ_INDEX);
    }
 
-   static final String resetHandlerPrototype = 
+   static final String resetHandlerPrototype =
          "#ifdef __cplusplus\n"+
                "extern \"C\" {\n"+
                "#endif\n"+
@@ -32,18 +32,18 @@ public abstract class ArmVectorTable extends VectorTable {
                "   intfunc  handlers[%d];\n" +
                "} VectorTable;\n\n";
 
-   static final String vectorTableOpen     = 
+   static final String vectorTableOpen     =
          "extern VectorTable const __vector_table;\n\n"+
                "__attribute__ ((section(\".interrupt_vectors\")))\n"+
                "VectorTable const __vector_table = {\n"+
                "                                               /*  Exc# Irq# */\n"+
                "   &__StackTop,                                /*    0   -16  Initial stack pointer                                                            */\n"+
                "   {\n";
-   static final String vectorTableEntry    = 
+   static final String vectorTableEntry    =
          "      %-40s /* %4d, %4d  %-80s */\n";
    static final String vectorTableDeviceSeparator =
          "\n                                               /* External Interrupts */\n";
-   static final String vectorTableClose    = 
+   static final String vectorTableClose    =
          "   }\n" +
                "};\n\n";
 
@@ -56,7 +56,7 @@ public abstract class ArmVectorTable extends VectorTable {
     * @throws IOException
     */
    private void writeVectorTableEntry(Writer writer, String handlerName, int index) throws IOException {
-      final String vectorTableEntry    = 
+      final String vectorTableEntry    =
             "      %-40s /* %4d, %4d  %-80s */\n";
       writer.write(String.format(vectorTableEntry, handlerName+",", index, index-VECTOR_OFFSET, getHandlerDescription(index)));
    }
@@ -130,7 +130,8 @@ public abstract class ArmVectorTable extends VectorTable {
          addDefaultVectors = false;
       }
 
-      writeGroupPreamble(writer, "Interrupt_vector_numbers", "Interrupt vector numbers", "Vector numbers required for NVIC functions");
+      writeDescription(writer, "Vector numbers required for NVIC functions", "");
+      writeAddToGroupPreamble(writer, "Interrupt_vector_numbers", "Interrupt vector numbers");
 
       writer.write(String.format("#define NUMBER_OF_INT_VECTORS %s //<! Number of vector table entries\n", lastUsedEntry+1));
       
@@ -156,9 +157,11 @@ public abstract class ArmVectorTable extends VectorTable {
       }
       writer.write(INTERRUPT_POSTAMBLE);
 
-      writeGroupPostamble(writer, "Interrupt_vector_numbers");
+      StringBuilder sb = new StringBuilder();
+      writeAddToGroupPostamble(sb, "Interrupt_vector_numbers");
 
-      writeGroupPreamble(writer, "Interrupt_handler_prototypes", "Interrupt handler prototypes", "Prototypes for interrupt handlers");
+      writeDescription(writer, "Prototypes for interrupt handlers", "");
+      writeAddToGroupPreamble(sb, "Interrupt_handler_prototypes", "Interrupt handler prototypes");
       writer.write(EXTERNAL_HANDLER_BANNER);
 
       for (int index=2; index<=lastEntry; index++) {
@@ -169,6 +172,8 @@ public abstract class ArmVectorTable extends VectorTable {
       }
       writer.write('\n');
 
-      writeGroupPostamble(writer, "Interrupt_handler_prototypes");
+      writeAddToGroupPostamble(sb, "Interrupt_handler_prototypes");
+      
+      writer.write(sb.toString());
    }
 }

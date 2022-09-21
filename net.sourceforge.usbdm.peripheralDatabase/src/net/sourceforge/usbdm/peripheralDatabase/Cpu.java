@@ -18,7 +18,7 @@ public class Cpu extends ModeControl {
    boolean  vendorSystickConfig;
    
    public Cpu(String pName) {
-      name                = pName.toUpperCase(); 
+      name                = pName.toUpperCase();
       revision            = "Unknown";
       endian              = "Unknown";
       mpuPresent          = false;
@@ -158,8 +158,8 @@ public class Cpu extends ModeControl {
 
    public boolean equals(Cpu other) {
       return (this.getName().equalsIgnoreCase(other.getName())) &&
-             (this.getRevision().equalsIgnoreCase(other.getRevision())) && 
-             (this.getEndian().equalsIgnoreCase(other.getEndian())) && 
+             (this.getRevision().equalsIgnoreCase(other.getRevision())) &&
+             (this.getEndian().equalsIgnoreCase(other.getEndian())) &&
              (this.isMpuPresent()          == other.isMpuPresent()) &&
              (this.isFpuPresent()          == other.isFpuPresent()) &&
              (this.isVtorPresent()         == other.isVtorPresent()) &&
@@ -168,25 +168,26 @@ public class Cpu extends ModeControl {
    }
    
    
-   private final String cpuBrief = 
+   private final String cpuBrief =
          "Configuration of the cm4 Processor and Core Peripherals";
    
    /**
     *   Writes the CPU description to file in C Header file format
-    *   
+    * 
     *  @param writer          The destination for the data
-    *  @throws IOException 
+    *  @throws IOException
     */
    public void writeCHeaderFile(Writer writer) throws IOException {
       
-      writeGroupPreamble(writer, "Cortex_Core_Configuration", "Cortex Core Configuration", cpuBrief);
+      writeDescription(writer, cpuBrief, "");
+      writeAddToGroupPreamble(writer, "Cortex_Core_Configuration", "Cortex Core Configuration");
       writer.write(String.format(   "#define %-14s            %-10s /**< CPU Revision                                        */\n",   getVersionIdString(), getRevisionNumber()));
       writer.write(String.format(   "#define __MPU_PRESENT             %-10s /**< Whether MPU is present                              */\n",   isMpuPresent()?"1":"0"));
       writer.write(String.format(   "#define __NVIC_PRIO_BITS          %-10d /**< Number of implemented bits in NVIC PRIO register    */\n",   getNvicPrioBits()));
       writer.write(String.format(   "#define __Vendor_SysTickConfig    %-10s /**< Whether Vendor implemented SYSTICK timer is present */\n",   isVendorSystickConfig()?"1":"0"));
       writer.write(String.format(   "#define __FPU_PRESENT             %-10s /**< Whether FPU is present                              */\n",   isFpuPresent()?"1":"0"));
       writer.write(String.format(   "#define __VTOR_PRESENT            %-10s /**< Whether VTOR register is present                    */\n\n", isVtorPresent()?"1":"0"));
-      writeGroupPostamble(writer, "Cortex_Core_Configuration");
+      writeAddToGroupPostamble(writer, "Cortex_Core_Configuration");
    }
 
    String getHeaderFileName() throws Exception {
@@ -228,9 +229,9 @@ public class Cpu extends ModeControl {
    
    /**
     *   Writes the CPU description to file in a SVF format
-    *   
+    * 
     *  @param writer          The destination for the XML
-    *  @param standardFormat  Suppresses some non-standard size optimizations 
+    *  @param standardFormat  Suppresses some non-standard size optimizations
     *  @param owner           The owner - This is used to reduce the size by inheriting default values
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat, DevicePeripherals owner) {

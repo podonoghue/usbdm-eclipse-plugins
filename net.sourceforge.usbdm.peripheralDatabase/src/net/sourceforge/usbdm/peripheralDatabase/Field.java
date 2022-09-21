@@ -19,14 +19,14 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/* 
+/*
  * How to do a hidden derived field
  * <field derivedFrom="VLLSM" > <name>LLSM</name> <?ignoreOverlap?> <?hide?> </field>
  */
 public class Field extends ModeControl implements Cloneable {
-   static final int READ_MASK  = (1<<1); 
-   static final int WRITE_MASK = (1<<2); 
-   static final int ONCE_MASK  = (1<<3); 
+   static final int READ_MASK  = (1<<1);
+   static final int WRITE_MASK = (1<<2);
+   static final int ONCE_MASK  = (1<<3);
 
    public enum AccessType {
       //                                       multiple write   read
@@ -137,15 +137,15 @@ public class Field extends ModeControl implements Cloneable {
     */
    public Field(Field other) {
       fDerivedFrom        = other;
-      fAccessType         = other.fAccessType;    
-      fBitOffsetText      = other.fBitOffsetText;     
-      fBitOffset          = other.fBitOffset;     
-      fBitwidthText       = other.fBitwidthText;      
-      fBitwidth           = other.fBitwidth;      
+      fAccessType         = other.fAccessType;
+      fBitOffsetText      = other.fBitOffsetText;
+      fBitOffset          = other.fBitOffset;
+      fBitwidthText       = other.fBitwidthText;
+      fBitwidth           = other.fBitwidth;
       fDescription        = other.fDescription;
       fSortedEnumerations = other.fSortedEnumerations;
-      fEnumerations       = other.fEnumerations;  
-      fName               = other.fName;          
+      fEnumerations       = other.fEnumerations;
+      fName               = other.fName;
       fOwner              = other.fOwner;
    }
 
@@ -283,7 +283,7 @@ public class Field extends ModeControl implements Cloneable {
    public boolean equivalent(Field other, String pattern1, String pattern2) {
       boolean verbose = false;
 //      verbose = getName().equalsIgnoreCase("WUPE0") && other.getName().equalsIgnoreCase("WUPE0");
-      boolean rv =  
+      boolean rv =
             (fBitOffset == other.fBitOffset) &&
             (fBitwidth == other.fBitwidth);
       if (!isIgnoreAccessTypeInEquivalence()) {
@@ -333,8 +333,8 @@ public class Field extends ModeControl implements Cloneable {
    public boolean equivalent(Field other) {
       boolean verbose = false;
 //      verbose = getName().equalsIgnoreCase("DLLSB") && other.getName().equalsIgnoreCase("DLLSB");
-      boolean rv =  
-            fName.equals(other.fName) && 
+      boolean rv =
+            fName.equals(other.fName) &&
             fDescription.equalsIgnoreCase(other.fDescription) &&
             equivalent(other, null, null);
       if (!rv) {
@@ -361,7 +361,7 @@ public class Field extends ModeControl implements Cloneable {
    }
    
    public void report() {
-      System.out.println(String.format("          Field \"%s\" [%d-%d], Description = \"%s\" : " + fAccessType.toString(), 
+      System.out.println(String.format("          Field \"%s\" [%d-%d], Description = \"%s\" : " + fAccessType.toString(),
             getName(), getBitOffset(), getBitOffset()+getBitwidth()-1, getDescription()));
       
       for(Enumeration enumeration : fEnumerations) {
@@ -371,11 +371,11 @@ public class Field extends ModeControl implements Cloneable {
 
    /**
     *   Writes the Register description to file in a SVF format
-    *   
+    * 
     *  @param writer          The destination for the XML
-    *  @param standardFormat  Suppresses some non-standard size optimisations 
+    *  @param standardFormat  Suppresses some non-standard size optimisations
     *  @param owner           The owner - This is used to reduce the size by inheriting default values
-    * @throws IOException 
+    * @throws IOException
     */
    public void writeSVD(Writer writer, boolean standardFormat, Register owner, int indent) throws IOException {
       final String indenter = RegisterUnion.getIndent(indent);
@@ -471,7 +471,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(DMA)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(GPIO_.*)(?:AN|AS|DD|GP|LD|NQ|QS|TA|TC|TD|TE|TF|TG|TH|TI|TJ|UA|UB|UC)(_.*)$"),  "$1$2")); // GPIO_PORTNQ_PORT_MASK => GPIO_PORT_PORT_MASK
-         mappedMacros.add(new Pair(Pattern.compile("^F?(GPIO)[A-Z](_.*)$"),                    null));    // Delete useless pin macros 
+         mappedMacros.add(new Pair(Pattern.compile("^F?(GPIO)[A-Z](_.*)$"),                    null));    // Delete useless pin macros
          mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_.*)$"),                      "$1$2"));
 //         mappedMacros.add(new Pair(Pattern.compile("^(FMC)[0-9]?_S_(.*)$"),                   "$1_TAGVD_$2"));  // FMC_S_valid_SHIFT -> FMC_TAGVD_valid_SHIFT
 //         mappedMacros.add(new Pair(Pattern.compile("^(FMC_S)[0-9]*(.*)$"),                    "$1$2"));  // Fold cache ways
@@ -501,7 +501,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(TRNG)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?UART)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(INTC)[0-9](_.*)$"),                     "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
-         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                 "$1$2")); 
+         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                 "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(EMVSIM)\\d(.*)$"),                      "$1$2")); // EMVSIM0_VER_ID_VER_MASK => EMVSIM_VER_ID_VER_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(FLEXIO)\\d(.*)$"),                      "$1$2")); // FLEXIO0_VERID_FEATURE_MASK => FLEXIO_VERID_FEATURE_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(INTMUX)\\d(.*)$"),                      "$1$2")); // INTMUX0_CSR_RST_MASK => INTMUX_CSR_RST_MASK
@@ -526,7 +526,7 @@ public class Field extends ModeControl implements Cloneable {
    static final String BITFIELD_MACRO_MSK_FORMAT        = "#define %-40s (0x%02XUL << %s)";
    static final String BITFIELD_MACRO_FIELD_FORMAT      = "#define %-40s (((%s)(((%s)(x))<<%s))&%s)";
    static final String BITFIELD_MACRO_FIELD_NUM_FORMAT  = "#define %-40s (((%s)(((%s)(x))<<%dU))&0x%XUL)";
-   static final String BITFIELD_FORMAT_COMMENT       = " /*!< %-40s*/\n";
+   static final String BITFIELD_FORMAT_COMMENT       = " /**< %-40s*/\n";
 
    String getBaseName() {
       return getName().replaceAll("%s", "n");
@@ -546,11 +546,11 @@ public class Field extends ModeControl implements Cloneable {
     * Writes a set of macros to allow convenient access to the register field<br>
     * e.g. "#define PERIPHERAL_FIELD(x)  (((x)&lt;&lt;FIELD_OFFSET)&FIELD_MASK)"
     * 
-    * @param  writer    Where to write 
+    * @param  writer    Where to write
     * @param  baseName  Basename of the peripheral
-    * @throws Exception 
+    * @throws Exception
     */
-   public void writeHeaderFileFieldMacros(Writer writer, String baseName) throws Exception {
+   public void writeHeaderFileFieldMacros(StringBuilder writer, String baseName) throws Exception {
       String fieldname = baseName+"_"+getBaseName();
       // Filter names
       fieldname = getMappedBitfieldMacroName(fieldname);
@@ -565,27 +565,27 @@ public class Field extends ModeControl implements Cloneable {
       int    mask      = (int) (((1L<<getBitwidth())-1)<<getBitOffset());
       
       // Write "#define XXX_YY_MASK (0xXXXXU)"
-      writer.write(String.format("%-100s%s",
-            String.format(BITFIELD_MACRO_MSK_NUM_FORMAT, mskName, mask),  // Value 
+      writer.append(String.format("%-100s%s",
+            String.format(BITFIELD_MACRO_MSK_NUM_FORMAT, mskName, mask),  // Value
             String.format(BITFIELD_FORMAT_COMMENT,  baseName+"."+getBaseName()+" Mask")));                   // Comment
       
       // Write "#define XXX_YY_SHIFT (XXXXU)"
-      writer.write(String.format("%-100s%s",
+      writer.append(String.format("%-100s%s",
             String.format(BITFIELD_MACRO_POS_FORMAT, posName, getBitOffset()),                 // Value
             String.format(BITFIELD_FORMAT_COMMENT,  baseName+"."+getBaseName()+" Position"))); // Comment
 
       String width = getCWidth(fOwner.getWidth());
       if (isUseNamesInFieldMacros()) {
          // Write #define XXX_YYY(x) (((uint32_t)(((uint32_t)(x))<<XXX_YYY_SHIFT))&XXX_YYY_MASK) //!< xxx.yyy Field
-         writer.write(String.format("%-100s%s",
-               String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
-               String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field"))); 
+         writer.append(String.format("%-100s%s",
+               String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName),
+               String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field")));
       }
       else {
          // Write #define XXX_YYY(x) (((uint32_t)(((uint32_t)(x))<<0U))&0x1FUL) //!< xxx.yyy Field
-         writer.write(String.format("%-100s%s",
-               String.format(BITFIELD_MACRO_FIELD_NUM_FORMAT, fieldname+"(x)", width, width, getBitOffset(), mask), 
-               String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field"))); 
+         writer.append(String.format("%-100s%s",
+               String.format(BITFIELD_MACRO_FIELD_NUM_FORMAT, fieldname+"(x)", width, width, getBitOffset(), mask),
+               String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field")));
       }
    }
 

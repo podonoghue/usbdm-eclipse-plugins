@@ -63,7 +63,7 @@ public class DevicePeripherals extends ModeControl {
     * 
     * @param path  Path to SVD file
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public DevicePeripherals(Path path) throws UsbdmException {
       fName              = "";
@@ -233,7 +233,7 @@ public class DevicePeripherals extends ModeControl {
     * An empty vector is created if needed.
     * 
     * @return the vectorTable
-    * @throws Exception 
+    * @throws Exception
     */
    public VectorTable getVectorTable() throws Exception {
       if (fVectorTable == null) {
@@ -251,7 +251,7 @@ public class DevicePeripherals extends ModeControl {
    }
 
 
-   /** 
+   /**
     * Get list of equivalent devices
     * 
     * @return
@@ -348,7 +348,7 @@ public class DevicePeripherals extends ModeControl {
     *   <li>Common prefixes on register names<br>
     *   <li>Creation of register arrays (simple arrays of registers)<br>
     *   <li>Creation of register clusters (used to represent complex arrays of multiple registers)<br>
-    * @throws Exception 
+    * @throws Exception
     */
    public void optimise() throws Exception {
       sortPeripheralsByName();
@@ -368,8 +368,8 @@ public class DevicePeripherals extends ModeControl {
 
    public boolean equivalentStructure(DevicePeripherals other) {
       boolean rv = (this.getAccessType()      == other.getAccessType()) &&
-            (this.getAddressUnitBits() == other.getAddressUnitBits()) && 
-            (this.getWidth()           == other.getWidth()) && 
+            (this.getAddressUnitBits() == other.getAddressUnitBits()) &&
+            (this.getWidth()           == other.getWidth()) &&
             this.fCpu.equals(other.fCpu);
       if (!rv) {
          return false;
@@ -403,7 +403,7 @@ public class DevicePeripherals extends ModeControl {
    //      if (interruptList == null) {
    //         interruptList = new VectorTable();
    //      }
-   //      
+   //
    //      addInterruptEntry(new InterruptEntry("Reset",            -15, "Reset Vector, invoked on Power up and warm reset"));
    //      addInterruptEntry(new InterruptEntry("NonMaskableInt",   -14, "Non maskable Interrupt, cannot be stopped or preempted"));
    //      addInterruptEntry(new InterruptEntry("HardFault",        -13, "Hard Fault, all classes of Fault"));
@@ -416,14 +416,14 @@ public class DevicePeripherals extends ModeControl {
    //      addInterruptEntry(new InterruptEntry("SysTick",           -1, "System Tick Timer"));
    //   }
 
-   static final String XML_PREAMBLE = 
+   static final String XML_PREAMBLE =
          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 
-   static final String DEVICE_PREAMBLE_1_0 = 
+   static final String DEVICE_PREAMBLE_1_0 =
          "<device schemaVersion=\"1.0\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:noNamespaceSchemaLocation=\"CMSIS-SVD_Schema_1_0.xsd\">\n"
          ;
 
-   static final String DEVICE_PREAMBLE_1_1 = 
+   static final String DEVICE_PREAMBLE_1_1 =
          "<device\n" +
                "   schemaVersion=\"1.1\"\n" +
                "   xmlns:xi=\"http://www.w3.org/2001/XInclude\"\n" +
@@ -434,9 +434,9 @@ public class DevicePeripherals extends ModeControl {
 
    /**
     *   Writes the Device description to file in SVF format
-    *   
+    * 
     *  @param path The destination for the XML
-    * @throws Exception 
+    * @throws Exception
     */
    public void writeSVD(Path path) throws Exception {
       File svdFile = path.toFile();
@@ -495,13 +495,13 @@ public class DevicePeripherals extends ModeControl {
 
    /**
     *   Writes the Device description to file in a modified SVF format
-    *  @param peripheralDatabaseMerger 
-    *   
+    *  @param peripheralDatabaseMerger
+    * 
     *  @param writer         The destination for the XML
     *  @param standardFormat Flag that controls whether the peripherals are expanded in-line or by the use of ENTITY references
-    *                        It also suppresses some other size optimisations 
-    *  @throws Exception 
-    *  
+    *                        It also suppresses some other size optimisations
+    *  @throws Exception
+    * 
     *  @note The XML header should already be written to the file.
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat) throws Exception {
@@ -511,13 +511,13 @@ public class DevicePeripherals extends ModeControl {
 
    /**
     *   Writes the Device description to file in a modified SVF format
-    *  @param peripheralDatabaseMerger 
-    *   
+    *  @param peripheralDatabaseMerger
+    * 
     *  @param writer         The destination for the XML
     *  @param standardFormat Flag that controls whether the peripherals are expanded in-line or by the use of ENTITY references
-    *                        It also suppresses some other size optimisations 
-    *  @throws Exception 
-    *  
+    *                        It also suppresses some other size optimisations
+    *  @throws Exception
+    * 
     *  @note The XML header should already be written to the file.
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat, int indent) throws Exception {
@@ -582,11 +582,11 @@ public class DevicePeripherals extends ModeControl {
                + "\n"
                ;
 
-   static final String COMMON_INCLUDES = 
+   static final String COMMON_INCLUDES =
          "#include <stdint.h>\n"
          ;
 
-   static final String CPP_OPENING = 
+   static final String CPP_OPENING =
          "#ifdef __cplusplus\n"
                + "extern \"C\" {\n"
                + "#endif\n"
@@ -594,7 +594,7 @@ public class DevicePeripherals extends ModeControl {
                ;
 
 
-   static final String COMMON_DEFINITIONS = 
+   static final String COMMON_DEFINITIONS =
          "#ifndef __IO\n"
                + "#define __IO volatile \n"
                + "#endif\n\n"
@@ -666,9 +666,9 @@ public class DevicePeripherals extends ModeControl {
 
    /**
     *  Creates a header file from the device description
-    *   
+    * 
     *  @param  headerFilePath  The destination for the data
-    *  
+    * 
     *  @throws Exception
     */
    public void writeHeaderFile(Path headerFilePath) throws Exception {
@@ -687,10 +687,10 @@ public class DevicePeripherals extends ModeControl {
 
    /**
     *  Creates a header file from the device description
-    *   
+    * 
     *  @param headerFilePath  The destination for the data
     *  @param monitor         Progress monitor
-    *  
+    * 
     *  @throws Exception
     */
    public void writeHeaderFile(Path headerFilePath, IProgressMonitor monitor) throws Exception {
@@ -699,10 +699,10 @@ public class DevicePeripherals extends ModeControl {
       writeHeaderFile(headerFilePath);
    }
 
-   static final String NVIC_PRIO_FORMAT = 
+   static final String NVIC_PRIO_FORMAT =
          "#define __NVIC_PRIO_BITS  (%d)  /**< Number of Bits used for Priority Levels    */\n";
 
-   static final String PERIPHERAL_MEMORY_MAP_COMMENT = 
+   static final String PERIPHERAL_MEMORY_MAP_COMMENT =
          "\n"
                +"/* ================================================================================ */\n"
                +"/* ================              Peripheral memory map             ================ */\n"
@@ -714,7 +714,7 @@ public class DevicePeripherals extends ModeControl {
    static final String BASE_ADDRESS_FORMAT           = "#define %-30s 0x%08XUL //!< Peripheral base address\n";
    static final String FREESCALE_BASE_ADDRESS_FORMAT = "#define %-30s %s //!< Freescale style base pointer\n";
 
-   static final String PERIPHERAL_DECLARATION_INTRO = 
+   static final String PERIPHERAL_DECLARATION_INTRO =
          "\n"
                +"/* ================================================================================ */\n"
                +"/* ================             Peripheral declarations            ================ */\n"
@@ -722,7 +722,7 @@ public class DevicePeripherals extends ModeControl {
                +"\n"
                ;
 
-   static final String PROCESSOR_AND_CORE_PERIPHERAL_INTRO = 
+   static final String PROCESSOR_AND_CORE_PERIPHERAL_INTRO =
          "/* ================================================================================ */\n" +
                "/* ================      Processor and Core Peripheral Section     ================ */\n" +
                "/* ================================================================================ */\n\n";
@@ -731,7 +731,7 @@ public class DevicePeripherals extends ModeControl {
    static final String PERIPHERAL_DECLARATION_FORMAT           = "#define %-30s ((%-20s *) %s)\n";
    static final String FREESCALE_PERIPHERAL_DECLARATION_FORMAT = "#define %-30s ((%s *) %s) //!< Freescale base pointer\n";
 
-   static final String CORE_HEADER_FILE_INCLUSION = 
+   static final String CORE_HEADER_FILE_INCLUSION =
          "#include %-20s   /* Processor and core peripherals     */\n"+
                "#include %-20s   /* Device specific configuration file */\n\n";
 
@@ -782,11 +782,11 @@ public class DevicePeripherals extends ModeControl {
 
    /**
     *   Writes the Device description to a header file
-    *   
+    * 
     *  @param writer         The destination for the data
-    *  
-    *  @throws Exception 
-    *  
+    * 
+    *  @throws Exception
+    * 
     */
    public void writeHeaderFile(PrintWriter writer) throws Exception {
       final String periphGroupSuffix = "Peripheral_access_layer";
@@ -795,9 +795,9 @@ public class DevicePeripherals extends ModeControl {
 
       setUseHeaderDefinitionsPrefix(true);
 
-      writer.print(String.format(HEADER_FILE_INTRO, 
-            getName(), 
-            getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date), 
+      writer.print(String.format(HEADER_FILE_INTRO,
+            getName(),
+            getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date),
             getName().toUpperCase(), getName().toUpperCase(), getName().toUpperCase()));
       writer.print(String.format(COMMON_INCLUDES));
       writer.print(String.format(CPP_OPENING));
@@ -812,7 +812,8 @@ public class DevicePeripherals extends ModeControl {
 
       sortPeripheralsByName();
       writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_PREAMBLE));
-      writeGroupPreamble(writer, periphGroupSuffix, "Device Peripheral Access Layer", "C structs allowing access to peripheral registers");
+      writeDefGroupComment(writer, periphGroupSuffix, "Device Peripheral Access Layer", "C structs allowing access to peripheral registers");
+//      writeAddToGroupPreamble(writer, periphGroupSuffix, "Device Peripheral Access Layer", "C structs allowing access to peripheral registers");
       
       // Collect DMA slot numbers into single enum
       StringBuilder muxSlotEnums = new StringBuilder();
@@ -836,7 +837,9 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
-            writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
+            writeDescription(writer, "C Struct for "+peripheral.getGroupName(), "");
+            writeInGroup(writer, "Peripheral_access_layer");
+            writeAddToGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer");
 
             // typedef defining registers for each peripheral
             peripheral.writeHeaderFileTypedef(writer);
@@ -861,10 +864,10 @@ public class DevicePeripherals extends ModeControl {
             }
 
             if (isGenerateFreescaleRegisterMacros()) {
-               // #define macros for each peripheral register 
+               // #define macros for each peripheral register
                peripheral.writeHeaderFileRegisterMacro(writer);
             }
-            writeGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
+            writeAddToGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
             peripheral.setOwner(null);
          }
          writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_POSTAMBLE));
@@ -875,7 +878,9 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
-            writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
+            writeDescription(writer, "C Struct for "+peripheral.getGroupName(), "");
+            writeAddToGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer");
+            
             // typedef defining registers for each peripheral
             peripheral.writeHeaderFileTypedef(writer);
 
@@ -894,10 +899,10 @@ public class DevicePeripherals extends ModeControl {
             peripheral.writeHeaderFileTemplates(writer);
             
             if (isGenerateFreescaleRegisterMacros()) {
-               // #define macros for each peripheral register 
+               // #define macros for each peripheral register
                peripheral.writeHeaderFileRegisterMacro(writer);
             }
-            writeGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
+            writeAddToGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
             peripheral.setOwner(null);
          }
          writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_POSTAMBLE));
@@ -925,7 +930,7 @@ public class DevicePeripherals extends ModeControl {
             peripheral.setOwner(null);
          }
       }
-      writeGroupPostamble(writer, periphGroupSuffix);
+//      writeAddToGroupPostamble(writer, periphGroupSuffix);
 
       writer.print(String.format(CPP_CLOSING));
       writer.print(String.format(HEADER_FILE_POSTAMBLE, getName().toUpperCase()));
@@ -936,7 +941,7 @@ public class DevicePeripherals extends ModeControl {
     * Create a vector table suitable for use in C code
     * 
     * @return String containing the Vector Table
-    * @throws Exception 
+    * @throws Exception
     */
    public String getCVectorTableEntries() throws Exception {
       return getVectorTable().getCVectorTableEntries();
@@ -1002,9 +1007,9 @@ public class DevicePeripherals extends ModeControl {
 
    //   /**
    //    *  Creates peripheral database for device
-   //    * 
+   //    *
    //    *  @param device Name of SVD file or device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
-   //    *  
+   //    *
    //    *  @return device peripheral description or null on error
    //    */
    //   public static DevicePeripherals createDatabase(Path path) {

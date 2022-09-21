@@ -31,28 +31,28 @@ public class ModeControl {
    private static boolean generateFreescaleRegisterMacros = false;
    
    /**
-    * Whether to map peripheral names to common Freescale names 
+    * Whether to map peripheral names to common Freescale names
     */
    private static boolean mapFreescaleCommonNames = false;
    
    /**
-    * Whether to try to combine peripheral registers into simple arrays where possible 
+    * Whether to try to combine peripheral registers into simple arrays where possible
     */
    private static boolean extractSimpleRegisterArrays = false;
    
    /**
-    * Whether to try to combine peripheral registers into complex arrays where possible 
+    * Whether to try to combine peripheral registers into complex arrays where possible
     * This is only applicable to Freescale style as requires some hints
     */
    private static boolean extractComplexStructures = false;
    
    /**
-    * Whether to try to extract peripherals that are derived from other peripherals 
+    * Whether to try to extract peripherals that are derived from other peripherals
     */
    private static boolean extractDerivedPeripherals = false;
    
    /**
-    * Whether to regenerate the address blocks from the register information 
+    * Whether to regenerate the address blocks from the register information
     */
    private static boolean regenerateAddressBlocks = false;
    
@@ -108,7 +108,7 @@ public class ModeControl {
    private static HashMap<String, Integer> fieldMacros = null;
 
    /**
-    * Whether to similar extract fields that can be expressed as <derivedFrom> 
+    * Whether to similar extract fields that can be expressed as <derivedFrom>
     */
    private static boolean extractSimilarFields = false;
 
@@ -290,7 +290,7 @@ public class ModeControl {
 
    /**
     *  Returns the suffix to use for field offset macros (_SHIFT or _Pos)
-    *  
+    * 
     * @return the fieldOffsetSuffixName
     */
    public static String getFieldOffsetSuffixName() {
@@ -299,7 +299,7 @@ public class ModeControl {
 
    /**
     *  Returns the suffix to use for field mask macros (_MASK or _Msk)
-    *  
+    * 
     * @return the fieldMaskSuffixName
     */
    public static String getFieldMaskSuffixName() {
@@ -348,14 +348,14 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to try to combine peripheral registers into simple arrays where possible 
+    * Indicates whether to try to combine peripheral registers into simple arrays where possible
     */
    public static boolean isExtractSimpleRegisterArrays() {
       return extractSimpleRegisterArrays;
    }
 
    /**
-    * Sets whether to try to combine peripheral registers into simple arrays where possible 
+    * Sets whether to try to combine peripheral registers into simple arrays where possible
     */
    public static void setExtractSimpleRegisterArrays(boolean extractRegisterArrays) {
       ModeControl.extractSimpleRegisterArrays = extractRegisterArrays;
@@ -498,14 +498,14 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to try to extract peripherals that are derived from other peripherals 
+    * Indicates whether to try to extract peripherals that are derived from other peripherals
     */
    public static boolean isExtractDerivedPeripherals() {
       return extractDerivedPeripherals;
    }
 
    /**
-    * Sets whether to try to extract peripherals that are derived from other peripherals 
+    * Sets whether to try to extract peripherals that are derived from other peripherals
     */
    public static void setExtractDerivedPeripherals(boolean extractDerivedPeripherals) {
       ModeControl.extractDerivedPeripherals = extractDerivedPeripherals;
@@ -523,7 +523,7 @@ public class ModeControl {
    /**
     * Set reason while the last peripheral comparison failed.
     * 
-    * @param reasonForDifference 
+    * @param reasonForDifference
     */
    public static void setReasonForDifference(String reasonForDifference) {
       ModeControl.reasonForDifference = reasonForDifference;
@@ -713,11 +713,11 @@ public class ModeControl {
    /**
     * Indicates whether to use names for shifts and offsets in field macros <br>
     * <pre>
-    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;0U))&0x1FUL) //!&lt; ADC0_SC1.ADCH Field</pre>   
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;0U))&0x1FUL) //!&lt; ADC0_SC1.ADCH Field</pre>
     *   versus
     * <pre>
-    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;ADC_SC1_ADCH_SHIFT))&ADC_SC1_ADCH_MASK) //!&lt; ADC0_SC1.ADCH Field</pre>   
-    *  
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;ADC_SC1_ADCH_SHIFT))&ADC_SC1_ADCH_MASK) //!&lt; ADC0_SC1.ADCH Field</pre>
+    * 
     * @return the useShiftsInFieldMacros
     */
    public static boolean isUseNamesInFieldMacros() {
@@ -727,94 +727,219 @@ public class ModeControl {
    /**
     * Sets whether to use names for shifts and offsets in field macros <br>
     * <pre>
-    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;0U))&0x1FUL) //!&lt; ADC0_SC1.ADCH Field</pre>   
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;0U))&0x1FUL) //!&lt; ADC0_SC1.ADCH Field</pre>
     *   versus
     * <pre>
-    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;ADC_SC1_ADCH_SHIFT))&ADC_SC1_ADCH_MASK) //!&lt; ADC0_SC1.ADCH Field</pre>   
-    *  
+    * #define ADC_SC1_ADCH(x) (((uint32_t)(((uint32_t)(x))&lt;&lt;ADC_SC1_ADCH_SHIFT))&ADC_SC1_ADCH_MASK) //!&lt; ADC0_SC1.ADCH Field</pre>
+    * 
     * @param useShiftsInFieldMacros True to use shifts in field macros
     */
    public static void setUseNamesInFieldMacros(boolean useShiftsInFieldMacros) {
       ModeControl.useNamesInFieldMacros = useShiftsInFieldMacros;
    }
 
-   static final String groupPostamble =  
+   static final String groupPostamble =
     "/**\n"+
     " * @}\n"+
     " */ /* end of group %s */\n\n";
 
    /**
-    * Write open group comment
+    * Write addtogroup comment
     * <pre><code>
-    * /**                                                                    
-    *  * @addtogroup  <i><b>groupName</i></b>_GROUP <i><b>groupTitle</i></b>                   
-    *  * @brief       <i><b>groupBrief</i></b>  
-    *  * @{                                                                   
+    * /**
+    *  * @addtogroup  <i><b>groupName</i></b>_GROUP <i><b>groupTitle</i></b>
+    *  * @brief       <i><b>groupBrief</i></b>
+    *  * @{
     *  *&#47;</code></pre>
     * 
-    * @param writer        Where to write 
+    * @param writer        Where to write
     * @param groupName     Name of group
     * @param groupTitle    Title of group (may be null)
     * @param groupBrief    Brief description of group (may be null)
     * 
     * @throws IOException
     */
-   static void writeGroupPreamble(Writer writer, String groupName, String groupTitle, String groupBrief) throws IOException {
-      final String startGroup1 = 
-            "/**\n"+
-            "* @addtogroup %s %s\n";
-      final String startGroup2 = 
-            "* @brief %s\n";
-      final String startGroup3 = 
-            "* @{\n"+
-            "*/\n";
-      writer.write(String.format(startGroup1, groupName+"_GROUP", (groupTitle==null)?"":groupTitle));
-      if (groupBrief != null) {
-         writer.write(String.format(startGroup2, groupBrief));
-      }
-      writer.write(String.format(startGroup3));
-   }   
+   static void writeAddToGroupPreamble(StringBuilder writer, String groupName, String groupTitle) throws IOException {
+      final String startGroup2 =
+            "/** @addtogroup %s %s */\n";
+      final String startGroup3 =
+            "/** @{ */\n";
+      writer.append(String.format(startGroup2, groupName+"_GROUP", (groupTitle==null)?"":groupTitle));
+      writer.append(String.format(startGroup3));
+   }
+   
    /**
-    * Write close group comment 
+    * 
+    * @param writer
+    * @param briefDescription    Brief description of group
+    * @param longDescription     Long description of group (may be null)
+    * 
+    * @throws IOException
+    */
+   static void writeInGroup(Writer writer, String groupName) throws IOException {
+      final String format1 =
+            "/** @ingroup %s */\n";
+      writer.append(String.format(format1, groupName+"_GROUP"));
+   }
+   
+   /**
+    * 
+    * @param writer
+    * @param briefDescription    Brief description of group
+    * @param longDescription     Long description of group (may be null)
+    * 
+    * @throws IOException
+    */
+   static void writeDescription(Writer writer, String briefDescription, String longDescription) throws IOException {
+      final String format1 =
+            "\n/** @brief %s */\n";
+      final String format2 =
+            "/** %s */\n";
+      writer.append(String.format(format1, briefDescription));
+      longDescription.replace("\n", "\n *");
+      if ((longDescription != null) && !longDescription.isBlank()) {
+         writer.append(String.format(format2, longDescription));
+      }
+   }
+   
+   /**
+    * Write addtogroup comment
     * <pre><code>
-    * /**                                                                    
+    * /**
+    *  * @addtogroup  <i><b>groupName</i></b>_GROUP <i><b>groupTitle</i></b>
+    *  * @brief       <i><b>groupBrief</i></b>
+    *  * @{
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write
+    * @param groupName     Name of group
+    * @param groupTitle    Title of group (may be null)
+    * 
+    * @throws IOException
+    */
+   static void writeAddToGroupPreamble(Writer writer, String groupName, String groupTitle) throws IOException {
+      StringBuilder sb = new StringBuilder();
+      writeAddToGroupPreamble(sb, groupName, groupTitle);
+      writer.append(sb.toString());
+   }
+   /**
+    * Write close group comment
+    * <pre><code>
+    * /**
     *  * End Group <i><b>groupName</i></b>_GROUP
-    *  * @}                                                                   
+    *  * @}
     *  **&#47;</code></pre>
     * 
-    * @param writer        Where to write 
+    * @param writer        Where to write
     * @param groupName     Name of group
     * 
     * @throws IOException
     */
-   static void writeGroupPostamble(Writer writer, String groupName) throws IOException {
-      final String endGroup = 
-            "/**\n"+
-            " * @} */ /* End group %s \n"+
-            " */\n";
-      writer.write(String.format(endGroup, groupName+"_GROUP"));
+   static void writeAddToGroupPostamble(StringBuilder writer, String groupName) throws IOException {
+      if ((groupName == null) || groupName.isBlank()) {
+         groupName = "";
+      }
+      else {
+         groupName = groupName + "_GROUP";
+      }
+      final String endGroup = "\n/** @} */ /* End group %s */\n\n";
+      writer.append(String.format(endGroup, groupName));
    }
    /**
-    * Write close group comment 
+    * Write close group comment
     * <pre><code>
     * /**
-    *  * End Group                                                                    
-    *  * @}                                                                   
-    *  *&#47;</code></pre>
+    *  * End Group <i><b>groupName</i></b>_GROUP
+    *  * @}
+    *  **&#47;</code></pre>
     * 
-    * @param writer        Where to write 
+    * @param writer        Where to write
+    * @param groupName     Name of group
     * 
     * @throws IOException
     */
-   static void writeGroupPostamble(Writer writer) throws IOException {
-      final String endGroup = 
-            "/**\n"+
-            " * End Group\n"+
-            " * @}\n"+
-            "*/\n";
-      writer.write(endGroup);
+   static void writeAddToGroupPostamble(Writer writer, String groupName) throws IOException {
+      StringBuilder sb = new StringBuilder();
+      writeAddToGroupPostamble(sb, groupName);
+      writer.append(sb.toString());
+   }
+   /**
+    * Write close group comment
+    * <pre><code>
+    * /**
+    *  * End Group
+    *  * @}
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write
+    * 
+    * @throws IOException
+    */
+   static void writeGroupPostamble(StringBuilder writer) throws IOException {
+      writeAddToGroupPostamble(writer, null);
+   }
+   /**
+    * Write struct comment
+    * <pre><code>
+    * /**
+    *  * @struct <i><b>name</i></b>
+    *  * @brief  Brief description...
+    *  *
+    *  * Longer description...
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write
+    * 
+    * @throws IOException
+    */
+   static void writeStructComment(Writer writer, String structName, String briefDescription, String longDescription ) throws IOException {
+      String format1 =
+            "/**\n" +
+            " * @struct %s\n"+
+            " * @brief  %s\n";
+      String format2 =
+            " *\n" +
+            " * %s\n";
+      String format3 =
+            " */\n";
+      writer.append(String.format(format1, structName, briefDescription));
+      longDescription.replace("\n", "\n *");
+      if ((longDescription != null) && !longDescription.isBlank()) {
+         writer.append(String.format(format2, longDescription));
+      }
+      writer.append(String.format(format3));
    }
 
+   /**
+    * Write struct comment
+    * <pre><code>
+    * /**
+    *  * @struct <i><b>name</i></b>
+    *  * @brief  Brief description...
+    *  *
+    *  * Longer description...
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write
+    * 
+    * @throws IOException
+    */
+   static void writeDefGroupComment(Writer writer, String groupName, String briefDescription, String longDescription ) throws IOException {
+      String format1 =
+            "/**\n" +
+            " * @defgroup %s  %s\n";
+      String format2 =
+            " *\n" +
+            " * %s\n";
+      String format3 =
+            " */\n";
+      longDescription.replace("\n", "\n *");
+      writer.write(String.format(format1, groupName+"_GROUP", briefDescription));
+      if ((longDescription != null) && !longDescription.isBlank()) {
+         writer.write(String.format(format2, longDescription));
+      }
+      writer.write(String.format(format3));
+   }
    /**
     * Controls if vectors are written for each peripheral or collected
     *

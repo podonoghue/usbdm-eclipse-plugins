@@ -2,7 +2,7 @@ package net.sourceforge.usbdm.peripheralDatabase;
 import java.io.IOException;
 /*
 ===============================================================================================================
-| History                                                                                                      
+| History
 ---------------------------------------------------------------------------------------------------------------
 | 19 Jan 2015 | Added support for more complex <dim>'s                                            | V4.10.6.250
 ===============================================================================================================
@@ -81,12 +81,12 @@ public class Cluster extends ModeControl implements Cloneable {
     *    <li>addressOffset
     * </ul>
     * Shares (don't modify)
-    * <ul>   
+    * <ul>
     *    <li>registers
     *    <li>addressBlock
     * </ul>
     * Copied from this
-    * <ul>   
+    * <ul>
     *    <li>derivedFrom == this
     *    <li>baseName
     *    <li>nameMacroformat
@@ -142,7 +142,7 @@ public class Cluster extends ModeControl implements Cloneable {
             }
          }
          else {
-            Cluster cluster = ((Cluster)register).findRegister(name);
+            Cluster cluster = register.findRegister(name);
             if (cluster != null) {
                return (Register)cluster;
             }
@@ -165,7 +165,7 @@ public class Cluster extends ModeControl implements Cloneable {
             }
          }
          else {
-            Cluster cluster = ((Cluster)register).findRegister(name);
+            Cluster cluster = register.findRegister(name);
             if (cluster != null) {
                return cluster;
             }
@@ -256,8 +256,8 @@ public class Cluster extends ModeControl implements Cloneable {
 
    /** Get register simple name without formatting
     * 
-    * @return 
-    * @throws Exception 
+    * @return
+    * @throws Exception
     */
    public String getBaseName() {
       return fBaseName;
@@ -274,7 +274,7 @@ public class Cluster extends ModeControl implements Cloneable {
    /**
     * Get address offset
     * 
-    * @return Offset of cluster from start of peripheral 
+    * @return Offset of cluster from start of peripheral
     */
    public long getAddressOffset() {
       return fAddressOffset;
@@ -285,7 +285,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * 
     * @param index index
     * 
-    * @return Offset of cluster from start of peripheral 
+    * @return Offset of cluster from start of peripheral
     */
    public long getAddressOffset(int index) {
       return getAddressOffset()+index*getDimensionIncrement();
@@ -330,7 +330,7 @@ public class Cluster extends ModeControl implements Cloneable {
    }
 
    /**
-    * Set dimension indices 
+    * Set dimension indices
     * The dimensionIndexes will be split on commas
     * 
     * @param dimensionIndexes Array of indices or null to remove
@@ -340,7 +340,7 @@ public class Cluster extends ModeControl implements Cloneable {
    }
 
    /**
-    * Set dimension indices 
+    * Set dimension indices
     * The dimensionIndexes will be split on commas
     * 
     * @param dimensionIndexes  String of indices or null to remove
@@ -440,7 +440,7 @@ public class Cluster extends ModeControl implements Cloneable {
    /**
     * Get dimension increment<br>
     * i.e. how much to increment on each index
-    *  
+    * 
     * @return
     */
    public int getDimensionIncrement() {
@@ -478,7 +478,7 @@ public class Cluster extends ModeControl implements Cloneable {
    }
    
    /**
-    * Changes 
+    * Changes
     * 
     * @param dimensionIndexes
     * @return
@@ -542,15 +542,15 @@ public class Cluster extends ModeControl implements Cloneable {
    }
    
 
-   /** 
-    * Sets keep as array in SVD viewer 
+   /**
+    * Sets keep as array in SVD viewer
     */
    public void setKeepAsArray(boolean keepAsArray) {
       fKeepAsArray = keepAsArray;
    }
 
-   /** 
-    * Get keep as array in SVD viewer 
+   /**
+    * Get keep as array in SVD viewer
     */
    public boolean isKeepAsArray() {
       return fKeepAsArray;
@@ -664,8 +664,8 @@ public class Cluster extends ModeControl implements Cloneable {
     *  @param writer          The destination for the XML
     *  @param level           Level of indenting
     *  @param derivedCluster  Cluster derived from (may be null)
-    *  
-    *  @throws IOException 
+    * 
+    *  @throws IOException
     */
    void writeSvdDimensionList(Writer writer, String indenter, Cluster derivedCluster) throws IOException {
       if (derivedCluster != null) {
@@ -717,7 +717,7 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param standardFormat
     *    @param owner
     *    @param level
-    *    @throws Exception 
+    *    @throws Exception
     */
    public void writeSvd(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       final String indenter = RegisterUnion.getIndent(indent);
@@ -806,9 +806,9 @@ public class Cluster extends ModeControl implements Cloneable {
                indenter+String.format(CLUSTER_CLOSE_STRUCT, getBaseName()+String.format("[%s]", getDimAsExpressionForC())),
                baseAddress,
                String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
-         writer.flush();       
+         writer.flush();
 //                String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
-//         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())) + 
+//         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())) +
 //               String.format(Register.lineFormat, baseAddress, String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
       }
       else {
@@ -818,7 +818,7 @@ public class Cluster extends ModeControl implements Cloneable {
                indenter+String.format(CLUSTER_CLOSE_STRUCT, getBaseName()),
                baseAddress,
                String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
-         writer.flush();       
+         writer.flush();
       }
    }
 
@@ -841,7 +841,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * "@f" => Register name
     * "@i" => index<br>
     * e.g. "@pTAGVDW@i@f" => "FMC_TAGVDW1S0"
-    *</pre> 
+    *</pre>
     * @param index
     * @param peripheralName
     * @param register
@@ -881,10 +881,10 @@ public class Cluster extends ModeControl implements Cloneable {
                   for (int arIndex=0; arIndex<register.getDimension(); arIndex++) {
                      String name = peripheral.getName()+"_"+ getArrayName(index)+"_"+register.getArrayName(arIndex);
                      name = ModeControl.getMappedRegisterMacroName(name);
-//                     writer.write(String.format("#define %-30s (%s->%s[%s].%s)\n", 
+//                     writer.write(String.format("#define %-30s (%s->%s[%s].%s)\n",
 //                           name2,
 //                           peripheral.getName(), getBaseName(), dimensionIndexes.get(index), register.getSimpleArraySubscriptedName(arIndex)));
-                     writer.write(String.format("#define %-30s (%s)\n", 
+                     writer.write(String.format("#define %-30s (%s)\n",
                            name,
                            peripheral.getName()+"->"+getSimpleArraySubscriptedName(index)+"."+register.getSimpleArraySubscriptedName(arIndex)));
                   }
@@ -892,7 +892,7 @@ public class Cluster extends ModeControl implements Cloneable {
                else {
                   String name = peripheral.getName()+"_"+ getArrayName(index)+"_"+    register.getBaseName();
                   name = ModeControl.getMappedRegisterMacroName(name);
-                  writer.write(String.format("#define %-30s (%s)\n", 
+                  writer.write(String.format("#define %-30s (%s)\n",
                         name,
                         peripheral.getName()+"->"+getSimpleArraySubscriptedName(index)+"."+register.getBaseName()));
                }
@@ -915,7 +915,7 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param  devicePeripherals
     *    @throws Exception
     */
-   public void writeHeaderFileFieldMacros(Writer writer, Peripheral peripheral) throws Exception {
+   public void writeHeaderFileFieldMacros(StringBuilder writer, Peripheral peripheral) throws Exception {
       for (Cluster register : fRegisters) {
          Register reg = (Register) register;
          reg.writeHeaderFileFieldMacros(writer, peripheral, getFormattedName(-1, peripheral.getName(), this, ""));
@@ -968,10 +968,10 @@ public class Cluster extends ModeControl implements Cloneable {
 
    /**
     * Adds the register's memory address range to the AddressBlockManager
-    *     
+    * 
     * @param addressBlocksMerger Manager to use
     * @param addressOffset       Offset for base of register (needed for arrays etc)
-    * @param isolatedIndex 
+    * @param isolatedIndex
     * 
     * @throws Exception
     */
@@ -1006,9 +1006,9 @@ public class Cluster extends ModeControl implements Cloneable {
 
    /**
     * Adds the register's memory address range to the AddressBlockManager
-    *     
+    * 
     * @param addressBlocksMerger Manager to use
-    * @param isolatedIndex 
+    * @param isolatedIndex
     * 
     * @throws Exception
     */
@@ -1020,7 +1020,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * Check if the cluster can be expressed as a simple array using subscripts starting at 0<p>
     * It checks the name, dimensionIndexes, dimIncrement and width<p>
     * 
-    * Register should be able to be declared as e.g. uint8_t ADC_RESULT[10]; 
+    * Register should be able to be declared as e.g. uint8_t ADC_RESULT[10];
     */
    public boolean isSimpleArray() throws RegisterException {
       if (getDimension() == 0) {
@@ -1085,7 +1085,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * @param sIndex Index of register
     * 
     * @return
-    * @throws RegisterException 
+    * @throws RegisterException
     * 
     * @throws Exception if it is not possible to express as simple array using a subscript
     */
@@ -1172,7 +1172,7 @@ public class Cluster extends ModeControl implements Cloneable {
    }
 
    /**
-    * Controls whether field macros should be written even for derived registers 
+    * Controls whether field macros should be written even for derived registers
     *
     * @param doDerivedMacros
     */
@@ -1181,7 +1181,7 @@ public class Cluster extends ModeControl implements Cloneable {
    }
 
    /**
-    * Indicates if Field Macros should be written even for derived registers 
+    * Indicates if Field Macros should be written even for derived registers
 
     * @return
     */
@@ -1198,7 +1198,7 @@ public class Cluster extends ModeControl implements Cloneable {
 
    /**
     * Indicates to isolate the memory block associated with this register
-    *  
+    * 
     * @param true if isolate
     */
    public boolean isIsolated() {

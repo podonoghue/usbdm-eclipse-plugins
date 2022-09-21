@@ -55,7 +55,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    private SubstitutionMap        fSimpleParameterMap  = null;
 
    /** Arbitrary text to add to peripheral C declaration */
-   private String                    fTemplate               = null;  
+   private String                    fTemplate               = null;
    
    private static HashSet<String>    fConflictedNames        = new HashSet<String>();
    private static HashSet<String>    fTypedefsTable          = new HashSet<String>();
@@ -78,7 +78,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 //      ArrayList<RegisterPair> deletedRegisters = new ArrayList<RegisterPair>();
 //      for (Cluster c1:fRegisters) {
 //         for (Cluster c2:fRegisters) {
-//            if ((c1 != c2) && 
+//            if ((c1 != c2) &&
 //                (c1 instanceof Register) && (c2 instanceof Register) &&
 //                c1.getName().matches("^"+Pattern.quote(c2.getName())+"%s$")) {
 ////               System.err.println("foldRegisters() - " + c1.getName() + ", " + c2.getName() );
@@ -99,7 +99,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    /**
     * Create derivedFrom registers
     * 
-    * @throws CloneNotSupportedException 
+    * @throws CloneNotSupportedException
     */
    public void foldRegisters() throws CloneNotSupportedException {
       boolean oldIgnoreResetType  = isIgnoreResetValuesInEquivalence();
@@ -285,7 +285,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       this.fSourceFilename = sourceFilename;
    }
 
-   /** 
+   /**
     * Get description of peripheral
     * 
     * @return
@@ -317,7 +317,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       return ss;
    }
    
-   /** 
+   /**
     * Set description of peripheral
     * 
     */
@@ -394,10 +394,10 @@ public class Peripheral extends ModeControl implements Cloneable {
       return addressBlocks;
    }
 
-   /** 
+   /**
     * Clears (removes) the current address blocks
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public void clearAddressBlocks() {
       fAddressBlocks = new ArrayList<AddressBlock>();
@@ -435,7 +435,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    /**
     * Creates a set of address blocks to cover the current register set
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public void createAddressBlocks() throws Exception {
       if (fDerivedFrom != null) {
@@ -510,14 +510,14 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Get (default) register width associated with this peripheral
     * 
     * @return
-    * @throws Exception 
+    * @throws Exception
     */
    public void setWidth(long size) throws Exception {
       if (fDerivedFrom != null) {
          throw new Exception("Cannot set default width for derived peripheral");
       }
       this.fWidth = size;
-   }   
+   }
 
    /**
     * Get (default) register access type for this peripheral
@@ -535,7 +535,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Set (default) register access type for this peripheral
     * 
     * @return the accessType
-    * @throws Exception 
+    * @throws Exception
     */
    public void setAccessType(AccessType accessType) throws Exception {
       if (fDerivedFrom != null) {
@@ -557,7 +557,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Set (default) register reset value for this peripheral
     * 
     * @param resetValue
-    * @throws Exception 
+    * @throws Exception
     */
    public void setResetValue(long resetValue) throws Exception {
       if (fDerivedFrom != null) {
@@ -579,7 +579,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Set (default) register reset mask for this peripheral
     * 
     * @param resetMask the resetMask to set
-    * @throws Exception 
+    * @throws Exception
     */
    public void setResetMask(long resetMask) throws Exception {
       if (fDerivedFrom != null) {
@@ -603,7 +603,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Address blocks will be merged ignoring individual widths (if non-zero)
     * 
     * @param Preferred access width for address blocks
-    * @throws Exception 
+    * @throws Exception
     */
    public void setBlockAccessWidth(int preferredAccessWidth) throws Exception {
       this.fPreferredAccessWidth = preferredAccessWidth;
@@ -613,7 +613,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    * Indicates the forced access width for address blocks. 
+    * Indicates the forced access width for address blocks.
     * Address blocks will be rounded up to this size and merged ignoring individual widths
     * 
     * @return Forced access width for address blocks
@@ -623,11 +623,11 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    * Sets the forced access width for address blocks. 
+    * Sets the forced access width for address blocks.
     * Address blocks will be rounded up to this size and merged ignoring individual widths
     * 
     * @param Forced access width for address blocks
-    * @throws Exception 
+    * @throws Exception
     */
    public void setForcedBlockMultiple(int forcedBlockMutiple) throws Exception {
       if (fDerivedFrom != null) {
@@ -639,7 +639,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    /**
     * Gets peripheral this peripheral is derived from
     * 
-    * @return Derived from peripheral or null if none 
+    * @return Derived from peripheral or null if none
     */
    public Peripheral getDerivedFrom() {
       return fDerivedFrom;
@@ -746,7 +746,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    * Add interrupt entry for this peripheral 
+    * Add interrupt entry for this peripheral
     * 
     * @param entry
     */
@@ -758,13 +758,13 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    * Clear interrupt entries for this peripheral 
+    * Clear interrupt entries for this peripheral
     */
    void clearInterruptEntries() {
       fInterrupts = null;
    }
 
-   /** 
+   /**
     * Get list of interrupt entries for this peripheral.
     * 
     * @return
@@ -780,7 +780,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @return outcome of comparison
     */
    public boolean equivalent(Peripheral other) {
-      boolean rv = 
+      boolean rv =
             getName().equals(other.getName()) &&
             getDescription().equals(other.getDescription()) &&
             this.fPrependToName.equals(other.fPrependToName) &&
@@ -835,7 +835,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @return outcome of comparison
     */
    public boolean equivalentStructure(Peripheral other) {
-      boolean rv = 
+      boolean rv =
             (this.fWidth       == other.fWidth) &&
             (this.fResetValue  == other.fResetValue) &&
             (this.fResetMask   == other.fResetMask) &&
@@ -886,7 +886,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    /**
-    * @throws Exception 
+    * @throws Exception
     * 
     */
    public void report() throws Exception {
@@ -939,7 +939,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          for (int index = 0; index < commonLength; index++) {
             if (namePrefix.charAt(index) != registerName.charAt(index)) {
                commonLength = index;
-               break; 
+               break;
             }
          }
          if (commonLength == 0) {
@@ -1031,7 +1031,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          // Following portion is a format string to construct the name of the register
          //  and bit mask MACROs???
          // Format: @p=peripheralName, @a=arrayName, @i=nameIndex, @f=fieldName
-         this.nameFormat = nameFormat; 
+         this.nameFormat = nameFormat;
       }
    }
    
@@ -1191,7 +1191,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    
    /**
     * Reformats the data to take advantage of complex array structures
-    * @throws Exception 
+    * @throws Exception
     */
    private void extractComplexStructures() throws Exception {
       ArrayList<ComplexStructuresInformation> information = getComplexStructures(this.getName());
@@ -1208,7 +1208,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Reformats the data to take advantage of complex array structures
     * 
     * @param information The information necessary to restructure the data
-    * @throws Exception 
+    * @throws Exception
     */
    private void extractComplexStructures(ComplexStructuresInformation information) throws Exception {
 //      System.err.println("\nextractComplexStructures() Processing "+getName());
@@ -1259,7 +1259,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 
          int index = 1;
          for (int reg2 = reg1+1; reg2<getRegisters().size(); reg2++) {
-            // Only match simple registers 
+            // Only match simple registers
             if (!(fRegisters.get(reg2) instanceof Register)) {
                continue;
             }
@@ -1284,7 +1284,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             if (stride == 0) {
                // Get stride from 1st matching register
                stride = victimReg.getAddressOffset()-mergeReg.getAddressOffset();
-//               System.err.println(String.format("   Stride = %d", stride)); 
+//               System.err.println(String.format("   Stride = %d", stride));
             }
             else {
                // Check stride matches
@@ -1293,7 +1293,7 @@ public class Peripheral extends ModeControl implements Cloneable {
                         String.format("extractComplexStructures():   %s <=> %s, Expected offset(stride) %d, found %s ",
                               victimReg.getName(),
                               mergeReg.getName(),
-                              (index*stride), 
+                              (index*stride),
                               (victimReg.getAddressOffset()-mergeReg.getAddressOffset())));
                   continue;
                }
@@ -1312,7 +1312,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          if ((cluster == null) ||
              (cluster.getDimension() != dimensionIndexes.size()) &&
              (cluster.getDimensionIncrement() != stride) &&
-             (cluster.getDimensionIndexesAsString().equalsIgnoreCase(Cluster.appendStrings(dimensionIndexes)) 
+             (cluster.getDimensionIndexesAsString().equalsIgnoreCase(Cluster.appendStrings(dimensionIndexes))
                    && (!cluster.getName().equals(arrayName)))) {
 //            System.err.println("Allocating new Cluster: "+arrayName);
             cluster = new Cluster(this);
@@ -1416,18 +1416,18 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @param registerList              List of register from Peripheral or Cluster
     * @param excludedRegisterPattern   Pattern to exclude register to process
     * @param matchInformation          Pattern to match registers
-    * @return 
+    * @return
     * 
     * @throws Exception
     */
    void extractSimpleRegisterArrays(
-         ArrayList<Cluster> registerList, 
-         Pattern excludedRegisterPattern, 
+         ArrayList<Cluster> registerList,
+         Pattern excludedRegisterPattern,
          PatternTuple matchInformation) throws Exception {
       
       sortRegisters(registerList);
 
-      boolean  debugThisPeripheral = false; //getName().equals("ADC0"); 
+      boolean  debugThisPeripheral = false; //getName().equals("ADC0");
       if (debugThisPeripheral) {
          System.err.println(String.format("    extractSimpleRegisterArrays(%s):1", getName()));
       }
@@ -1448,7 +1448,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          }
          String   mergeName = mergeReg.getName();
          
-         boolean  debugThisRegister = debugThisPeripheral && mergeName.equals("CV1"); 
+         boolean  debugThisRegister = debugThisPeripheral && mergeName.equals("CV1");
          if (debugThisRegister) {
             System.err.println(String.format("        extractSimpleRegisterArrays():2, reg=\"%s\"", getName()+":"+mergeName));
          }
@@ -1495,7 +1495,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             }
             String   victimName = victimReg.getName();
 
-            boolean  debugThisMatch = debugThisRegister && victimName.equals("CV2"); 
+            boolean  debugThisMatch = debugThisRegister && victimName.equals("CV2");
             if (debugThisMatch) {
                System.err.println(
                      String.format("            extractSimpleRegisterArrays(), comparing %-20s ?= %-20s",
@@ -1569,7 +1569,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    /**
     * Reformats the data to take advantage of simple array structures
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private void extractSimpleRegisterArrays() throws Exception {
       
@@ -1584,7 +1584,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          if (excludedRegisterName.isEmpty()) {
             // Exclude entire peripheral
             return;
-         }  
+         }
          // Pattern to exclude register from collection
          excludedRegisterPattern = Pattern.compile(excludedRegisterName);
       }
@@ -1619,22 +1619,22 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
 
-   private static final String DEVICE_LIST_PREAMBLE = 
+   private static final String DEVICE_LIST_PREAMBLE =
            "<!--\n"
          + "Devices using this peripheral: \n";
    
-   private static final String DEVICE_LIST_POSTAMBLE = 
+   private static final String DEVICE_LIST_POSTAMBLE =
            "-->\n";
    
    /**
     *    Writes the Peripheral description to file in a SVF format
-    *   
+    * 
     *    @param writer         The destination for the XML
-    *    @param standardFormat Suppresses some non-standard size optimisations 
-    *  
+    *    @param standardFormat Suppresses some non-standard size optimisations
+    * 
     *    @param owner   The owner - This is used to reduce the size by inheriting default values
-    *  
-    *    @throws Exception 
+    * 
+    *    @throws Exception
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat, DevicePeripherals owner) throws Exception {
       final int indent = 6;
@@ -1643,13 +1643,13 @@ public class Peripheral extends ModeControl implements Cloneable {
    
    /**
     *    Writes the Peripheral description to file in a SVF format
-    *   
+    * 
     *    @param writer         The destination for the XML
-    *    @param standardFormat Suppresses some non-standard size optimisations 
+    *    @param standardFormat Suppresses some non-standard size optimisations
     *    @param owner          The owner - This is used to reduce the size by inheriting default values. May be null.
     *    @param indent         The starting indent for the XML
-    *  
-    *    @throws Exception 
+    * 
+    *    @throws Exception
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat, DevicePeripherals owner, int indent) throws Exception {
       final String indenter = RegisterUnion.getIndent(indent);
@@ -1765,10 +1765,10 @@ public class Peripheral extends ModeControl implements Cloneable {
 
    /**
     *    Writes the Peripheral description to file in a SVF format
-    *   
+    * 
     *    @param writer         The destination for the XML
-    *    @param standardFormat Suppresses some non-standard size optimisations 
-    *  
+    *    @param standardFormat Suppresses some non-standard size optimisations
+    * 
     *    @param fOwner   The owner - This is used to reduce the size by inheriting default values
     */
    private void writeDerivedFromSVD(PrintWriter writer, boolean standardFormat, int indent) {
@@ -1801,7 +1801,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.ACCESS_TAG,SVD_XML_BaseParser.escapeString(getAccessType().getPrettyName()), SVD_XML_Parser.ACCESS_TAG));
       }
       boolean doneNewline = false;
-      String template = getTemplate(); 
+      String template = getTemplate();
       if (template != null) {
          boolean hasNewLine = template.contains("\n");
          if (hasNewLine) {
@@ -1857,7 +1857,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 
    private static final String DMA_ENUM_OPENING =
          "\n"+
-         "/**\n"+ 
+         "/**\n"+
          " * DMA multiplexor slot (source) numbers\n"+
          " */\n"+
          "typedef enum DmaSlot {\n";
@@ -1887,7 +1887,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             final Matcher registerMatcher = registerPattern.matcher(register.getName());
             for (Field field:register.getFields()) {
                if (registerMatcher.matches()) {
-                  String modifier    = ""; 
+                  String modifier    = "";
                   if (registerMatcher.group(1) != null) {
                      if (registerMatcher.group(1).equals("LOW")) {
                         modifier    = " (Low channels 0-15)";
@@ -1919,7 +1919,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Write closing enum if required.
     * 
     * @param sb
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    static void completeHeaderFileDmaInformation(StringBuilder sb) throws UsbdmException  {
       if (sb.length() > 0) {
@@ -1930,7 +1930,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Write header file miscellaneous information
     * 
     * @param writer
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    void accumulateHeaderFileDmaInformation(StringBuilder sb) throws UsbdmException  {
       // Only applies to DMAMUX devices
@@ -1952,8 +1952,8 @@ public class Peripheral extends ModeControl implements Cloneable {
             for (Field field:register.getFields()) {
                if (registerMatcher.matches()) {
 //                  System.err.println("writeHeaderFileDmaInformation() - matched "+register);
-                  String description = ""; 
-                  String modifier    = ""; 
+                  String description = "";
+                  String modifier    = "";
                   String offset      = "";
                   if (registerMatcher.group(1) != null) {
                      if (registerMatcher.group(1).equals("LOW")) {
@@ -2000,7 +2000,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Write header file miscellaneous information
     * 
     * @param writer
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    void writeHeaderFileTemplates(PrintWriter writer) throws UsbdmException  {
       String template = getExtraDeclarations();
@@ -2009,7 +2009,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
 
-   static final String DEVICE_HEADER_FILE_STRUCT_PREAMBLE =   
+   static final String DEVICE_HEADER_FILE_STRUCT_PREAMBLE =
        "\n"
       +"/* ================================================================================ */\n"
       +"/* ================           %-30s       ================ */\n"
@@ -2117,7 +2117,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    @param writer
     */
    public void writeHeaderFileTypedef(PrintWriter writer) throws Exception {
-      final String structGroupSuffix  = "structs";
+//      final String structGroupSuffix  = "structs";
       final int indent = 0;
       String uniqueId;
       if (getDerivedFrom() != null) {
@@ -2133,12 +2133,13 @@ public class Peripheral extends ModeControl implements Cloneable {
          return;
       }
       writeHeaderParameters(writer);
-      writeGroupPreamble(writer, getGroupName()+"_"+structGroupSuffix, getGroupName()+" struct", "Struct for "+getGroupName());
+      writeStructComment(writer, getSafeHeaderStructName(), "C Struct allowing access to "+getGroupName()+" registers", "");
+//      writeGroupPreamble(writer, getGroupName()+"_"+structGroupSuffix, getGroupName()+" struct", "Struct for "+getGroupName());
       writeHeaderFileStruct(writer, indent);
-      writeGroupPostamble(writer, getGroupName()+"_"+structGroupSuffix);
+//      writeGroupPostamble(writer, getGroupName()+"_"+structGroupSuffix);
    }
 
-   static final String DEVICE_HEADER_FILE_REGISTER_MACRO_PREAMBLE =   
+   static final String DEVICE_HEADER_FILE_REGISTER_MACRO_PREAMBLE =
          "\n"
         +"/* -------------------------------------------------------------------------------- */\n"
         +"/* -----------     %-50s   ----------- */\n"
@@ -2161,7 +2162,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
    
-   static final String DEVICE_HEADER_FILE_MACRO_PREAMBLE =   
+   static final String DEVICE_HEADER_FILE_MACRO_PREAMBLE =
          "\n"
         +"/* -------------------------------------------------------------------------------- */\n"
         +"/* -----------     %-50s   ----------- */\n"
@@ -2177,23 +2178,28 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    @throws Exception
     */
    public void writeHeaderFileFieldMacros(Writer writer) throws Exception {
+      
+      StringBuilder sb = new StringBuilder();
+      
       final String macroGroupSuffix  = "Register_Masks";
       if (fDerivedFrom != null) {
          // Derived peripherals re-uses existing MACROs
          return;
       }
-      writer.write(String.format(DEVICE_HEADER_FILE_MACRO_PREAMBLE, "\'"+getName()+"\' Position & Mask macros"));
+      sb.append(String.format(DEVICE_HEADER_FILE_MACRO_PREAMBLE, "\'"+getName()+"\' Position & Mask macros"));
       sortRegisters();
-      writeGroupPreamble(writer, getGroupName()+"_"+macroGroupSuffix, getGroupName()+" Register Masks", "Register Masks for "+getGroupName());
+      writeDescription(writer, "Register Masks for "+getGroupName(), "");
+      writeAddToGroupPreamble(sb, getGroupName()+"_"+macroGroupSuffix, getGroupName()+" Register Masks");
       for (Cluster cluster : getRegisters()) {
          if (cluster instanceof Register) {
-            ((Register)cluster).writeHeaderFileFieldMacros(writer, this);
+            ((Register)cluster).writeHeaderFileFieldMacros(sb, this);
          }
          else {
-            cluster.writeHeaderFileFieldMacros(writer, this);
+            cluster.writeHeaderFileFieldMacros(sb, this);
          }
       }
-      writeGroupPostamble(writer, getGroupName()+"_"+macroGroupSuffix);
+      writeAddToGroupPostamble(sb, getGroupName()+"_"+macroGroupSuffix);
+      writer.append(sb.toString());
    }
 
    /**
@@ -2210,7 +2216,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             }
          }
          else {
-            Cluster cluster = ((Cluster)register).findRegister(name);
+            Cluster cluster = register.findRegister(name);
             if (cluster != null) {
                return cluster;
             }
@@ -2219,10 +2225,10 @@ public class Peripheral extends ModeControl implements Cloneable {
       return null;
    }
 
-   /** 
+   /**
     * Determines a new base address for the peripheral by examining all the (absolute) register addresses
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public void rebase() throws Exception {
       if (fDerivedFrom != null) {
@@ -2256,7 +2262,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Set location of SVD file describing this peripheral
     * 
     * @param string
-    * @throws Exception 
+    * @throws Exception
     */
    public void setFilename(String string) throws Exception {
       if (getDerivedFrom() != null) {
