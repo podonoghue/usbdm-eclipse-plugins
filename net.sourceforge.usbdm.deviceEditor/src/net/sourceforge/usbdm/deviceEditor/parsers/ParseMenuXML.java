@@ -1553,137 +1553,137 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * Only simple boolean expressions are accepted e.g. var1 || var2 && !var3
     */
-   static class TemplateConditionParser {
-      
-      private final VariableProvider fProvider;
-      
-      /** Index into current expression being parsed */
-      private int    index;
-      
-      /** Current condition being evaluated */
-      private String condition;
-      
-      /**
-       * Constructor
-       * 
-       * @param provider Where to look for variables
-       */
-      public TemplateConditionParser(VariableProvider provider) {
-         fProvider = provider;
-      }
-
-      void skipSpace() {
-         while ((index<condition.length()) && Character.isWhitespace(condition.charAt(index))) {
-            index++;
-         }
-      }
-      
-      private boolean getId() throws Exception {
-         
-         skipSpace();
-         
-         boolean inverted = false;
-         if (condition.charAt(index) == '!') {
-            inverted = true;
-            index++;
-         }
-
-         skipSpace();
-         
-         StringBuilder sb = new StringBuilder();
-         boolean idFound = false;
-
-         while(index<condition.length()) {
-            char ch = condition.charAt(index);
-            if (Character.isJavaIdentifierPart(ch) || (ch == '/')) {
-               sb.append(condition.charAt(index++));
-               idFound = (ch!='/');
-               continue;
-            }
-            break;
-         };
-         if (!idFound) {
-            throw new Exception("Invalid identifier in template condition '"+condition+"'");
-         }
-         if ((index<condition.length()) && (condition.charAt(index) == '.')) {
-            index++;
-         }
-         if (((index+1)<condition.length()) && (condition.substring(index,index+2).equals("[]"))) {
-            index+=2;
-         }
-         
-         boolean found = fProvider.safeGetVariable(fProvider.makeKey(sb.toString())) != null;
-         return inverted?!found:found;
-      }
-
-      private String getOperator() throws Exception {
-         
-         skipSpace();
-         
-         // No operator is acceptable
-         if (index == condition.length()) {
-            return null;
-         }
-         // Must have an operator now
-         String operator = null;
-         if ((index+1)<condition.length()) {
-            operator = condition.substring(index, index+2);
-            index += 2;
-            if (!operator.equals("||") && !operator.equals("&&")) {
-               operator = null;
-            }
-         }
-         if (operator == null) {
-            throw new Exception("Invalid operator in template condition '"+condition+"'");
-         }
-         return operator;
-      }
-      
-      /**
-       * Evaluate a variable present condition. <br>
-       * If a variable is present is it considered true otherwise false. <br>
-       * The variable is not evaluated. <br>
-       * This is used before variable have a valid value.
-       * 
-       * @param condition Boolean expression used to indicate condition
-       * 
-       * @return true if condition is empty, null or evaluates as true
-       * 
-       * @return false otherwise
-       * 
-       * @throws Exception
-       */
-      public boolean evaluateVariablePresentCondition(String condition) throws Exception {
-         if ((condition == null) || condition.isBlank()) {
-            return true;
-         }
-         index = 0;
-         this.condition = condition;
-         boolean result;
-         do {
-            // Get identifier
-            result = getId();
-            do {
-               String operator = getOperator();
-               if (operator == null) {
-                  return result;
-               }
-               if (operator.equals("||")) {
-                  if (result) {
-                     return true;
-                  }
-               }
-               else if (operator.equals("&&")) {
-                  if (!result) {
-                     return false;
-                  }
-               }
-               // Get next identifier
-               result = getId();
-            } while (true);
-         } while (true);
-      }
-   }
+//   static class TemplateConditionParser {
+//
+//      private final VariableProvider fProvider;
+//
+//      /** Index into current expression being parsed */
+//      private int    index;
+//
+//      /** Current condition being evaluated */
+//      private String condition;
+//
+//      /**
+//       * Constructor
+//       *
+//       * @param provider Where to look for variables
+//       */
+//      public TemplateConditionParser(VariableProvider provider) {
+//         fProvider = provider;
+//      }
+//
+//      void skipSpace() {
+//         while ((index<condition.length()) && Character.isWhitespace(condition.charAt(index))) {
+//            index++;
+//         }
+//      }
+//
+//      private boolean getId() throws Exception {
+//
+//         skipSpace();
+//
+//         boolean inverted = false;
+//         if (condition.charAt(index) == '!') {
+//            inverted = true;
+//            index++;
+//         }
+//
+//         skipSpace();
+//
+//         StringBuilder sb = new StringBuilder();
+//         boolean idFound = false;
+//
+//         while(index<condition.length()) {
+//            char ch = condition.charAt(index);
+//            if (Character.isJavaIdentifierPart(ch) || (ch == '/')) {
+//               sb.append(condition.charAt(index++));
+//               idFound = (ch!='/');
+//               continue;
+//            }
+//            break;
+//         };
+//         if (!idFound) {
+//            throw new Exception("Invalid identifier in template condition '"+condition+"'");
+//         }
+//         if ((index<condition.length()) && (condition.charAt(index) == '.')) {
+//            index++;
+//         }
+//         if (((index+1)<condition.length()) && (condition.substring(index,index+2).equals("[]"))) {
+//            index+=2;
+//         }
+//
+//         boolean found = fProvider.safeGetVariable(fProvider.makeKey(sb.toString())) != null;
+//         return inverted?!found:found;
+//      }
+//
+//      private String getOperator() throws Exception {
+//
+//         skipSpace();
+//
+//         // No operator is acceptable
+//         if (index == condition.length()) {
+//            return null;
+//         }
+//         // Must have an operator now
+//         String operator = null;
+//         if ((index+1)<condition.length()) {
+//            operator = condition.substring(index, index+2);
+//            index += 2;
+//            if (!operator.equals("||") && !operator.equals("&&")) {
+//               operator = null;
+//            }
+//         }
+//         if (operator == null) {
+//            throw new Exception("Invalid operator in template condition '"+condition+"'");
+//         }
+//         return operator;
+//      }
+//
+//      /**
+//       * Evaluate a variable present condition. <br>
+//       * If a variable is present is it considered true otherwise false. <br>
+//       * The variable is not evaluated. <br>
+//       * This is used before variable have a valid value.
+//       *
+//       * @param condition Boolean expression used to indicate condition
+//       *
+//       * @return true if condition is empty, null or evaluates as true
+//       *
+//       * @return false otherwise
+//       *
+//       * @throws Exception
+//       */
+//      public boolean evaluateVariablePresentCondition(String condition) throws Exception {
+//         if ((condition == null) || condition.isBlank()) {
+//            return true;
+//         }
+//         index = 0;
+//         this.condition = condition;
+//         boolean result;
+//         do {
+//            // Get identifier
+//            result = getId();
+//            do {
+//               String operator = getOperator();
+//               if (operator == null) {
+//                  return result;
+//               }
+//               if (operator.equals("||")) {
+//                  if (result) {
+//                     return true;
+//                  }
+//               }
+//               else if (operator.equals("&&")) {
+//                  if (!result) {
+//                     return false;
+//                  }
+//               }
+//               // Get next identifier
+//               result = getId();
+//            } while (true);
+//         } while (true);
+//      }
+//   }
       
    /**
     * Apply a set of template substitutions of form <b>%name</b> in template text

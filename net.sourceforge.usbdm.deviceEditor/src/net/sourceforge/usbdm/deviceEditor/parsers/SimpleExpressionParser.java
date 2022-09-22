@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.parsers;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -136,6 +137,9 @@ public class SimpleExpressionParser {
          }
          if (var instanceof DoubleVariable) {
             return Double.parseDouble(var.getNativeValue().toString());
+         }
+         if (var instanceof ChoiceVariable) {
+            return var.getValueAsLong();
          }
          // Default to treating as string
          return var.getValueAsString();
