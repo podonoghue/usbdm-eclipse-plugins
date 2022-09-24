@@ -73,7 +73,7 @@ public class FtmValidate extends PeripheralValidator {
                      ftm_modVar.setValue(ftm_mod);
                      break;
                   case 2:  // Free-running
-                     ftm_modVar.setValue(clockPeriod*(ftm_mod-1));
+                     ftm_modPeriodVar.setValue(clockPeriod*65535);
                   }
                   // Update
 //                  if (ftm_mod <= ftm_cntin) {
