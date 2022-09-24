@@ -18,7 +18,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
  * term        : factor [ ['*'|'/'|'%'] factor]*
  * sum         : term [['+'|'-'] term]*
  * shift       : sum [['<<'|'>>] sum]*
- * bitAnd      : shift ['&' shift]*
+ * compare     : shift [['<'|'<='|'>']'>='] shift]
+ * equal       : equal [['!='|'=='] equal]
+ * bitAnd      : compare ['&' compare]*
  * xor         : bitAnd ['^' bitAnd]*
  * bitOr       : xor ['^' xor]*
  * logicalAnd  : bitOr ['&&' bitOr]*
@@ -58,6 +60,14 @@ public class SimpleExpressionParser {
 
    // Operating mode
    private Mode fMode = Mode.EvaluateFully;
+   
+   private Character getNextCh() {
+      fIndex++;
+      if (fIndex>=fExpression.length()) {
+         return null;
+      }
+      return fExpression.charAt(fIndex);
+   }
    
    private Character skipSpace() {
       while ((fIndex<fExpression.length()) && Character.isWhitespace(fExpression.charAt(fIndex))) {
@@ -451,16 +461,13 @@ public class SimpleExpressionParser {
       do {
          boolean failed = false;
          Character ch = skipSpace();
-         if (ch == null) {
+         if ((ch == null) || ((ch != '<') && (ch != '>')) || (peek() == null) || (peek() != ch)) {
             return leftOperand;
          }
+         // either '<<' or '>>'
+         fIndex++;
+         fIndex++;
          if (ch == '<') {
-            fIndex++;
-            ch = skipSpace();
-            if ((ch==null)||(ch != '<')) {
-               throw new Exception("Expected '<'");
-            }
-            fIndex++;
             Object rightOperand = evaluateSum();
 
             if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
@@ -470,12 +477,6 @@ public class SimpleExpressionParser {
             }
          }
          else if (ch == '>') {
-            fIndex++;
-            ch = skipSpace();
-            if ((ch==null)||(ch != '>')) {
-               throw new Exception("Expected '>'");
-            }
-            fIndex++;
             Object rightOperand = evaluateSum();
 
             if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
@@ -493,16 +494,132 @@ public class SimpleExpressionParser {
       } while (true);
    }
    
+   enum OperandType {longOp, doubleOp, stringOp, booleanOp};
+   enum OpType      {lessThan, lessThanOrEqual, greaterThan, greaterThanOrEqual};
+   
    /**
-    * Accepts comparison : shift [['!='|'==' shift]*
+    * Accepts  compare : shift [['<'|'<='|'>']'>='] shift]
+    * 
+    * @return value of shift
+    *
+    * @throws Exception
+    */
+   private Object evaluateCompare() throws Exception {
+      
+      Object leftOperand = evaluateShift();
+      OperandType operandType;
+      do {
+         Character ch = skipSpace();
+         if ((ch == null) || ((ch != '<') && (ch != '>'))) {
+            return leftOperand;
+         }
+         Character ch2 = getNextCh();
+         if (ch2 == '=') {
+            getNextCh();
+         }
+         Object rightOperand = evaluateShift();
+         
+         if ((leftOperand instanceof Double) && (rightOperand instanceof Double)) {
+            operandType = OperandType.doubleOp;
+         }
+         else if ((leftOperand instanceof Long) && (rightOperand instanceof Double)) {
+            leftOperand  = (double) (long) leftOperand;
+            operandType = OperandType.doubleOp;
+         }
+         else if ((leftOperand instanceof Double) && (rightOperand instanceof Long)) {
+            rightOperand = (double) (long) rightOperand;
+            operandType = OperandType.doubleOp;
+         }
+         else if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
+            operandType = OperandType.longOp;
+         }
+         else {
+            throw new Exception("Incompatible operands");
+         }
+         OpType opType;
+         if (ch == '<') {
+            if ((ch2 != null) &&(ch2 == '=')) {
+               // '<='
+               opType = OpType.lessThanOrEqual;
+            }
+            else {
+               // '<'
+               opType = OpType.lessThan;
+            }
+         } else {
+            if ((ch2 != null) &&(ch2 == '=')) {
+               // '>='
+               opType = OpType.greaterThanOrEqual;
+            }
+            else {
+               // '>'
+               opType = OpType.greaterThan;
+            }
+         }
+         switch (opType) {
+         case greaterThan:
+            switch (operandType) {
+            case doubleOp:
+               leftOperand = (Double)leftOperand > (Double)rightOperand;
+               continue;
+            case longOp:
+               leftOperand = (Long)leftOperand > (Long)rightOperand;
+               continue;
+            default:
+               break;
+            }
+            break;
+         case greaterThanOrEqual:
+            switch (operandType) {
+            case doubleOp:
+               leftOperand = (Double)leftOperand >= (Double)rightOperand;
+               continue;
+            case longOp:
+               leftOperand = (Long)leftOperand >= (Long)rightOperand;
+               continue;
+            default:
+               break;
+            }
+            break;
+         case lessThan:
+            switch (operandType) {
+            case doubleOp:
+               leftOperand = (Double)leftOperand < (Double)rightOperand;
+               continue;
+            case longOp:
+               leftOperand = (Long)leftOperand < (Long)rightOperand;
+               continue;
+            default:
+               break;
+            }
+            break;
+         case lessThanOrEqual:
+            switch (operandType) {
+            case doubleOp:
+               leftOperand = (Double)leftOperand <= (Double)rightOperand;
+               continue;
+            case longOp:
+               leftOperand = (Long)leftOperand <= (Long)rightOperand;
+               continue;
+            default:
+               break;
+            }
+            throw new Exception("Impossible situation");
+         }
+         
+      } while (true);
+   }
+   
+   /**
+    * Accepts equality : shift [['!='|'=='] shift]*
     * 
     * @return value of comparison
     *
     * @throws Exception
     */
-   private Object evaluateComparison() throws Exception {
+   private Object evaluateEquality() throws Exception {
       
-      Object leftOperand = evaluateShift();
+      Object leftOperand = evaluateCompare();
 
       do {
          Character ch = skipSpace();
@@ -511,7 +628,7 @@ public class SimpleExpressionParser {
          }
          fIndex++;
          fIndex++;
-         Object rightOperand = evaluateShift();
+         Object rightOperand = evaluateCompare();
          if (!((leftOperand instanceof Double) && (rightOperand instanceof Long)) &&
              !((leftOperand instanceof Long) && (rightOperand instanceof Double)) &&
              (leftOperand.getClass() != rightOperand.getClass())) {
@@ -540,7 +657,7 @@ public class SimpleExpressionParser {
     */
    private Object evaluateBitAnd() throws Exception {
       
-      Object leftOperand = evaluateComparison();
+      Object leftOperand = evaluateEquality();
 
       do {
          Character ch = skipSpace();
@@ -548,7 +665,7 @@ public class SimpleExpressionParser {
             return leftOperand;
          }
          fIndex++;
-         Object rightOperand = evaluateComparison();
+         Object rightOperand = evaluateEquality();
 
          if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
             leftOperand = (Long)leftOperand & (Long)rightOperand;
