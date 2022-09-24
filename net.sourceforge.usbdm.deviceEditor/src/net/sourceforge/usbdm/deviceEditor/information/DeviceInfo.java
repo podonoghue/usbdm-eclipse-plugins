@@ -1771,35 +1771,40 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
          for (String key:settings.getKeys()) {
-            Variable var   = fVariables.safeGet(key);
-            String   value = settings.get(key);
-            if (key.startsWith("/MCG/clock_mode")) {
-               // Old clock names
-               key = key.replace("/MCG/clock_mode","/MCG/mcgClockMode");
-            }
-            if (var != null) {
-               if (!var.isDerived()) {
-                  // Load persistent value associated with variable
-                  var.setPersistentValue(value);
+            try {
+               Variable var   = fVariables.safeGet(key);
+               String   value = settings.get(key);
+               if (key.startsWith("/MCG/clock_mode")) {
+                  // Old clock names
+                  key = key.replace("/MCG/clock_mode","/MCG/mcgClockMode");
                }
-            }
-            else if (key.startsWith("$")) {
-               // Ignore these as loaded earlier
-               //               System.err.println("WARNING: Discarding system setting "+key+" to "+value);
-            }
-            else if (key.startsWith("/")) {
-               // Shouldn't be any unmatched peripheral settings
-               System.err.println("WARNING: Discarding unmatched peripheral settings "+key+"("+value+")");
-               // Indicate state will change on save
-               setDirty(true);
-            }
-            else {
-               // Load persistent value (parameter)
+               if (var != null) {
+                  if (!var.isDerived()) {
+                     // Load persistent value associated with variable
+                     var.setPersistentValue(value);
+                  }
+               }
+               else if (key.startsWith("$")) {
+                  // Ignore these as loaded earlier
+                  //               System.err.println("WARNING: Discarding system setting "+key+" to "+value);
+               }
+               else if (key.startsWith("/")) {
+                  // Shouldn't be any unmatched peripheral settings
+                  System.err.println("WARNING: Discarding unmatched peripheral settings "+key+"("+value+")");
+                  // Indicate state will change on save
+                  setDirty(true);
+               }
+               else {
+                  // Load persistent value (parameter)
 //               System.err.println("Creating Variable "+key+"("+value+")");
-               var = new StringVariable(key, key);
-               var.setPersistentValue(value);
-               var.setDerived(true);
-               addVariable(var);
+                  var = new StringVariable(key, key);
+                  var.setPersistentValue(value);
+                  var.setDerived(true);
+                  addVariable(var);
+               }
+            } catch (Exception e) {
+               // TODO Auto-generated catch block
+               e.printStackTrace();
             }
          }
          //         System.err.println("Make sure peripherals have been updated");
