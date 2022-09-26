@@ -2,18 +2,15 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
- * Class to determine oscillator settings
- 
- * Used for:
- *     osc0
- *     osc0_div
+ * Class to determine tpm settings
  */
 public class TpmValidate extends PeripheralValidator {
    
@@ -23,7 +20,7 @@ public class TpmValidate extends PeripheralValidator {
 
    /**
     * Class to determine TPM settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -33,50 +30,48 @@ public class TpmValidate extends PeripheralValidator {
       //=================================
        
       LongVariable      clockFrequencyVar          =  getLongVariable("clockFrequency");
-      DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
+//      DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
       LongVariable      tpm_modVar                 =  getLongVariable("tpm_mod");
-      DoubleVariable    tpm_mod_periodVar          =  getDoubleVariable("tpm_mod_period");
-      BooleanVariable   tpm_sc_cpwmsVar            =  getBooleanVariable("tpm_sc_cpwms");
+      DoubleVariable    tpm_modPeriodVar           =  getDoubleVariable("tpm_modPeriod");
+      ChoiceVariable    tpm_sc_modeVar             =  getChoiceVariable("tpm_sc_mode");
       
-//      String clockOrigin    = clockFrequencyVar.getOrigin();
       long clockFrequency = clockFrequencyVar.getValueAsLong();
       
-//      clockPeriodVar.setOrigin("period(" + clockOrigin + ")");
-//      clockPeriodVar.setStatus(clockFrequencyVar.getFilteredStatus());
-      
-//      clockFrequencyVar.enable(clockFrequency != 0);
-//      clockPeriodVar.enable(clockFrequency != 0);
-      tpm_mod_periodVar.enable(clockFrequency != 0);
+      tpm_modPeriodVar.enable(clockFrequency != 0);
 
       if (clockFrequency != 0){
-         long tpm_mod = tpm_modVar.getValueAsLong();
+         long   tpm_mod       = tpm_modVar.getValueAsLong();
+         double tpm_modPeriod = tpm_modPeriodVar.getValueAsDouble();
 
          double clockPeriod = 1.0/clockFrequency;
-         clockPeriodVar.setValue(clockPeriod);
          
-         boolean tpm_sc_cpwms = tpm_sc_cpwmsVar.getValueAsBoolean();
+         long tpm_sc_mode = tpm_sc_modeVar.getValueAsLong();
          
-         double tpm_mod_period = clockPeriod * (tpm_sc_cpwms?(2*(tpm_mod)):((tpm_mod+1)));
-         
-         if (variable != null) {
-            // Update selectively
-            if (variable.equals(tpm_mod_periodVar)) {
-               tpm_mod_period = tpm_mod_periodVar.getValueAsDouble();
-               // Calculate rounded value
-               if (tpm_sc_cpwms) {
-                  tpm_mod        = Math.max(0, Math.round((tpm_mod_period/clockPeriod)/2));
+         // These updates involves a loop so suppress initially
+         if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed) {
+            if (variable != null) {
+               if (variable.equals(tpm_modPeriodVar)) {
+                  // Calculate rounded value
+                  switch ((int)tpm_sc_mode) {
+                  default:
+                  case 0: // Left-aligned
+                     tpm_mod        = Math.max(0, Math.round((tpm_modPeriod/clockPeriod)-1));
+                     tpm_modVar.setValue(tpm_mod);
+                     break;
+                  case 1: // Centre-aligned
+                     tpm_mod        = Math.max(0, Math.round((tpm_modPeriod/clockPeriod)/2));
+                     tpm_modVar.setValue(tpm_mod);
+                     break;
+                  case 2:  // Free-running
+                     tpm_modPeriodVar.setValue(clockPeriod*65535);
+                  }
+                  return;
                }
-               else {
-                  tpm_mod        = Math.max(0, Math.round((tpm_mod_period/clockPeriod)-1));
-               }
-               tpm_mod_period = clockPeriod * (tpm_sc_cpwms?(2*(tpm_mod)):((tpm_mod+1)));
-               // Update
-               tpm_modVar.setValue(tpm_mod);
             }
          }
-         double tpm_mod_periodMax = clockPeriod * (tpm_sc_cpwms?(2*(65535.5)):((65536.5)));
-         tpm_mod_periodVar.setValue(tpm_mod_period);
-         tpm_mod_periodVar.setMax(tpm_mod_periodMax);
+//         double tpm_modPeriodMax = clockPeriod * (tpm_sc_cpwms?(2*(65535.5)):((65536.5)));
+//         tpm_modPeriodVar.setValue(tpm_modPeriod);
+//         tpm_modPeriodVar.setMax(tpm_modPeriodMax);
       }
    }
 

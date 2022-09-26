@@ -202,22 +202,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    private String fDataValue;
 
    /** Target for clock selector */
-   private String fTarget;
+   private String fTarget = null;
 
    /** stem for enum generation e.g. XXXX => XXXX_yyyy enums */
-   private String fTypeName;
+   private String fTypeName = null;
 
    /** Format for printing value e.g. CMP_CR0_FILTER_CNT(%s) */
-   private String fValueFormat;
+   private String fValueFormat = null;
    
    /** Whether to propagate errors form this variable up through categories */
    private Severity fSeverityPropagate;
 
    /** Register name if known */
-   private String fRegister;
+   private String fRegister = null;
 
    /** Reference for variable that is dependent or another */
-   private String fReference;
+   private String fReference = null;
 
    /** Condition for enabling this variable */
    private String fEnabledBy = null;

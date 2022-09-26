@@ -34,13 +34,13 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
     *    /OSC0/osc_clock
     *    /OSC0/oscillatorRange
     * 
-    * Outputs 
+    * Outputs
     *    system_slow_irc_clock
     *    system_fast_irc_clock
     *    system_mcgirclk_clock
     *    system_mcgoutclk_clock
     *    system_mcgpclk_clock
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    protected void validate(Variable variable) throws Exception {
@@ -159,26 +159,26 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clockVar.setStatus((Status)null);
          system_mcgoutclk_clock_sourceVar.setValue("External Clock (OSCCLK)");
          break;
-      }     
+      }
       system_mcgoutclk_clock_sourceVar.setStatus(system_mcgoutclk_clockVar.getStatus());
 
       // HIRC related clocks
       //============================================
       if (mcg_mc_hircenVar.getValueAsBoolean() || (clock_mode == McgClockMode.McgClockMode_HIRC_48MHz)) {
-         // HIRC Enabled 
+         // HIRC Enabled
          system_mcgpclk_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
          system_mcgpclk_clockVar.enable(true);
          system_mcgpclk_clockVar.setStatus((Status)null);
       }
       else {
-         // HIRC Disabled 
+         // HIRC Disabled
          system_mcgpclk_clockVar.enable(false);
          system_mcgpclk_clockVar.setStatus(new Status("Disabled by mcg_mc_hircen", Severity.INFO));
       }
 
       // LIRC related clocks
       //========================================
-      if (mcg_c1_irclkenVar.getValueAsBoolean() || 
+      if (mcg_c1_irclkenVar.getValueAsBoolean() ||
             (clock_mode == McgClockMode.McgClockMode_LIRC_2MHz) || (clock_mode == McgClockMode.McgClockMode_LIRC_8MHz) ) {
          // LIRC Enabled
          mcg_c1_irefstenVar.enable(true);
@@ -223,6 +223,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
 
       //  MCG OSC0 input always exists
       osc0_peripheralName        = getStringVariable("/SIM/osc0_peripheral").getValueAsString();

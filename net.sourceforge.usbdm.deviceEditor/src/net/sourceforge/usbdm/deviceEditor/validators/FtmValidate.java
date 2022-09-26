@@ -10,11 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
- * Class to determine oscillator settings
- 
- * Used for:
- *     osc0
- *     osc0_div
+ * Class to determine ftm settings
  */
 public class FtmValidate extends PeripheralValidator {
    
@@ -50,7 +46,6 @@ public class FtmValidate extends PeripheralValidator {
          double ftm_modPeriod = ftm_modPeriodVar.getValueAsDouble();
 
          double clockPeriod = 1.0/clockFrequency;
-//         clockPeriodVar.setValue(clockPeriod);
          
          long ftm_sc_mode = ftm_sc_modeVar.getValueAsLong();
          
@@ -75,10 +70,6 @@ public class FtmValidate extends PeripheralValidator {
                   case 2:  // Free-running
                      ftm_modPeriodVar.setValue(clockPeriod*65535);
                   }
-                  // Update
-//                  if (ftm_mod <= ftm_cntin) {
-//                     ftm_modVar.setValue(ftm_cntin+1);
-//                  }
                   return;
                }
             }

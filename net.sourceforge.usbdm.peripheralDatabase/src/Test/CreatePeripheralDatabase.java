@@ -20,13 +20,13 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.IPath;
+
 import net.sourceforge.usbdm.peripheralDatabase.DeviceFileList;
 import net.sourceforge.usbdm.peripheralDatabase.DeviceFileList.DeviceSvdInfo;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.ModeControl;
 import net.sourceforge.usbdm.peripheralDatabase.PeripheralDatabaseMerger;
-
-import org.eclipse.core.runtime.IPath;
 
 public class CreatePeripheralDatabase {
    private static final  Path PACKAGE_FOLDER    = Paths.get("../../usbdm-eclipse-makefiles-build/PackageFiles");
@@ -55,9 +55,9 @@ public class CreatePeripheralDatabase {
 
    static void copyFile(IPath source, IPath destination) throws IOException {
       System.err.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
-      Files.copy(new java.io.File(source.toPortableString()).toPath(), 
-            new java.io.File(destination.toPortableString()).toPath(), 
-            StandardCopyOption.REPLACE_EXISTING); 
+      Files.copy(new java.io.File(source.toPortableString()).toPath(),
+            new java.io.File(destination.toPortableString()).toPath(),
+            StandardCopyOption.REPLACE_EXISTING);
    }
    /*
     * *************************************************************************************************************************************
@@ -75,10 +75,10 @@ public class CreatePeripheralDatabase {
       /**
        * Constructor
        * 
-       * @param startPattern Regex matching first file to process 
+       * @param startPattern Regex matching first file to process
        * @param endPattern   Regex matching first file not to process
        * 
-       * NOTES: 
+       * NOTES:
        *    if startPattern == null files are processed from first.
        *    if endPattern   == null then files are processed until end
        */
@@ -200,15 +200,15 @@ public class CreatePeripheralDatabase {
    /**
     *    Merges multiple SVD files and produces SVD files with common peripherals extracted
     *    The original files may already be merged.
-    *    
+    * 
     *    sourceFolderPath  +-> destinationFolderPath : (extracts common peripherals across devices)
-    *    
+    * 
     *    @param svdSourceFolderPath - Folder of SVD files to merge
     *    @param svdOutputFolderPath - Destination folder (which is created) with sub-folder of peripherals
     *    @param removeFolder        - Delete destination folder
     * 
-    *    @throws IOException 
-    *    
+    *    @throws IOException
+    * 
     */
    public static void mergeFiles(Path svdSourceFolderPath, Path svdOutputFolderPath, boolean removeFolder) throws IOException {
 
@@ -276,13 +276,13 @@ public class CreatePeripheralDatabase {
     *    Produces multiple header files from multiple device SVD files
     *    Optimisations may be applied to the SVD file before creating the header file.
     *    Header file name is based on device name in SVD file - not the source file name
-    *    
+    * 
     *    sourceFolderPath/*.svd.xml +-> destinationPath/*.h
-    *    
+    * 
     *  @param sourceFolderPath       - Folder containing SVD files (must have .svd.xml extension, otherwise ignored)
     *  @param destinationFolderPath  - Folder to write created header file to
     *  @param removeFolder           - Delete destination folder
-    * @throws Exception 
+    * @throws Exception
     */
    public static void createHeaderFiles(Path sourceFolderPath, Path destinationFolderPath, boolean removeFolder) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
@@ -334,7 +334,7 @@ public class CreatePeripheralDatabase {
     * *************************************************************************************************************************************
     */
 
-   private final static String xmlPreamble = 
+   private final static String xmlPreamble =
          "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"+
                "<!DOCTYPE DeviceList SYSTEM \"DeviceListSchema.dtd\" >\n" +
                "\n"+
@@ -407,7 +407,7 @@ public class CreatePeripheralDatabase {
     * @param sourceFolderPath       Directory containing SVD files to process (all files ending in ".svd.xml").
     * @param destinationFolderPath  Where to write destination files.
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public static void createReducedDeviceList(Path sourceFolderPath, Path destinationFolderPath) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
@@ -675,7 +675,7 @@ public class CreatePeripheralDatabase {
 
    /**
     * Generates new SVD and header file for the usual minor changes.
-    * This includes merging peripherals 
+    * This includes merging peripherals
     * 
     * Source "Internal"
     * Destinations "Internal.Check", "Internal_header.Check"
@@ -725,7 +725,7 @@ public class CreatePeripheralDatabase {
 
    /**
     * Generates new SVD and header file from original unmerged SVD files
-    * This includes merging peripherals 
+    * This includes merging peripherals
     * 
     * Source "Raw"
     * Destinations "Raw.Check", "Raw_header.Check"
@@ -816,11 +816,11 @@ public class CreatePeripheralDatabase {
          ModeControl.setRenameSimSources(true);
          ModeControl.setMapRegisterNames(true);
          
-         // Regenerate with expanded registers to allow merging of overlapping STRUCTS 
+         // Regenerate with expanded registers to allow merging of overlapping STRUCTS
          ModeControl.setFlattenArrays(true);
          mergeFiles(usbdmFolder, stage1Folder, true);
 
-         // Merge overlapping STRUCTS 
+         // Merge overlapping STRUCTS
          ModeControl.setExtractComplexStructures(true);
          
          // Create Simple arrays
@@ -862,7 +862,7 @@ public class CreatePeripheralDatabase {
    
    /**
     * Generates new SVD and header file for the usual minor changes.
-    * This includes merging peripherals 
+    * This includes merging peripherals
     * 
     * Source "Internal"
     * Destinations "Internal.Check", "Internal_header.Check"
@@ -897,12 +897,12 @@ public class CreatePeripheralDatabase {
 
    /**
     * @param args
-    * @throws IOException 
+    * @throws IOException
     */
    public static void main(String[] args) throws IOException {
       
-    firstFileToProcess = ("^MK28.*");
-    firstFileToReject  = ("^MK70.*");
+//    firstFileToProcess = ("^MK28.*");
+//    firstFileToReject  = ("^MK70.*");
 
       System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 

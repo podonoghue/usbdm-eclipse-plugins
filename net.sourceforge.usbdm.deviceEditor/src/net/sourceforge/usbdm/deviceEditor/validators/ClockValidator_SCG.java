@@ -36,20 +36,20 @@ public class ClockValidator_SCG extends BaseClockValidator {
    long pll_output_min;
    long pll_output_max;
    
-   long osc_Low_min_frequency;    
-   long osc_medium_min_frequency; 
-   long osc_high_min_frequency;   
-   long osc_high_max_frequency;   
+   long osc_Low_min_frequency;
+   long osc_medium_min_frequency;
+   long osc_high_min_frequency;
+   long osc_high_max_frequency;
    
-   long vlpr_mode_max_core_frequency;   
-   long vlpr_mode_max_bus_frequency;    
-   long vlpr_mode_max_flash_frequency;   
-   long run_mode_max_core_frequency;    
-   long run_mode_max_bus_frequency;     
-   long run_mode_max_flash_frequency;    
-   long hsrun_mode_max_core_frequency;  
-   long hsrun_mode_max_bus_frequency;   
-   long hsrun_mode_max_flash_frequency; 
+   long vlpr_mode_max_core_frequency;
+   long vlpr_mode_max_bus_frequency;
+   long vlpr_mode_max_flash_frequency;
+   long run_mode_max_core_frequency;
+   long run_mode_max_bus_frequency;
+   long run_mode_max_flash_frequency;
+   long hsrun_mode_max_core_frequency;
+   long hsrun_mode_max_bus_frequency;
+   long hsrun_mode_max_flash_frequency;
 
    public ClockValidator_SCG(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
@@ -57,7 +57,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
 
    /**
     * Calculate divided peripheral clock from source clock frequency and divider value.
-    *  
+    * 
     * @param spll_clock   Source clock frequency
     * @param divider          Divider value
     * @return
@@ -70,8 +70,8 @@ public class ClockValidator_SCG extends BaseClockValidator {
    }
    
    /**
-    *    
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    @Override
    protected void validate(Variable variable) throws Exception {
@@ -90,7 +90,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
             pll_after_prediv_max           = getLongVariable("pll_after_prediv_max").getValueAsLong();
             pll_output_min                 = getLongVariable("pll_output_min").getValueAsLong();
             pll_output_max                 = getLongVariable("pll_output_max").getValueAsLong();
-            vlpr_mode_max_core_frequency   = getDoubleVariable("/SIM/vlpr_mode_max_core_frequency").getValueAsLong(); 
+            vlpr_mode_max_core_frequency   = getDoubleVariable("/SIM/vlpr_mode_max_core_frequency").getValueAsLong();
             vlpr_mode_max_bus_frequency    = getDoubleVariable("/SIM/vlpr_mode_max_bus_frequency").getValueAsLong();
             vlpr_mode_max_flash_frequency  = getDoubleVariable("/SIM/vlpr_mode_max_flash_frequency").getValueAsLong();
             run_mode_max_core_frequency    = getDoubleVariable("/SIM/run_mode_max_core_frequency").getValueAsLong();
@@ -100,10 +100,10 @@ public class ClockValidator_SCG extends BaseClockValidator {
             hsrun_mode_max_bus_frequency   = getDoubleVariable("/SIM/hsrun_mode_max_bus_frequency").getValueAsLong();
             hsrun_mode_max_flash_frequency = getDoubleVariable("/SIM/hsrun_mode_max_flash_frequency").getValueAsLong();
 
-            osc_Low_min_frequency          = getLongVariable("osc_Low_min_frequency").getValueAsLong();               
-            osc_medium_min_frequency       = getLongVariable("osc_medium_min_frequency").getValueAsLong();            
-            osc_high_min_frequency         = getLongVariable("osc_high_min_frequency").getValueAsLong();              
-            osc_high_max_frequency         = getLongVariable("osc_high_max_frequency").getValueAsLong();              
+            osc_Low_min_frequency          = getLongVariable("osc_Low_min_frequency").getValueAsLong();
+            osc_medium_min_frequency       = getLongVariable("osc_medium_min_frequency").getValueAsLong();
+            osc_high_min_frequency         = getLongVariable("osc_high_min_frequency").getValueAsLong();
+            osc_high_max_frequency         = getLongVariable("osc_high_max_frequency").getValueAsLong();
             
             LongVariable scg_spllcfg_multVar  = getLongVariable("scg_spllcfg_mult");
             scg_spllcfg_multVar.setOffset(-pll_mult_min);
@@ -136,7 +136,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
 
    /**
     * @param variable
-    * @param index 
+    * @param index
     * @throws Exception
     */
    protected void validateClocks(Variable variable) throws Exception {
@@ -358,7 +358,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
       
       /**  **/
       
-      // Default clock mode 
+      // Default clock mode
       //=============================
       McgClockMode clock_transition_mode = McgClockMode.valueOf(clock_transition_modeVar.getSubstitutionValue());
 //      if (index == 0) {
@@ -425,7 +425,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
          alt_mode_core_clockVar.setMax(hsrun_mode_max_core_frequency);
          alt_mode_flash_clockVar.setMax(hsrun_mode_max_flash_frequency);
          break;
-      }     
+      }
       runModeSystemClocksVar.setValue(runModeValue);
       runModeSystemClocksVar.enable(runModeEnable);
       alternativeModeSystemClocksVar.setValue(altModeValue);
@@ -443,11 +443,11 @@ public class ClockValidator_SCG extends BaseClockValidator {
       run_mode_core_clockVar.setStatus(systemClockStatus);
       run_mode_core_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVCORE");
       
-      run_mode_bus_clockVar.setValue(systemCoreFrequency/scg_runccr_divbusVar.getValueAsLong());     
+      run_mode_bus_clockVar.setValue(systemCoreFrequency/scg_runccr_divbusVar.getValueAsLong());
       run_mode_bus_clockVar.setStatus(systemClockStatus);
       run_mode_bus_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVBUS");
       
-      run_mode_flash_clockVar.setValue(systemCoreFrequency/scg_runccr_divslowVar.getValueAsLong());   
+      run_mode_flash_clockVar.setValue(systemCoreFrequency/scg_runccr_divslowVar.getValueAsLong());
       run_mode_flash_clockVar.setStatus(systemClockStatus);
       run_mode_flash_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVSLOW");
 
@@ -457,16 +457,17 @@ public class ClockValidator_SCG extends BaseClockValidator {
       alt_mode_core_clockVar.setStatus(systemClockStatus);
       alt_mode_core_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVCORE");
 
-      alt_mode_bus_clockVar.setValue(systemCoreFrequency/scg_altccr_divbusVar.getValueAsLong());     
+      alt_mode_bus_clockVar.setValue(systemCoreFrequency/scg_altccr_divbusVar.getValueAsLong());
       alt_mode_bus_clockVar.setStatus(systemClockStatus);
       alt_mode_bus_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVBUS");
 
-      alt_mode_flash_clockVar.setValue(systemCoreFrequency/scg_altccr_divslowVar.getValueAsLong());   
+      alt_mode_flash_clockVar.setValue(systemCoreFrequency/scg_altccr_divslowVar.getValueAsLong());
       alt_mode_flash_clockVar.setStatus(systemClockStatus);
       alt_mode_flash_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVSLOW");
    }
    
    @Override
    public void createDependencies() throws Exception {
+      super.createDependencies();
    }
 }

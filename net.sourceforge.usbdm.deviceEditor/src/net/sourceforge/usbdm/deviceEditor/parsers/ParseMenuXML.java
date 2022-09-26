@@ -223,7 +223,7 @@ public class ParseMenuXML extends XML_BaseParser {
        */
       public ForLoop(String keys, String values) {
          if (keys.contains(",")) {
-            throw new ForloopException("Can't have ' in keys '" + keys + "'");
+            throw new ForloopException("Can't have ',' in keys '" + keys + "'");
          }
          fKeys       = keys.split(":");
          fValueList  = values.split(";");
@@ -654,7 +654,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param element
     * 
-    * @return Formatted toolTip
+    * @return Formatted toolTip or null if attribute doesn't exist
+    * 
     * @throws Exception
     */
    private String getToolTip(Element element) throws Exception {
@@ -779,16 +780,10 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setValueFormat(otherVariable.getValueFormat());
          variable.setDataValue(otherVariable.getDataValue());
       }
-      if (varElement.hasAttribute("description")) {
-         variable.setDescription(getAttribute(varElement, "description"));
-      }
-      if (varElement.hasAttribute("toolTip")) {
-         variable.setToolTip(getToolTip(varElement));
-      }
-      if (varElement.hasAttribute("default")) {
-         throw new Exception("default attribute not supported");
-//         variable.setDefault(getAttribute(varElement, "default"));
-      }
+      variable.setDescription(getAttribute(varElement, "description", null));
+      
+      variable.setToolTip(getToolTip(varElement));
+
       if (varElement.hasAttribute("value")) {
          // Value is used as default and initial value
          String value = getAttribute(varElement, "value");
@@ -796,24 +791,19 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDefault(value);
          variable.setDisabledValue(value);
       }
-      if (varElement.hasAttribute("valueFormat")) {
-         // Value is used to format value
-         variable.setValueFormat(getAttribute(varElement, "valueFormat"));
-      }
+      // Value is used to format value
+      variable.setValueFormat(getAttribute(varElement, "valueFormat"));
+      
+      // Value is used as disabled value
       if (varElement.hasAttribute("disabledValue")) {
-         // Value is used as disabled value
          variable.setDisabledValue(getAttribute(varElement, "disabledValue"));
       }
-      if (varElement.hasAttribute("origin")) {
-         variable.setOrigin(getAttribute(varElement, "origin"));
-      }
+      
+      // Origin
+      variable.setOrigin(getAttribute(varElement, "origin"));
+      
       if (varElement.hasAttribute("derived")) {
          variable.setDerived(Boolean.valueOf(getAttribute(varElement, "derived")));
-      }
-      if (varElement.hasAttribute("data")) {
-         // Internal data value
-         String value = getAttribute(varElement, "data");
-         variable.setDataValue(value);
       }
       if (varElement.hasAttribute("errorPropagate")) {
          variable.setErrorPropagate(getAttribute(varElement, "errorPropagate").toUpperCase());
@@ -833,30 +823,33 @@ public class ParseMenuXML extends XML_BaseParser {
          // Add as monitored variable
          fPeripheral.addMonitoredVariable(variable);
       }
-      if (varElement.hasAttribute("register")) {
-         variable.setRegister(getAttribute(varElement, "register"));
-      }
+      variable.setRegister(getAttribute(varElement, "register"));
+      
       if (varElement.hasAttribute("enumStem")) {
-         String enumStem = getAttribute(varElement, "enumStem");
-         if (enumStem.isBlank()) {
-            enumStem = null;
-         }
-         variable.setTypeName(enumStem);
+         variable.setTypeName(getAttribute(varElement, "enumStem", null));
       }
       if (varElement.hasAttribute("typeName")) {
-         String type = getAttribute(varElement, "typeName");
-         if (type.isBlank()) {
-            type = null;
-         }
-         variable.setTypeName(type);
+         variable.setTypeName(getAttribute(varElement, "typeName", null));
+      }
+      
+      // Internal data value
+      if (varElement.hasAttribute("data")) {
+         throw new Exception("data attribute not supported");
+      }
+//      variable.setDataValue(getAttribute(varElement, "data"));
+      
+      // Old attributes
+      if (varElement.hasAttribute("default")) {
+         throw new Exception("default attribute not supported");
       }
       if (varElement.hasAttribute("clockSources")) {
-         throw new Exception("clockSources no longer supported in "+varElement+", '"+variable.getName()+"'");
+         throw new Exception("clockSources attribute no longer supported in "+varElement+", '"+variable.getName()+"'");
       }
       NodeList forNodes = varElement.getElementsByTagName("for");
       if (forNodes.getLength() > 0) {
          throw new Exception ("<for> no longer supported here "+varElement);
       }
+      
       VariableModel model = variable.createModel(parent);
       model.setConstant(Boolean.valueOf(getAttribute(varElement, "constant")));
       model.setHidden(Boolean.valueOf(getAttribute(varElement, "hidden")));
@@ -1795,6 +1788,8 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    List<StringPair> getTemplateSubstitutions(Element element, String variableAttributeName) throws Exception {
 
+      boolean isConstructor = (element.getTagName().equalsIgnoreCase("constructorTemplate"));
+      
       if (getAttribute(element, "enumStem") != null) {
          throw new Exception(" 'enumStem' no longer accepted on template " + getAttribute(element, "key"));
       }
@@ -1980,11 +1975,16 @@ public class ParseMenuXML extends XML_BaseParser {
 
          // Type from variable with upper-case 1st letter
          String enumParam = "'%enumParam' is not valid here";
-
-         String enumStem = variable.getTypeName();
-         if (enumStem != null) {
-            enumClass  = Character.toUpperCase(enumStem.charAt(0)) + enumStem.substring(1);
-            enumParam  = Character.toLowerCase(enumStem.charAt(0)) + enumStem.substring(1);
+         
+         String paramType = variable.getTypeName();
+         if (paramType != null) {
+            if (!isConstructor) {
+               // Strip references from type unless it is a constexpr constructor
+               paramType  = paramType.replace("&", "").trim();
+            }
+            paramType  = Character.toUpperCase(paramType.charAt(0)) + paramType.substring(1);
+            enumClass  = paramType.replace("&", "").trim();
+            enumParam  = Character.toLowerCase(enumClass.charAt(0)) + enumClass.substring(1);
          }
          if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
             enumParam = paramOverride.get(index);
@@ -2012,10 +2012,10 @@ public class ParseMenuXML extends XML_BaseParser {
          String paramPadding = (varNames.length<=1)?"":"\\t      "+linePadding;
          
          if (index<numberOfNonDefaultParams) {
-            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %s", enumClass, enumParam));
+            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %s", paramType, enumParam));
          }
          else {
-            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", enumClass, enumParam, defaultParamV));
+            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, enumParam, defaultParamV));
          }
 
          String registerN     = "'register' is not valid here";
@@ -2205,7 +2205,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseTemplate(Element element) throws Exception {
 
       String key           = getKeyAttribute(element);
-      String namespace     = getAttribute(element, "namespace"); // info|usbdm|class|all
+      String namespace     = getAttribute(element, "namespace", "info"); // info|usbdm|class|all
 
       if (!checkTemplateConditions(element)) {
          return;
@@ -2327,7 +2327,7 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       String key          = getKeyAttribute(element);
-      String namespace    = getAttribute(element, "namespace");
+      String namespace    = getAttribute(element, "namespace", "info");
 
       templateBasicCheck(namespace, key, "clockCodeTemplate");
       
@@ -2544,6 +2544,12 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "initialValueTemplate") {
          if (!element.hasAttribute("variables")) {
             throw new Exception("<initialValueTemplate> must have 'variables' attribute, key='" + key + "'");
+         }
+         parseTemplate(element);
+      }
+      else if (tagName == "constructorTemplate") {
+         if (!element.hasAttribute("variables")) {
+            throw new Exception("<constructorTemplate> must have 'variables' attribute, key='" + key + "'");
          }
          parseTemplate(element);
       }

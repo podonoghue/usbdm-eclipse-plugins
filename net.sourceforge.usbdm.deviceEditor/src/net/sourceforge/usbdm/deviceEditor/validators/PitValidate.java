@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -43,22 +42,10 @@ public class PitValidate extends PeripheralValidator {
       int numberOfChannels       = (int) numChannelsVar.getValueAsLong();
       
       for (int ch=0; ch<numberOfChannels; ch++) {
-         BooleanVariable pit_tctrl_tenVar  = getBooleanVariable("pit_tctrl_ten["+ch+"]");
          LongVariable    pit_ldvalVar      = getLongVariable("pit_ldval_tsv["+ch+"]");
          DoubleVariable  pit_periodVar     = getDoubleVariable("pit_period["+ch+"]");
          DoubleVariable  pit_frequencyVar  = getDoubleVariable("pit_frequency["+ch+"]");
-         BooleanVariable pit_tctrl_chnVar  = safeGetBooleanVariable("pit_tctrl_chn["+ch+"]");
-         BooleanVariable pit_tctrl_tieVar  = getBooleanVariable("pit_tctrl_tie["+ch+"]");
 
-         Boolean channelEnabled = pit_tctrl_tenVar.getValueAsBoolean();
-         pit_ldvalVar.enable(channelEnabled);
-         pit_periodVar.enable(channelEnabled);
-         pit_frequencyVar.enable(channelEnabled);
-         if (pit_tctrl_chnVar != null) {
-            pit_tctrl_chnVar.enable(channelEnabled&&(ch != 0));
-         }
-         pit_tctrl_tieVar.enable(channelEnabled);
-         
          long pit_ldval = pit_ldvalVar.getValueAsLong();
          
          // These updates involves a loop so suppress initially

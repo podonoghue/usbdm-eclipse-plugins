@@ -23,9 +23,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.w3c.dom.Element;
 
-import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.DeviceInformationModel;
@@ -1803,8 +1803,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                   addVariable(var);
                }
             } catch (Exception e) {
-               // TODO Auto-generated catch block
-               e.printStackTrace();
+               Activator.logError(e.getMessage(),e);
             }
          }
          //         System.err.println("Make sure peripherals have been updated");
