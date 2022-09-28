@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of MCG
@@ -24,4 +25,10 @@ public class WriterForMcg extends PeripheralWithState {
       return 850;
    }
 
+   @Override
+   public void extractHardwareInformation(Peripheral dbPeripheral) {
+      extractAllRegisterFields(dbPeripheral);
+   }
+
+   
 }

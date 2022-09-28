@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.ListIterator;
 
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
@@ -214,13 +215,18 @@ public class SimValidateMKL extends PeripheralValidator {
       };
       Severity      severity = Severity.OK;
       StringBuilder sb       = new StringBuilder();
-      if (variable == system_core_clockVar) {
+
+      if ((variable == system_core_clockVar) &&
+            (getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed)) {
          // Clock variable changed - replace with nearest value if found
          if (coreDivisor.divisor == 0) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(coreDivisor.divisors);
+//         if (coreDivisor.nearestTargetFrequency == 0) {
+//            System.err.println("Setting 'system_core_clock' to zero");
+//         }
          system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
          system_core_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);

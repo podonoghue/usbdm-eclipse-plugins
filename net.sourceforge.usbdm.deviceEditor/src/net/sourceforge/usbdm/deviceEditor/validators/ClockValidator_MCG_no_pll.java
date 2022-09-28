@@ -35,8 +35,8 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
    }
 
    /**
-    *    
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    @Override
    protected void validate(Variable variable) throws Exception {
@@ -171,7 +171,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
          // Add BLPE/BLPI warning
          mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
          break;
-      }     
+      }
       mcg_c1_clksVar.setValue(mcg_c1_clks);
       mcg_c2_lpVar.setValue(mcg_c2_lp);
       mcg_c1_irefsVar.setValue(mcg_c1_irefs);
@@ -198,7 +198,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
             mcg_c1_irefs,
             mcg_erc_clockVar,
             system_slow_irc_clockVar.getValueAsLong(),
-            (mcg_c7_oscselVar == null)?0:mcg_c7_oscselVar.getValueAsLong(), 
+            (mcg_c7_oscselVar == null)?0:mcg_c7_oscselVar.getValueAsLong(),
             mcg_c4_dmx32Var.getValueAsBoolean(),
             fll_enabledVar,
             fllInputFrequencyVar,
@@ -257,6 +257,9 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
          system_mcgoutclk_clockVar.setStatus(mcg_erc_clockVar.getFilteredStatus());
          break;
       case McgClockMode_BLPI:
+//         if (system_mcgirclk_ungated_clock.getValueAsLong() == 0) {
+//            System.err.println("Setting 'system_mcgoutclk_clock' to zero");
+//         }
          system_mcgoutclk_clockVar.setValue(system_mcgirclk_ungated_clock.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(system_mcgirclk_ungated_clock.getOrigin());
          system_mcgoutclk_clockVar.setStatus(system_mcgirclk_ungated_clock.getFilteredStatus());
@@ -266,7 +269,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
          system_mcgoutclk_clockVar.setOrigin(mcg_erc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(mcg_erc_clockVar.getFilteredStatus());
          break;
-      }     
+      }
       system_mcgoutclk_clock_sourceVar.setStatus(clock_mode_Status);
       system_mcgoutclk_clock_sourceVar.setOrigin(system_mcgoutclk_clockVar.getOrigin());
    }
