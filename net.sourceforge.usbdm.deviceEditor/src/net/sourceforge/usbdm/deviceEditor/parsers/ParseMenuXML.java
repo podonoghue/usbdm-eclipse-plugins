@@ -2213,6 +2213,14 @@ public class ParseMenuXML extends XML_BaseParser {
 
       templateBasicCheck(namespace, key, "templates");
       
+      if (key != null) {
+         // Text after '.' is used to give templates a
+         // unique value for discardRepeats and is not actual part of the key
+         int dotIndex = key.indexOf(".");
+         if (dotIndex > 0) {
+            key = key.substring(0, dotIndex);
+         }
+      }
       List<StringPair> substitutions = getTemplateSubstitutions(element, "variables");
       
       if (substitutions == null) {
