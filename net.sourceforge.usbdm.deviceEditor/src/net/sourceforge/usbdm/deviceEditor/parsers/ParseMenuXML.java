@@ -229,28 +229,87 @@ public class ParseMenuXML extends XML_BaseParser {
          fValueList  = values.split(";");
       }
       
+      enum TokenState { Normal, Quoted };
+      
+      String[] splitValues(String value) {
+         
+         ArrayList<String> valueList = new ArrayList<String>();
+         
+         StringBuilder sb = new StringBuilder();
+         
+         TokenState tokenState = TokenState.Normal;
+         boolean trimSpaces = true;
+
+         for (int index=0; index<value.length(); index++) {
+            boolean skipSpaces = true;
+            char ch = value.charAt(index);
+            switch(tokenState) {
+            case Normal:
+               if (ch == '\'') {
+                  tokenState = TokenState.Quoted;
+                  trimSpaces = false;
+                  skipSpaces = true;
+                  continue;
+               }
+               if (ch == ':') {
+                  String t = sb.toString();
+                  if (trimSpaces) {
+                     t = t.trim();
+                  }
+                  valueList.add(t);
+                  sb = new StringBuilder();
+                  trimSpaces = true;
+                  skipSpaces = true;
+                  continue;
+               }
+               if (skipSpaces && (ch ==' ')) {
+                  continue;
+               }
+               skipSpaces = false;
+               sb.append(ch);
+               break;
+            case Quoted:
+               if (ch == '\'') {
+                  tokenState = TokenState.Normal;
+                  continue;
+               }
+               sb.append(ch);
+               break;
+            }
+         }
+         if (tokenState != TokenState.Normal) {
+            throw new ForloopException("Unmatched single quotes in " + value);
+         }
+         String t = sb.toString();
+         if (trimSpaces) {
+            t = t.trim();
+         }
+         valueList.add(t);
+         return valueList.toArray(new String[valueList.size()]);
+      }
+      
       /**
        * Do for-loop substitutions on string
        * 
        * @param text Text to process
        * 
        * @return  Modified text
-       * 
-       * @throws ForloopException If iteration completed or if keys and values are unmatched in length for this iteration
+       * @throws Exception
        */
-      public String doSubstitution(String text) throws ForloopException {
+      public String doSubstitution(String text) {
          if (iter>=fValueList.length) {
             throw new ForloopException("doSubstitution() called after for-loop completed");
          }
          if (fValues == null) {
-            fValues = fValueList[iter].split(":");
-            for (int index=0; index<fKeys.length; index++) {
-               String s = fValues[index].trim();
-               if (s.startsWith("'") && s.endsWith("'")) {
-                  s = s.substring(1,s.length()-1);
-               }
-               fValues[index] = s;
-            }
+            fValues = splitValues(fValueList[iter]);
+//            fValues = fValueList[iter].split(":");
+//            for (int index=0; index<fKeys.length; index++) {
+//               String s = fValues[index].trim();
+//               if (s.startsWith("'") && s.endsWith("'")) {
+//                  s = s.substring(1,s.length()-1);
+//               }
+//               fValues[index] = s;
+//            }
          }
          if (fValues.length != fKeys.length) {
             throw new ForloopException(
