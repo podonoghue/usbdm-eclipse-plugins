@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.ListIterator;
 
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
@@ -34,23 +35,17 @@ public class SimValidate extends PeripheralValidator {
    private final long MAX_HSRUN_BUS_CLOCK_FREQ;
    private final long MAX_HSRUN_FLASH_CLOCK_FREQ;
    private final long MAX_HSRUN_FLEXBUS_CLOCK_FREQ;
-
-//   private ChoiceVariable  sim_copc_coptVar            = null;
-//   private BooleanVariable sim_copc_copwVar            = null;
-//   private BooleanVariable sim_copc_copdbgenVar        = null;
-//   private BooleanVariable sim_copc_copstpenwVar       = null;
-//   private ChoiceVariable  sim_copc_copclkselVar       = null;
    
    public SimValidate(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
 
       ListIterator<Object> it = values.listIterator();
-      
+
       MAX_RUN_CORE_CLOCK_FREQ       = (Long)it.next();
       MAX_RUN_BUS_CLOCK_FREQ        = (Long)it.next();
       MAX_RUN_FLEXBUS_CLOCK_FREQ    = (Long)it.next();
       MAX_RUN_FLASH_CLOCK_FREQ      = (Long)it.next();
-      
+
       MAX_VLPR_CORE_CLOCK_FREQ      = (Long)it.next();
       MAX_VLPR_BUS_CLOCK_FREQ       = (Long)it.next();
       MAX_VLPR_FLEXBUS_CLOCK_FREQ   = (Long)it.next();
@@ -80,23 +75,23 @@ public class SimValidate extends PeripheralValidator {
    static class StringPair {
       final String left;
       final String right;
-      
+
       StringPair(String left, String right) {
          this.left  = left;
          this.right = right;
       }
-    };
-    
-    static class VariablePair {
-       final Variable       left;
-       final LongVariable   right;
-       
-       VariablePair(Variable left, LongVariable right) {
-          this.left  = left;
-          this.right = right;
-       }
-     };
-     
+   };
+
+   static class VariablePair {
+      final Variable       left;
+      final LongVariable   right;
+
+      VariablePair(Variable left, LongVariable right) {
+         this.left  = left;
+         this.right = right;
+      }
+   };
+
    /**
     * 
     * @param variable
@@ -105,15 +100,6 @@ public class SimValidate extends PeripheralValidator {
    public void validateNonindexedVariables(Variable variable) throws Exception {
       super.validate(variable);
 
-//      // Windowed mode only available when the COP clock is bus clock
-//      if (sim_copc_coptVar != null) {
-//         sim_copc_copwVar.enable((sim_copc_coptVar.getValueAsLong() >= 4));
-//         if (sim_copc_copdbgenVar != null) {
-//            sim_copc_copdbgenVar.enable((sim_copc_coptVar.getValueAsLong() != 0));
-//            sim_copc_copstpenwVar.enable((sim_copc_coptVar.getValueAsLong() != 0));
-//            sim_copc_copclkselVar.enable((sim_copc_coptVar.getValueAsLong() != 0));
-//         }
-//      }
    }
 
    void validateUsbfsClock(LongVariable system_peripheral_clockVar) throws Exception {
@@ -229,7 +215,7 @@ public class SimValidate extends PeripheralValidator {
          maxFlashClockFreq    = MAX_HSRUN_FLASH_CLOCK_FREQ;
          break;
       }
-      
+
       if ((variable == null) || (variable == smc_pmctrl_runmVar)) {
          system_core_clockVar.setMax(maxCoreClockFreq);
          system_bus_clockVar.setMax(maxBusClockFreq);
@@ -238,48 +224,45 @@ public class SimValidate extends PeripheralValidator {
          }
          system_flash_clockVar.setMax(maxFlashClockFreq);
       }
+      if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
+         return;
+      }
+      // Permit GUI derived updates?
+      boolean doGuiUpdates = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
+      
+      // All clocks are based on this value
+      final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
+      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
       
       // Core Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
-
-      long inputFrequency = system_mcgoutclk_clockVar.getValueAsLong();
-      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, inputFrequency, system_core_clockVar.getValueAsLong()) {
+      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clock, system_core_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return frequency<=maximum;
          }
       };
-      Severity      severity = Severity.OK;
-      StringBuilder sb       = new StringBuilder();
-      if (variable == system_core_clockVar) {
-         // Clock variable changed - replace with nearest value if found
-         if (coreDivisor.divisor == 0) {
+      {
+         Severity      severity = Severity.OK;
+         StringBuilder sb       = new StringBuilder();
+         if ((coreDivisor.divisor == 0) || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(coreDivisor.divisors);
-         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
          system_core_clockVar.setStatus(new Status(sb.toString(), severity));
-         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
       }
-      else {
-         // Clock variable not changed - just validate
-         if ((coreDivisor.divisor == 0) ||
-               (system_core_clockVar.getValueAsLong() != (coreDivisor.nearestTargetFrequency))) {
-            severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
-         }
-         sb.append(coreDivisor.divisors);
-         system_core_clockVar.setStatus(new Status(sb.toString(), severity));
+      if (doGuiUpdates && (variable == system_core_clockVar)) {
+         // Target clock manually changed - update divisor
          sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
+         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
       }
 
       // Bus Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, inputFrequency, system_bus_clockVar.getValueAsLong()) {
+      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, system_mcgoutclk_clock, system_bus_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=maximum) &&
@@ -287,36 +270,26 @@ public class SimValidate extends PeripheralValidator {
                   ((divisor/coreDivisor.divisor)<=8);        // Differ from core < 8
          }
       };
-      severity = Severity.OK;
-      sb       = new StringBuilder();
-      if (variable == system_bus_clockVar) {
-         // Clock variable changed - replace with nearest value if found
-         if (busDivisor.divisor == 0) {
+      {
+         Severity      severity = Severity.OK;
+         StringBuilder sb       = new StringBuilder();
+         if ((busDivisor.divisor == 0) || (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(busDivisor.divisors);
+         system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
+      }
+      if (doGuiUpdates && (variable == system_bus_clockVar)) {
+         // Target clock manually changed - update divisors
+         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
          system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
-         system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
-         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
       }
-      else {
-         // Clock variable not changed - just validate
-         if ((busDivisor.divisor == 0) ||
-               (system_bus_clockVar.getValueAsLong() != (busDivisor.nearestTargetFrequency))) {
-            severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
-         }
-         sb.append(busDivisor.divisors);
-         system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
-         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
-      }
-
       // Flexbus Clock
       //===========================================
       if (sim_clkdiv1_outdiv3Var != null) {
          // Attempt to find acceptable divisor
-         final FindDivisor flexDivisor = new FindDivisor(maxFlexbusClockFreq, inputFrequency, system_flexbus_clockVar.getValueAsLong()) {
+         final FindDivisor flexDivisor = new FindDivisor(maxFlexbusClockFreq, system_mcgoutclk_clock, system_flexbus_clockVar.getValueAsLong()) {
             @Override
             boolean okValue(int divisor, double frequency) {
                return (frequency<=maximum) &&
@@ -325,39 +298,26 @@ public class SimValidate extends PeripheralValidator {
                      ((divisor/coreDivisor.divisor)<=8);       // Differ from core < 8
             }
          };
-         severity = Severity.OK;
-         sb = new StringBuilder();
-         if (variable == system_flexbus_clockVar) {
-            // Clock variable changed - replace with nearest value if found
-            if (flexDivisor.divisor == 0) {
+         {
+            Severity      severity = Severity.OK;
+            StringBuilder sb       = new StringBuilder();
+            if ((busDivisor.divisor == 0) || (system_flexbus_clockVar.getValueAsLong() != flexDivisor.nearestTargetFrequency)) {
                severity = Severity.ERROR;
                sb.append("Illegal Frequency\n");
             }
             sb.append(flexDivisor.divisors);
+            system_flexbus_clockVar.setStatus(new Status(sb.toString(), severity));
+         }
+         if (doGuiUpdates && (variable == system_flexbus_clockVar)) {
+            // Target clock manually changed - update divisor
+            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
             system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
-            system_flexbus_clockVar.setStatus(new Status(sb.toString(), severity));
-            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
-         }
-         else {
-            // Clock variable not changed - just validate
-            if ((flexDivisor.divisor == 0) ||
-                  (system_flexbus_clockVar.getValueAsLong() != (flexDivisor.nearestTargetFrequency))) {
-               severity = Severity.ERROR;
-               sb.append("Illegal Frequency\n");
-            }
-            sb.append(flexDivisor.divisors);
-            system_flexbus_clockVar.setStatus(new Status(sb.toString(), severity));
-            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
          }
       }
-      else if (system_flexbus_clockVar != null) {
-         system_flexbus_clockVar.enable(false);
-         system_flexbus_clockVar.setStatus(new Status("Function not available on this device", Severity.OK));
-      }
-
       // Flash Clock
       //===========================================
-      final FindDivisor flashDivisor = new FindDivisor(maxFlashClockFreq, inputFrequency, system_flash_clockVar.getValueAsLong()) {
+      // Attempt to find acceptable divisor
+      final FindDivisor flashDivisor = new FindDivisor(maxFlashClockFreq, system_mcgoutclk_clock, system_flash_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=maximum) &&
@@ -367,29 +327,20 @@ public class SimValidate extends PeripheralValidator {
 
          }
       };
-      severity = Severity.OK;
-      sb       = new StringBuilder();
-      if (variable == system_flash_clockVar) {
-         // Clock variable changed - replace with nearest value if found
-         if (flashDivisor.divisor == 0) {
+      {
+         Severity      severity = Severity.OK;
+         StringBuilder sb       = new StringBuilder();
+         if ((busDivisor.divisor == 0) || (system_flash_clockVar.getValueAsLong() != flashDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(flashDivisor.divisors);
-         system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
          system_flash_clockVar.setStatus(new Status(sb.toString(), severity));
-         sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
       }
-      else {
-         // Clock variable not changed - just validate
-         if ((flashDivisor.divisor == 0) ||
-               (system_flash_clockVar.getValueAsLong() != (flashDivisor.nearestTargetFrequency))) {
-            severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
-         }
-         sb.append(flashDivisor.divisors);
-         system_flash_clockVar.setStatus(new Status(sb.toString(), severity));
+      if (doGuiUpdates && (variable == system_flash_clockVar)) {
+         // Target clock changed - validate
          sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
+         system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
       }
    }
 
@@ -454,20 +405,11 @@ public class SimValidate extends PeripheralValidator {
    @Override
    protected void createDependencies() throws Exception {
       super.createDependencies();
-      
+
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-//      sim_copc_coptVar            = safeGetChoiceVariable("sim_copc_copt");
-//      if (sim_copc_coptVar != null) {
-//         sim_copc_copwVar            = safeGetBooleanVariable("sim_copc_copw");
-//         sim_copc_copdbgenVar        = safeGetBooleanVariable("sim_copc_copdbgen");
-//         sim_copc_copstpenwVar       = safeGetBooleanVariable("sim_copc_copstpen");
-//         sim_copc_copclkselVar       = safeGetChoiceVariable("sim_copc_copclksel");
-//      }
-      
       addToWatchedVariables(variablesToWatch);
-      
       final String[] externalVariables = {
             "/MCG/system_mcgirclk_clock",
             "/MCG/system_mcgfllclk_clock",

@@ -205,6 +205,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
+         mcg_c5_pllclken0Var.enable(true);
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
@@ -214,6 +215,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
+         mcg_c5_pllclken0Var.enable(true);
          system_mcgoutclk_clock_sourceVar.setValue("FLL output");
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
@@ -223,6 +225,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = true;
+         mcg_c5_pllclken0Var.enable(true);
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
@@ -232,6 +235,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 0;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
+         mcg_c5_pllclken0Var.enable(true);
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(true);
@@ -241,6 +245,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 0;
          mcg_c2_lp    = 1;
          mcg_c1_irefs = true;
+         mcg_c5_pllclken0Var.enable(false);
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
@@ -252,6 +257,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 0;
          mcg_c2_lp    = 1;
          mcg_c1_irefs = false;
+         mcg_c5_pllclken0Var.enable(false);
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
@@ -263,6 +269,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 1;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
+         mcg_c5_pllclken0Var.enable(true);
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
          pllEnabled = pllEnabled || pllIsInternal;
          pll0EnabledVar.setValue(pllEnabled);
@@ -273,6 +280,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          mcg_c6_plls  = 1;
          mcg_c2_lp    = 0;
          mcg_c1_irefs = false;
+         mcg_c5_pllclken0Var.enable(true);
          system_mcgoutclk_clock_sourceVar.setValue("PLL output");
          pllEnabled = pllEnabled || pllIsInternal;
          pll0EnabledVar.setValue(pllEnabled);
