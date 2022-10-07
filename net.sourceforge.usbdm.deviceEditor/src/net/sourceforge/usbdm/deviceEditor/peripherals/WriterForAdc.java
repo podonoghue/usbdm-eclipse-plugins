@@ -9,11 +9,12 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
  */
-public class WriterForAdc extends PeripheralWithState {      
+public class WriterForAdc extends PeripheralWithState {
 
    /** Signals that use this writer */
    protected InfoTable fDmFunctions = new InfoTable("InfoDM");
@@ -105,7 +106,7 @@ public class WriterForAdc extends PeripheralWithState {
     */
    private void writeDifferentialDeclarations(InfoTable dpInfoTable, InfoTable dmInfoTable) {
 
-      // Differential channels (including Pga) - recognised by having the same code name for DP and DM 
+      // Differential channels (including Pga) - recognised by having the same code name for DP and DM
       for (int index=0; index<dpInfoTable.table.size(); index++) {
          Signal dpSignal = dpInfoTable.table.get(index);
          Signal dmSignal = dmInfoTable.table.get(index);
@@ -122,12 +123,12 @@ public class WriterForAdc extends PeripheralWithState {
          }
          String dpIdentifier = dpSignal.getCodeIdentifier();
          String dmIdentifier = dmSignal.getCodeIdentifier();
-//         if (isPgaSignal(dpSignal) && dmIdentifier.isBlank()) { 
+//         if (isPgaSignal(dpSignal) && dmIdentifier.isBlank()) {
 //            // Assume pga_se or nothing - already handled
 //            continue;
 //         }
          if (dpIdentifier.isBlank() && dmIdentifier.isBlank()) {
-            // Nothing 
+            // Nothing
             continue;
          }
          boolean unMatchedNames = !dpIdentifier.equals(dmIdentifier);
@@ -170,10 +171,10 @@ public class WriterForAdc extends PeripheralWithState {
 
       super.writeDeclarations();
 
-      // Single-ended channels (including Pga recognised by having no code name DM) 
+      // Single-ended channels (including Pga recognised by having no code name DM)
       writeSingleEndedDeclarations(fInfoTable);
 
-      // Differential channels (including Pga recognised by having the same code name for DP and DM) 
+      // Differential channels (including Pga recognised by having the same code name for DP and DM)
       writeDifferentialDeclarations(fDpFunctions, fDmFunctions);
    }
 
@@ -201,9 +202,9 @@ public class WriterForAdc extends PeripheralWithState {
 
    @Override
    public boolean isPcrTableNeeded() {
-      boolean required = 
+      boolean required =
             (fInfoTable.table.size() +
-                  fDpFunctions.table.size() + 
+                  fDpFunctions.table.size() +
                   fDmFunctions.table.size() ) > 0;
                   return required;
    }
@@ -266,7 +267,7 @@ public class WriterForAdc extends PeripheralWithState {
       if (signalIndex>=fFunctions.table.size()) {
          fFunctions.table.setSize(signalIndex+1);
       }
-      if ((fFunctions.table.get(signalIndex) != null) && 
+      if ((fFunctions.table.get(signalIndex) != null) &&
             (fFunctions.table.get(signalIndex) != function)) {
          throw new RuntimeException("Multiple functions mapped to index new = " + function + ", old = " + fFunctions.table.get(signalIndex));
       }
@@ -286,6 +287,11 @@ public class WriterForAdc extends PeripheralWithState {
       public InfoTable getUniqueSignalTable() {
         System.err.println("There is more than one signal table");
         return fInfoTable;
+      }
+
+      @Override
+      public void extractHardwareInformation(Peripheral dbPeripheral) {
+         extractAllRegisterFields(dbPeripheral);
       }
      
 
