@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of CMP
@@ -52,11 +53,11 @@ public class WriterForCmp extends PeripheralWithState {
     *   // In cmp.h
     *   Input_Ptc6                = 6,       ///< Mapped pin PTC6 (p51)
     *   Input_MyComparatorInput   = 6,       ///< Mapped pin PTC6 (p51)
-    *   
+    * 
     *   // In hardware.h
     *   /// User comment
     *   typedef Cmp0::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
-    * </pre> 
+    * </pre>
     * 
     * @param documentUtilities
     * @throws IOException
@@ -116,13 +117,13 @@ public class WriterForCmp extends PeripheralWithState {
                trailingComment = commentRoot+"Fixed pin  "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
-                  pinName = "// "+pinName; 
+                  pinName = "// "+pinName;
                }
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier; 
+                     inputIdentifier = "// "+inputIdentifier;
                   }
                   inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
@@ -131,13 +132,13 @@ public class WriterForCmp extends PeripheralWithState {
                trailingComment = commentRoot+"Mapped pin "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
-                  pinName = "// "+pinName; 
+                  pinName = "// "+pinName;
                }
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier; 
+                     inputIdentifier = "// "+inputIdentifier;
                   }
                   inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
@@ -147,4 +148,10 @@ public class WriterForCmp extends PeripheralWithState {
          fDeviceInfo.addOrUpdateStringVariable("InputMapping", makeKey("InputMapping"), inputsStringBuilder.toString(), true);
       }
    }
+
+   @Override
+   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      extractAllRegisterFields(dbPortPeripheral);
+   }
+
 }
