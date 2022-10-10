@@ -484,26 +484,39 @@ public class ParseMenuXML extends XML_BaseParser {
       String keys   = getAttribute(element, "keys");
       String values = getAttribute(element, "values");
       String dim    = getAttribute(element, "dim");
+      
+      SimpleExpressionParser expressionParser =
+            new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
       if (dim != null) {
          if (values != null) {
             throw new Exception("Both values and dim attribute given in <for> '" + keys +"'");
          }
          String dims[] = dim.split(",");
-         int start;
-         int end;
+         long start;
+         long end;
          if (dims.length == 1) {
             start = 0;
             end   = getLongWithVariableSubstitution(dims[0]).intValue();
          }
          else if (dims.length == 2) {
-            start = getLongWithVariableSubstitution(dims[0]).intValue();
-            end   = getLongWithVariableSubstitution(dims[1]).intValue();
+            Object s = expressionParser.evaluate(dims[0]);
+            if (s instanceof String) {
+               s = expressionParser.evaluate((String) s);
+            }
+            start = (long) s;
+            Object e = expressionParser.evaluate(dims[1]);
+            if (e instanceof String) {
+               e = expressionParser.evaluate((String) e);
+            }
+            end = (long) e;
+//            start = getLongWithVariableSubstitution(dims[0]).intValue();
+//            end   = getLongWithVariableSubstitution(dims[1]).intValue();
          }
          else {
             throw new Exception("Illegal dim value '"+dim+"' for <for> '"+keys+"'");
          }
          StringBuilder sb = new StringBuilder();
-         for (int index=start; index<end; index++) {
+         for (int index=(int)start; index<(int)end; index++) {
             sb.append(index+";");
          }
          values=sb.toString();
@@ -1775,18 +1788,25 @@ public class ParseMenuXML extends XML_BaseParser {
     *       If not provided, the register name is assumed to not contain '_'.
     * 
     * @return Full register name or null if not deduced
+    * @throws Exception
     */
-   String deduceRegister(Variable controlVar) {
+   String deduceRegister(Variable controlVar) throws Exception {
       
       String register = null;
       String variableKey  = controlVar.getBaseNameFromKey();
       String registerName = controlVar.getRegister();
       
       if (registerName != null) {
+         if (registerName.equalsIgnoreCase("pdb_xxx_pt")) {
+            System.err.println("Found "+registerName);
+         }
          Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
          Matcher m = p.matcher(variableKey);
          if (m.matches()) {
             register = m.group(1)+"->"+registerName.toUpperCase();
+         }
+         else {
+            throw new Exception("Unable to match register name "+registerName+" against "+variableKey);
          }
       }
       else {

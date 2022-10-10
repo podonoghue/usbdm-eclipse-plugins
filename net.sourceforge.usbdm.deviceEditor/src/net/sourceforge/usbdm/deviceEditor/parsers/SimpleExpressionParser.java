@@ -303,7 +303,8 @@ public class SimpleExpressionParser {
       if (ch == '(') {
          fIndex++;
          result = evaluateExpression();
-         if (skipSpace() != ')') {
+         ch = skipSpace();
+         if ((ch == null) || (ch != ')')) {
             throw new Exception("Expected ')'");
          }
          fIndex++;
@@ -355,11 +356,11 @@ public class SimpleExpressionParser {
                leftOperand = (Double)leftOperand / (Double)rightOperand;
             } else if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
                // Don't promote Long but do a check for truncation in result
-               Double t = (double)(long)leftOperand / (double)(long)rightOperand;
                leftOperand = (Long)leftOperand / (Long)rightOperand;
-               if (Math.round(t) != (long)leftOperand) {
-                  System.err.println("Warning truncating division in '"+fExpression+"', "+Math.round(t)+" vs "+(long)leftOperand);
-               }
+//             Double t = (double)(long)leftOperand / (double)(long)rightOperand;
+//               if (Math.round(t) != (long)leftOperand) {
+//                  System.err.println("Warning truncating division in '"+fExpression+"', "+Math.round(t)+" vs "+(long)leftOperand);
+//               }
             } else if ((leftOperand instanceof Long) && (rightOperand instanceof Double)) {
                leftOperand = (Long)leftOperand / (Double)rightOperand;
             } else if ((leftOperand instanceof Double) && (rightOperand instanceof Long)) {

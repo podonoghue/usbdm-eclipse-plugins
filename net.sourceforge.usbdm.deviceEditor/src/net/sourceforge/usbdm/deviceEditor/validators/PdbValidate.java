@@ -3,6 +3,8 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -20,70 +22,22 @@ public class PdbValidate extends PeripheralValidator {
       super(peripheral);
    }
 
+   int     NumChannels              = 0;
+   int     NumPreTriggers           = 0;
+   int     NumDacIntervalTriggers   = 0;
+   int     NumPulseOutputs          = 0;
+   
    boolean clockChanged    = true;
-   double  pdb_frequency   = 0.0;
-   double  pdb_period      = 0.0;
-   String  pdbClockOrigin  = "Unknown";
+   double  pdb_clock_period      = 0.0;
+   double  max_interval          = 0.0;
    
    boolean modChanged      = true;
    long    pdb_mod;
    double  pdb_mod_period;
    
    /**
-    * Validate the PDB clock settings
-    *  
-    * @param  variable   Variable that triggered change (may be null)
-    * 
-    * @throws Exception
-    */
-   void doClockValidate(Variable variable) throws Exception {
-      // In
-      Variable   pdb_input_clockVar  = getParameterSelectedVariable("/SIM/pdb_input_clock", "/SIM/system_bus_clock");
-      Variable   pdb_sc_prescalerVar = getVariable("pdb_sc_prescaler");
-      Variable   pdb_sc_multVar      = getVariable("pdb_sc_mult");
-
-      // Out
-      DoubleVariable pdb_periodVar       = getDoubleVariable("pdb_period");
-      DoubleVariable pdb_frequencyVar    = getDoubleVariable("pdb_frequency");
-
-      pdbClockOrigin = "PDB Clock";
-      
-      clockChanged = (variable == null) || (
-            (variable.equals(pdb_input_clockVar)) ||
-            (variable.equals(pdb_sc_prescalerVar)) ||
-            (variable.equals(pdb_sc_multVar))
-            );         
-      
-      long busFrequency      = pdb_input_clockVar.getValueAsLong();
-      long pdb_sc_prescaler  = pdb_sc_prescalerVar.getValueAsLong();
-      long pdb_sc_mult       = pdb_sc_multVar.getValueAsLong();
- 
-      // MULT divider values
-      final long multValues[] = {1,10,20,40};
-      
-      pdb_frequency = pdb_frequencyVar.getValueAsDouble();
-      pdb_period    = pdb_periodVar.getValueAsDouble();
-
-      if (clockChanged) {
-         // Update everything
-         pdb_frequency = busFrequency/((1<<pdb_sc_prescaler)*multValues[(int)pdb_sc_mult]);
-         if (pdb_frequency == 0) {
-            // For safety
-            pdb_period = 1;
-         }
-         else {
-            pdb_period = 1/pdb_frequency;
-         }
-         pdb_frequencyVar.setValue(pdb_frequency);
-         pdb_frequencyVar.setOrigin(pdbClockOrigin+" frequency / (prescaler * divider)");
-         pdb_periodVar.setValue(pdb_period);
-         pdb_periodVar.setOrigin(pdbClockOrigin+" period * prescaler * divider");
-      }
-   }
-
-   /**
     * Validate the PDB counter settings
-    *  
+    * 
     * @param  variable   Variable that triggered change (may be null)
     * 
     * @throws Exception
@@ -95,275 +49,186 @@ public class PdbValidate extends PeripheralValidator {
 
       DoubleVariable   pdb_mod_periodVar          = getDoubleVariable("pdb_mod_period");
       DoubleVariable   pdb_idly_delayVar          = getDoubleVariable("pdb_idly_delay");
+      DoubleVariable   pdb_clock_periodVar        = getDoubleVariable("pdb_clock_period");
 
-      pdb_mod        = pdb_modVar.getValueAsLong();
-      pdb_mod_period = pdb_mod_periodVar.getValueAsDouble();
-      
+      pdb_clock_period  = pdb_clock_periodVar.getValueAsDouble();
+      pdb_mod           = pdb_modVar.getValueAsLong();
+      pdb_mod_period    = pdb_mod_periodVar.getValueAsDouble();
+
       long pdb_idly         = pdb_idlyVar.getValueAsLong();
       double pdb_idly_delay = pdb_idly_delayVar.getValueAsDouble();
+
+      max_interval = 0.0;
+      if (variable == pdb_clock_periodVar) {
+         // Update max interval
+         max_interval = pdb_clock_period*(pdb_modVar.getMax()+1);
+         
+         pdb_mod_periodVar.setMax(max_interval);
+         pdb_idly_delayVar.setMax(max_interval);
+      }
       
-      if (clockChanged) {
-         // Update everything
-         pdb_mod_period = (pdb_mod+1)*pdb_period;
-         pdb_mod_periodVar.setValue(pdb_mod_period);
-         pdb_mod_periodVar.setOrigin(pdbClockOrigin+" period * PDB modulo");
-         pdb_mod_periodVar.setMax((pdb_modVar.getMax()+1.5)*pdb_period);
-         pdb_idly_delayVar.setValue((pdb_idly+1)*pdb_period);
-         pdb_idly_delayVar.setOrigin(pdbClockOrigin+" period * PDB idly");
-         modChanged = true;
-      }
-      else if (variable != null) {
-         // Update selectively
-         if (variable.equals(pdb_modVar)) {
-            pdb_mod_period = (pdb_mod+1)*pdb_period;
-            pdb_mod_periodVar.setValue(pdb_mod_period);
-            modChanged = true;
-         }
-         else if (variable.equals(pdb_mod_periodVar)) {
-            // Calculate rounded value
-            pdb_mod        = Math.max(0, Math.round((pdb_mod_period/pdb_period)-1));
-            pdb_mod_period = (pdb_mod+1)*pdb_period;
-            // Update
+      boolean guiUpdateAllowed = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
+
+      if (guiUpdateAllowed) {
+         if (variable == pdb_mod_periodVar) {
+            // Recalculate pdb_mod and pdb_mod_period (to allow for rounding)
+            pdb_mod        = Math.max(0, Math.round((pdb_mod_period/pdb_clock_period)-1));
+            pdb_mod_period = (pdb_mod+1)*pdb_clock_period;
+
             pdb_modVar.setValue(pdb_mod);
-            // Need to show effect of rounding
             pdb_mod_periodVar.setValue(pdb_mod_period);
-            modChanged = true;
          }
-         else if (variable.equals(pdb_idlyVar)) {
-            pdb_idly_delayVar.setValue((pdb_idly+1)*pdb_period);
-         }
-         else if (variable.equals(pdb_idly_delayVar)) {
-            // Calculate rounded value
-            pdb_idly = Math.max(0, Math.round((pdb_idly_delay/pdb_period)-1));
-            // Update
+         if (variable == pdb_idly_delayVar) {
+            // Recalculate pdb_idly_delayVar
+            pdb_idly       = Math.max(0, Math.round((pdb_idly_delay/pdb_clock_period)-1));
+            pdb_idly_delay = (pdb_idly+1)*pdb_clock_period;
+
             pdb_idlyVar.setValue(pdb_idly);
-            // Need to show effect of rounding
-            pdb_idly_delayVar.setValue((pdb_idly+1)*pdb_period);
+            pdb_idly_delayVar.setValue(pdb_idly_delay);
          }
-      }
-      if (modChanged) {
-         pdb_idly_delayVar.setMax((pdb_mod+1.5)*pdb_period);
-         pdb_idlyVar.setMax(pdb_mod);
       }
    }
    
    /**
     * Validate a PDB channel settings
-    *  
+    * 
     * @param  variable   Variable that triggered change (may be null)
     * @param channel     The channel to validate e.g. "0", "1" etc
     * 
     * @throws Exception
     */
-   void doChannelValidate(Variable variable, String channel) throws Exception {
-      // In/Out
-      LongVariable     pdb_chX_dly0Var         = safeGetLongVariable("pdb_ch"+channel+"_dly0");
-      if (pdb_chX_dly0Var == null) {
-         // Channel doesn't exit
-         return;
-      }
-      LongVariable     pdb_chX_dly1Var         = getLongVariable("pdb_ch"+channel+"_dly1");
-      LongVariable     pdb_chX_c1_tosVar       = getLongVariable("pdb_ch"+channel+"_c1_tos");
-      LongVariable     pdb_chX_c1_enVar        = getLongVariable("pdb_ch"+channel+"_c1_en");
+   void doChannelValidate(Variable variable, int channel) throws Exception {
 
-      // In/Out
-      DoubleVariable   pdb_chX_dly0_delayVar   = getDoubleVariable("pdb_ch"+channel+"_dly0_delay");
-      DoubleVariable   pdb_chX_dly1_delayVar   = getDoubleVariable("pdb_ch"+channel+"_dly1_delay");
+      boolean guiUpdateAllowed = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
 
-      boolean pt0Enable = (pdb_chX_c1_enVar.getValueAsLong()&(1<<0)) != 0;
-      boolean pt1Enable = (pdb_chX_c1_enVar.getValueAsLong()&(1<<1)) != 0;
-      
-      boolean dly0Enable = pt0Enable && ((pdb_chX_c1_tosVar.getValueAsLong()&(1<<0)) != 0);
-      boolean dly1Enable = pt1Enable && ((pdb_chX_c1_tosVar.getValueAsLong()&(1<<1)) != 0);
-      
-      // Do enable/disable first
-      pdb_chX_dly0Var.enable(dly0Enable);
-      pdb_chX_dly0_delayVar.enable(dly0Enable);
-      pdb_chX_dly1Var.enable(dly1Enable);
-      pdb_chX_dly1_delayVar.enable(dly1Enable);
-      
-      // Get current values
-      long   pdb_chX_dly0       = pdb_chX_dly0Var.getRawValueAsLong();
-      double pdb_chX_dly0_delay = pdb_chX_dly0_delayVar.getRawValueAsDouble();
-      long   pdb_chX_dly1       = pdb_chX_dly1Var.getRawValueAsLong();
-      double pdb_chX_dly1_delay = pdb_chX_dly1_delayVar.getRawValueAsDouble();
-      
-      if (clockChanged) {
-         pdb_chX_dly0_delayVar.setOrigin(pdbClockOrigin+" period * pdb_ch"+channel+"_dly0");
-         pdb_chX_dly1_delayVar.setOrigin(pdbClockOrigin+" period * pdb_ch"+channel+"_dly1");
-      }
-      if (modChanged) {
-         pdb_chX_dly0Var.setMax(pdb_mod);
-         pdb_chX_dly1Var.setMax(pdb_mod);
-      }
-      if (variable != null) {
-         if (variable.equals(pdb_chX_dly0_delayVar)) {
-            // Calculate rounded value
-            pdb_chX_dly0 = Math.max(0, Math.round((pdb_chX_dly0_delay/pdb_period)-1));
-            // Update
-            pdb_chX_dly0Var.setValue(pdb_chX_dly0);
+      for (int pretrigger=0; pretrigger<NumPreTriggers; pretrigger++) {
+         DoubleVariable   pdb_chX_dlyM_delayVar   = getDoubleVariable("pdb_ch"+channel+"_dly"+ pretrigger+"_delay");
+         if (max_interval > 0.0) {
+            pdb_chX_dlyM_delayVar.setMax(max_interval);
          }
-         else if (variable.equals(pdb_chX_dly1_delayVar)) {
-            // Calculate rounded value
-            pdb_chX_dly1 = Math.max(0, Math.round((pdb_chX_dly1_delay/pdb_period)-1));
-            // Update
-            pdb_chX_dly1Var.setValue(pdb_chX_dly1);
+         if (guiUpdateAllowed) {
+            ChoiceVariable   pdb_chN_c1_ptM          = getChoiceVariable("pdb_ch"+channel+"_c1_pt" + pretrigger);
+            LongVariable     pdb_chX_dlyMVar         = getLongVariable("pdb_ch"+channel+"_dly" + pretrigger);
+            if ((pdb_chN_c1_ptM.getValueAsLong() == 2) && (variable == pdb_chX_dlyM_delayVar)) {
+               double pdb_chX_dlyM_delay = pdb_chX_dlyM_delayVar.getRawValueAsDouble();
+
+               // Recalculate pdb_chX_dlyM and pdb_chX_dlyM_delay
+               Long pdb_chX_dlyM  = Math.max(0, Math.round((pdb_chX_dlyM_delay/pdb_clock_period)-1));
+               pdb_chX_dlyM_delay = (pdb_chX_dlyM+1)*pdb_clock_period;
+
+               pdb_chX_dlyMVar.setValue(pdb_chX_dlyM);
+               pdb_chX_dlyM_delayVar.setValue(pdb_chX_dlyM_delay);
+            }
          }
       }
-      pdb_chX_dly0_delayVar.setValue(pdb_period*(pdb_chX_dly0+1));
-      pdb_chX_dly1_delayVar.setValue(pdb_period*(pdb_chX_dly1+1));
-      pdb_chX_dly0_delayVar.setMax((pdb_mod+1.5)*pdb_period);
-      pdb_chX_dly1_delayVar.setMax((pdb_mod+1.5)*pdb_period);
    }
    
    /**
     * Validate a DAC settings
-    *  
+    * 
     * @param  variable   Variable that triggered change (may be null)
-    * @param  channel    The DAC to validate e.g. 0, 1 etc
+    * @param  dacNum     The DAC to validate e.g. 0, 1 etc
     * 
     * @throws Exception
     */
-   void doDacValidate(Variable variable, int channel) throws Exception {
-      
-      // In/Out
-      BooleanVariable     pdb_intXc_toeVar         = safeGetBooleanVariable("pdb_int"+channel+"c_toe");
-      if (pdb_intXc_toeVar == null) {
-         // Dac trigger doesn't exit
-         return;
-      }
-      BooleanVariable     pdb_intXc_extVar        = getBooleanVariable("pdb_int"+channel+"c_ext");
-      LongVariable        pdb_intX_intVar         = getLongVariable("pdb_int"+channel+"_int");
+   void doDacValidate(Variable variable, int dacNum) throws Exception {
 
-      // Out/Out
-      DoubleVariable      pdb_intX_int_delayVar   = getDoubleVariable("pdb_int"+channel+"_int_delay");
-      
-      boolean triggerEnable = pdb_intXc_toeVar.getRawValueAsBoolean();
-      
-      // Do enable/disable first
-      pdb_intXc_extVar.enable(triggerEnable);
-      pdb_intX_intVar.enable(triggerEnable);
-      pdb_intX_int_delayVar.enable(triggerEnable);
-      
-      // Get current values
-      long   pdb_intX_int       = pdb_intX_intVar.getRawValueAsLong();
-      double pdb_intX_int_delay = pdb_intX_int_delayVar.getRawValueAsDouble();
-      
-      if (clockChanged) {
-         pdb_intX_int_delayVar.setOrigin(pdbClockOrigin+" period * pdb_int"+channel+"_int");
+      boolean guiUpdateAllowed = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
+
+      DoubleVariable      pdb_intX_delayVar        = getDoubleVariable("pdb_int"+dacNum+"_delay");
+      if (max_interval > 0.0) {
+         pdb_intX_delayVar.setMax(max_interval);
       }
-      if (variable != null) {
-         if (variable.equals(pdb_intX_int_delayVar)) {
-            // Calculate rounded value
-            pdb_intX_int = Math.max(0, Math.round((pdb_intX_int_delay/pdb_period)-1));
-            // Update
-            pdb_intX_intVar.setValue(pdb_intX_int);
-            // Need to show effect of rounding
+      if (guiUpdateAllowed) {
+         ChoiceVariable      pdb_intcX_triggerModeVar = getChoiceVariable("pdb_intc"+dacNum+"_triggerMode");
+         LongVariable        pdb_intXVar              = getLongVariable("pdb_int"+dacNum);
+         
+         if ((pdb_intcX_triggerModeVar.getValueAsLong() == 1) && (variable == pdb_intX_delayVar)) {
+            double pdb_intX_delay = pdb_intX_delayVar.getRawValueAsDouble();
+
+            // Recalculate pdb_intX and pdb_intX_delay
+            Long pdb_intX  = Math.max(0, Math.round((pdb_intX_delay/pdb_clock_period)-1));
+            pdb_intX_delay = (pdb_intX+1)*pdb_clock_period;
+   
+            pdb_intXVar.setValue(pdb_intX);
+            pdb_intX_delayVar.setValue(pdb_intX_delay);
          }
       }
-      pdb_intX_intVar.setMax(pdb_mod);
-      pdb_intX_int_delayVar.setMax((pdb_mod+1.5)*pdb_period);
-      pdb_intX_int_delayVar.setValue(pdb_period*(pdb_intX_int+1));
    }
    
    /**
     * Validate a PDB pulse output settings
-    *  
+    * 
     * @param  variable   Variable that triggered change (may be null)
-    * @param  channel    The pulse output to validate e.g. 0, 1 etc
+    * @param  pulseOutputNum    The pulse output to validate e.g. 0, 1 etc
     * 
     * @throws Exception
     */
-   void doPulseValidate(Variable variable, int channel) throws Exception {
-      
-      // In/Out
-      LongVariable     pdb_poX_dly_dly1Var      = safeGetLongVariable("pdb_po"+channel+"_dly_dly1");
-      if (pdb_poX_dly_dly1Var == null) {
-         // Channel doesn't exit
-         return;
-      }
-      LongVariable     pdb_poX_dly_dly2Var      = getLongVariable("pdb_po"+channel+"_dly_dly2");
+   void doPulseValidate(Variable variable, int pulseOutputNum) throws Exception {
 
-      // Out/Out
-      DoubleVariable   pdb_poX_dly_dly1_delayVar   = getDoubleVariable("pdb_po"+channel+"_dly_dly1_delay");
-      DoubleVariable   pdb_poX_dly_dly2_delayVar   = getDoubleVariable("pdb_po"+channel+"_dly_dly2_delay");
+      boolean guiUpdateAllowed = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
+
+      BooleanVariable pdb_poen_enY = getBooleanVariable("pdb_poen_en"+pulseOutputNum);
       
-      LongVariable     pdb_poenVar      = getLongVariable("pdb_poen");
-      boolean dlyEnable = (pdb_poenVar.getRawValueAsLong()&(1<<channel)) != 0;
-      
-      // Do enable/disable first
-      pdb_poX_dly_dly1Var.enable(dlyEnable);
-      pdb_poX_dly_dly1_delayVar.enable(dlyEnable);
-      pdb_poX_dly_dly2Var.enable(dlyEnable);
-      pdb_poX_dly_dly2_delayVar.enable(dlyEnable);
-      
-      // Get current values
-      long   pdb_poX_dly_dly1       = pdb_poX_dly_dly1Var.getRawValueAsLong();
-      double pdb_poX_dly_dly1_delay = pdb_poX_dly_dly1_delayVar.getRawValueAsDouble();
-      long   pdb_poX_dly_dly2       = pdb_poX_dly_dly2Var.getRawValueAsLong();
-      double pdb_poX_dly_dly2_delay = pdb_poX_dly_dly2_delayVar.getRawValueAsDouble();
-      
-      if (clockChanged) {
-         pdb_poX_dly_dly1_delayVar.setOrigin(pdbClockOrigin+" period * pdb_po"+channel+"_dly_dly1");
-         pdb_poX_dly_dly2_delayVar.setOrigin(pdbClockOrigin+" period * pdb_po"+channel+"_dly_dly2");
-      }
-      if (variable != null) {
-         if (variable.equals(pdb_poX_dly_dly1_delayVar)) {
-            // Calculate rounded value
-            pdb_poX_dly_dly1 = Math.max(0, Math.round((pdb_poX_dly_dly1_delay/pdb_period)-1));
-            // Update
-            pdb_poX_dly_dly1Var.setValue(pdb_poX_dly_dly1);
+      for (int edgeNum=1; edgeNum<=2; edgeNum++) {
+         DoubleVariable   pdb_poY_dlyE_delayVar = getDoubleVariable("pdb_po"+pulseOutputNum+"_dly"+ edgeNum+"_delay");
+         if (max_interval > 0.0) {
+            pdb_poY_dlyE_delayVar.setMax(max_interval);
          }
-         else if (variable.equals(pdb_poX_dly_dly2_delayVar)) {
-            // Calculate rounded value
-            pdb_poX_dly_dly2 = Math.max(0, Math.round((pdb_poX_dly_dly2_delay/pdb_period)-1));
-            // Update
-            pdb_poX_dly_dly2Var.setValue(pdb_poX_dly_dly2);
+         if (guiUpdateAllowed) {
+            LongVariable     pdb_poY_dlyEVar = getLongVariable("pdb_po"+pulseOutputNum+"_dly" + edgeNum);
+            if (pdb_poen_enY.getValueAsBoolean() && (variable == pdb_poY_dlyE_delayVar)) {
+               double pdb_poY_dlyE_delay = pdb_poY_dlyE_delayVar.getRawValueAsDouble();
+
+               // Recalculate pdb_poY_dlyE and pdb_poY_dlyE_delay
+               Long pdb_poY_dlyE  = Math.max(0, Math.round((pdb_poY_dlyE_delay/pdb_clock_period)-1));
+               pdb_poY_dlyE_delay = (pdb_poY_dlyE+1)*pdb_clock_period;
+
+               pdb_poY_dlyEVar.setValue(pdb_poY_dlyE);
+               pdb_poY_dlyE_delayVar.setValue(pdb_poY_dlyE_delay);
+            }
          }
       }
-      pdb_poX_dly_dly1Var.setMax(pdb_mod);
-      pdb_poX_dly_dly1_delayVar.setMax((pdb_mod+1.5)*pdb_period);
-      pdb_poX_dly_dly2Var.setMax(pdb_mod);
-      pdb_poX_dly_dly2_delayVar.setMax((pdb_mod+1.5)*pdb_period);
-      pdb_poX_dly_dly1_delayVar.setValue(pdb_period*(pdb_poX_dly_dly1+1));
-      pdb_poX_dly_dly2_delayVar.setValue(pdb_period*(pdb_poX_dly_dly2+1));
    }
    
    /**
     * Class to determine PDB settings
     * 
-    * Updates pdb_periodVar, pdb_frequencyVar, pdb_mod_period, pdb_idly_delay
-    *  
-    * @throws Exception 
+    * Updates pdb_clock_periodVar, pdb_clock_frequencyVar, pdb_mod_period, pdb_idly_delay
+    * 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
       
       super.validate(variable);
       
-      // Validate the clock
-      doClockValidate(variable);
       // Validate the shared counter
       doCounterValidate(variable);
+      
       // Validate each channel
-      doChannelValidate(variable, "0");
-      doChannelValidate(variable, "1");
-      doChannelValidate(variable, "2");
-      doChannelValidate(variable, "3");
+      for (int index=0; index<NumChannels; index++) {
+         doChannelValidate(variable, index);
+      }
       // Validate DAC triggers
-      doDacValidate(variable, 0);
-      doDacValidate(variable, 1);
-      doDacValidate(variable, 2);
-      doDacValidate(variable, 3);
+      for (int index=0; index<NumDacIntervalTriggers; index++) {
+         doDacValidate(variable, index);
+      }
       // Validate Pulse outputs
-      doPulseValidate(variable, 0);
-      doPulseValidate(variable, 1);
-      doPulseValidate(variable, 2);
-      doPulseValidate(variable, 3);
+      for (int index=0; index<NumPreTriggers; index++) {
+         doPulseValidate(variable, index);
+      }
    }
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
+
+      NumChannels             = Integer.parseInt(getStringVariable("NumChannels").getValueAsString());
+      NumPreTriggers          = Integer.parseInt(getStringVariable("NumPreTriggers").getValueAsString());
+      NumDacIntervalTriggers  = Integer.parseInt(getStringVariable("NumDacIntervalTriggers").getValueAsString());
+      NumPulseOutputs         = Integer.parseInt(getStringVariable("NumPulseOutputs").getValueAsString());
+      
       final String[] externalVariables = {
             "/SIM/system_bus_clock",
       };
