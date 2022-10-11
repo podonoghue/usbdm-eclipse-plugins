@@ -1876,7 +1876,11 @@ public class ParseMenuXML extends XML_BaseParser {
       String temp = getAttribute(element, "params");
       List<String> paramOverride;
       if (temp != null) {
-         paramOverride = new ArrayList<String>(Arrays.asList(temp.split(",")));
+         String[] par = temp.split(",");
+         for (int index=0; index<par.length; index++) {
+            par[index] = par[index].trim();
+         }
+         paramOverride = new ArrayList<String>(Arrays.asList(par));
       }
       else {
          paramOverride = new ArrayList<String>();
