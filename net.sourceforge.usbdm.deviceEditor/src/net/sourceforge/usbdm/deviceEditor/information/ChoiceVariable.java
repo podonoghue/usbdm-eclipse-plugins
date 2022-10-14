@@ -18,20 +18,17 @@ public class ChoiceVariable extends VariableWithChoices {
    /** Name/choice pairs */
    private ChoiceData[] fData = null;
    
-   /** List of choices */
-   private String[] fChoices = null;
-
    /** Current value (user format i.e name) */
-   private String fValue = null;
+   private Integer fValue = 0;
    
    /** Default value of variable */
-   private String fDefaultValue = null;
+   private Integer fDefaultValue = null;
    
    /** Default value (user format i.e name) */
-   private String fDisabledValue = null;
+   private Integer fDisabledValue = null;
    
    /**
-    * Construct a variable representing a chpice value
+    * Construct a variable representing a choice value
     * 
     * @param name Name to display to user.
     * @param key  Key for variable
@@ -57,13 +54,20 @@ public class ChoiceVariable extends VariableWithChoices {
     * 
     * @return Converted object
     */
-   private String translate(Object value) {
-      if (value instanceof String) {
-         return (String)value;
-      }
-      // Treat as index into values
+   private int translate(Object value) {
       int index = -1;
-      if (value instanceof Long) {
+      // Treat as one of the available values
+      if (value instanceof String) {
+         String sValue = (String)value;
+         if (sValue.equalsIgnoreCase("Reserved") || sValue.equalsIgnoreCase("Default")) {
+            // Quietly translate reserved values
+            index = fDefaultValue;
+         }
+         else {
+            index = getChoiceIndex(sValue);
+         }
+      }
+      else if (value instanceof Long) {
          index = ((Long)value).intValue();
       }
       else if (value instanceof Integer) {
@@ -78,7 +82,7 @@ public class ChoiceVariable extends VariableWithChoices {
       if ((index<0) || (index>=getChoices().length)) {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
       }
-      return fData[index].getName();
+      return index;
    }
 
    /**
@@ -90,20 +94,14 @@ public class ChoiceVariable extends VariableWithChoices {
     * 
     * @return True if variable actually changed value
     */
-   public boolean setValue(String value) {
+   public boolean setValue(int value) {
       if ((fValue != null) && fValue.equals(value)) {
          return false;
       }
-      if (isValid(value) != null) {
+      if (value<0) {
          System.err.println("Warning value is not valid "+this+", "+value);
-         value = getChoices()[0];
+         fValue = 0;
       }
-      if (value.equalsIgnoreCase("Reserved") ||
-          value.equalsIgnoreCase("Default")) {
-         // Quietly remove reserved values
-         value = fDefaultValue;
-      }
-      super.debugPrint("ChoiceVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;
@@ -164,25 +162,19 @@ public class ChoiceVariable extends VariableWithChoices {
 
    @Override
    public void setPersistentValue(String value) throws Exception {
-      for (int index=0; index<fData.length; index++) {
-         if (fData[index].getValue().equalsIgnoreCase(value)) {
-            fValue = fData[index].getName();
-            return;
-         }
+      int index = getChoiceIndex(value);
+      if (index>=0) {
+         fValue = index;
+         return;
       }
       try {
          // Try as index number
-         int index = Integer.parseInt(value);
+         index = Integer.parseInt(value);
          if ((index>=0) && (index<fData.length)) {
-            fValue = fData[index].getName();
+            fValue = index;
             return;
          }
       } catch (NumberFormatException e) {
-      }
-      // Try as selected value
-      if (isValid(value) == null) {
-         fValue = value;
-         return;
       }
       throw new Exception("Value '"+value+"' Not suitable for choice variable");
    }
@@ -195,22 +187,17 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    @Override
    public long getValueAsLong() {
-      return getIndex(getValueAsString());
+      return fValue;
    }
    
    @Override
    public String getValueAsString() {
-      return isEnabled()?fValue:fDisabledValue;
+      return getChoices()[isEnabled()?fValue:fDisabledValue];
    }
-   
    
    @Override
    public String getSubstitutionValue() {
-      int index = getIndex(getValueAsString());
-      if (index<0) {
-         return "["+getValueAsString()+" not found]";
-      }
-      return fData[index].getValue();
+      return fData[fValue].getValue();
    }
 
    @Override
@@ -218,18 +205,44 @@ public class ChoiceVariable extends VariableWithChoices {
       return getSubstitutionValue();
    }
 
-   @Override
-   public String isValid(String value) {
+   int getChoiceIndex(String value) {
+      
+      ChoiceData[] choiceData = getData();
+      if (choiceData == null) {
+         return -1;
+      }
+      
+      int index = 0;
+      for (ChoiceData choice:choiceData) {
+         if (choice.getValue().equalsIgnoreCase(value)) {
+            return index;
+         }
+         index++;
+      }
+      index = 0;
+      for (ChoiceData choice:choiceData) {
+         if (choice.getName().equalsIgnoreCase(value)) {
+            return index;
+         }
+         index++;
+      }
       String[] choices = getChoices();
       if (choices == null) {
-         return null;
+         return -1;
       }
+      index = 0;
       for (String choice:choices) {
          if (choice.equalsIgnoreCase(value)) {
-            return null;
+            return index;
          }
+         index++;
       }
-      return "Value is not valid";
+      return -1;
+   }
+   
+   @Override
+   public String isValid(String value) {
+      return (getChoiceIndex(value)>=0)?null:"Value is not valid";
    }
 
    @Override
@@ -237,23 +250,23 @@ public class ChoiceVariable extends VariableWithChoices {
       setDisabledValue(translate(value));
    }
 
-   /**
-    * Set value used when disabled
-    * 
-    * @param fDisabledValue
-    */
-   public void setDisabledValue(String disabledValue) {
-      this.fDisabledValue = disabledValue;
-   }
-
-   /**
-    * Get value used when disabled
-    * 
-    * @return
-    */
-   public String getDisabledValue() {
-      return fDisabledValue;
-   }
+//   /**
+//    * Set value used when disabled
+//    *
+//    * @param fDisabledValue
+//    */
+//   public void setDisabledValue(String disabledValue) {
+//      this.fDisabledValue = disabledValue;
+//   }
+//
+//   /**
+//    * Get value used when disabled
+//    *
+//    * @return
+//    */
+//   public String getDisabledValue() {
+//      return fDisabledValue;
+//   }
    
    @Override
    public void setDefault(Object value) {
@@ -277,38 +290,6 @@ public class ChoiceVariable extends VariableWithChoices {
     * Special operations
     */
    /**
-    * @return the choices
-    */
-   public String[] getChoices() {
-      if (fChoices == null) {
-         // Construct new list
-         ArrayList<String> choices = new ArrayList<String>();
-         
-         fChoices = new String[fData.length];
-         for (int index=0; index<fData.length; index++) {
-            if (fData[index].isHidden()) {
-               continue;
-            }
-            choices.add(fData[index].getName());
-         }
-         fChoices = choices.toArray(new String[choices.size()]);
-         if (fValue == null) {
-            // Value not set yet - set default
-            fValue   = fChoices[0];
-         }
-         if (fDefaultValue == null) {
-            // Default not set yet - set default
-            fDefaultValue = fValue;
-         }
-         if (fDisabledValue == null) {
-            // Default not set yet - set default
-            fDisabledValue = fValue;
-         }
-      }
-      return fChoices;
-   }
-
-   /**
     * Hide or show a choice
     * 
     * @param value   Value to change
@@ -319,7 +300,7 @@ public class ChoiceVariable extends VariableWithChoices {
       for (ChoiceData choice:fData) {
          if (choice.getValue().equalsIgnoreCase(value)) {
             choice.setHidden(hide);
-            fChoices = null;
+            clearChoices();
          }
       }
    }
@@ -333,7 +314,25 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    public void hideByIndex(int index, boolean hide) {
       fData[index].setHidden(hide);
-      fChoices = null;
+      clearChoices();
+   }
+   
+   @Override
+   public String[] getChoices() {
+      String[] choices = super.getChoices();
+      if (fValue == null) {
+         // Value not set yet - set default
+         fValue   = 0;
+      }
+      if (fDefaultValue == null) {
+         // Default not set yet - set default
+         fDefaultValue = fValue;
+      }
+      if (fDisabledValue == null) {
+         // Default not set yet - set default
+         fDisabledValue = fValue;
+      }
+      return choices;
    }
    
    /**
@@ -349,7 +348,7 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    public void setData(ChoiceData[] entries) {
       this.fData = entries;
-      fChoices = null;
+      clearChoices();
    }
    
    /**
@@ -364,15 +363,16 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       fDefaultValue  = null;
       fValue         = null;
-      fChoices       = null;
+      clearChoices();
    }
 
    /**
     * Adds choice data to existing data
     * 
-    * @param entries Entries to add
+    * @param entries       Entries to add
+    * @param defaultValue  New default value (null to leave unchanged)
     */
-   public void addChoices(ArrayList<ChoiceData> entries, String defaultValue) {
+   public void addChoices(ArrayList<ChoiceData> entries, Integer defaultValue) {
       
       ArrayList<ChoiceData> consolidatedEntries = new ArrayList<ChoiceData>();
       for (ChoiceData item:fData) {
@@ -381,6 +381,7 @@ public class ChoiceVariable extends VariableWithChoices {
       consolidatedEntries.addAll(entries);
 
       if (defaultValue == null) {
+         // Preserve default value
          defaultValue = fDefaultValue;
       }
       setData(consolidatedEntries);
@@ -402,8 +403,7 @@ public class ChoiceVariable extends VariableWithChoices {
 
    @Override
    public String getDefaultParameterValue() throws Exception {
-      // Use index of current selected item
-      int index = getIndex(fDefaultValue);
+      int index = fDefaultValue;
       if (index<0) {
          throw new Exception("Failed to get default");
       }

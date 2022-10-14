@@ -10,23 +10,23 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
- * Recursive descent expression parser
+ * Recursive descent expression parser <br>
  *
- * number      : digit+[.digit*]
- * value       : number | identifier
- * factor      : [['+'|'-'|'~'|'!'] factor] | ['(' expr ')' | value]
- * term        : factor [ ['*'|'/'|'%'] factor]*
- * sum         : term [['+'|'-'] term]*
- * shift       : sum [['<<'|'>>] sum]*
- * compare     : shift [['<'|'<='|'>']'>='] shift]
- * equal       : equal [['!='|'=='] equal]
- * bitAnd      : compare ['&' compare]*
- * xor         : bitAnd ['^' bitAnd]*
- * bitOr       : xor ['^' xor]*
- * logicalAnd  : bitOr ['&&' bitOr]*
- * logicalOr   : logicalAnd ['^' logicalAnd]*
- * ternary     : logicalOr ['?' expr ':' expr]
- * expr        : ternary
+ * <li>number      : digit+[.digit*]
+ * <li>value       : number | identifier
+ * <li>factor      : [['+'|'-'|'~'|'!'] factor] | ['(' expr ')' | value]
+ * <li>term        : factor [ ['*'|'/'|'%'] factor]*
+ * <li>sum         : term [['+'|'-'] term]*
+ * <li>shift       : sum [['<<'|'>>] sum]*
+ * <li>compare     : shift [['<'|'<='|'>']'>='] shift]
+ * <li>equal       : equal [['!='|'=='] equal]
+ * <li>bitAnd      : compare ['&' compare]*
+ * <li>xor         : bitAnd ['^' bitAnd]*
+ * <li>bitOr       : xor ['^' xor]*
+ * <li>logicalAnd  : bitOr ['&&' bitOr]*
+ * <li>logicalOr   : logicalAnd ['^' logicalAnd]*
+ * <li>ternary     : logicalOr ['?' expr ':' expr]
+ * <li>expr        : ternary
  * 
  * @note It may be necessary to enclose variable names in braces as they may contain '/' e.g. (/xxx/yyy)
  */

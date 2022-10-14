@@ -48,6 +48,9 @@ public class BooleanVariable extends VariableWithChoices {
     * @return Converted object
     */
    public boolean translate(Object value) {
+//      if (getName().contains("enableClockConfiguration[0]")) {
+//         System.err.println("Name = "+getName());
+//      }
       if (value instanceof Boolean) {
          return (Boolean)value;
       }
@@ -139,9 +142,9 @@ public class BooleanVariable extends VariableWithChoices {
    @Override
    public String getSubstitutionValue() {
       if (getValueAsBoolean()) {
-         return (fTrue==null)?"TTTT":fTrue.getValue();
+         return (fTrue==null)?"T not set":fTrue.getValue();
       }
-      return (fFalse==null)?"FFFF":fFalse.getValue();
+      return (fFalse==null)?"F not set":fFalse.getValue();
    }
 
    @Override
@@ -200,7 +203,10 @@ public class BooleanVariable extends VariableWithChoices {
    /**
     * @return the choices
     */
-   public void getChoices() {
+   @Override
+   public String[] getChoices() {
+      getData();
+      return null;
    }
 
    /**

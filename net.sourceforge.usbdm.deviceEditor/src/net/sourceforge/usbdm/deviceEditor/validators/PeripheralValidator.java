@@ -136,6 +136,9 @@ public class PeripheralValidator extends Validator {
          }
          return;
       }
+//      if (reference.contains("SIM/system_bus_clock[0]")) {
+//         System.err.println("Found " + reference);
+//      }
       String data[]      = reference.split(";");
       String expression = data[data.length-1];
       SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
@@ -160,7 +163,12 @@ public class PeripheralValidator extends Validator {
          Variable primaryClockSourceVar = safeGetVariable(primaryClockSourceName);
          status   = primaryClockSourceVar.getFilteredStatus();
          enabled  = primaryClockSourceVar.isEnabled();
-         origin   = primaryClockSourceVar.getOrigin();
+         if (primaryClockSourceVar.getIsNamedClock()) {
+            origin = primaryClockSourceVar.getName();
+         }
+         else {
+            origin   = primaryClockSourceVar.getOrigin();
+         }
       }
       if (controlVar != targetVariable) {
          if (controlVar instanceof VariableWithChoices) {
@@ -168,6 +176,11 @@ public class PeripheralValidator extends Validator {
          }
          else {
             origin = origin + "\n[modified by " + controlVar.getName() +"]";
+         }
+      }
+      else {
+         if (identifiers.size()>1) {
+            origin = origin + "\n[modified by " + identifiers.get(1) +"]";
          }
       }
       if (targetVariable != null) {

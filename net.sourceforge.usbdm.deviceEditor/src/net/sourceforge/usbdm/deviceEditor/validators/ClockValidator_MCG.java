@@ -474,7 +474,6 @@ public class ClockValidator_MCG extends BaseClockValidator {
       
       addToWatchedVariables(variablesToWatch);
 
-      // enableClockConfiguration[0] is always true to enable 1st clock configuration
       // Hide from user
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
       enableClockConfigurationVar.setHidden(true);

@@ -222,6 +222,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** Condition for enabling this variable */
    private String fEnabledBy = null;
 
+   private VariableProvider fProvider;
+
+   private Boolean fIsNamedClock = false;
+
    /**
     * Constructor
     * 
@@ -1001,7 +1005,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
    
    /**
-    * Get value to use as default for parameter in setter function
+    * Get value to use as default for parameter in generated parameter lists in C code
     * 
     * @return
     * 
@@ -1123,6 +1127,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          return true;
       }
       return (Boolean)SimpleExpressionParser.evaluate(enableExpression, peripheral, Mode.EvaluateFully);
+   }
+
+   public void setProvider(VariableProvider provider) {
+      fProvider = provider;
+   }
+
+   public VariableProvider getProvider() {
+      return fProvider;
+   }
+
+   public void setIsNamedClock(Boolean isNamedClock) {
+      fIsNamedClock = isNamedClock;
+   }
+
+   public boolean getIsNamedClock() {
+      return fIsNamedClock;
    }
 
 }

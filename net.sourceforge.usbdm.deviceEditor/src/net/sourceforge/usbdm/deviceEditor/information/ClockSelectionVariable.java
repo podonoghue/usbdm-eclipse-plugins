@@ -7,14 +7,10 @@ public class ClockSelectionVariable extends ChoiceVariable {
    }
 
    @Override
-   public boolean setValue(String value) {
-      
-//      fDeviceInfo.getVariable(value);
-      int index = getIndex(value);
-      fDeviceInfo.setActiveClockSelection(index);
-      
-      boolean changed = super.setValue(value);
-      return changed;
+   public boolean setValue(int value) {
+
+      fDeviceInfo.setActiveClockSelection(value);
+      return super.setValue(value);
    }
 
    private String displayValue = null;

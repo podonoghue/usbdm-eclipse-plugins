@@ -485,6 +485,10 @@ public class ParseMenuXML extends XML_BaseParser {
       String values = getAttribute(element, "values");
       String dim    = getAttribute(element, "dim");
       
+      if (keys.isBlank()) {
+         throw new Exception("<for> requires keys = '"+keys+"', values = '"+values+"'");
+      }
+
       SimpleExpressionParser expressionParser =
             new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
       if (dim != null) {
@@ -521,8 +525,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          values=sb.toString();
       }
-      if (keys.isBlank() || values.isBlank()) {
-         throw new Exception("<for> requires keys and values attributes '"+keys+"', '"+values+"'");
+      if (values.isBlank()) {
+         // Empty loop
+         return;
       }
       fForStack.createLevel(keys, values);
       do {
@@ -771,6 +776,7 @@ public class ParseMenuXML extends XML_BaseParser {
          try {
             newVariable = (Variable) clazz.getConstructor(String.class, String.class).newInstance(name, key);
             fProvider.addVariable(newVariable);
+            newVariable.setProvider(fProvider);
          } catch (Exception e) {
             throw new Exception("Unable to create variable!", e);
          }
@@ -796,7 +802,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @return  Derived from variable if it exists
     * @throws Exception
     */
-   private Variable getDerived(Element varElement) throws Exception {
+   private Variable getDerivedFrom(Element varElement) throws Exception {
       Variable otherVariable = null;
       String derivedFromName = getAttribute(varElement,"derivedFrom");
       if (derivedFromName != null) {
@@ -840,7 +846,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private VariableModel parseCommonAttributes(BaseModel parent, Element varElement, Variable variable) throws Exception {
       
-      Variable otherVariable = getDerived(varElement);
+      Variable otherVariable = getDerivedFrom(varElement);
       
       if (otherVariable != null) {
          variable.setDescription(otherVariable.getDescription());
@@ -850,11 +856,44 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDerived(otherVariable.getDerived());
          variable.setTypeName(otherVariable.getTypeName());
          variable.setValueFormat(otherVariable.getValueFormat());
-         variable.setDataValue(otherVariable.getDataValue());
+         String enabledBy = otherVariable.getEnabledBy();
+         if (enabledBy != null) {
+            variable.setEnabledBy(enabledBy);
+            // Add as monitored variable
+            fPeripheral.addMonitoredVariable(variable);
+         }
+         variable.setRegister(otherVariable.getRegister());
+//         variable.setDataValue(otherVariable.getDataValue());
       }
-      variable.setDescription(getAttribute(varElement, "description", null));
-      
-      variable.setToolTip(getToolTip(varElement));
+      if (varElement.hasAttribute("description")) {
+         variable.setDescription(getAttribute(varElement, "description"));
+      }
+      if (varElement.hasAttribute("toolTip")) {
+         variable.setToolTip(getToolTip(varElement));
+      }
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(getAttribute(varElement, "origin"));
+      }
+      if (varElement.hasAttribute("derived")) {
+         variable.setDerived(Boolean.valueOf(getAttribute(varElement, "derived")));
+      }
+      if (varElement.hasAttribute("enumStem")) {
+         variable.setTypeName(getAttribute(varElement, "enumStem", null));
+      }
+      if (varElement.hasAttribute("typeName")) {
+         variable.setTypeName(getAttribute(varElement, "typeName", null));
+      }
+      if (varElement.hasAttribute("valueFormat")) {
+         variable.setValueFormat(getAttribute(varElement, "valueFormat"));
+      }
+      if (varElement.hasAttribute("enabledBy")) {
+         variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
+      }
+      variable.setRegister(getAttribute(varElement, "register"));
+//    variable.setDataValue(getAttribute(varElement, "data"));
+
 
       if (varElement.hasAttribute("value")) {
          // Value is used as default and initial value
@@ -863,20 +902,12 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDefault(value);
          variable.setDisabledValue(value);
       }
-      // Value is used to format value
-      variable.setValueFormat(getAttribute(varElement, "valueFormat"));
       
       // Value is used as disabled value
       if (varElement.hasAttribute("disabledValue")) {
          variable.setDisabledValue(getAttribute(varElement, "disabledValue"));
       }
       
-      // Origin
-      variable.setOrigin(getAttribute(varElement, "origin"));
-      
-      if (varElement.hasAttribute("derived")) {
-         variable.setDerived(Boolean.valueOf(getAttribute(varElement, "derived")));
-      }
       if (varElement.hasAttribute("errorPropagate")) {
          variable.setErrorPropagate(getAttribute(varElement, "errorPropagate").toUpperCase());
       }
@@ -890,25 +921,14 @@ public class ParseMenuXML extends XML_BaseParser {
          // Add as monitored variable
          fPeripheral.addMonitoredVariable(variable);
       }
-      if (varElement.hasAttribute("enabledBy")) {
-         variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
-         // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
-      }
-      variable.setRegister(getAttribute(varElement, "register"));
-      
-      if (varElement.hasAttribute("enumStem")) {
-         variable.setTypeName(getAttribute(varElement, "enumStem", null));
-      }
-      if (varElement.hasAttribute("typeName")) {
-         variable.setTypeName(getAttribute(varElement, "typeName", null));
+      if (varElement.hasAttribute("isNamedClock")) {
+         variable.setIsNamedClock(Boolean.valueOf(getAttribute(varElement, "isNamedClock")));
       }
       
       // Internal data value
       if (varElement.hasAttribute("data")) {
          throw new Exception("data attribute not supported");
       }
-//      variable.setDataValue(getAttribute(varElement, "data"));
       
       // Old attributes
       if (varElement.hasAttribute("default")) {
@@ -941,7 +961,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       LongVariable variable = (LongVariable) createVariable(varElement, LongVariable.class);
 
-      LongVariable otherVariable = (LongVariable)getDerived(varElement);
+      LongVariable otherVariable = (LongVariable)getDerivedFrom(varElement);
       if (otherVariable != null) {
          variable.setUnits(otherVariable.getUnits());
          variable.setStep(otherVariable.getStep());
@@ -991,7 +1011,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       DoubleVariable variable = (DoubleVariable) createVariable(varElement, DoubleVariable.class);
       
-      Variable otherVariable = getDerived(varElement);
+      Variable otherVariable = getDerivedFrom(varElement);
       if ((otherVariable != null) && (otherVariable instanceof DoubleVariable)) {
          variable.setMin(((DoubleVariable)otherVariable).getMin());
          variable.setMax(((DoubleVariable)otherVariable).getMax());
@@ -1084,8 +1104,8 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
 
-      parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
+      parseCommonAttributes(parent, varElement, variable);
       
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
@@ -1407,7 +1427,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       NumericListVariable variable = (NumericListVariable) createVariable(varElement, NumericListVariable.class);
       
-      NumericListVariable otherVariable = (NumericListVariable)getDerived(varElement);
+      NumericListVariable otherVariable = (NumericListVariable)getDerivedFrom(varElement);
       if (otherVariable != null) {
          variable.setMin(otherVariable.getMin());
          variable.setMax(otherVariable.getMax());
@@ -1885,6 +1905,20 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          paramOverride = new ArrayList<String>();
       }
+
+      temp = getAttribute(element, "defaultParamValue");
+      List<String> defaultValueOverride;
+      if (temp != null) {
+         String[] def = temp.split(",");
+         for (int index=0; index<def.length; index++) {
+            def[index] = def[index].trim();
+         }
+         defaultValueOverride = new ArrayList<String>(Arrays.asList(def));
+      }
+      else {
+         defaultValueOverride = new ArrayList<String>();
+      }
+      
       if (variableAttributeName == null) {
          // Returns empty list to indicate template should still be processed
          return new ArrayList<StringPair>();
@@ -1926,8 +1960,6 @@ public class ParseMenuXML extends XML_BaseParser {
 
       Long numberOfNonDefaultParams = getLongAttribute(element, "nonDefaultParams", 1);
       
-      String defaultParamValue = getAttribute(element, "defaultParamValue");
-
       ArrayList<Variable> variableList = new ArrayList<Variable>();
       ArrayList<Integer>  deletedParams = new ArrayList<Integer>();
       int paramCount=0;
@@ -1948,9 +1980,13 @@ public class ParseMenuXML extends XML_BaseParser {
          variableList.add(var);
          paramCount++;
       }
+      // Fix lists for missing parameters
       for(int index:deletedParams) {
          if (paramOverride.size() > index) {
             paramOverride.remove(index);
+         }
+         if (defaultValueOverride.size() > index) {
+            defaultValueOverride.remove(index);
          }
       }
       if (variableList.isEmpty()) {
@@ -1996,6 +2032,13 @@ public class ParseMenuXML extends XML_BaseParser {
             mask = Variable.getBaseNameFromKey(variableKey).toUpperCase()+"_MASK";
          }
          maskSb.append(mask);
+
+         if (mask.length() > 0) {
+            boolean bracketsRequired = !mask.matches("[a-zA-Z0-9_]*");
+            if (bracketsRequired) {
+               mask = '('+mask+')';
+            }
+         }
 
          // $(variableKey)
          String valueExpression = "$("+variableKey+")";
@@ -2061,34 +2104,48 @@ public class ParseMenuXML extends XML_BaseParser {
          
          String paramType = variable.getTypeName();
          if (paramType != null) {
+            paramType = paramType.strip();
+            Pattern p = Pattern.compile("(const\\s)?\\s*([a-zA-Z0-9_]+)\\s*(&)?");
+            Matcher m = p.matcher(paramType);
+            if (!m.matches()) {
+               throw new Exception("Failed to match '" + paramType + "'");
+            }
+            String constPrefix = m.group(1);
+            String type        = m.group(2);
+            String reference   = m.group(3);
+            if (constPrefix == null) {
+               constPrefix = "";
+            }
+            if (reference == null) {
+               reference = "";
+            }
             if (!isConstructor) {
                // Strip references from type unless it is a constexpr constructor
-               paramType  = paramType.replace("&", "").trim();
+               constPrefix = "";
+               reference   = "";
             }
-            paramType  = Character.toUpperCase(paramType.charAt(0)) + paramType.substring(1);
-            enumClass  = paramType.replace("&", "").trim();
-            enumParam  = Character.toLowerCase(enumClass.charAt(0)) + enumClass.substring(1);
+            paramType  = constPrefix + Character.toUpperCase(type.charAt(0)) + type.substring(1) + reference;
+            enumClass  = paramType;
+            enumParam  = Character.toLowerCase(type.charAt(0)) + type.substring(1);
          }
          if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
             enumParam = paramOverride.get(index);
          }
          
-         String comment = "'%comment' is not valid here";
-
+         String toolTip = "toolTip in %paramDescription is not valid here";
          temp = variable.getToolTipAsCode(linePadding+" *        ");
          if (temp != null) {
-            comment = temp;
+            toolTip = temp;
          }
 //         comment = comment.replace("", "");
          
          String defaultParamV = variable.getDefaultParameterValue();
-         if (defaultParamValue != null) {
-            defaultParamV = defaultParamValue;
+         if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
+            defaultParamV = defaultValueOverride.get(index);
          }
-
          paramExprSb.append(enumParam);
 
-         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", enumParam, comment);
+         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", enumParam, toolTip);
          paramDescriptionSb.append(paramDescriptionN);
 
          // Padding applied to parameters
@@ -2733,9 +2790,9 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private static class ChoiceInformation {
       final ArrayList<ChoiceData> entries;
-      final String                defaultEntry;
+      final Integer               defaultEntry;
       
-      public ChoiceInformation(ArrayList<ChoiceData> entries, String defaultEntry) {
+      public ChoiceInformation(ArrayList<ChoiceData> entries, Integer defaultEntry) {
          this.entries = entries;
          this.defaultEntry = defaultEntry;
       }
@@ -2752,7 +2809,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private ChoiceInformation parseChoiceData(Element menuElement) throws Exception {
       
       ArrayList<ChoiceData> entries = new ArrayList<ChoiceData>();
-      String defaultValue = null;
+      Integer defaultValue = null;
       NodeList choiceNodes = menuElement.getElementsByTagName("choice");
       for(int index=0; index<choiceNodes.getLength(); index++) {
          Node node = choiceNodes.item(index);
@@ -2779,11 +2836,11 @@ public class ParseMenuXML extends XML_BaseParser {
          entries.add(entry);
          if (defaultValue == null) {
             // Assume 1st entry is default
-            defaultValue = entry.getName();
+            defaultValue = 0;
          }
          if (Boolean.parseBoolean(getAttribute(element, "isDefault"))) {
             // Explicit default set
-            defaultValue = entry.getName();
+            defaultValue = entries.size()-1;
          }
       }
       if (!entries.isEmpty()) {
@@ -2808,7 +2865,7 @@ public class ParseMenuXML extends XML_BaseParser {
          /**
           * Should be another variable of the same type to copy from i.e. derivedFrom="" present
           */
-         Variable otherVariable = getDerived(menuElement);
+         Variable otherVariable = getDerivedFrom(menuElement);
          if (otherVariable == null) {
             throw new Exception("No choices found in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
          }
@@ -2853,13 +2910,15 @@ public class ParseMenuXML extends XML_BaseParser {
                   var.setFalseValue(choiceData);
                }
             }
+            variable.setDefault(info.entries.get(info.defaultEntry).getValue());
+            variable.setValue(info.entries.get(info.defaultEntry).getValue());
          }
          else if (variable instanceof ChoiceVariable) {
             ChoiceVariable var = (ChoiceVariable)variable;
             var.setData(info.entries);
+            variable.setDefault(info.defaultEntry);
+            variable.setValue(info.defaultEntry);
          }
-         variable.setDefault(info.defaultEntry);
-         variable.setValue(info.defaultEntry);
       }
    }
 

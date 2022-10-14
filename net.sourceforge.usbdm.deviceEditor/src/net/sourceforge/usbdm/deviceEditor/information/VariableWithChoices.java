@@ -1,9 +1,18 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
+
 public abstract class VariableWithChoices extends Variable {
+
+   /** List of choices to be re-created each time */
+   boolean dynamicChoices = false;
+   
+   /** List of choices */
+   private String[] fChoices = null;
 
    public VariableWithChoices(String name, String key) {
       super(name, key);
@@ -30,6 +39,46 @@ public abstract class VariableWithChoices extends Variable {
       }
       return getTypeName()+"_"+enumValue;
    }
+   
+   void clearChoices() {
+      fChoices = null;
+   }
+   
+   /**
+    * @return the choices
+    */
+   public String[] getChoices() {
+      
+      if (dynamicChoices || (fChoices == null)) {
+         // Construct new list
+         ArrayList<String> choices = new ArrayList<String>();
+         
+         ChoiceData[] fData = getData();
+         if (fData == null) {
+            return null;
+         }
+         for (int index=0; index<fData.length; index++) {
+            if (fData[index].isHidden()) {
+               continue;
+            }
+            String chName = fData[index].getName();
+            if (chName.startsWith("@")) {
+               dynamicChoices = true;
+               SimpleExpressionParser parser = new SimpleExpressionParser(getProvider(), SimpleExpressionParser.Mode.EvaluateFully);
+               try {
+                  chName = parser.evaluate(chName.substring(1)).toString();
+               } catch (Exception e) {
+                  e.printStackTrace();
+               }
+            }
+            choices.add(chName);
+         }
+         fChoices = choices.toArray(new String[choices.size()]);
+      }
+      return fChoices;
+   }
+
+
    /**
     * Get index of current value in choice entries
     * 
@@ -45,6 +94,15 @@ public abstract class VariableWithChoices extends Variable {
             return index;
          }
       }
+      if (dynamicChoices) {
+         String choices[] = getChoices();
+         for (int index=0; index<choices.length; index++) {
+            if (choices[index].equalsIgnoreCase(name)) {
+               return index;
+            }
+         }
+      }
+      
       return -1;
    }
    
