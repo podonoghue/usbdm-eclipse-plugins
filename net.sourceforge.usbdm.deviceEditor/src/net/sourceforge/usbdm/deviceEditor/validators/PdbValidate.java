@@ -27,7 +27,6 @@ public class PdbValidate extends PeripheralValidator {
    int     NumDacIntervalTriggers   = 0;
    int     NumPulseOutputs          = 0;
    
-   boolean clockChanged    = true;
    double  pdb_clock_period      = 0.0;
    double  max_interval          = 0.0;
    
@@ -224,10 +223,10 @@ public class PdbValidate extends PeripheralValidator {
    protected void createDependencies() throws Exception {
       super.createDependencies();
 
-      NumChannels             = Integer.parseInt(getStringVariable("NumChannels").getValueAsString());
-      NumPreTriggers          = Integer.parseInt(getStringVariable("NumPreTriggers").getValueAsString());
-      NumDacIntervalTriggers  = Integer.parseInt(getStringVariable("NumDacIntervalTriggers").getValueAsString());
-      NumPulseOutputs         = Integer.parseInt(getStringVariable("NumPulseOutputs").getValueAsString());
+      NumChannels             = (int)getLongVariable("NumChannels").getValueAsLong();
+      NumPreTriggers          = (int)getLongVariable("NumPreTriggers").getValueAsLong();
+      NumDacIntervalTriggers  = (int)getLongVariable("NumDacIntervalTriggers").getValueAsLong();
+      NumPulseOutputs         = (int)getLongVariable("NumPulseOutputs").getValueAsLong();
       
       final String[] externalVariables = {
             "/SIM/system_bus_clock",

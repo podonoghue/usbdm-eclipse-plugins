@@ -101,6 +101,11 @@ public class SimpleExpressionParser {
       if (ch == null) {
          return null;
       }
+      boolean forceEvaluate = false;
+      if (ch == '@') {
+         forceEvaluate = true;
+         ch = getNextCh();
+      }
       while(fIndex<fExpression.length()) {
          ch = fExpression.charAt(fIndex);
          if (("/[]0123456789".indexOf(ch) >= 0) || Character.isJavaIdentifierPart(ch)) {
@@ -132,7 +137,9 @@ public class SimpleExpressionParser {
 
       switch(fMode) {
       case CheckIdentifierExistance:
-         return var != null;
+         if (!forceEvaluate) {
+            return var != null;
+         }
       default:
       case CollectIdentifiers:
       case EvaluateFully:
