@@ -226,6 +226,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    private Boolean fIsNamedClock = false;
 
+   private String fUnlockedBy;
+
    /**
     * Constructor
     * 
@@ -1143,6 +1145,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    public boolean getIsNamedClock() {
       return fIsNamedClock;
+   }
+
+   public void setUnlockedBy(String attribute) {
+      fUnlockedBy = attribute;
+   }
+
+   public String getUnlockedBy() {
+      return fUnlockedBy;
    }
 
 }

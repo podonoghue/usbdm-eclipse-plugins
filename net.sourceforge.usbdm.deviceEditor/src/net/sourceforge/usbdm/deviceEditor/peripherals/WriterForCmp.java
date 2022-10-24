@@ -10,6 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -25,7 +26,8 @@ public class WriterForCmp extends PeripheralWithState {
       super(basename, instance, deviceInfo);
       
       // Can create type declarations for signals belonging to this peripheral
-      fcanCreateSignalType = true;
+      fcanCreateSignalType     = true;
+      fCanCreateSignalInstance = true;
    }
 
    @Override
@@ -44,7 +46,7 @@ public class WriterForCmp extends PeripheralWithState {
       return NUMBER_OF_INPUTS+super.getSignalIndex(function, signalNames);
    }
 
-   static final String PIN_FORMAT   = "         %-25s = %-8s %s\n";
+   static final String PIN_FORMAT   = "%-50s = %-20s %s\n";
    
    /**
     * Generate set of enum symbols and Types for CMP inputs that are mapped to pins.
@@ -67,12 +69,14 @@ public class WriterForCmp extends PeripheralWithState {
       
       super.writeDeclarations();
       
-      String enumName    = "Input_";
+      String enumNameP   = "Cmp"+getInstance()+"InputPlus_";
+      String enumNameM   = "Cmp"+getInstance()+"InputMinus_";
       String commentRoot = "///< ";
       ArrayList<InfoTable> signalTables = getSignalTables();
       HashSet<String> usedIdentifiers = new HashSet<String>();
 
-      StringBuffer inputsStringBuilder       = new StringBuffer();
+      StringBuffer inputsStringBuilder = new StringBuffer();
+      inputsStringBuilder.append("\n// Pin mapping for "+getName()+"\n");
       for (InfoTable signalTable:signalTables) {
          int index = -1;
          for (Signal signal:signalTable.table) {
@@ -97,55 +101,85 @@ public class WriterForCmp extends PeripheralWithState {
             
             String trailingComment  = pin.getNameWithLocation();
             String description = signal.getUserDescription();
-            String pinName = enumName+prettyPinName(pin.getName());
+            String pinNameP = enumNameP+prettyPinName(pin.getName());
+            String pinNameM = enumNameM+prettyPinName(pin.getName());
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
-            String inputIdentifier = "";
-            String mapName = "Input_"+index;
+//            String inputIdentifierP = "";
+//            String inputIdentifierM = "";
+            String mapNameP = "Cmp"+getInstance()+"InputPlus_"+index;
+            String mapNameM = "Cmp"+getInstance()+"InputMinus_"+index;
             if (!cIdentifier.isBlank()) {
-               inputIdentifier =  enumName+cIdentifier;
-               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", getClassName()+"::"+pinName);
-               String constType = "const "+ type;
+//               inputIdentifierP =  "constexpr Cmp"+getInstance()+"InputPlus  "+ enumNameP+cIdentifier;
+//               inputIdentifierM =  "constexpr Cmp"+getInstance()+"InputMinus "+ enumNameM+cIdentifier;
+//               String typeP = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinNameP);
+               String typeM = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinNameM);
+//               String constTypeP = "const "+ typeP;
+               String constTypeM = "const "+ typeM;
                if (signal.getCreateInstance()) {
-                  writeVariableDeclaration("", description, cIdentifier, constType, trailingComment);
+//                  writeVariableDeclaration("", description, cIdentifier, constTypeP, trailingComment);
+                  writeVariableDeclaration("", description, cIdentifier, constTypeM, trailingComment);
                }
                else {
-                  writeTypeDeclaration("", description, cIdentifier, type, trailingComment);
+//                  writeTypeDeclaration("", description, cIdentifier, typeP, trailingComment);
+                  writeTypeDeclaration("", description, cIdentifier, typeM, trailingComment);
                }
+            }
+            boolean inUse = !usedIdentifiers.add(pinNameP);
+            pinNameP = "constexpr Cmp"+getInstance()+"InputPlus  "+ pinNameP;
+            if (inUse) {
+               pinNameP = "// "+pinNameP;
+            }
+            inUse = !usedIdentifiers.add(pinNameM);
+            pinNameM = "constexpr Cmp"+getInstance()+"InputMinus "+ pinNameM;
+            if (inUse) {
+               pinNameM = "// "+pinNameM;
             }
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
                trailingComment = commentRoot+"Fixed pin  "+trailingComment;
-               boolean inUse = !usedIdentifiers.add(pinName);
-               if (inUse) {
-                  pinName = "// "+pinName;
-               }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
-               if (!inputIdentifier.isBlank()) {
-                  inUse = !usedIdentifiers.add(inputIdentifier);
-                  if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier;
-                  }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
-               }
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameP, mapNameP+";", trailingComment));
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameM, mapNameM+";", trailingComment));
+//               if (!inputIdentifierP.isBlank()) {
+//                  inUse = !usedIdentifiers.add(inputIdentifierP);
+//                  if (inUse) {
+//                     inputIdentifierP = "// "+inputIdentifierP;
+//                  }
+//                  inUse = !usedIdentifiers.add(inputIdentifierM);
+//                  if (inUse) {
+//                     inputIdentifierM = "// "+inputIdentifierM;
+//                  }
+//                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifierP, mapNameP+";", trailingComment));
+//                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifierM, mapNameM+";", trailingComment));
+//               }
             }
             else if (mappingInfo.isSelected()) {
                trailingComment = commentRoot+"Mapped pin "+trailingComment;
-               boolean inUse = !usedIdentifiers.add(pinName);
-               if (inUse) {
-                  pinName = "// "+pinName;
-               }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
-               if (!inputIdentifier.isBlank()) {
-                  inUse = !usedIdentifiers.add(inputIdentifier);
-                  if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier;
-                  }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
-               }
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameP, mapNameP+";", trailingComment));
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameM, mapNameM+";", trailingComment));
+//               if (!inputIdentifierP.isBlank()) {
+//                  inUse = !usedIdentifiers.add(inputIdentifierP);
+//                  if (inUse) {
+//                     inputIdentifierP = "// "+inputIdentifierP;
+//                  }
+//                  inUse = !usedIdentifiers.add(inputIdentifierM);
+//                  if (inUse) {
+//                     inputIdentifierM = "// "+inputIdentifierM;
+//                  }
+//                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifierP, mapNameP+";", trailingComment));
+//                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifierM, mapNameM+";", trailingComment));
+//               }
             }
          }
+         String mappings = inputsStringBuilder.toString();
+         
          // Create or replace input mapping variable as needed
-         fDeviceInfo.addOrUpdateStringVariable("InputMapping", makeKey("InputMapping"), inputsStringBuilder.toString(), true);
+         if (!getInstance().equals("0")) {
+            Variable existingMapping = fDeviceInfo.safeGetVariable(makeKey("/CMP/InputMapping"));
+            if (existingMapping != null) {
+               mappings = existingMapping.getValueAsString() + mappings;
+            }
+         }
+         fDeviceInfo.addOrUpdateStringVariable("InputMapping", makeKey("/CMP/InputMapping"), mappings, true);
       }
    }
 

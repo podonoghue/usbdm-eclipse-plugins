@@ -912,6 +912,9 @@ public class SimpleExpressionParser {
       if (expression == null) {
          return true;
       }
+//      if (expression.endsWith("==0")) {
+//         System.err.println("Found " + expression);
+//      }
       fCollectedIdentifiers = new ArrayList<String>();
       fExpression = expression;
       fIndex = 0;

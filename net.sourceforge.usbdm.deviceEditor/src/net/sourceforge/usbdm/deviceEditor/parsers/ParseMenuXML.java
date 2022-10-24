@@ -891,6 +891,11 @@ public class ParseMenuXML extends XML_BaseParser {
          // Add as monitored variable
          fPeripheral.addMonitoredVariable(variable);
       }
+      if (varElement.hasAttribute("unlockedBy")) {
+         variable.setUnlockedBy(getAttribute(varElement, "unlockedBy"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
+      }
       variable.setRegister(getAttribute(varElement, "register"));
 //    variable.setDataValue(getAttribute(varElement, "data"));
 
@@ -983,6 +988,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          if (varElement.hasAttribute("max")) {
             variable.setMax(getRequiredLongAttribute(varElement, "max"));
+         }
+         if (varElement.hasAttribute("disabledValue")) {
+            variable.setDisabledValue(getRequiredLongAttribute(varElement, "disabledValue"));
          }
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
@@ -1104,6 +1112,10 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
 
+//      if (variable.getName().startsWith("cmp_filter")) {
+//         System.err.println("Found " + variable.getName());
+//      }
+//
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
       
@@ -1465,6 +1477,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (variable == null) {
          return;
       }
+//      if (variable.getName().equalsIgnoreCase("cmp_cr1_en")) {
+//         System.err.println("Found " + variable.getName());
+//      }
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       if (variable.getTypeName() != null) {
@@ -1514,6 +1529,7 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setPattern(getAttribute(irqElement, "pattern"));
       variable.setClassHandler(getAttribute(irqElement, "classHandler"));
       variable.setDefault(false);
+      variable.setValue(false);
       fPeripheral.addIrqVariable(variable);
    }
 
@@ -2020,16 +2036,19 @@ public class ParseMenuXML extends XML_BaseParser {
 
          // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
          String mask;
-
+         String macro;
+         
          // Value format string
          String valueFormat  = variable.getValueFormat();
 
-
          if (valueFormat != null) {
-            mask = valueFormat.replace(",(%s)", "").replace(",", "|").replace("(%s)", "_MASK");
+            macro  = valueFormat.replace("(%s)", "").replace(",", "|");
+            mask  = valueFormat.replace(",(%s)", "").replace(",", "|").replace("(%s)", "_MASK");
          }
          else {
-            mask = Variable.getBaseNameFromKey(variableKey).toUpperCase()+"_MASK";
+            macro  = Variable.getBaseNameFromKey(variableKey).toUpperCase();
+            mask   = macro+"_MASK";
+            valueFormat = mask+"(%s)";
          }
          maskSb.append(mask);
 
@@ -2040,14 +2059,65 @@ public class ParseMenuXML extends XML_BaseParser {
             }
          }
 
+         // Type from variable with upper-case 1st letter
+         String paramName = "'%enumParam' is not valid here";
+         
+         String paramType = variable.getTypeName();
+         if (paramType == null) {
+            paramType = "'%enumClass' is not valid here";
+         }
+         else {
+            paramType = paramType.strip();
+            Pattern p = Pattern.compile("(const\\s)?\\s*([a-zA-Z0-9_]+)\\s*(&)?");
+            Matcher m = p.matcher(paramType);
+            if (!m.matches()) {
+               throw new Exception("Failed to match '" + paramType + "'");
+            }
+            String constPrefix = m.group(1);
+            String type        = m.group(2);
+            String reference   = m.group(3);
+            if (constPrefix == null) {
+               constPrefix = "";
+            }
+            if (reference == null) {
+               reference = "";
+            }
+            if (!isConstructor) {
+               // Strip references from type unless it is a constexpr constructor
+               constPrefix = "";
+               reference   = "";
+            }
+            paramType  = constPrefix + Character.toUpperCase(type.charAt(0)) + type.substring(1) + reference;
+            paramName  = Character.toLowerCase(type.charAt(0)) + type.substring(1);
+            
+         }
+         // Special cases pattern
+         // This is used to identify integers
+         Pattern pSpecial = Pattern.compile("u?int[0-9]+_t");
+
+         Matcher mSpecial = pSpecial.matcher(paramName);
+         boolean integerType = mSpecial.matches();
+         if (integerType) {
+            // Integer parameters get a name of 'value' by default
+            paramType = paramName;
+            paramName = "value";
+         }
+
+         if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
+            paramName = paramOverride.get(index);
+         }
+         
          // $(variableKey)
          String valueExpression = "$("+variableKey+")";
          valueExpressionSb.append(valueExpression);
-
+         
          // $(variableKey.enum[])
          String symbolicValueExpression;
          if (variable instanceof VariableWithChoices) {
             symbolicValueExpression = "$("+variableKey+".enum[])";
+         }
+         else if (integerType) {
+            symbolicValueExpression = "$("+variableKey+")";//+".formattedValue)";
          }
          else {
             symbolicValueExpression = "$("+variableKey+".formattedValue)";
@@ -2096,41 +2166,7 @@ public class ParseMenuXML extends XML_BaseParser {
             initExpressionSb.append(" - $("+variableKey+".name[])");
          }
          
-         // Type from variable with lower-case 1st letter
-         String enumClass = "'%enumClass' is not valid here";
-
-         // Type from variable with upper-case 1st letter
-         String enumParam = "'%enumParam' is not valid here";
-         
-         String paramType = variable.getTypeName();
-         if (paramType != null) {
-            paramType = paramType.strip();
-            Pattern p = Pattern.compile("(const\\s)?\\s*([a-zA-Z0-9_]+)\\s*(&)?");
-            Matcher m = p.matcher(paramType);
-            if (!m.matches()) {
-               throw new Exception("Failed to match '" + paramType + "'");
-            }
-            String constPrefix = m.group(1);
-            String type        = m.group(2);
-            String reference   = m.group(3);
-            if (constPrefix == null) {
-               constPrefix = "";
-            }
-            if (reference == null) {
-               reference = "";
-            }
-            if (!isConstructor) {
-               // Strip references from type unless it is a constexpr constructor
-               constPrefix = "";
-               reference   = "";
-            }
-            paramType  = constPrefix + Character.toUpperCase(type.charAt(0)) + type.substring(1) + reference;
-            enumClass  = paramType;
-            enumParam  = Character.toLowerCase(type.charAt(0)) + type.substring(1);
-         }
-         if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
-            enumParam = paramOverride.get(index);
-         }
+//         String fieldParam = String.format(valueFormat, param);
          
          String toolTip = "toolTip in %paramDescription is not valid here";
          temp = variable.getToolTipAsCode(linePadding+" *        ");
@@ -2143,19 +2179,19 @@ public class ParseMenuXML extends XML_BaseParser {
          if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
             defaultParamV = defaultValueOverride.get(index);
          }
-         paramExprSb.append(enumParam);
+         paramExprSb.append(paramName);
 
-         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", enumParam, toolTip);
+         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, toolTip);
          paramDescriptionSb.append(paramDescriptionN);
 
          // Padding applied to parameters
          String paramPadding = (varNames.length<=1)?"":"\\t      "+linePadding;
          
          if (index<numberOfNonDefaultParams) {
-            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %s", paramType, enumParam));
+            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %s", paramType, paramName));
          }
          else {
-            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, enumParam, defaultParamV));
+            paramsSb.append(String.format(paramPadding + "%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, paramName, defaultParamV));
          }
 
          String registerN     = "'register' is not valid here";
@@ -2185,9 +2221,12 @@ public class ParseMenuXML extends XML_BaseParser {
          substitutions.add(0, new StringPair("%description"+index,             description));
          substitutions.add(0, new StringPair("%shortDescription"+index,        shortDescription));
          substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
+         substitutions.add(0, new StringPair("%macro"+index,                   macro));
          substitutions.add(0, new StringPair("%mask"+index,                    mask));
-         substitutions.add(0, new StringPair("%enumParam"+index,               enumParam));
-         substitutions.add(0, new StringPair("%enumClass"+index,               enumClass));
+         substitutions.add(0, new StringPair("%paramName"+index,               paramName));
+         substitutions.add(0, new StringPair("%enumParam"+index,               paramName));
+         substitutions.add(0, new StringPair("%paramType"+index,               paramType));
+         substitutions.add(0, new StringPair("%enumClass"+index,               paramType));
          substitutions.add(0, new StringPair("%registerName"+index,            registerNameN));
          substitutions.add(0, new StringPair("%register"+index,                registerN));
          substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
@@ -2197,8 +2236,10 @@ public class ParseMenuXML extends XML_BaseParser {
             substitutions.add(new StringPair("%description",             description));
             substitutions.add(new StringPair("%shortDescription",        shortDescription));
             substitutions.add(new StringPair("%tooltip",                 tooltip));
-            substitutions.add(new StringPair("%enumParam",               enumParam));
-            substitutions.add(new StringPair("%enumClass",               enumClass));
+            substitutions.add(new StringPair("%paramName",               paramName));
+            substitutions.add(new StringPair("%enumParam",               paramName));
+            substitutions.add(new StringPair("%paramType",               paramType));
+            substitutions.add(new StringPair("%enumClass",               paramType));
             substitutions.add(new StringPair("%registerName",            registerNameN));
          }
       }
@@ -2894,30 +2935,44 @@ public class ParseMenuXML extends XML_BaseParser {
             if (info.entries.size()>2) {
                throw new Exception("Wrong number of choices in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
             }
-            BooleanVariable var = (BooleanVariable) variable;
+            BooleanVariable booleanVar = (BooleanVariable) variable;
 
             if (info.entries.size()==2) {
-               var.setFalseValue(info.entries.get(0));
-               var.setTrueValue(info.entries.get(1));
+               booleanVar.setFalseValue(info.entries.get(0));
+               booleanVar.setTrueValue(info.entries.get(1));
             }
             else {
                ChoiceData choiceData = info.entries.get(0);
                if (Boolean.parseBoolean(choiceData.getValue()) ||
                    (Character.isDigit(choiceData.getValue().charAt(0)) && Integer.parseInt(choiceData.getValue())>0)) {
-                  var.setTrueValue(choiceData);
+                  booleanVar.setTrueValue(choiceData);
                }
                else {
-                  var.setFalseValue(choiceData);
+                  booleanVar.setFalseValue(choiceData);
                }
             }
-            variable.setDefault(info.entries.get(info.defaultEntry).getValue());
-            variable.setValue(info.entries.get(info.defaultEntry).getValue());
+            Object tmp;
+            tmp = booleanVar.getDefault();
+            if (tmp == null) {
+               booleanVar.setDefault(info.defaultEntry);
+            }
+            tmp = booleanVar.getValue();
+            if (tmp == null) {
+               booleanVar.setValue(info.defaultEntry);
+            }
          }
          else if (variable instanceof ChoiceVariable) {
-            ChoiceVariable var = (ChoiceVariable)variable;
-            var.setData(info.entries);
-            variable.setDefault(info.defaultEntry);
-            variable.setValue(info.defaultEntry);
+            ChoiceVariable choiceVar = (ChoiceVariable)variable;
+            choiceVar.setData(info.entries);
+            Object tmp;
+            tmp = choiceVar.getDefault();
+            if (tmp == null) {
+               choiceVar.setDefault(info.defaultEntry);
+            }
+            tmp = choiceVar.getValue();
+            if (tmp == null) {
+               choiceVar.setValue(info.defaultEntry);
+            }
          }
       }
    }

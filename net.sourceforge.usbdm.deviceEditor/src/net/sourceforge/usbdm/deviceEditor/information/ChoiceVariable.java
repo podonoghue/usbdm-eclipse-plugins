@@ -19,7 +19,7 @@ public class ChoiceVariable extends VariableWithChoices {
    private ChoiceData[] fData = null;
    
    /** Current value (user format i.e name) */
-   private Integer fValue = 0;
+   private Integer fValue = null;
    
    /** Default value of variable */
    private Integer fDefaultValue = null;
@@ -79,7 +79,7 @@ public class ChoiceVariable extends VariableWithChoices {
       else {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable " + getName());
       }
-      if ((index<0) || (index>=getChoices().length)) {
+      if ((index<0) || (index>=getData().length)) {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
       }
       return index;
@@ -105,6 +105,15 @@ public class ChoiceVariable extends VariableWithChoices {
       fValue = value;
       notifyListeners();
       return true;
+   }
+
+   /**
+    * Get current value or null if not yet set
+    * 
+    * @return
+    */
+   public Object getValue() {
+      return fValue;
    }
    
    /**
@@ -162,6 +171,11 @@ public class ChoiceVariable extends VariableWithChoices {
 
    @Override
    public void setPersistentValue(String value) throws Exception {
+      // XXX Delete me
+      if (getName().startsWith("sim_sopt2_usbsrc")) {
+         System.err.println("Found " + getName());
+      }
+
       int index = getChoiceIndex(value);
       if (index>=0) {
          fValue = index;
@@ -192,6 +206,10 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public String getValueAsString() {
+      // XXX Delete me
+      if (getName().equals("cmp_cr0_filter_cnt")) {
+         System.err.println("Found "+getName());
+      }
       return getChoices()[isEnabled()?fValue:fDisabledValue];
    }
    
@@ -250,23 +268,27 @@ public class ChoiceVariable extends VariableWithChoices {
       setDisabledValue(translate(value));
    }
 
-//   /**
-//    * Set value used when disabled
-//    *
-//    * @param fDisabledValue
-//    */
-//   public void setDisabledValue(String disabledValue) {
-//      this.fDisabledValue = disabledValue;
-//   }
-//
-//   /**
-//    * Get value used when disabled
-//    *
-//    * @return
-//    */
-//   public String getDisabledValue() {
-//      return fDisabledValue;
-//   }
+   /**
+    * Set value used when disabled
+    *
+    * @param disabledValue
+    */
+   public void setDisabledValue(int disabledValue) {
+      // XXX Delete me
+      if (getName().equals("cmp_cr0_filter_cnt")) {
+         System.err.println("Found "+getName());
+      }
+      this.fDisabledValue = disabledValue;
+   }
+
+   /**
+    * Get value used when disabled
+    *
+    * @return
+    */
+   public Integer getDisabledValue() {
+      return fDisabledValue;
+   }
    
    @Override
    public void setDefault(Object value) {
@@ -321,16 +343,16 @@ public class ChoiceVariable extends VariableWithChoices {
    public String[] getChoices() {
       String[] choices = super.getChoices();
       if (fValue == null) {
-         // Value not set yet - set default
+         // Value not set yet - set value
          fValue   = 0;
       }
       if (fDefaultValue == null) {
          // Default not set yet - set default
-         fDefaultValue = fValue;
+         fDefaultValue = 0;
       }
       if (fDisabledValue == null) {
-         // Default not set yet - set default
-         fDisabledValue = fValue;
+         // Default not set yet - set disabled value
+         fDisabledValue = 0;
       }
       return choices;
    }
@@ -403,8 +425,8 @@ public class ChoiceVariable extends VariableWithChoices {
 
    @Override
    public String getDefaultParameterValue() throws Exception {
-      int index = fDefaultValue;
-      if (index<0) {
+      Integer index = fDefaultValue;
+      if ((index==null) || (index<0)) {
          throw new Exception("Failed to get default");
       }
       return makeEnum(getData()[index].getEnumName());

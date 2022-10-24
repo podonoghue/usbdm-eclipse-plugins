@@ -118,6 +118,7 @@ public class PeripheralValidator extends Validator {
    }
    
    /**
+    * Update target value
     * 
     * @param controlVar       Variable controlling outcome
     * @param targetVariable   Target being controlled
@@ -127,6 +128,9 @@ public class PeripheralValidator extends Validator {
     */
    void updateTarget(Variable controlVar, Variable targetVariable, String reference) throws Exception {
 
+//      if (controlVar.getName().equals("cmp_cr0_filter")) {
+//         System.err.println("Found " + controlVar.getName());
+//      }
       if ("disabled".equalsIgnoreCase(reference)) {
          if (targetVariable != null) {
             targetVariable.setValue(0);
@@ -139,9 +143,16 @@ public class PeripheralValidator extends Validator {
 //      if (reference.contains("SIM/system_bus_clock[0]")) {
 //         System.err.println("Found " + reference);
 //      }
-      String data[]      = reference.split(";");
+      String data[]      = reference.split("#");
       String expression = data[data.length-1];
       SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
+      if (expression.isBlank()) {
+         // This selection doesn't update target
+         if (targetVariable != null) {
+            targetVariable.setOrigin(null);
+         }
+         return;
+      }
       Object result = parser.evaluate(expression);
       ArrayList<String>  identifiers = parser.getCollectedIdentifiers();
 
@@ -150,7 +161,7 @@ public class PeripheralValidator extends Validator {
       Status status = null;
       boolean enabled = true;
       if (data.length>1) {
-         primaryClockSourceName = data[0].split(",")[0];
+         primaryClockSourceName = data[0];
       }
       else {
          if (identifiers.size()>0) {
@@ -175,12 +186,13 @@ public class PeripheralValidator extends Validator {
             origin = origin + "\n[selected by " + controlVar.getName() +"]";
          }
          else {
-            origin = origin + "\n[modified by " + controlVar.getName() +"]";
+            origin = origin + "\n[modified by " + parser.getCollectedIdentifiers() +"]";
          }
       }
       else {
          if (identifiers.size()>1) {
-            origin = origin + "\n[modified by " + identifiers.get(1) +"]";
+            String t = String.join(", ", identifiers).replace(primaryClockSourceName, "");
+            origin = origin + "\n[modified by " + t +"]";
          }
       }
       if (targetVariable != null) {
@@ -197,6 +209,11 @@ public class PeripheralValidator extends Validator {
       return;
    }
 
+   /**
+    * Listener to handle relationship specified by a stringVariable
+    * <li>The variable value is of form "[var1];expression"
+    * <li>The target="variable" specifies the target
+    */
    protected class StringListener implements IModelChangeListener {
 
       final StringVariable fStringVariable;
@@ -215,7 +232,7 @@ public class PeripheralValidator extends Validator {
             /**
              * Validate a string link variable
              * 
-             * The variable value is of form "var1,var2;expression"
+             * The variable value is of form "[var];expression"
              * The target=... specifies the target
              */
             // String variable with value form "varName[,expression]"
@@ -237,11 +254,21 @@ public class PeripheralValidator extends Validator {
       }
    };
 
-   protected class ClockSelectorListener implements IModelChangeListener {
+   /**
+    * Listener for
+    * <li> ChoiceVariable selection changes
+    * <li> Changes in referenced variables in the Choices<br><br>
+    * 
+    * This listener is attached to a ChoiceVariable with:
+    * <li> Target="targetVariable", the targets to be kept up to date
+    * <li> Each choices with Ref="expression", the expressions used to update the target.
+    * 
+    */
+   protected class ChoiceSelectionListener implements IModelChangeListener {
 
       final VariableWithChoices fClockSelector;
 
-      public ClockSelectorListener(VariableWithChoices clockSelector) {
+      public ChoiceSelectionListener(VariableWithChoices clockSelector) {
          fClockSelector = clockSelector;
       }
 
@@ -256,18 +283,25 @@ public class PeripheralValidator extends Validator {
              * Validate a clock selector variable
              * 
              * target=... specifies the target variable
-             * Each choice has a ref=... to indicate the source reference or equation for that selection
+             * Each choice has a ref=... to indicate the equation for that selection
              */
-            // Get selected reference (source)
-            ChoiceData           choiceData     = fClockSelector.getSelectedItemData();
-            
-            // Selected source or equation
-            String               reference      = choiceData.getReference();
+            // Get selected equation(s) from active choice (ref="")
+            String expression    = fClockSelector.getSelectedItemData().getReference();
+            String expressions[] = expression.split(";");
 
-            // Target variable being controlled
-            Variable             targetVariable = safeGetVariable(fClockSelector.getTarget());
-            
-            updateTarget(fClockSelector, targetVariable, reference);
+            // Target variable(s) being controlled
+            String target    = fClockSelector.getTarget();
+            String targets[] = target.split(";");
+
+            if (expressions.length != targets.length) {
+               System.err.println(
+                     "Targets and Expression do not match in length \n" +
+                     "target     = '" + target + "'\n" +
+                     "expression = '" + expression + "'" );
+            }
+            for (int index=0; index<expressions.length; index++) {
+               updateTarget(fClockSelector, safeGetVariable(targets[index].trim()), expressions[index].trim());
+            }
             
          } catch (Exception e) {
             System.err.println("Failed to validate "+fClockSelector);
@@ -318,17 +352,17 @@ public class PeripheralValidator extends Validator {
       }
    };
 
-   protected class EnabledByListener implements IModelChangeListener {
+   protected class ControlledByListener implements IModelChangeListener {
 
-      final Variable fEnabledByVar;
+      final Variable fControlledVar;
 
       /**
        * The variable that is enabled by the expression
        * 
-       * @param enabledByVar
+       * @param controlledVar
        */
-      public EnabledByListener(Variable enabledByVar) {
-         fEnabledByVar = enabledByVar;
+      public ControlledByListener(Variable controlledVar) {
+         fControlledVar = controlledVar;
       }
 
       @Override
@@ -345,13 +379,21 @@ public class PeripheralValidator extends Validator {
              * The variable itself the target
              */
             // Reference of form "[varName];expression"
-            String enabledByExpression = fEnabledByVar.getEnabledBy();
-            
-            SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
-            Boolean result = (Boolean)parser.evaluate(enabledByExpression);
-            fEnabledByVar.enable(result);
+            String enabledByExpression = fControlledVar.getEnabledBy();
+            if (enabledByExpression != null) {
+               SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
+               Boolean result = (Boolean)parser.evaluate(enabledByExpression);
+               fControlledVar.enable(result);
+            }
+            // Reference of form "[varName];expression"
+            String unlockedByExpression = fControlledVar.getUnlockedBy();
+            if (unlockedByExpression != null) {
+               SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
+               Boolean unlocked = (Boolean)parser.evaluate(unlockedByExpression);
+               fControlledVar.setLocked(!unlocked);
+            }
          } catch (Exception e) {
-            System.err.println("Failed to validate "+fEnabledByVar);
+            System.err.println("Failed to validate "+fControlledVar);
             e.printStackTrace();
          }
       }
@@ -364,15 +406,16 @@ public class PeripheralValidator extends Validator {
    /**
     * Add listeners to all variable in expression and clock as needed
     * 
-    * @param referenceString     String of form "expression" or "primaryVar;expression"
+    * @param expressionString    String of form "expression" or "primaryVar#expression"
     * @param listener            Listener to add to variables
     * @param owningVar           The variable owning the reference (for debug messages)
     * 
     * @throws Exception
     */
-   void addExpressionListeners(String referenceString, IModelChangeListener listener, Variable owningVar) throws Exception {
+   void addExpressionListeners(String expressionString, IModelChangeListener listener, Variable owningVar) throws Exception {
       
-      if ("disabled".equalsIgnoreCase(referenceString)) {
+      expressionString = expressionString.trim();
+      if (expressionString.isBlank() || ("disabled".equalsIgnoreCase(expressionString))) {
          return;
       }
       /*
@@ -383,7 +426,7 @@ public class PeripheralValidator extends Validator {
       int numberOfClockSettings = (int)getLongVariable("/SIM/numberOfClockSettings").getValueAsLong();
       Variable clockSelectorVar = getVariable("/MCG/currentClockConfig");
 
-      String parts[] = referenceString.split(";");
+      String parts[] = expressionString.split("#");
       // The right-most entry is the expression (may be by itself)
       String expression = parts[parts.length-1];
       SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.CollectIdentifiers);
@@ -416,44 +459,55 @@ public class PeripheralValidator extends Validator {
       }
    }
    
-   void addStringListener(StringVariable monitoredVariable, HashMap<String,Object> listeners) throws Exception {
+   /**
+    * Create listener to handle relationship specified by a stringVariable
+    * 
+    * <li>The variable value is of form "[var1];expression"
+    * <li>The target="variable" specifies the target
+    *
+    * @param stringVariable  The variable specifying the relationship
+    * @param listeners       Listeners already added (and is updated)
+    * 
+    * @throws Exception
+    */
+   void addStringListener(StringVariable stringVariable, HashMap<String,Object> listeners) throws Exception {
 
-      String targetName = monitoredVariable.getTarget();
+      String targetName = stringVariable.getTarget();
       Variable target   = safeGetVariable(targetName);
       if (target == null) {
-         throw new Exception("Target '"+targetName+"' not found for String var '"+monitoredVariable);
+         throw new Exception("Target '"+targetName+"' not found for String var '"+stringVariable);
       }
 
       // Get/create listener to link references to target
-      // Make sure only one is created for each monitored variable (in case it is in an iterated loop)
+      // Make sure only one is created for each monitored variable (in case it is simple variable in an iterated loop)
       // Note that if the variable is actually iterated then it will be a unique variable
       
-      String referenceString = monitoredVariable.getValueAsString();
-      String duplicateKey = monitoredVariable.getName()+referenceString;
+      String referenceString = stringVariable.getValueAsString();
+      String duplicateKey = stringVariable.getName()+referenceString;
       StringListener listener = (StringListener) listeners.get(duplicateKey);
       if (listener == null) {
-         listener = new StringListener(monitoredVariable);
+         listener = new StringListener(stringVariable);
          listeners.put(duplicateKey, listener);
       }
       // Watch clock selector
-      monitoredVariable.addListener(listener);
+      stringVariable.addListener(listener);
 
       if ((referenceString == null) || (referenceString.isBlank())) {
-         throw new Exception("Clock reference is missing for Clock selector var '"+monitoredVariable+"'");
+         throw new Exception("Clock reference is missing for Clock selector var '"+stringVariable+"'");
       }
       if ("disabled".equalsIgnoreCase(referenceString)) {
          return;
       }
       Variable reference = safeGetVariable(referenceString);
       if (reference == null) {
-         throw new Exception("Clock reference variable '"+referenceString+"' not found for Clock selector var '"+monitoredVariable+"'");
+         throw new Exception("Clock reference variable '"+referenceString+"' not found for Clock selector var '"+stringVariable+"'");
       }
       // Watch references
       reference.addListener(listener);
    }
    
    /**
-    * This handles a variable that depends other variables
+    * This handles a variable that depends on other variables
     * This variable will have a reference="expression"
     *
     * @param dependentVariable Variable that is dependent (has reference)
@@ -474,75 +528,101 @@ public class PeripheralValidator extends Validator {
    }
    
    /**
-    * This handles a ChoiceVariable with target="controllerVar" and choices having ref="expression"
+    * This handles a ChoiceVariable
+    * <li> target="variable"  specifier controlled variable
+    * <li> Each choice has ref="expression" specifying relationship
     * 
     * @param choiceVariable   Variable controlling a target
     * @param listeners        List of listeners to avoid duplication
     * 
     * @throws Exception
     */
-   void addClockSelectorListener(VariableWithChoices choiceVariable, HashMap<String,Object> listeners) throws Exception {
+   void addChoiceVariableSelectionListener(VariableWithChoices choiceVariable, HashMap<String,Object> listeners) throws Exception {
 
-      String targetName = choiceVariable.getTarget();
-      if (targetName.isBlank() && (choiceVariable instanceof ClockSelectionVariable)) {
-         // Allow to have no target for self updating clock selection
-      }
-      else {
-         // Sanity check target
-         Variable target  = safeGetVariable(targetName);
-         if (target == null) {
-            throw new Exception("Target '"+targetName+"' not found for Clock selector var '"+choiceVariable+"' have target");
+      String[] targetNames = choiceVariable.getTarget().split(";");
+
+//      if (targetNames.length>1) {
+//         System.err.println("Targets = " + targetNames[0] + ", "+targetNames[1]);
+//      }
+      for (String targetName:targetNames) {
+         if (targetName.isBlank() && (choiceVariable instanceof ClockSelectionVariable)) {
+            // Allow to have no target for self updating clock selection
          }
-      }
-      // Get/create listener to link references to target
-      // Make sure only one is created for each monitored variable (in case it is in an iterated loop)
-      // Note that if the variable is actually iterated then it will be a unique variable
-      String duplicateKey = choiceVariable.getName()+targetName;
-      ClockSelectorListener listener = (ClockSelectorListener) listeners.get(duplicateKey);
-      if (listener == null) {
-         listener = new ClockSelectorListener(choiceVariable);
-         listeners.put(duplicateKey, listener);
-      }
-      /* Need to make sensitive to:
-       *  - Each referenced source in choices
-       *  - Selector itself
-       *  - Clock choice if any reference is dependent on active clock selection
-       */
-
-      // Watch clock selector
-      choiceVariable.addListener(listener);
-
-      // ChoiceVar selecting the clock input
-      ChoiceData[] choiceDatas = choiceVariable.getData();
-      for (ChoiceData choiceData:choiceDatas) {
-         String referenceString = choiceData.getReference();
-         if ((referenceString == null) || (referenceString.isBlank())) {
-            throw new Exception("Clock reference is missing for Clock selector var '"+choiceVariable+"'");
+         else {
+            // Sanity check target
+            Variable target  = safeGetVariable(targetName);
+            if (target == null) {
+               throw new Exception("Target '"+targetName+"' not found for Clock selector var '"+choiceVariable+"' have target");
+            }
          }
-         addExpressionListeners(referenceString, listener, choiceVariable);
+         // Get/create listener to link references to target
+         // Make sure only one is created for each monitored variable (in case it is in an iterated loop)
+         // Note that if the variable is actually iterated then it will be a unique variable
+         String duplicateKey = choiceVariable.getName()+targetName;
+         ChoiceSelectionListener listener = (ChoiceSelectionListener) listeners.get(duplicateKey);
+         if (listener == null) {
+            listener = new ChoiceSelectionListener(choiceVariable);
+            listeners.put(duplicateKey, listener);
+         }
+         /* Need to make sensitive to:
+          *  - Each referenced source in choices
+          *  - Selector itself
+          *  - Clock choice if any reference is dependent on active clock selection
+          */
+
+         // Watch choice selection
+         choiceVariable.addListener(listener);
+
+         // ChoiceVar selecting the input
+         ChoiceData[] choiceDatas = choiceVariable.getData();
+         for (ChoiceData choiceData:choiceDatas) {
+            String references = choiceData.getReference();
+            if ((references == null) || (references.isBlank())) {
+               throw new Exception("Choice varu=iable reference is missing for selector var '"+choiceVariable+"'");
+            }
+            for (String expression:references.split(";")) {
+               addExpressionListeners(expression, listener, choiceVariable);
+            }
+         }
       }
    }
    
    /**
-    * This handles a variable that enabled by other variables
-    * This variable will have a enabledBy="expression"
+    * This handles a variable that is enabled by other variables
+    * <li>Variable will have a enabledBy="expression"
     *
     * @param enabledVariable Variable that is dependent (has enabledBy)
     * 
     * @throws Exception
     */
-   private void addEnabledByListener(Variable enabledVariable, HashMap<String, Object> addedListeners) throws Exception {
+   private void addEnabldedByListener(Variable enabledVariable, HashMap<String, Object> addedListeners) throws Exception {
       
       // Get/create listener to link references to target
       // No need to check for duplicates as this would require multiple of the same dependent variable
       String enabledByExpression = enabledVariable.getEnabledBy();
-      EnabledByListener listener = new EnabledByListener(enabledVariable);
+      ControlledByListener listener = new ControlledByListener(enabledVariable);
       addExpressionListeners(enabledByExpression, listener, enabledVariable);
    }
 
    /**
-    * Add clock selectors and their references to watched variables<br>
-    * The clock selectors are obtained from the associated peripheral
+    * This handles a variable that is enabled by other variables
+    * <li>Variable will have a unlockedBy="expression"
+    *
+    * @param unlockedVariable Variable that is dependent (has enabledBy)
+    * 
+    * @throws Exception
+    */
+   private void addUnlockedByListener(Variable unlockedVariable, HashMap<String, Object> addedListeners) throws Exception {
+      
+      // Get/create listener to link references to target
+      // No need to check for duplicates as this would require multiple of the same dependent variable
+      String unlockedByExpression = unlockedVariable.getUnlockedBy();
+      ControlledByListener listener = new ControlledByListener(unlockedVariable);
+      addExpressionListeners(unlockedByExpression, listener, unlockedVariable);
+   }
+
+   /**
+    * Add monitored variable and their references to watched variables<br>
     * 
     * @throws Exception
     */
@@ -558,18 +638,24 @@ public class PeripheralValidator extends Validator {
       for (Variable monitoredVariable:monitoredVariables) {
          boolean actionFound = false;
          if (monitoredVariable.getReference() != null) {
-            // This variable depends on another variable
+            // This variable depends on other variables
+            // Has attribute ref="expression"
             addDependentVariableListener(monitoredVariable);
             actionFound = true;
          }
          if (monitoredVariable.getTarget() != null) {
+            // This variable controls other variables
+            // Has attribute target="variable"
             actionFound = true;
-            // This variable controllers another variable
             if (monitoredVariable instanceof StringVariable) {
+               // String value specifies relationship (expression)
                addStringListener((StringVariable) monitoredVariable, addedListeners);
             }
             else if (monitoredVariable instanceof VariableWithChoices) {
-               addClockSelectorListener((VariableWithChoices) monitoredVariable, addedListeners);
+               // ChoiceVariable
+               // Target="variable" specifier controlled variable
+               // Each choice has ref="expression" specifying relationship
+               addChoiceVariableSelectionListener((VariableWithChoices) monitoredVariable, addedListeners);
             }
             else {
                throw new Exception("Monitored var '"+monitoredVariable+"' is of unsupported type");
@@ -577,7 +663,11 @@ public class PeripheralValidator extends Validator {
          }
          if (monitoredVariable.getEnabledBy() != null) {
             actionFound = true;
-            addEnabledByListener(monitoredVariable, addedListeners);
+            addEnabldedByListener(monitoredVariable, addedListeners);
+         }
+         if (monitoredVariable.getUnlockedBy() != null) {
+            actionFound = true;
+            addUnlockedByListener(monitoredVariable, addedListeners);
          }
          
          if (!actionFound) {

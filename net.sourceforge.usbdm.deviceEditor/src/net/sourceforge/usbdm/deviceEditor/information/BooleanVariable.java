@@ -12,13 +12,13 @@ public class BooleanVariable extends VariableWithChoices {
    private ChoiceData fFalse = null;
    
    /** Current value (user format i.e name) */
-   private boolean fValue = false;
+   private Boolean fValue = null;
    
    /** Default value of variable */
    private Boolean fDefaultValue = null;
    
    /** Disabled value of variable */
-   private boolean fDisabledValue = false;
+   private Boolean fDisabledValue = false;
    
    /**
     * Construct a variable representing a boolean value
@@ -93,6 +93,15 @@ public class BooleanVariable extends VariableWithChoices {
       return setValue(translate(value));
    }
    
+   /**
+    * Get current value or null if not yet set
+    * 
+    * @return
+    */
+   public Object getValue() {
+      return isEnabled()?fValue:fDisabledValue;
+   }
+   
    @Override
    public void setValueQuietly(Object value) {
       fValue = translate(value);
@@ -112,10 +121,10 @@ public class BooleanVariable extends VariableWithChoices {
     * @return True if variable actually changed value and listeners notified
     */
    public boolean setValue(Boolean value) {
-      if (fValue == (boolean)value) {
+      if ((fValue!= null) && (fValue == (boolean)value)) {
          return false;
       }
-      super.debugPrint("BooleanVariable["+this+"].setValue("+value+"), old "+value);
+//      super.debugPrint("BooleanVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;
@@ -131,7 +140,7 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public boolean getValueAsBoolean() {
-      return isEnabled()?fValue:fDefaultValue;
+      return isEnabled()?fValue:fDisabledValue;
    }
 
    @Override
@@ -194,7 +203,7 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public boolean isDefault() {
-      return !defaultHasChanged && ((Boolean)fValue).equals(fDefaultValue);
+      return !defaultHasChanged && fValue.equals(fDefaultValue);
    }
    
    /*
