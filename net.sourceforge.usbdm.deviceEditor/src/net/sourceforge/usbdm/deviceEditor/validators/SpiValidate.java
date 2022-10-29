@@ -16,7 +16,7 @@ public class SpiValidate extends PeripheralValidator {
 
    /**
     * Class to validate SPI settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -26,6 +26,7 @@ public class SpiValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
       // No external dependencies
    }
 }

@@ -72,7 +72,7 @@ public class LlwuValidate extends PeripheralValidator {
          if (choiceVar != null) {
             String llwuPeripheralName = capitalCase(choiceVar.getDescription());
             String llwuPeripheralLine = String.format(
-                  "   LlwuPeripheral_%-15s = LlwuPeripheral_%d, //!< %s wake-up\n", 
+                  "   LlwuPeripheral_%-15s = LlwuPeripheral_%d, //!< %s wake-up\n",
                   llwuPeripheralName, index, choiceVar.getDescription()
                   );
             sb.append(llwuPeripheralLine);
@@ -86,7 +86,7 @@ public class LlwuValidate extends PeripheralValidator {
    
    /**
     * Class to validate LLWU settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -106,6 +106,7 @@ public class LlwuValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
       // No external dependencies
    }
 }

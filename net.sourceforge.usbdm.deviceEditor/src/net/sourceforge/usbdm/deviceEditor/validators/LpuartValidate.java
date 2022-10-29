@@ -19,7 +19,7 @@ public class LpuartValidate extends PeripheralValidator {
 
    /**
     * Class to validate LPUART settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -51,6 +51,7 @@ public class LpuartValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
       // No external dependencies
    }
 }

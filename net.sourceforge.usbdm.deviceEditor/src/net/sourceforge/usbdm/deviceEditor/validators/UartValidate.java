@@ -19,7 +19,7 @@ public class UartValidate extends PeripheralValidator {
 
    /**
     * Class to validate UART settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -51,6 +51,7 @@ public class UartValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
+      super.createDependencies();
       // No external dependencies
    }
 }

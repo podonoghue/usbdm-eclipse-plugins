@@ -33,6 +33,7 @@ import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
+import net.sourceforge.usbdm.deviceEditor.information.RtcTimeVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
@@ -959,6 +960,32 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param varElement
     * @throws Exception
     */
+   private void parseRtcTimeOption(BaseModel parent, Element varElement) throws Exception {
+
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      RtcTimeVariable variable = (RtcTimeVariable) createVariable(varElement, RtcTimeVariable.class);
+
+      parseCommonAttributes(parent, varElement, variable);
+      if (variable.getValueFormat() == null) {
+         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
+      }
+      try {
+         if (varElement.hasAttribute("disabledValue")) {
+            variable.setDisabledValue(getRequiredLongAttribute(varElement, "disabledValue"));
+         }
+      } catch( NumberFormatException e) {
+         throw new Exception("Illegal disabled value in " + variable.getName(), e);
+      }
+   }
+
+   /**
+    * Parse &lt;longOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception
+    */
    private void parseLongOption(BaseModel parent, Element varElement) throws Exception {
 
       if (!checkCondition(varElement)) {
@@ -1124,7 +1151,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
-   /// Format string with parameters: description, tooltip, enumClass, body
+   /// Format string with parameters: description, tool-tip, enumClass, body
    String enumTemplate = ""
          + "      \\t/**\n"
          + "      \\t * %s\n"
@@ -2658,6 +2685,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (tagName == "intOption") {
          parseLongOption(parentModel, element);
+      }
+      else if (tagName == "rtcTimeOption") {
+         parseRtcTimeOption(parentModel, element);
       }
       else if (tagName == "bitmaskOption") {
          parseBitmaskOption(parentModel, element);
