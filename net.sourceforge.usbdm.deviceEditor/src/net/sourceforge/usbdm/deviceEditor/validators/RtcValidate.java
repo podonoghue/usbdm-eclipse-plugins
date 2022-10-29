@@ -32,7 +32,7 @@ public class RtcValidate extends PeripheralValidator {
    /** External Crystal frequency error message */
    private   static final Status OSCCLK32K_CLOCK_WARNING_MSG = new Status(String.format(
          "External crystal frequency not suitable for RTCCLK32\n"+
-               "Range [%sHz,%sHz]",           
+               "Range [%sHz,%sHz]",
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE_MIN, 3),
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE_MAX, 3)),
          Severity.WARNING);
@@ -78,8 +78,8 @@ public class RtcValidate extends PeripheralValidator {
    /**
     * Class to determine RTC oscillator settings
     * 
-    * Outputs rtcclk_clock, rtcclk_gated_clock, 
-    * @throws Exception 
+    * Outputs rtcclk_clock, rtcclk_gated_clock,
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -161,7 +161,7 @@ public class RtcValidate extends PeripheralValidator {
          rtcOrigin         = oscOrigin;
          
          // RTC 32kHz Clock output - only exists if RTC doesn't share OSC0 pins
-         // Otherwise OSC032KCLK is used 
+         // Otherwise OSC032KCLK is used
          //==============================
          // Check gating option
          rtc_cr_clkoVar.enable(rtc_cr_osce && !rtcSharesPins);
@@ -194,7 +194,9 @@ public class RtcValidate extends PeripheralValidator {
    
    @Override
    protected void createDependencies() throws Exception {
-      ArrayList<String> externalVariablesList = new ArrayList<String>(); 
+      super.createDependencies();
+      
+      ArrayList<String> externalVariablesList = new ArrayList<String>();
       
       rtcNoteVar = getStringVariable("Note");
       

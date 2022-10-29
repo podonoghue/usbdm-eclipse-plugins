@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
+import net.sourceforge.usbdm.deviceEditor.model.RtcTimeModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
 
@@ -50,6 +51,11 @@ public class ValueColumnEditingSupport extends EditingSupport {
    protected void setValue(Object element, Object value) {
       if (element instanceof BooleanVariableModel) {
          ((BooleanVariableModel)element).setBooleanValue((Boolean) value);
+      }
+      else if (element instanceof RtcTimeModel) {
+         if (value instanceof Long) {
+            ((RtcTimeModel)element).setTime((Long)value);
+         }
       }
       else if (element instanceof EditableModel) {
          ((EditableModel)element).setValueAsString((String) value);
