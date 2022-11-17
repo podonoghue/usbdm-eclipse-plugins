@@ -1860,9 +1860,9 @@ public class ParseMenuXML extends XML_BaseParser {
       String registerName = controlVar.getRegister();
       
       if (registerName != null) {
-         if (registerName.equalsIgnoreCase("pdb_xxx_pt")) {
-            System.err.println("Found "+registerName);
-         }
+//         if (registerName.equalsIgnoreCase("pdb_xxx_pt")) {
+//            System.err.println("Found "+registerName);
+//         }
          Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
          Matcher m = p.matcher(variableKey);
          if (m.matches()) {
@@ -2428,6 +2428,9 @@ public class ParseMenuXML extends XML_BaseParser {
          if (dotIndex > 0) {
             key = key.substring(0, dotIndex);
          }
+//         if (key.contains("DefaultInitValue")) {
+//            System.err.println("Found " + key);
+//         }
       }
       List<StringPair> substitutions = getTemplateSubstitutions(element, "variables");
       

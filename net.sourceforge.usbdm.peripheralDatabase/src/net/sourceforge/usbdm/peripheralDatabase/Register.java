@@ -1053,7 +1053,7 @@ public class Register extends Cluster implements Cloneable {
 //      if (!m1.group(3).equalsIgnoreCase(m2.group(3))) {
 //         return false;
 //      }
-////      System.err.println(String.format("Found match %s.(%s:%s) ~= (%s:%s)", getName(), m1.group(1), m1.group(2), m2.group(1), m2.group(2)));
+//      System.err.println(String.format("Found match %s.(%s:%s) ~= (%s:%s)", getName(), m1.group(1), m1.group(2), m2.group(1), m2.group(2)));
       return true;
    }
    

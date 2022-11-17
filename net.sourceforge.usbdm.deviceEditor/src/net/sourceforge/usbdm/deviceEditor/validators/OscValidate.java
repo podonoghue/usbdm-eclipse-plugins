@@ -21,7 +21,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 public class OscValidate extends PeripheralValidator {
 
    /** Used to indicate range is unconstrained by oscillator */
-   public static final int    UNCONSTRAINED_RANGE = 3; 
+   public static final int    UNCONSTRAINED_RANGE = 3;
 
    // Ranges for External Crystal
    private   static final long EXTERNAL_EXTAL_RANGE1_MIN = 32000L;
@@ -39,14 +39,14 @@ public class OscValidate extends PeripheralValidator {
    /** External Crystal frequency error message */
    private   static final String OSCCLK32K_RANGE_ERROR_CLOCK_MSG = String.format(
          "External crystal frequency not suitable for 32k Oscillator mode\n"+
-               "Range [%sHz,%sHz]",           
+               "Range [%sHz,%sHz]",
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MIN, 3),
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MAX, 3));
 
    /** External crystal frequency error message */
    private   static final Status XTAL_CLOCK_RANGE_ERROR_MSG = new Status(String.format(
          "External crystal frequency not suitable for oscillator\n"+
-               "Ranges [%sHz,%sHz], [%sHz,%sHz], [%sHz,%sHz]",           
+               "Ranges [%sHz,%sHz], [%sHz,%sHz], [%sHz,%sHz]",
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MIN, 3),
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MAX, 3),
                EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE2_MIN, 3),
@@ -58,7 +58,7 @@ public class OscValidate extends PeripheralValidator {
    /** External clock frequency error message */
    private static final Status EXTERNAL_CLOCK_RANGE_ERROR_MSG = new Status(String.format(
          "External clock frequency is too high\nMax=%sHz",
-         EngineeringNotation.convert(EXTERNAL_CLOCK_MAX, 3)), 
+         EngineeringNotation.convert(EXTERNAL_CLOCK_MAX, 3)),
          Severity.ERROR);
 
    private BooleanVariable  osc_cr_erclkenVar              =  null;
@@ -78,13 +78,16 @@ public class OscValidate extends PeripheralValidator {
    private boolean  rtcSharesPins           = false;
    private BooleanVariable rtc_cr_osceVar   = null;
 
+   // Indicates that the OSC must use a 32kHz xtal = low range only
+   private boolean forceLowFrequencyRange;
+
    public OscValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
 
    /**
     * Class to determine oscillator settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -106,9 +109,12 @@ public class OscValidate extends PeripheralValidator {
          // RTC controlling XTAL pins
          Status rtcInUseMessage = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.WARNING);
 
-         osc_cr_erefstenVar.enable(false);
-         osc_cr_erefstenVar.setStatus(rtcInUseMessage);
+//         osc_cr_erefstenVar.enable(false);
+//         osc_cr_erefstenVar.setStatus(rtcInUseMessage);
 
+//         mcg_c2_erefs0Var.setDisabledValue(true);
+//         mcg_c2_erefs0Var.setLocked(true);
+//         mcg_c2_erefs0Var.setValue(1);
          mcg_c2_erefs0Var.enable(false);
          mcg_c2_erefs0Var.setStatus(rtcInUseMessage);
 
@@ -138,9 +144,10 @@ public class OscValidate extends PeripheralValidator {
 
          osc_cr_scpVar.enable(false);
          osc_cr_scpVar.setStatus(rtcInUseMessage);
-
-         mcg_c2_hgo0Var.enable(false);
-         mcg_c2_hgo0Var.setStatus(rtcInUseMessage);
+         if (mcg_c2_hgo0Var != null) {
+            mcg_c2_hgo0Var.enable(false);
+            mcg_c2_hgo0Var.setStatus(rtcInUseMessage);
+         }
       }
       else {
 
@@ -159,7 +166,13 @@ public class OscValidate extends PeripheralValidator {
 
          if (oscillatorInUse) {
             // Using oscillator - range is chosen to suit crystal frequency (or forced by RTC)
-            if ((osc_input_freq >= EXTERNAL_EXTAL_RANGE1_MIN) && (osc_input_freq <= EXTERNAL_EXTAL_RANGE1_MAX)) {
+            if (forceLowFrequencyRange) {
+               LongVariable osc_input_freqVar = safeGetLongVariable("osc_input_freq");
+               osc_input_freqVar.setMin(EXTERNAL_EXTAL_RANGE1_MIN);
+               osc_input_freqVar.setMax(EXTERNAL_EXTAL_RANGE1_MAX);
+            }
+            if (forceLowFrequencyRange ||
+                  ((osc_input_freq >= EXTERNAL_EXTAL_RANGE1_MIN) && (osc_input_freq <= EXTERNAL_EXTAL_RANGE1_MAX))) {
                oscclk_clockOrg += " (low range)";
                rangeOrigin      = "Determined by Crystal Frequency";
                range            = 0;
@@ -183,6 +196,10 @@ public class OscValidate extends PeripheralValidator {
          }
          else {
             // Using external clock
+            LongVariable osc_input_freqVar = safeGetLongVariable("osc_input_freq");
+            osc_input_freqVar.setMin(EXTERNAL_EXTAL_RANGE1_MIN);
+            osc_input_freqVar.setMax(EXTERNAL_CLOCK_MAX);
+
             oscclk_clockOrg += " (External clock)";
 
             // Range has no effect on Oscillator
@@ -197,8 +214,10 @@ public class OscValidate extends PeripheralValidator {
          osc_cr_scpVar.enable(oscillatorInUse);
          osc_cr_scpVar.clearStatus();
 
-         mcg_c2_hgo0Var.enable(oscillatorInUse);
-         mcg_c2_hgo0Var.clearStatus();
+         if (mcg_c2_hgo0Var != null) {
+            mcg_c2_hgo0Var.enable(oscillatorInUse);
+            mcg_c2_hgo0Var.clearStatus();
+         }
       }
 
       boolean oscclkOK = (oscclk_clockStatus==null) || oscclk_clockStatus.getSeverity().lessThan(Severity.WARNING);
@@ -228,7 +247,7 @@ public class OscValidate extends PeripheralValidator {
       oscillatorRangeVar.setValue(range);
       oscillatorRangeVar.setOrigin(rangeOrigin);
 
-      // Determine OSCERCLK, OSCERCLK_UNDIV 
+      // Determine OSCERCLK, OSCERCLK_UNDIV
       //==================================
       long    osc_clockFreq   = osc_clockVar.getValueAsLong();
       String  osc_clockOrg    = osc_clockVar.getOrigin();
@@ -274,8 +293,16 @@ public class OscValidate extends PeripheralValidator {
       
       ArrayList<String> externalVariablesList = new ArrayList<String>();
       
+      // Some device only support low range XTAL
+      forceLowFrequencyRange = safeGetVariable("/MCG/mcg_c2_range0") == null;
+      
+      // Some device only support low power OSC mode
+      mcg_c2_hgo0Var         = safeGetBooleanVariable("/MCG/mcg_c2_hgo0");
+      
+      if (mcg_c2_hgo0Var != null) {
+         mcg_c2_hgo0Var = createBooleanVariableReference("/MCG/mcg_c2_hgo0", externalVariablesList);
+      }
       mcg_c2_erefs0Var               =  createBooleanVariableReference("/MCG/mcg_c2_erefs0", externalVariablesList);
-      mcg_c2_hgo0Var                 =  createBooleanVariableReference("/MCG/mcg_c2_hgo0", externalVariablesList);
       osc_cr_erclkenVar              =  getBooleanVariable("osc_cr_erclken");
       osc_cr_scpVar                  =  getChoiceVariable("osc_cr_scp");
       osc_cr_erefstenVar             =  getVariable("osc_cr_erefsten");

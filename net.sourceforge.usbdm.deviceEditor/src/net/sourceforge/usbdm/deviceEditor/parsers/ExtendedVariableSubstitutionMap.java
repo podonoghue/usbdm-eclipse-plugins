@@ -23,7 +23,7 @@ public class ExtendedVariableSubstitutionMap implements ISubstitutionMap {
    
    /**
     * Constructor<br>
-    * Wraps a VariableMap while allowing addition of extra substitution values 
+    * Wraps a VariableMap while allowing addition of extra substitution values
     * without affecting the underlying VariableMap
     * 
     * @param variableMap Underlying variable map
@@ -38,9 +38,9 @@ public class ExtendedVariableSubstitutionMap implements ISubstitutionMap {
       if (fExtraSymbols != null) {
          value = fExtraSymbols.get(key);
          if (value != null) {
-            if (value.startsWith("Don't")) {
-               System.err.print("Found " + value);
-            }
+//            if (value.startsWith("Don't")) {
+//               System.err.print("Found " + value);
+//            }
             return value;
          }
       }

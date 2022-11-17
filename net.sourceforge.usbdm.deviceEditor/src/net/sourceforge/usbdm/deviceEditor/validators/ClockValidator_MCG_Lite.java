@@ -72,7 +72,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
                                        
       // C2
       //=================================
-      Variable mcg_c2_range0Var                 = getVariable("mcg_c2_range0");
+      Variable mcg_c2_range0Var                 = safeGetVariable("mcg_c2_range0");
       Variable mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
                                        
       // SC
@@ -82,6 +82,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       // MC
       //=================================
       Variable mcg_mc_hircenVar        = safeGetVariable("mcg_mc_hircen");
+      Variable mcg_mc_hirclpenVar      = safeGetVariable("mcg_mc_hirclpen");
       Variable mcg_mc_lirc_div2Var     = safeGetVariable("mcg_mc_lirc_div2");
                                        
       // LIRC
@@ -101,22 +102,27 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable system_mcgoutclk_clockVar        = getVariable("system_mcgoutclk_clock");
       Variable system_mcgpclk_clockVar          = getVariable("system_mcgpclk_clock");
       
-      long rangeIn = osc0_oscillatorRangeVar.getValueAsLong();
-      if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {
-         mcg_c2_range0Var.enable(true);
-         mcg_c2_range0Var.setValue(osc0_oscillatorRangeVar.getValueAsLong());
-      }
-      else {
-         mcg_c2_range0Var.enable(false);
+      if (mcg_c2_range0Var != null) {
+         long rangeIn = osc0_oscillatorRangeVar.getValueAsLong();
+         if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {
+            mcg_c2_range0Var.enable(true);
+            mcg_c2_range0Var.setValue(osc0_oscillatorRangeVar.getValueAsLong());
+         }
+         else {
+            mcg_c2_range0Var.enable(false);
+         }
       }
       
       // Main clock mode
       //====================
       ChoiceVariable mcgClockModeVar   = getChoiceVariable("mcgClockMode");
-      McgClockMode   clock_mode        = McgClockMode.valueOf(mcgClockModeVar.getEnumValue());
+      McgClockMode   mcgClockMode        = McgClockMode.valueOf(mcgClockModeVar.getEnumValue());
       
+      // Run mode
+      ChoiceVariable smc_pmctrl_runmVar = getChoiceVariable("/SMC/smc_pmctrl_runm");
+      SmcRunMode     smcRunMode         = SmcRunMode.valueOf(smc_pmctrl_runmVar.getEnumValue());
 
-      switch (clock_mode) {
+      switch (mcgClockMode) {
       default:
       case McgClockMode_HIRC_48MHz:
          mcg_c1_clksVar.setValue(0);
@@ -161,10 +167,22 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          break;
       }
       system_mcgoutclk_clock_sourceVar.setStatus(system_mcgoutclk_clockVar.getStatus());
-
+      
       // HIRC related clocks
-      //============================================
-      if (mcg_mc_hircenVar.getValueAsBoolean() || (clock_mode == McgClockMode.McgClockMode_HIRC_48MHz)) {
+      //========================================================================
+      
+      // HIRC is available is available in non-low-power modes when in HIRC clock mode or explicitly enabled by HIRCEN
+      boolean mcgpclkIsAvailable =
+            ((smcRunMode != SmcRunMode.SmcRunMode_VeryLowPower) &&
+             (mcgClockMode == McgClockMode.McgClockMode_HIRC_48MHz) || (mcg_mc_hircenVar.getValueAsBoolean()) );
+      
+      if (mcg_mc_hirclpenVar != null) {
+         // Can also can be enable in low power mode if HIRCLPEN exists
+         mcgpclkIsAvailable = mcgpclkIsAvailable ||
+               ((smcRunMode != SmcRunMode.SmcRunMode_VeryLowPower) &&
+                (mcgClockMode == McgClockMode.McgClockMode_HIRC_48MHz) || (mcg_mc_hirclpenVar.getValueAsBoolean()) );
+      }
+      if (mcgpclkIsAvailable) {
          // HIRC Enabled
          system_mcgpclk_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
          system_mcgpclk_clockVar.enable(true);
@@ -173,13 +191,13 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       else {
          // HIRC Disabled
          system_mcgpclk_clockVar.enable(false);
-         system_mcgpclk_clockVar.setStatus(new Status("Disabled by mcg_mc_hircen", Severity.INFO));
+         system_mcgpclk_clockVar.setStatus(new Status("Disabled in this clock mode", Severity.WARNING));
       }
 
       // LIRC related clocks
       //========================================
       if (mcg_c1_irclkenVar.getValueAsBoolean() ||
-            (clock_mode == McgClockMode.McgClockMode_LIRC_2MHz) || (clock_mode == McgClockMode.McgClockMode_LIRC_8MHz) ) {
+            (mcgClockMode == McgClockMode.McgClockMode_LIRC_2MHz) || (mcgClockMode == McgClockMode.McgClockMode_LIRC_8MHz) ) {
          // LIRC Enabled
          mcg_c1_irefstenVar.enable(true);
          system_lirc_clockVar.enable(true);

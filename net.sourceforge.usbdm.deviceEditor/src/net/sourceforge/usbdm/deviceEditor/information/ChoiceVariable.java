@@ -172,9 +172,9 @@ public class ChoiceVariable extends VariableWithChoices {
    @Override
    public void setPersistentValue(String value) throws Exception {
       // XXX Delete me
-      if (getName().startsWith("sim_sopt2_usbsrc")) {
-         System.err.println("Found " + getName());
-      }
+//      if (getName().startsWith("sim_sopt2_usbsrc")) {
+//         System.err.println("Found " + getName());
+//      }
 
       int index = getChoiceIndex(value);
       if (index>=0) {
@@ -207,9 +207,9 @@ public class ChoiceVariable extends VariableWithChoices {
    @Override
    public String getValueAsString() {
       // XXX Delete me
-      if (getName().equals("cmp_cr0_filter_cnt")) {
-         System.err.println("Found "+getName());
-      }
+//      if (getName().equals("cmp_cr0_filter_cnt")) {
+//         System.err.println("Found "+getName());
+//      }
       return getChoices()[isEnabled()?fValue:fDisabledValue];
    }
    
@@ -275,9 +275,9 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    public void setDisabledValue(int disabledValue) {
       // XXX Delete me
-      if (getName().equals("cmp_cr0_filter_cnt")) {
-         System.err.println("Found "+getName());
-      }
+//      if (getName().equals("cmp_cr0_filter_cnt")) {
+//         System.err.println("Found "+getName());
+//      }
       this.fDisabledValue = disabledValue;
    }
 

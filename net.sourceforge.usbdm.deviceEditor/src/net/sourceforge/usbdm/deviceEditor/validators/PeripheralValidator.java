@@ -22,6 +22,15 @@ public class PeripheralValidator extends Validator {
 
    protected static final Status UNMAPPED_PIN_STATUS = new Status("Not all common signals are mapped to pins", Severity.WARNING);
 
+   public enum McgClockMode {
+      McgClockMode_FEI,       McgClockMode_FEE,       McgClockMode_FBI,
+      McgClockMode_FBE,       McgClockMode_PBE,       McgClockMode_PEE,         McgClockMode_BLPI, McgClockMode_BLPE,
+      McgClockMode_LIRC_8MHz, McgClockMode_LIRC_2MHz, McgClockMode_HIRC_48MHz,  McgClockMode_EXT,
+      McgClockMode_SOSC,      McgClockMode_SIRC,      McgClockMode_FIRC,        McgClockMode_SPLL }
+
+   public enum SmcRunMode {
+      SmcRunMode_Normal, SmcRunMode_VeryLowPower, SmcRunMode_HighSpeed,  }
+
    /**
     * Peripheral dialogue validator <br>
     * Constructor used by derived classes

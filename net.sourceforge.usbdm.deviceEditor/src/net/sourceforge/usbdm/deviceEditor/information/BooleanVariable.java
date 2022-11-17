@@ -268,7 +268,14 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String getDefaultParameterValue() throws Exception {
-      return makeEnum(fDefaultValue?fTrue.getEnumName():fFalse.getEnumName());
+      Object t = getDefault();
+      if (t==null) {
+         return null;
+      }
+      if ((fTrue == null) || (fFalse == null)) {
+         return "Default not defined";
+      }
+      return makeEnum((Boolean)t?fTrue.getEnumName():fFalse.getEnumName());
    }
 
    @Override
