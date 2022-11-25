@@ -25,7 +25,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;pin&gt;
     * 
     * @param pinElement
-    * @throws Exception 
+    * @throws Exception
     */
    private void parsePin(Element pinElement) throws Exception {
 
@@ -60,7 +60,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;pins&gt;
     * 
     * @param pinsElement
-    * @throws Exception 
+    * @throws Exception
     */
    private void parsePins(Element pinsElement) throws Exception {
 
@@ -85,7 +85,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     * 
     * @param familyElement
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private void parseFamily(Element familyElement) throws Exception {
 
@@ -114,7 +114,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;package&gt;
     * 
     * @param packageElement
-    * @throws Exception 
+    * @throws Exception
     */
    private void parsePackage(Element packageElement) throws Exception {
 
@@ -144,7 +144,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;packages&gt;
     * 
     * @param packagesElement
-    * @throws Exception 
+    * @throws Exception
     */
    private void parsePackages(Element packagesElement) throws Exception {
 
@@ -270,8 +270,8 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parses Device <b>xxx.usbdmHardware</b> document from top element
     * 
     * @param deviceInfo
-    *  
-    * @return 
+    * 
+    * @return
     * 
     * @throws Exception
     */
@@ -309,7 +309,7 @@ public class ParseFamilyXML extends XML_BaseParser {
          else {
             throw new Exception("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
-      }      
+      }
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
          peripheral.addLinkedSignals();

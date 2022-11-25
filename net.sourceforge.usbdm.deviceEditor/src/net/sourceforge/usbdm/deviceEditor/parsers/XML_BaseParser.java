@@ -318,7 +318,7 @@ public class XML_BaseParser {
     * @param name    Attribute name
     * 
     * @return value parsed as Long or null if attribute not present
-    *  
+    * 
     * @throws NumberFormatException if attribute is found but invalid long
     */
    protected static Long getLongAttribute(Element element, String name) throws NumberFormatException {
@@ -341,7 +341,7 @@ public class XML_BaseParser {
     * @param defaultValue  Value to return if attribute not present
     * 
     * @return Attribute parsed as Long or defaultValue if attribute not present
-    *  
+    * 
     * @throws NumberFormatException if attribute is found but invalid long
     */
    protected static Long getLongAttribute(Element element, String name, long defaultValue) throws NumberFormatException {
@@ -359,7 +359,7 @@ public class XML_BaseParser {
     * @param name    Attribute name
     * 
     * @return value parsed as Long
-    *  
+    * 
     * @throws Exception if attribute not found
     * @throws NumberFormatException if attribute found but invalid
     */
@@ -442,7 +442,7 @@ public class XML_BaseParser {
     * @return Attribute as Integer
     * 
     * @throws Exception - if attribute not found
-    * @throws NumberFormatException - if attribute found but invalid 
+    * @throws NumberFormatException - if attribute found but invalid
     * @throws ArithmeticException - if the argument overflows an integer
     */
    protected static Integer getIntAttribute(Element element, String name) throws IllegalArgumentException, Exception {
@@ -455,7 +455,7 @@ public class XML_BaseParser {
     * 
     * @return Attribute as Integer
     * 
-    * @throws NumberFormatException - if attribute found but invalid 
+    * @throws NumberFormatException - if attribute found but invalid
     * @throws ArithmeticException - if the argument overflows an integer
     */
    protected static Integer safeGetIntAttribute(Element element, String name) throws IllegalArgumentException, Exception {
@@ -495,9 +495,9 @@ public class XML_BaseParser {
     * 
     * @return DOM Document representation (or null if locating file fails)
     * 
-    * @throws ParserConfigurationException 
-    * @throws IOException 
-    * @throws SAXException 
+    * @throws ParserConfigurationException
+    * @throws IOException
+    * @throws SAXException
     */
    public static Document parseXmlFile(Path path) throws ParserConfigurationException, IOException, SAXException {
       // Get the factory

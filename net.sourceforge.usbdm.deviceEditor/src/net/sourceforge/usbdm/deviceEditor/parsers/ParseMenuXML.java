@@ -22,10 +22,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.usbdm.deviceEditor.graphicModel.ClockSelectionFigure;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ClockMultiplexorVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ClockSelectionVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
@@ -45,6 +47,7 @@ import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.ErrorModel;
+import net.sourceforge.usbdm.deviceEditor.model.OpenGraphicModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
@@ -447,6 +450,57 @@ public class ParseMenuXML extends XML_BaseParser {
    String doForSubstitutions(String text) throws Exception {
       return fForStack.doForSubstitutions(text);
    }
+   
+   /**
+    * Get a long attribute
+    * 
+    * @param element Element being examined
+    * @param name    Attribute name
+    * 
+    * @return value parsed as Long or null if attribute not present
+    * 
+    * @throws Exception
+    */
+   protected Long getLongExpressionAttribute(Element element, String name) throws Exception {
+      String attr = getAttribute(element, name);
+      if (attr.isBlank()) {
+         return null;
+      }
+      if (attr.startsWith("=")) {
+         SimpleExpressionParser expressionParser = new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
+         Object res = expressionParser.evaluate(attr.substring(1));
+         if (res instanceof String) {
+            // If string result assume it is an expression
+            res = expressionParser.evaluate((String)res);
+         }
+         return (Long)res;
+      }
+      try {
+         return parseLong(attr);
+      } catch (NumberFormatException e) {
+         throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' in '"+element+"'");
+      }
+   }
+   
+   /**
+    * Parse a long attribute
+    * 
+    * @param element Element being examined
+    * @param name    Attribute name
+    * 
+    * @return value parsed as Long
+    * 
+    * @throws Exception if attribute not found
+    * @throws NumberFormatException if attribute found but invalid
+    */
+   protected Long getRequiredLongExpressionAttribute(Element element, String name) throws Exception {
+      Long value = getLongExpressionAttribute(element, name);
+      if (value == null) {
+         throw new Exception("Attribute '"+name+"', not found in '"+element+"'");
+      }
+      return value;
+   }
+   
    
    /**
     * Parse &lt;for&gt;
@@ -979,7 +1033,7 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("Illegal disabled value in " + variable.getName(), e);
       }
    }
-
+   
    /**
     * Parse &lt;longOption&gt; element<br>
     * 
@@ -1011,15 +1065,15 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getRequiredLongAttribute(varElement, "min"));
+            variable.setMin(getRequiredLongExpressionAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getRequiredLongAttribute(varElement, "max"));
+            variable.setMax(getRequiredLongExpressionAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("disabledValue")) {
-            variable.setDisabledValue(getRequiredLongAttribute(varElement, "disabledValue"));
+            variable.setDisabledValue(getRequiredLongExpressionAttribute(varElement, "disabledValue"));
          }
-      } catch( NumberFormatException e) {
+      } catch(NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
       if (varElement.hasAttribute("units")) {
@@ -1151,6 +1205,27 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   /**
+    * Parse &lt;choiceOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception
+    */
+   private void parseClockMultiplexorOption(BaseModel parent, Element varElement) throws Exception {
+
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      ClockMultiplexorVariable variable = (ClockMultiplexorVariable) createVariable(varElement, ClockMultiplexorVariable.class);
+
+      parseChoices(variable, varElement);
+      parseCommonAttributes(parent, varElement, variable);
+      
+      if (variable.getTypeName() != null) {
+         generateEnum(varElement, variable);
+      }
+   }
+
    /// Format string with parameters: description, tool-tip, enumClass, body
    String enumTemplate = ""
          + "      \\t/**\n"
@@ -1199,7 +1274,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       TemplateInformation templateInfo = addTemplate(templateKey, namespace, null);
-      ChoiceData[] choiceData = variable.getData();
+      ChoiceData[] choiceData = variable.getChoiceData();
       
       StringBuilder body = new StringBuilder();
       
@@ -1308,7 +1383,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
-    * Get an attribute and apply usual substitutions @ref getAttribute.
+    * Get an attribute and apply usual substitutions @ref getAttribute.<br>
     * If the attribute is not present then the default parameter is returned.
     * 
     * @param element       Element to obtain attribute from
@@ -1370,6 +1445,31 @@ public class ParseMenuXML extends XML_BaseParser {
          return null;
       }
       return fProvider.makeKey(key);
+   }
+   
+   /**
+    * Get attribute 'name' or generate from attribute 'key' and apply usual key transformations
+    *  <li>"$(_name)"     => fProvider.getName()
+    *  <li>"$(_instance)" => fPeripheral.getInstance()
+    *  <li>For loop substitution
+    *  <li>fprovider.MakeKey()
+    * 
+    * @param element    Element to examine
+    * 
+    * @return  Modified key or null if nor found
+    * 
+    * @throws Exception
+    */
+   String getNameAttribute(Element element) throws Exception {
+      
+      String name = getAttribute(element, "name");
+      if (name == null) {
+         String key = getAttribute(element, "key");
+         if (key != null) {
+            name = Variable.getNameFromKey(key);
+         }
+      }
+      return name;
    }
    
    /**
@@ -1620,7 +1720,8 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       String key         = getKeyAttribute(element);
-      String name        = getAttribute(element, "name");
+      String name        = getNameAttribute(element);
+      String type        = getAttribute(element, "type");
       String value       = getAttribute(element, "value");
       String description = getAttribute(element, "description");
       boolean isWeak     = Boolean.valueOf(getAttribute(element, "weak"));
@@ -1628,48 +1729,58 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isBlank()) {
          throw new Exception("<constant> must have 'key' attribute, value='"+value+"'");
       }
-      if (name == null) {
-         name = Variable.getNameFromKey(key);
-      }
-         
-      boolean isDerived  = true;
-      if (element.hasAttribute("derived")) {
-         isDerived = Boolean.valueOf(getAttribute(element, "derived"));
-      }
-      boolean isHidden  = true;
-      if (element.hasAttribute("hidden")) {
-         isHidden = Boolean.valueOf(getAttribute(element, "hidden"));
-      }
+      boolean isDerived = getBooleanAttribute(element, "derived", true);
+      boolean isHidden  = getBooleanAttribute(element, "hidden", true);
+      
       if (value == null) {
          value="true";
       }
-      Variable var = safeGetVariable(key);
-      if (var != null) {
-         if (isWeak) {
-            // Ignore constant
+      String values[] = value.split(",");
+      for(int index=0; index<values.length; index++) {
+         String indexedKey = key;
+         if (values.length>1) {
+            indexedKey = key+"["+index+"]";
          }
-         else if (isReplace) {
-            // Replace constant value
-            var.setValue(value);
-            if (element.hasAttribute("name")) {
-               var.setName(name);
+         values[index] = values[index].trim();
+         Variable var = safeGetVariable(indexedKey);
+         if (var != null) {
+            if (isWeak) {
+               // Ignore constant
             }
-            if (element.hasAttribute("description")) {
-               var.setDescription(description);
+            else if (isReplace) {
+               // Replace constant value
+               var.setValue(values[index]);
+               if (element.hasAttribute("name")) {
+                  var.setName(name);
+               }
+               if (element.hasAttribute("description")) {
+                  var.setDescription(description);
+               }
+               return;
             }
-            return;
+            else {
+               throw new Exception("Constant multiply defined, name="+name+", key=" + indexedKey);
+            }
          }
          else {
-            throw new Exception("Constant multiply defined, name="+name+", key=" + key);
+            if ("Int".equalsIgnoreCase(type)) {
+               var = new LongVariable(name, indexedKey);
+            }
+            else if ("Float".equalsIgnoreCase(type)) {
+               var = new DoubleVariable(name, indexedKey);
+            }
+            else if ("Boolean".equalsIgnoreCase(type)) {
+               var = new DoubleVariable(name, indexedKey);
+            }
+            else {
+               var = new StringVariable(name, indexedKey);
+            }
+            var.setValue(values[index]);
+            var.setDescription(description);
+            var.setDerived(isDerived);
+            var.setHidden(isHidden);
+            fProvider.addVariable(var);
          }
-      }
-      else {
-         var = new StringVariable(name, key);
-         var.setValue(value);
-         var.setDescription(description);
-         var.setDerived(isDerived);
-         var.setHidden(isHidden);
-         fProvider.addVariable(var);
       }
    }
    
@@ -2474,7 +2585,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (enumStem.isBlank()) {
          return caseBody + "(No enumStem)";
       }
-      ChoiceData[] choiceData = choiceVar.getData();
+      ChoiceData[] choiceData = choiceVar.getChoiceData();
 
       String[] enumNames      = new String[choiceData.length];
       String[] returnValues   = new String[choiceData.length];
@@ -2707,6 +2818,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "clockSelectionOption") {
          parseClockSelectionOption(parentModel, element);
       }
+      else if (tagName == "clockMultiplexorOption") {
+         parseClockMultiplexorOption(parentModel, element);
+      }
       else if (tagName == "choiceOption") {
          parseChoiceOption(parentModel, element);
       }
@@ -2803,8 +2917,38 @@ public class ParseMenuXML extends XML_BaseParser {
             }}, null);
          fProjectActionList.addProjectAction(pal);
       }
+      else if (tagName == "graphic") {
+         parseGraphic(parentModel, element);
+      }
       else {
          throw new Exception("Unexpected tag in parseControlItem(), \'"+tagName+"\'");
+      }
+   }
+
+   private void parseGraphic(BaseModel parentModel, Element element) throws Exception {
+      String key         = getKeyAttribute(element);
+      String description = getAttribute(element, "description");
+      String tooltip     = getAttribute(element, "toolTip");
+      ClockSelectionFigure figure = new ClockSelectionFigure();
+      OpenGraphicModel model = new OpenGraphicModel(
+            parentModel,
+            key,
+            description,
+            figure);
+      model.setToolTip(tooltip);
+//      fPeripheral.addFigure(figure);
+      
+      for (Node node = element.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         String id     = getAttribute((Element)node, "id");
+         String varKey = getKeyAttribute((Element)node);
+         String type   = getAttribute((Element)node, "type");
+         String params = getAttribute((Element)node, "params");
+         figure.add(id, varKey, type, params);
       }
    }
 
@@ -2904,9 +3048,10 @@ public class ParseMenuXML extends XML_BaseParser {
                getAttribute(element, "value"),
                getAttribute(element, "enum"),
                getAttribute(element, "code"),
-               getAttribute(element, "ref")
+               getAttribute(element, "ref"),
+               getAttribute(element, "enabledBy"),
+               Boolean.parseBoolean(getAttribute(element, "hidden"))
                );
-         entry.setHidden(Boolean.parseBoolean(getAttribute(element, "hidden")));
          entries.add(entry);
          if (defaultValue == null) {
             // Assume 1st entry is default
@@ -2933,9 +3078,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseChoices(Variable variable, Element menuElement) throws Exception {
       
-      ChoiceInformation info = parseChoiceData(menuElement);
+      ChoiceInformation choiceInfo = parseChoiceData(menuElement);
       
-      if (info == null) {
+      if (choiceInfo == null) {
          /**
           * Should be another variable of the same type to copy from i.e. derivedFrom="" present
           */
@@ -2957,7 +3102,7 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (variable instanceof ChoiceVariable) {
             ChoiceVariable otherVar = (ChoiceVariable) otherVariable;
             ChoiceVariable var      = (ChoiceVariable) variable;
-            var.setData(otherVar.getData());
+            var.setData(otherVar.getChoiceData());
             var.setDefault(otherVar.getDefault());
             var.setValue(otherVar.getDefault());
          }
@@ -2965,17 +3110,17 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          // Set of choices provided
          if (variable instanceof BooleanVariable) {
-            if (info.entries.size()>2) {
+            if (choiceInfo.entries.size()>2) {
                throw new Exception("Wrong number of choices in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
             }
             BooleanVariable booleanVar = (BooleanVariable) variable;
 
-            if (info.entries.size()==2) {
-               booleanVar.setFalseValue(info.entries.get(0));
-               booleanVar.setTrueValue(info.entries.get(1));
+            if (choiceInfo.entries.size()==2) {
+               booleanVar.setFalseValue(choiceInfo.entries.get(0));
+               booleanVar.setTrueValue(choiceInfo.entries.get(1));
             }
             else {
-               ChoiceData choiceData = info.entries.get(0);
+               ChoiceData choiceData = choiceInfo.entries.get(0);
                if (Boolean.parseBoolean(choiceData.getValue()) ||
                    (Character.isDigit(choiceData.getValue().charAt(0)) && Integer.parseInt(choiceData.getValue())>0)) {
                   booleanVar.setTrueValue(choiceData);
@@ -2987,24 +3132,24 @@ public class ParseMenuXML extends XML_BaseParser {
             Object tmp;
             tmp = booleanVar.getDefault();
             if (tmp == null) {
-               booleanVar.setDefault(info.defaultEntry);
+               booleanVar.setDefault(choiceInfo.defaultEntry);
             }
             tmp = booleanVar.getValue();
             if (tmp == null) {
-               booleanVar.setValue(info.defaultEntry);
+               booleanVar.setValue(choiceInfo.defaultEntry);
             }
          }
          else if (variable instanceof ChoiceVariable) {
             ChoiceVariable choiceVar = (ChoiceVariable)variable;
-            choiceVar.setData(info.entries);
+            choiceVar.setChoiceData(choiceInfo.entries);
             Object tmp;
             tmp = choiceVar.getDefault();
             if (tmp == null) {
-               choiceVar.setDefault(info.defaultEntry);
+               choiceVar.setDefault(choiceInfo.defaultEntry);
             }
             tmp = choiceVar.getValue();
             if (tmp == null) {
-               choiceVar.setValue(info.defaultEntry);
+               choiceVar.setValue(choiceInfo.defaultEntry);
             }
          }
       }
@@ -3340,6 +3485,11 @@ public class ParseMenuXML extends XML_BaseParser {
                   instantiateAliases(provider, newModel);
                }
             }
+         }
+         else if (model instanceof OpenGraphicModel) {
+            OpenGraphicModel ogm = (OpenGraphicModel)model;
+            ClockSelectionFigure figure = ogm.getFigure();
+            figure.instantiateGraphics(provider);
          }
          else {
             instantiateAliases(provider, model);
