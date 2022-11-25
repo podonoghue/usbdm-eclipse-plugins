@@ -613,6 +613,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    // List of clock selectors to update on validation
    private ArrayList<Variable> fMonitoredVariables = null;
+
+//   private ClockSelectionFigure fFigure;
    
    /**
     * Add variable as clock selector
@@ -728,4 +730,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral) {
    }
 
+//   public void addFigure(ClockSelectionFigure figure) {
+//      fFigure = figure;
+//   }
+//
+//   public ClockSelectionFigure getFigure() {
+//      return fFigure;
+//   }
 }

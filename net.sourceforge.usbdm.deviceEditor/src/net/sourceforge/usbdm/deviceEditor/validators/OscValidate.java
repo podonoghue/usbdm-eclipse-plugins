@@ -272,6 +272,7 @@ public class OscValidate extends PeripheralValidator {
       }
       else {
          Status osc_crMessage = new Status("Disabled by osc_cr_erclken", Severity.OK);
+         osc_clockOrg = osc_clockOrg + "\n[Disabled by osc_cr_erclken]";
          // Oscillator/clock disabled
          //         system_oscerclk_undiv_clockVar.setValue(0);
          system_oscer_undiv_clockVar.setStatus(osc_crMessage);

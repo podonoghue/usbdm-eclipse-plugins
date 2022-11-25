@@ -79,7 +79,7 @@ public class ChoiceVariable extends VariableWithChoices {
       else {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable " + getName());
       }
-      if ((index<0) || (index>=getData().length)) {
+      if ((index<0) || (index>=getChoiceData().length)) {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
       }
       return index;
@@ -98,10 +98,15 @@ public class ChoiceVariable extends VariableWithChoices {
       if ((fValue != null) && fValue.equals(value)) {
          return false;
       }
+//      // XX Delete me
+//      if (getName().contains("mcg_c1_frdiv[1]") || getName().contains("range0[1]")) {
+//         System.err.println(getName()+"setValue(int="+value+"), cv=" + fValue);
+//      }
       if (value<0) {
          System.err.println("Warning value is not valid "+this+", "+value);
          fValue = 0;
       }
+      getChoices();
       fValue = value;
       notifyListeners();
       return true;
@@ -161,6 +166,10 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public boolean setValue(Object value) {
+//      // XX Delete me
+//      if (getName().contains("mcg_c1_frdiv")) {
+//         System.err.println("setValue(obj="+value+")");
+//      }
       return setValue(translate(value));
    }
    
@@ -171,11 +180,6 @@ public class ChoiceVariable extends VariableWithChoices {
 
    @Override
    public void setPersistentValue(String value) throws Exception {
-      // XXX Delete me
-//      if (getName().startsWith("sim_sopt2_usbsrc")) {
-//         System.err.println("Found " + getName());
-//      }
-
       int index = getChoiceIndex(value);
       if (index>=0) {
          fValue = index;
@@ -206,11 +210,16 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public String getValueAsString() {
-      // XXX Delete me
-//      if (getName().equals("cmp_cr0_filter_cnt")) {
-//         System.err.println("Found "+getName());
+      String[] choices = getChoices();
+      int index = isEnabled()?fValue:fDisabledValue;
+      if (index>=choices.length) {
+         index = 0;
+      }
+//       XX Delete me
+//      if (getName().contains("mcg_c1_frdiv[1]")) {
+//         System.err.println("getValueAsString() => +["+index+"], "+choices[index]);
 //      }
-      return getChoices()[isEnabled()?fValue:fDisabledValue];
+      return choices[index];
    }
    
    @Override
@@ -225,7 +234,7 @@ public class ChoiceVariable extends VariableWithChoices {
 
    int getChoiceIndex(String value) {
       
-      ChoiceData[] choiceData = getData();
+      ChoiceData[] choiceData = getChoiceData();
       if (choiceData == null) {
          return -1;
       }
@@ -361,7 +370,7 @@ public class ChoiceVariable extends VariableWithChoices {
     * @return the choices
     */
    @Override
-   public ChoiceData[] getData() {
+   public ChoiceData[] getChoiceData() {
       return fData;
    }
 
@@ -378,7 +387,7 @@ public class ChoiceVariable extends VariableWithChoices {
     * 
     * @param entries The name/value entries to set
     */
-   public void setData(ArrayList<ChoiceData> entries) {
+   public void setChoiceData(ArrayList<ChoiceData> entries) {
       fData          = entries.toArray(new ChoiceData[entries.size()]);
       if (fDefaultValue != null) {
          defaultHasChanged = true;
@@ -406,7 +415,7 @@ public class ChoiceVariable extends VariableWithChoices {
          // Preserve default value
          defaultValue = fDefaultValue;
       }
-      setData(consolidatedEntries);
+      setChoiceData(consolidatedEntries);
       fDefaultValue = defaultValue;
       fValue        = defaultValue;
    }
@@ -429,7 +438,7 @@ public class ChoiceVariable extends VariableWithChoices {
       if ((index==null) || (index<0)) {
          throw new Exception("Failed to get default");
       }
-      return makeEnum(getData()[index].getEnumName());
+      return makeEnum(getChoiceData()[index].getEnumName());
    }
 
    @Override
@@ -446,4 +455,5 @@ public class ChoiceVariable extends VariableWithChoices {
    public String getDisplayValue() {
       return displayValue;
    }
+
 }

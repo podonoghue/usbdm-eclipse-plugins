@@ -194,7 +194,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       FllConfigure fllCheck = new FllConfigure(
             osc0_osc_cr_erclkenVar,
             osc0_oscillatorRangeVar,
-            getVariable("mcg_c2_range0"),
+            getChoiceVariable("mcg_c2_range0"),
             mcg_c1_irefs,
             mcg_erc_clockVar,
             system_slow_irc_clockVar.getValueAsLong(),
@@ -289,7 +289,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       if (mcg_c7_oscselVar == null) {
          mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel_fixed");
       }
-      ChoiceData[] choiceData = mcg_c7_oscselVar.getData();
+      ChoiceData[] choiceData = mcg_c7_oscselVar.getChoiceData();
       
       //  mcg_erc[0] = OSC0, input must always exists
       int index = choiceData[0].getReference().lastIndexOf("/");

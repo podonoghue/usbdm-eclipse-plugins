@@ -62,6 +62,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       /** Reference to another variable associated with this choice e.g. clock source selection */
       private final String fReference;
       
+      private final String fEnabledBy;
+      
       /**
        * 
        * @param name       Name used by GUI/model
@@ -70,7 +72,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
        * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
        * @param reference  Reference to another variable associated with this choice e.g. clock source selection
        */
-      public ChoiceData(String name, String value, String enumName, String codeValue, String reference) {
+      public ChoiceData(
+            String name,
+            String value,
+            String enumName,
+            String codeValue,
+            String reference,
+            String enabledBy,
+            boolean hidden) {
          fName        = name;
          fValue       = value;
          if ((enumName != null) && enumName.equals("*")) {
@@ -79,6 +88,28 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          fEnumName    = enumName;
          fCodeValue   = codeValue;
          fReference   = reference;
+         fEnabledBy   = enabledBy;
+         fHidden      = hidden;
+      }
+      
+      /**
+       * 
+       * @param name       Name used by GUI/model
+       * @param value      Value used by data
+       * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
+       * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
+       * @param reference  Reference to another variable associated with this choice e.g. clock source selection
+       */
+      public ChoiceData(String name, String value, String enumName) {
+         fName        = name;
+         fValue       = value;
+         if ((enumName != null) && enumName.equals("*")) {
+            enumName = name;
+         }
+         fEnumName    = enumName;
+         fCodeValue   = null;
+         fReference   = null;
+         fEnabledBy   = null;
       }
       
       /**
@@ -95,6 +126,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          fEnumName    = null;
          fCodeValue   = null;
          fReference   = null;
+         fEnabledBy   = null;
       }
       
       /**
@@ -165,7 +197,48 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       public String toString() {
          return "ChoiceData("+fName+", "+fValue+", "+fEnumName+", "+fCodeValue+", "+fReference+")";
       }
+      
+      public boolean isEnabled(VariableProvider varProvider) {
+         if (fEnabledBy == null) {
+            return true;
+         }
+         SimpleExpressionParser parser = new SimpleExpressionParser(varProvider, Mode.EvaluateFully);
+         try {
+            return (Boolean) parser.evaluate(fEnabledBy);
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+         return true;
+      }
 
+      /**
+       * Indicates if choice needs to be recreated on each use as dependent on external information
+       * 
+       * @return
+       */
+      public boolean isDynamic() {
+         return (fEnabledBy != null) || fName.startsWith("@");
+      }
+
+      /**
+       * Calculates current name of choice if dynamic, or returns static name.
+       * 
+       * @param provider Provider for evaluating name expression
+       * 
+       * @return
+       */
+      public String getDynamicName(VariableProvider provider) {
+         String name = fName;
+         if (name.startsWith("@")) {
+            SimpleExpressionParser parser = new SimpleExpressionParser(provider, SimpleExpressionParser.Mode.EvaluateFully);
+            try {
+               name = parser.evaluate(name.substring(1)).toString();
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+         return name;
+      }
    }
 
    /** Name of variable visible to user */
@@ -1135,6 +1208,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       fProvider = provider;
    }
 
+   /**
+    * Get variable provider associated with this variable
+    * 
+    * @return
+    */
    public VariableProvider getProvider() {
       return fProvider;
    }

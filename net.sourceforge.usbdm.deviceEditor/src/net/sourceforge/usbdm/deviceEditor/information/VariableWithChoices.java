@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public abstract class VariableWithChoices extends Variable {
 
    /** List of choices to be re-created each time */
-   boolean dynamicChoices = false;
+   boolean fDynamicChoices = false;
    
    /** List of choices */
    private String[] fChoices = null;
@@ -21,7 +22,7 @@ public abstract class VariableWithChoices extends Variable {
    /**
     * @return the choices
     */
-   public abstract ChoiceData[] getData();
+   public abstract ChoiceData[] getChoiceData();
 
    /**
     * COnvert an enum value into a complete enum for code use
@@ -46,34 +47,38 @@ public abstract class VariableWithChoices extends Variable {
    
    /**
     * @return the choices
+    * @throws Exception
     */
    public String[] getChoices() {
       
-      if (dynamicChoices || (fChoices == null)) {
+      if (fDynamicChoices || (fChoices == null)) {
+//         // XX Delete me
+//         if (getName().contains("mcg_c1_frdiv[1]")) {
+//            System.err.println("getChoices() - regenerating");
+//         }
+
          // Construct new list
          ArrayList<String> choices = new ArrayList<String>();
          
-         ChoiceData[] fData = getData();
-         if (fData == null) {
+         ChoiceData[] choiceData = getChoiceData();
+         if (choiceData == null) {
             return null;
          }
-         for (int index=0; index<fData.length; index++) {
-            if (fData[index].isHidden()) {
+         for (int index=0; index<choiceData.length; index++) {
+            fDynamicChoices = fDynamicChoices || choiceData[index].isDynamic();
+            if (choiceData[index].isHidden()) {
                continue;
             }
-            String chName = fData[index].getName();
-            if (chName.startsWith("@")) {
-               dynamicChoices = true;
-               SimpleExpressionParser parser = new SimpleExpressionParser(getProvider(), SimpleExpressionParser.Mode.EvaluateFully);
-               try {
-                  chName = parser.evaluate(chName.substring(1)).toString();
-               } catch (Exception e) {
-                  e.printStackTrace();
-               }
+            if (!choiceData[index].isEnabled(getProvider())) {
+               continue;
             }
-            choices.add(chName);
+            choices.add(choiceData[index].getDynamicName(getProvider()));
          }
          fChoices = choices.toArray(new String[choices.size()]);
+//         // XX delete me
+//         if (getName().contains("mcg_c1_frdiv[1]")) {
+//            System.err.println("getChoices() - choices = " + choices);
+//         }
       }
       return fChoices;
    }
@@ -85,7 +90,7 @@ public abstract class VariableWithChoices extends Variable {
     * @return index or -1 if not found
     */
    protected int getIndex(String name) {
-      ChoiceData[] data = getData();
+      ChoiceData[] data = getChoiceData();
       if (data == null) {
          return -1;
       }
@@ -94,7 +99,7 @@ public abstract class VariableWithChoices extends Variable {
             return index;
          }
       }
-      if (dynamicChoices) {
+      if (fDynamicChoices) {
          String choices[] = getChoices();
          for (int index=0; index<choices.length; index++) {
             if (choices[index].equalsIgnoreCase(name)) {
@@ -111,7 +116,7 @@ public abstract class VariableWithChoices extends Variable {
       if (index<0) {
          index = (int)getValueAsLong();
       }
-      return getData()[index];
+      return getChoiceData()[index];
    }
    
    final Pattern fFieldPattern = Pattern.compile("^(\\w+)(\\[(\\d+)?\\])?$");
@@ -134,7 +139,7 @@ public abstract class VariableWithChoices extends Variable {
       if (m.group(3) != null) {
          // Parse required index
          index = Integer.parseInt(m.group(3));
-         if (index>= getData().length) {
+         if (index>= getChoiceData().length) {
             return "Index "+index+" out of range for variable "+getName() + ", field ="+field;
          }
       }
@@ -145,7 +150,7 @@ public abstract class VariableWithChoices extends Variable {
             return "No current choice value to retrieve data "+getValueAsString()+" not found for field ="+field;
          }
       }
-      ChoiceData fData = getData()[index];
+      ChoiceData fData = getChoiceData()[index];
       if ("code".equals(fieldName)) {
          return fData.getCodeValue();
       } else if ("enum".equals(fieldName)) {
@@ -168,7 +173,7 @@ public abstract class VariableWithChoices extends Variable {
       if (index<0) {
          return "No current value for" + getName();
       }
-      ChoiceData fData = getData()[index];
+      ChoiceData fData = getChoiceData()[index];
       return makeEnum(fData.getEnumName());
    }
 
@@ -181,4 +186,81 @@ public abstract class VariableWithChoices extends Variable {
       return  getBaseNameFromKey(getKey()).toUpperCase()+"(%s)";
    }
    
+   @Override
+   public String getSubstitutionValue() {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public String getValueAsString() {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public boolean setValue(Object value) {
+      // TODO Auto-generated method stub
+      return false;
+   }
+
+   @Override
+   public void setValueQuietly(Object value) {
+      // TODO Auto-generated method stub
+      
+   }
+
+   @Override
+   public String getPersistentValue() {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public void setPersistentValue(String value) throws Exception {
+      // TODO Auto-generated method stub
+      
+   }
+
+   @Override
+   public void setDefault(Object value) {
+      // TODO Auto-generated method stub
+      
+   }
+
+   @Override
+   public void setDisabledValue(Object value) {
+      // TODO Auto-generated method stub
+      
+   }
+
+   @Override
+   Object getDefault() {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   protected VariableModel privateCreateModel(BaseModel parent) {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public boolean isDefault() {
+      // TODO Auto-generated method stub
+      return false;
+   }
+
+   @Override
+   public Object getNativeValue() {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
 }

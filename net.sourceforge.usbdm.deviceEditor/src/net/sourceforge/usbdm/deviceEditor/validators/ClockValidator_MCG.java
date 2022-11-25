@@ -155,7 +155,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
       Variable fllOutputFrequencyVar            = getVariable("fllOutputFrequency");
       Variable system_mcgfllclk_clockVar        = getVariable("system_mcgfllclk_clock");
       Variable mcg_c4_dmx32Var                  = getVariable("mcg_c4_dmx32");
-      Variable mcg_c1_frdivVar                  = getVariable("mcg_c1_frdiv");
+      ChoiceVariable mcg_c1_frdivVar            = getChoiceVariable("mcg_c1_frdiv");
       Variable mcg_c4_drst_drsVar               = getVariable("mcg_c4_drst_drs");
 
       Variable pll0EnabledVar                   = getVariable("pll0Enabled");
@@ -250,7 +250,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
          // Add BLPE/BLPI warning
-         mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
+         mcg_c2_ircsVar_StatusWarning = mcg_c2_ircsVar.getValueAsLong() == 0;
          break;
       case McgClockMode_BLPE:
          mcg_c1_clks  = 2;
@@ -262,7 +262,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
          pll0EnabledVar.setValue(pllEnabled);
          fll_enabledVar.setValue(false);
          // Add BLPE/BLPI warning
-         mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
+         mcg_c2_ircsVar_StatusWarning = mcg_c2_ircsVar.getValueAsLong() == 0;
          break;
       case McgClockMode_PBE:
          mcg_c1_clks  = 2;
@@ -310,7 +310,7 @@ public class ClockValidator_MCG extends BaseClockValidator {
       FllConfigure fllCheck = new FllConfigure(
             osc0_osc_cr_erclkenVar,
             osc0_oscillatorRangeVar,
-            getVariable("mcg_c2_range0"),
+            getChoiceVariable("mcg_c2_range0"),
             mcg_c1_irefs,
             mcg_erc_clockVar,
             system_slow_irc_clockVar.getValueAsLong(),
@@ -459,13 +459,16 @@ public class ClockValidator_MCG extends BaseClockValidator {
       if (mcg_c7_oscselVar == null) {
          mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel_fixed");
       }
-      ChoiceData[] choiceData = mcg_c7_oscselVar.getData();
+      ChoiceData[] choiceData = mcg_c7_oscselVar.getChoiceData();
       
       //  mcg_erc[0] = OSC0, input must always exists
       int index = choiceData[0].getReference().lastIndexOf("/");
       String osc0Name = choiceData[0].getReference().substring(0, index);
       osc0_osc_cr_erclkenVar     = safeGetBooleanVariable(osc0Name+"/osc_cr_erclken");
       osc0_oscillatorRangeVar    = safeGetVariable(osc0Name+"/oscillatorRange");
+
+      variablesToWatch.add(osc0Name+"/osc_cr_erclken");
+      variablesToWatch.add(osc0Name+"/oscillatorRange");
 
       usb1pfdclk_ClockVar = safeGetVariable("usb1pfdclk_Clock");
       if (usb1pfdclk_ClockVar != null) {

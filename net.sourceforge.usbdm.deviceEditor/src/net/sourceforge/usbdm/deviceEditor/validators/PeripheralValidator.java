@@ -152,7 +152,7 @@ public class PeripheralValidator extends Validator {
 //      if (reference.contains("SIM/system_bus_clock[0]")) {
 //         System.err.println("Found " + reference);
 //      }
-      String data[]      = reference.split("#");
+      String data[]     = reference.split("#");
       String expression = data[data.length-1];
       SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
       if (expression.isBlank()) {
@@ -583,7 +583,7 @@ public class PeripheralValidator extends Validator {
          choiceVariable.addListener(listener);
 
          // ChoiceVar selecting the input
-         ChoiceData[] choiceDatas = choiceVariable.getData();
+         ChoiceData[] choiceDatas = choiceVariable.getChoiceData();
          for (ChoiceData choiceData:choiceDatas) {
             String references = choiceData.getReference();
             if ((references == null) || (references.isBlank())) {

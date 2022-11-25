@@ -358,5 +358,4 @@ public class DoubleVariable extends Variable {
    public Object getNativeValue() {
       return getValueAsDouble();
    }
-
 }

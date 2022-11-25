@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -61,7 +62,7 @@ class FllConfigure {
     * 
     * @return True => Found suitable divider
     */
-   boolean findDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) { 
+   boolean findDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) {
 
       long fllInMin;
       long fllInMax;
@@ -118,26 +119,26 @@ class FllConfigure {
     * @param mcg_erc_clockVar           [in]     mcg_erc_clock source
     * @param system_slow_irc_clock      [in]     Frequency of slow IRC
     * @param mcg_c7_oscsel              [in]     OSCSEL value used to constrain dividers
-    * @param mcg_c4_dmx32Var            [in]     Affects input range accepted 
+    * @param mcg_c4_dmx32Var            [in]     Affects input range accepted
     * @param fll_enabledVar             [in]     Indicates if FLL is in use
     * @param fllInputFrequencyVar       [in/out] Input to FLL
     * @param fllOutputFrequencyVar      [out]    Output from FLL
-    * @param system_mcgffclk_clockVar   [out]    MCGFFCLK 
+    * @param system_mcgffclk_clockVar   [out]    MCGFFCLK
     * @param drst_drs_max               [in]     Maximum value for mcg_c4_drst_drs
     */
    public FllConfigure(
-         final Variable osc_osc_cr_erclkenVar, 
-         final Variable osc_oscillatorRangeVar, 
-         final Variable mcg_c2_rangeVar, 
-         boolean        mcg_c1_irefs, 
-         final Variable mcg_erc_clockVar, 
-         long           system_slow_irc_clock, 
-         long           mcg_c7_oscsel, 
-         boolean        mcg_c4_dmx32, 
+         final Variable osc_osc_cr_erclkenVar,
+         final Variable osc_oscillatorRangeVar,
+         final ChoiceVariable mcg_c2_rangeVar,
+         boolean        mcg_c1_irefs,
+         final Variable mcg_erc_clockVar,
+         long           system_slow_irc_clock,
+         long           mcg_c7_oscsel,
+         boolean        mcg_c4_dmx32,
          final Variable fll_enabledVar,
-         final Variable fllInputFrequencyVar, 
-         final Variable fllOutputFrequencyVar, 
-         final Variable system_mcgffclk_clockVar, 
+         final Variable fllInputFrequencyVar,
+         final Variable fllOutputFrequencyVar,
+         final Variable system_mcgffclk_clockVar,
          long           drst_drs_max) {
 
       // Tentative range - may be overridden by FLL constraints
@@ -198,7 +199,7 @@ class FllConfigure {
          fllOrigin += " after scaling by (Low range FRDIV)";
       }
       else if ((mcg_c7_oscsel != 0) && !osc_osc_cr_erclken) {
-         // ![OSCCLK] and not enabled for peripherals 
+         // ![OSCCLK] and not enabled for peripherals
          // Unconstrained - try both sets of dividers
          // Use whichever mcg_c2_rangeIn works
          osc0_range = 0;
@@ -222,7 +223,7 @@ class FllConfigure {
             found = findDivider(availableClock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
             fllOrigin += " after scaling (High range FRDIV)";
             break;
-         default: 
+         default:
             // Unconstrained - try both sets of dividers
             // Use whichever  mcg_c2_rangeIn works
             osc0_range = 0;
@@ -243,7 +244,7 @@ class FllConfigure {
       if (!found) {
          // No suitable divisor - Set invalid and use defaults
          fllInputFrequencyVar.setValue(Math.round(nearestFrequency));
-         String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s", 
+         String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s",
                EngineeringNotation.convert(availableClock, 3));
          fllStatus = new Status(msgText, Severity.WARNING);
          fllInputFrequencyVar.setStatus(fllStatus);
@@ -274,13 +275,13 @@ class FllConfigure {
 
       Long fllTargetFrequency = fllOutputFrequencyVar.getRawValueAsLong();
 
-      ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
+      ArrayList<Long> fllFrequencies = new ArrayList<Long>();
       for (int probe=0; probe<=drst_drs_max; probe++) {
          fllFrequencies.add(fllOutFrequency*(probe+1));
          // Accept value within ~10% of desired
          if (Math.abs((fllOutFrequency*(probe+1)) - fllTargetFrequency) < (fllTargetFrequency/50)) {
             mcg_c4_drst_drs_calc = probe;
-         }         
+         }
       }
       StringBuilder sb       = new StringBuilder();
       Severity      severity = Severity.INFO;
@@ -315,7 +316,7 @@ class FllConfigure {
    /**
     * Returns the status of the FLL i.e. range of values, whether input and output values are valid
     * 
-    * @return Message 
+    * @return Message
     */
    public Status getFllStatus() {
       return fllStatus;

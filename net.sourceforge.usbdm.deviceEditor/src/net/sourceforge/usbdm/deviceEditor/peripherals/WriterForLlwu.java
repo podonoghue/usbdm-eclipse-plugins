@@ -463,7 +463,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
                peEntry.setDescription(pinName);
                peEntry.setTypeName("LlwuPinMode");
                enumName = prettyPinName(enumName);
-               ChoiceData entry = new ChoiceData(pinName, Integer.toString(index), enumName, "", "");
+               ChoiceData entry = new ChoiceData(pinName, Integer.toString(index), enumName);
                choiceData.add(entry);
             }
          }
@@ -475,12 +475,12 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
          }
       }
       // Choice used if FILT is disabled
-      choiceData.add(new ChoiceData("Disabled", "0", "0", "0", null));
+      choiceData.add(new ChoiceData("Disabled", "0"));
       for(int index=0; index<6; index++) {
          ChoiceVariable filter = (ChoiceVariable) safeGetVariable(makeKey("llwu_filt"+index+"_filtsel"));
          if (filter != null) {
             filter.setTypeName("LlwuPin");
-            filter.setData(choiceData);
+            filter.setChoiceData(choiceData);
             filter.setValue(choiceData.get(0).getName());
 //            filter.setDisabledValue(choiceData.get(0).getName());
          }

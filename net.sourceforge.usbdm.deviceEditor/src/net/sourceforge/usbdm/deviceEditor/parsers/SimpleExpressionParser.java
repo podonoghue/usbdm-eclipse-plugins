@@ -7,11 +7,13 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
  * Recursive descent expression parser <br>
  *
+ * <li>identifier  : id_char+[.id_char*]["["expr"]"]
  * <li>number      : digit+[.digit*]
  * <li>value       : number | identifier
  * <li>factor      : [['+'|'-'|'~'|'!'] factor] | ['(' expr ')' | value]
@@ -69,6 +71,16 @@ public class SimpleExpressionParser {
       return fExpression.charAt(fIndex);
    }
    
+   private Character getNextNonWhitespaceCh() {
+      fIndex++;
+      return skipSpace();
+   }
+   
+   /**
+    * Skip whitespace and return first non-whitespace
+    * 
+    * @return Character found or null if et end of expression
+    */
    private Character skipSpace() {
       while ((fIndex<fExpression.length()) && Character.isWhitespace(fExpression.charAt(fIndex))) {
          fIndex++;
@@ -79,6 +91,11 @@ public class SimpleExpressionParser {
       return fExpression.charAt(fIndex);
    }
    
+   /**
+    * Peek at next character without advancing
+    * 
+    * @return Next character or null if at end of expression
+    */
    private Character peek() {
       if ((fIndex+1)>=fExpression.length()) {
          return null;
@@ -108,7 +125,7 @@ public class SimpleExpressionParser {
       }
       while(fIndex<fExpression.length()) {
          ch = fExpression.charAt(fIndex);
-         if (("/[]0123456789".indexOf(ch) >= 0) || Character.isJavaIdentifierPart(ch)) {
+         if ((ch == '/') || Character.isJavaIdentifierPart(ch)) {
             sb.append(ch);
             fIndex++;
             continue;
@@ -124,6 +141,26 @@ public class SimpleExpressionParser {
       }
       if ("false".equalsIgnoreCase(key)) {
          return false;
+      }
+      // Check for index
+      ch = skipSpace();
+      if ((ch != null) && (ch == '[')) {
+         ch = getNextNonWhitespaceCh();
+         if (ch ==']') {
+            key = key +"[]";
+         }
+         else {
+            Object index = evaluateExpression();
+            if (!(index instanceof Long)) {
+               throw new Exception("Invalid index");
+            }
+            ch = skipSpace();
+            if ((ch == null) || (ch != ']')) {
+               throw new Exception("] expected at and of index");
+            }
+            key = key +"[" + index + "]";
+         }
+         ch = getNextNonWhitespaceCh();
       }
       key = makeClockSpecificVarKey(key);
       
@@ -195,10 +232,11 @@ public class SimpleExpressionParser {
       if (isDouble) {
          return Double.parseDouble(val);
       }
-      if (val.startsWith("0b") || val.startsWith("0B")) {
-         return Long.parseLong(val.substring(2), 2);
-      }
-      return Long.decode(sb.toString());
+      return EngineeringNotation.parseAsLong(val);
+//      if (val.startsWith("0b") || val.startsWith("0B")) {
+//         return Long.parseLong(val.substring(2), 2);
+//      }
+//      return Long.decode(sb.toString());
    }
    
    /**

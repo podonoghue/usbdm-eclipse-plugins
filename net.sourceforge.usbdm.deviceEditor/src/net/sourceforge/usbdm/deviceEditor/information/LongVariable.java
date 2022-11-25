@@ -151,7 +151,7 @@ public class LongVariable extends Variable {
     * @return String in appropriate form e.g. 24.56MHz
     */
    public String getValueAsString(long value) {
-      int sigDigits = 5;
+      int sigDigits = 4;
       switch(getUnits()) {
       default:
       case None:

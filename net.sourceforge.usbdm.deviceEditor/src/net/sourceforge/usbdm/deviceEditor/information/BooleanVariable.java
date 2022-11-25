@@ -214,7 +214,7 @@ public class BooleanVariable extends VariableWithChoices {
     */
    @Override
    public String[] getChoices() {
-      getData();
+      getChoiceData();
       return null;
    }
 
@@ -255,7 +255,7 @@ public class BooleanVariable extends VariableWithChoices {
    }
 
    @Override
-   public ChoiceData[] getData() {
+   public ChoiceData[] getChoiceData() {
       ArrayList<ChoiceData> data = new ArrayList<ChoiceData>();
       if (fFalse != null) {
          data.add(fFalse);
