@@ -209,14 +209,13 @@ public class BooleanVariable extends VariableWithChoices {
    /*
     * Special operations
     */
-   /**
-    * @return the choices
-    */
-   @Override
-   public String[] getChoices() {
-      getChoiceData();
-      return null;
-   }
+//   /**
+//    * @return the choices
+//    */
+//   @Override
+//   public String[] getChoices() {
+//      return getChoiceData();
+//   }
 
    /**
     * Get the name/value representing the TRUE value

@@ -194,7 +194,7 @@ public class ChoiceVariable extends VariableWithChoices {
          }
       } catch (NumberFormatException e) {
       }
-      throw new Exception("Value '"+value+"' Not suitable for choice variable");
+      throw new Exception("Value '"+value+"' Not suitable for choice variable "+getName());
    }
 
    /**
@@ -212,13 +212,10 @@ public class ChoiceVariable extends VariableWithChoices {
    public String getValueAsString() {
       String[] choices = getChoices();
       int index = isEnabled()?fValue:fDisabledValue;
-      if (index>=choices.length) {
+      if ((index<0) || (index>=choices.length)) {
          index = 0;
+         System.err.println("getValueAsString() illegal index, "+index);
       }
-//       XX Delete me
-//      if (getName().contains("mcg_c1_frdiv[1]")) {
-//         System.err.println("getValueAsString() => +["+index+"], "+choices[index]);
-//      }
       return choices[index];
    }
    

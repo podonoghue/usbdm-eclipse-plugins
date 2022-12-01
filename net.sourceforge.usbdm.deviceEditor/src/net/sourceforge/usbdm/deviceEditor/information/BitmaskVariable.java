@@ -40,7 +40,7 @@ public class BitmaskVariable extends LongVariable {
    }
 
    @Override
-   public String getValueAsString(long value) {
+   public String formatValueAsString(long value) {
       return "0x"+Long.toHexString(value);
    }
 

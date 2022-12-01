@@ -12,15 +12,15 @@ import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sourceforge.usbdm.deviceDatabase.FileAction.FileType;
-import net.sourceforge.usbdm.deviceDatabase.ProjectVariable.GroupType;
-import net.sourceforge.usbdm.jni.Usbdm;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import net.sourceforge.usbdm.deviceDatabase.FileAction.FileType;
+import net.sourceforge.usbdm.deviceDatabase.ProjectVariable.GroupType;
+import net.sourceforge.usbdm.jni.Usbdm;
 
 public class PackageParser {
 
@@ -33,7 +33,7 @@ public class PackageParser {
     * @return ArrayList of ProjectActionLists (an empty list if none)
     */
    static public ArrayList<ProjectActionList> findPackageList(Device device, Map<String, String> variableMap) {
-      ArrayList<ProjectActionList> pal = new ArrayList<ProjectActionList>(); 
+      ArrayList<ProjectActionList> pal = new ArrayList<ProjectActionList>();
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
       Arrays.sort(packageDirectories);
@@ -46,6 +46,7 @@ public class PackageParser {
          if (packageDirectory.isDirectory()) {
             // Get all XML files
             File[] files = packageDirectory.listFiles(new FileFilter() {
+               @Override
                public boolean accept(File arg0) {
                   return arg0.getName().matches(".*\\.xml$");
                }
@@ -94,7 +95,7 @@ public class PackageParser {
     * Create package parser
     * 
     * @param path              Path to where package is - Used for default directory to look for files
-    * @param projectVariables  Project variables used for conditions etc. 
+    * @param projectVariables  Project variables used for conditions etc.
     */
    protected PackageParser(IPath path, HashMap<String, ProjectVariable> projectVariables) {
       fPath                     = path;
@@ -194,9 +195,9 @@ public class PackageParser {
     * 
     * @param    projectActionListElement <projectActionList> element
     * 
-    * @return   Action list described 
+    * @return   Action list described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private ProjectActionList parseProjectActionListElement(Element projectActionListElement) throws Exception {
       ProjectActionList projectActionList = new ProjectActionList();
@@ -212,7 +213,7 @@ public class PackageParser {
     * @param   listElement <projectActionList> element
     * @param   projectActionList List to use
     * @param   variableList Map to add variables to
-    * @return  Action list described 
+    * @return  Action list described
     * @throws  Exception
     */
    private ProjectActionList parseProjectActionListElement(Element listElement, ProjectActionList projectActionList) throws Exception {
@@ -247,9 +248,6 @@ public class PackageParser {
                ProjectVariable variable = findVariable(newVariable.getId());
                if (variable == null) {
                   fNewProjectVariables.put(newVariable.getId(), newVariable);
-                  if (fNewProjectVariables.get(newVariable.getId()) == null) {
-                     System.err.println("Opps");
-                  }
                }
             }
             else if (element.getTagName() == "block") {
@@ -297,9 +295,9 @@ public class PackageParser {
     * Parse a <applyWhen> element
     * @param    <applyWhen> element
     * 
-    * @return   condition described 
+    * @return   condition described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private ApplyWhenCondition parseApplyWhenElement(Element applyWhenElement) throws Exception {
       ApplyWhenCondition applyWhenCondition = null;
@@ -323,14 +321,14 @@ public class PackageParser {
  
    /**
     * Parses:
-    *  <deviceNameIs>, <deviceFamilyIs>, <deviceSubfamilyIs>, 
-    *  <deviceNameMatches>, <deviceFamilyMatches>, <deviceSubfamilyMatches>, 
+    *  <deviceNameIs>, <deviceFamilyIs>, <deviceSubfamilyIs>,
+    *  <deviceNameMatches>, <deviceFamilyMatches>, <deviceSubfamilyMatches>,
     *  <requirement>, <and>, <or> or <not> element
     * @param    applyWhenElement <applyWhen> element
     * 
-    * @return   condition described 
+    * @return   condition described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private ApplyWhenCondition parseApplyWhenSubElement(Element element) throws Exception {
       if (element.getTagName() == "deviceNameIs") {
@@ -387,7 +385,7 @@ public class PackageParser {
       else if (element.getTagName() == "not") {
          ArrayList<ApplyWhenCondition> list = parseApplyWhenLogicalElement(element);
          return new ApplyWhenCondition(ApplyWhenCondition.Type.not, list);
-      } 
+      }
       throw new Exception("Unexpected element in <applyWhen> \'" + element.getTagName() + "\'");
   }
    
@@ -395,9 +393,9 @@ public class PackageParser {
     * Parse a <and> or <or> or <not> element
     * @param    applyWhenElement <and> or <or> or <not> element
     * 
-    * @return   condition described 
+    * @return   condition described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private ArrayList<ApplyWhenCondition> parseApplyWhenLogicalElement(Element logicalOperands) throws Exception {
       ArrayList<ApplyWhenCondition> list = null;
@@ -424,8 +422,8 @@ public class PackageParser {
     * 
     * @param    <variable> element
     * 
-    * @return   File list described 
-    * @throws Exception 
+    * @return   File list described
+    * @throws Exception
     */
    private ProjectVariable parseVariableElement(Element projectVariableElement) throws Exception {
       // <projectVariable>
@@ -479,8 +477,8 @@ public class PackageParser {
     * @param    projectActionList   The projectActionList to add action to
     * @param    root                Root path to add to file related elements
     * 
-    * @return   File list described 
-    * @throws   Exception 
+    * @return   File list described
+    * @throws   Exception
     */
    private Block parseBlockElement( Element blockElement, ProjectActionList projectActionList, IPath root) throws Exception {
 
@@ -549,8 +547,8 @@ public class PackageParser {
     * 
     * @param    fileElement <excludeSourceFile> element
     * 
-    * @return   File list described 
-    * @throws Exception 
+    * @return   File list described
+    * @throws Exception
     */
    private ExcludeAction parseExcludeSourceFileElement(Element element) throws Exception {
       // <excludeFile target="..." excluded="..."  >
@@ -568,8 +566,8 @@ public class PackageParser {
     * 
     * @param    fileElement <excludeSourceFolder> element
     * 
-    * @return   File list described 
-    * @throws Exception 
+    * @return   File list described
+    * @throws Exception
     */
    private ExcludeAction parseExcludeSourceFolderElement(Element element) throws Exception {
       // <excludeFolder target="..." excluded="..."  >
@@ -587,8 +585,8 @@ public class PackageParser {
     * 
     * @param  createFolderElement <createFolder> element
     * 
-    * @return   File list described 
-    * @throws Exception 
+    * @return   File list described
+    * @throws Exception
     */
    private CreateFolderAction parseCreateFolderElement(Element createFolderElement) throws Exception {
       // <createFolder target="..." type="..." >
@@ -602,8 +600,8 @@ public class PackageParser {
     * 
     * @param    fileElement <copy> element
     * 
-    * @return   File list described 
-    * @throws Exception 
+    * @return   File list described
+    * @throws Exception
     */
    private FileAction parseCopyElement(Element element) throws Exception {
       // <copy>
@@ -642,8 +640,8 @@ public class PackageParser {
     * 
     * @param    fileElement <deleteResource> element
     * 
-    * @return   File list described 
-    * @throws Exception 
+    * @return   File list described
+    * @throws Exception
     */
    private DeleteResourceAction parseDeleteElement(Element element) throws Exception {
       // <deleteResource>
@@ -659,9 +657,9 @@ public class PackageParser {
     * 
     * @param    element <projectOption> element
     * 
-    * @return   element described 
+    * @return   element described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private ProjectOption parseProjectOptionElement(Element optionElement) throws Exception {
       // <projectOption>
@@ -700,9 +698,9 @@ public class PackageParser {
     * 
     * @param    element <customAction> element
     * 
-    * @return   element described 
+    * @return   element described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private ProjectCustomAction parseCustomActionElement(Element customActionElement) throws Exception {
       // <projectOption>

@@ -6,31 +6,61 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
 public class GraphicBox extends Graphic {
    
-   private int[] pointsX;
-   private int[] pointsY;
-   private int[] pointsXY;
+   /** List of x,y coordinates outlining box */
+   private int[] path;
+   
    private java.awt.Polygon polygon;
    
-   public GraphicBox(int x, int y, int w, int h, String text) {
-      super(x, y, w, h, text);
+   public GraphicBox(int x, int y, int w, int h, String id) {
+      super(x, y, w, h, id);
    }
 
-   public GraphicBox(int[] pointsXY, String id) {
-      super(pointsXY[0], pointsXY[1], 0, 0, id);
+   public GraphicBox(int x, int y, String[] path, String id) {
+      super(x, y, 0, 0, id);
 
-      pointsX = new int[pointsXY.length/2];
-      pointsY = new int[pointsXY.length/2];
+      int[] pointsX  = new int[path.length+2];
+      int[] pointsY  = new int[path.length+2];
       
-      this.pointsXY = pointsXY;
+      this.path = new int[2*(path.length+2)];
       
-      for (int index=0; index<pointsX.length; index++) {
-         pointsX[index] = pointsXY[2*index];
-         pointsY[index] = pointsXY[2*index+1];
+      int currentX = x;
+      int currentY = y;
+
+      /**
+       * Create:
+       *    pointsX  - Array of X coordinates
+       *    pointsY  - Array of Y coordinates
+       *    pointsXY - Array of X,Y pairs
+       */
+      pointsX[0]    = currentX;
+      pointsY[0]    = currentY;
+      this.path[0]  = currentX;
+      this.path[1]  = currentY;
+      
+      int polyIndex = 1;
+      for (int index=0; index<path.length; index++, polyIndex++) {
+         int newCoord = Integer.parseInt(path[index].substring(1));
+         if (path[index].charAt(0) == 'x') {
+            currentX = newCoord;
+         }
+         else if (path[index].charAt(0) == 'y') {
+            currentY = newCoord;
+         }
+         pointsX[polyIndex]    = currentX;
+         pointsY[polyIndex]    = currentY;
+         this.path[2*polyIndex]      = currentX;
+         this.path[2*polyIndex+1]    = currentY;
       }
+      // Close polygon
+      pointsX[polyIndex]    = x;
+      pointsY[polyIndex]    = y;
+      this.path[2*polyIndex]      = currentX;
+      this.path[2*polyIndex+1]    = currentY;
       polygon = new Polygon(pointsX, pointsY, pointsX.length);
    }
 
@@ -38,32 +68,35 @@ public class GraphicBox extends Graphic {
 
       String paramsArray[] = params.split(",");
       
-      int pointsXY[] = new int[paramsArray.length];
-      for (int index=0; index<paramsArray.length; index++) {
-         pointsXY[index] = Integer.parseInt(paramsArray[index].trim());
+      int x = Integer.parseInt(paramsArray[0].trim());
+      int y = Integer.parseInt(paramsArray[1].trim());
+
+      String path[] = new String[paramsArray.length-2];
+      for (int index=2; index<paramsArray.length; index++) {
+         path[index-2] = paramsArray[index].trim();
       }
-      return new GraphicBox(pointsXY,  id);
+      return new GraphicBox(x, y, path, id);
    }
 
    @Override
    void draw(Display display, GC gc) {
       super.draw(display, gc);
 
+      gc.setForeground(display.getSystemColor(BOX_COLOR));
+      gc.setBackground(display.getSystemColor(DEFAULT_BACKGROUND_COLOR));
+      
       gc.setLineWidth(2);
       gc.setLineStyle(SWT.LINE_DASH);
-      gc.drawPolygon(pointsXY);
-      gc.fillPolygon(pointsXY);
-      
-//      moveTo(pointsX[0], pointsY[0]);
-//      for (int index=0; ++index<pointsX.length; ) {
-//         lineTo(gc, pointsX[index], pointsY[index]);
-//      }
+      gc.drawPolygon(path);
+      gc.fillPolygon(path);
 
       FontData data = display.getSystemFont().getFontData()[0];
       Font font = new Font(display, data.getName(), 10, SWT.NORMAL);
       gc.setFont(font);
-      Point p = map(5,5);
-      gc.drawText(text, p.x, p.y);
+      
+      // Draw title below the middle of 1st segment
+      Point p = new Point((path[0]+path[2])/2-20,path[1]);
+      gc.drawText(name, p.x, p.y);
       font.dispose();
    }
 

@@ -11,23 +11,24 @@ import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
-public class GraphicNode extends GraphicBaseVariable {
+public class GraphicReference extends GraphicBaseVariable {
 
-   public GraphicNode(int x, int y, String id, Boolean canEdit, Variable var) {
-      super(x, y, 10, 10, id, canEdit, var);
+   public GraphicReference(int x, int y, int w, String id, Boolean canEdit, Variable var) {
+      super(x, y, w, vScale, id, canEdit, var);
       inputs     = new Point[1];
       inputs[0]  = new Point(-w/2, 0);
       outputs    = new Point[1];
       outputs[0] = new Point(+w/2, 0);
    }
 
-   public static GraphicNode create(String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicReference create(String id, String params, Boolean canEdit, Variable var) {
 
       String paramsArray[] = params.split(",");
       int x = Integer.parseInt(paramsArray[0].trim());
       int y = Integer.parseInt(paramsArray[1].trim());
+      int w = Integer.parseInt(paramsArray[2].trim());
 
-      GraphicNode t = new GraphicNode(x, y, id, canEdit, var);
+      GraphicReference t = new GraphicReference(x, y, w, id, canEdit, var);
 
       t.addInputsAndOutputs(2, paramsArray, 10, 10);
       return t;
@@ -40,11 +41,7 @@ public class GraphicNode extends GraphicBaseVariable {
       gc.setBackground(display.getSystemColor(backGroundColor));
       gc.setForeground(display.getSystemColor(lineColor));
       
-      //      drawBoundary(gc);
-
-      gc.fillRectangle(x-w/2,   y-h/2,    w,    h);
-      gc.setLineWidth(2);
-      gc.drawRectangle(x-w/2,   y-h/2,    w,    h);
+      drawBoundary(gc);
 
       StringBuilder label = new StringBuilder();
       String name = getName();
@@ -64,7 +61,7 @@ public class GraphicNode extends GraphicBaseVariable {
          FontData data = display.getSystemFont().getFontData()[0];
          Font font = new Font(display, data.getName(), 10, SWT.NORMAL);
          gc.setFont(font);
-         gc.drawText(label.toString(), (nameX+x+w-40), (nameY+y-25));
+         gc.drawText(label.toString(), x-w/2+4, y-data.getHeight()/2-2);
 
          font.dispose();
       }
@@ -72,7 +69,7 @@ public class GraphicNode extends GraphicBaseVariable {
 
    @Override
    Point getEditPoint() {
-      return new Point((x+w-40), (y-25));
+      return new Point(x-w/2+4, y-h/2+2);
    }
 
 }

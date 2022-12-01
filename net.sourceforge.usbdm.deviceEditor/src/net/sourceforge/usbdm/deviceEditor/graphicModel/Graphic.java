@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.graphicModel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
 public abstract class Graphic {
@@ -9,35 +10,38 @@ public abstract class Graphic {
    public static enum Height        {small, large};
    public static enum ShowValue     {quiet};
    public static enum Orientation   {normal, rot90, rot180, rot270, mirror, rot90mirror, rot180mirror, rot270mirror, };
-   public static enum Type          {variableBox, box, choice, mux, hmux, connector, node, label};
+   public static enum Type          {variableBox, box, choice, mux, hmux, connector, node, label, reference, annotation};
+   public static final int NONE     =0b0000;
+   public static final int NONAME   =0b0001;
+   public static final int NOVALUE  =0b0010;
    
-   static class Point {
-      int x, y;
-      
-      Point(int x, int y) {
-         this.x = x;
-         this.y = y;
-      }
-   };
-
    final static int vScale             = 20;
    final static int hScale             = 10;
    
-   final static int backgroundColor    = SWT.COLOR_WHITE;
-   final static int lineColor          = SWT.COLOR_BLACK;
-   final static int selectedLineColor  = SWT.COLOR_BLUE;
-   final static int fillColor          = SWT.COLOR_WHITE;
-   final static int selectedFillColor  = SWT.COLOR_GRAY;
-   final static int disabledLineColor  = SWT.COLOR_GRAY;
+   final static int DEFAULT_BACKGROUND_COLOR     = SWT.COLOR_WHITE;
+   final static int DEFAULT_LINE_COLOR           = SWT.COLOR_BLACK;
+   final static int DEFAULT_SELECTED_LINE_COLOR  = SWT.COLOR_BLUE;
+   final static int DEFAULT_FILL_COLOR           = DEFAULT_BACKGROUND_COLOR;
+   final static int DEFAULT_SELECTED_FILL_COLOR  = SWT.COLOR_GRAY;
+   final static int DEFAULT_DISABLED_LINE_COLOR  = SWT.COLOR_GRAY;
+   final static int BOX_COLOR                    = SWT.COLOR_BLUE;
+   final static int ERROR_COLOR                  = SWT.COLOR_RED;
+   
+   int backGroundColor = DEFAULT_BACKGROUND_COLOR;
+   int lineColor       = DEFAULT_LINE_COLOR;
    
    int x,y,w,h;
 
    Orientation orientation;
 
    boolean fSelected = false;
-   String text;
+   String name;
+   String id;
+   int nameX=0;
+   int nameY=0;
+   private int style;
    
-   public Graphic(int x, int y, int w, int h, String text, Orientation orientation) {
+   public Graphic(int x, int y, int w, int h, String id, Orientation orientation) {
       this.x = x;
       this.y = y;
       this.orientation = orientation;
@@ -45,10 +49,52 @@ public abstract class Graphic {
       p = rotate(p);
       this.w = p.x;
       this.h = p.y;
-      this.text = text;
+      
+      String text[] = id.split(",");
+      this.id   = text[0];
+      this.name = text[0].split(".")[0];
+      
+      this.style = NONE;
+      
+      try {
+         for (int index=1; index<text.length; index++) {
+            String modifier = text[index];
+            if (modifier.startsWith("x")) {
+               nameX = Integer.parseInt(modifier.substring(1));
+            }
+            else if (modifier.startsWith("y")) {
+               nameY = Integer.parseInt(modifier.substring(1));
+            }
+            else {
+               // Assume style
+               String styles[] = text[1].split("\\|");
+               for (String style:styles) {
+                  if ("NONE".equalsIgnoreCase(style)) {
+                  }
+                  else if ("NONAME".equalsIgnoreCase(style)) {
+                     this.style |= NONAME;
+                  }
+                  else if ("NOVALUE".equalsIgnoreCase(style)) {
+                     this.style |= NOVALUE;
+                  }
+               }
+            }
+         }
+      } catch (NumberFormatException e) {
+         throw new RuntimeException("Failed to process name modifiers for " + getName());
+      }
    }
    
-   public Graphic(int x, int y, int w, int h, String text) {
+   /**
+    * Get style as bit-map
+    * 
+    * @return
+    */
+   public int getStyle() {
+      return style;
+   }
+   
+   public Graphic(int x, int y, int w, int h, String id) {
       this.x = x;
       this.y = y;
       this.orientation = Orientation.normal;
@@ -56,20 +102,52 @@ public abstract class Graphic {
       p = rotate(p);
       this.w = p.x;
       this.h = p.y;
-      this.text = text;
+      
+      String text[] = id.split(",");
+      this.id   = text[0];
+      this.name = this.id.split("\\.")[0];
+      
+      this.style = NONE;
+      
+      try {
+         for (int index=1; index<text.length; index++) {
+            String modifier = text[index];
+            if (modifier.startsWith("x")) {
+               nameX = Integer.parseInt(modifier.substring(1));
+            }
+            else if (modifier.startsWith("y")) {
+               nameY = Integer.parseInt(modifier.substring(1));
+            }
+            else {
+               // Assume style
+               String styles[] = text[index].split("\\|");
+               for (String style:styles) {
+                  if ("NONE".equalsIgnoreCase(style)) {
+                  }
+                  else if ("NONAME".equalsIgnoreCase(style)) {
+                     this.style |= NONAME;
+                  }
+                  else if ("NOVALUE".equalsIgnoreCase(style)) {
+                     this.style |= NOVALUE;
+                  }
+               }
+            }
+         }
+      } catch (NumberFormatException e) {
+         throw new RuntimeException("Failed to process name modifiers for " + getName());
+      }
    }
    
    void draw(Display display,GC gc) {
       gc.setLineStyle(SWT.LINE_SOLID);
       gc.setLineWidth(1);
 
+      backGroundColor = DEFAULT_BACKGROUND_COLOR;
+      lineColor       = DEFAULT_LINE_COLOR;
+
       if (fSelected) {
-         gc.setBackground(display.getSystemColor(selectedFillColor));
-         gc.setForeground(display.getSystemColor(selectedLineColor));
-      }
-      else {
-         gc.setBackground(display.getSystemColor(fillColor));
-         gc.setForeground(display.getSystemColor(lineColor));
+         backGroundColor = DEFAULT_SELECTED_FILL_COLOR;
+         lineColor       = DEFAULT_SELECTED_LINE_COLOR;
       }
    }
    
@@ -87,7 +165,18 @@ public abstract class Graphic {
 
    @Override
    public String toString() {
-      return text;
+      return name;
+   }
+   
+   public String getName() {
+      if ((style&NONAME) != 0) {
+         return null;
+      }
+      return name;
+   }
+   
+   public String getId() {
+      return id;
    }
    
    /**
@@ -133,9 +222,6 @@ public abstract class Graphic {
     */
    Point rotate(Point point) {
       
-      if (point == null) {
-         System.err.println("Opps");
-      }
       Point rotatedPoint;
       
       switch (orientation) {
@@ -286,41 +372,29 @@ public abstract class Graphic {
 //      System.err.println("x="+x+", y="+y);
    }
    
+   /**
+    *  Draw arrow at current location and with current direction
+    */
    void drawArrow(Display display, GC gc) {
       Point p = new Point(currentX, currentY);
-      Point points[];
+      int points[];
       switch (direction) {
          default:
          case up:
-            points = new Point[]{
-                  new Point(p.x-5,p.y+5),
-                  new Point(p.x,  p.y),
-                  new Point(p.x+5,p.y+5),
-            };
+            points = new int[]{p.x-6,p.y+6, p.x,p.y, p.x+6,p.y+6};
             break;
          case down:
-            points = new Point[]{
-                  new Point(p.x-5,p.y-5),
-                  new Point(p.x,  p.y),
-                  new Point(p.x+5,p.y-5),
-            };
+            points = new int[]{p.x-6,p.y-6, p.x,p.y, p.x+6,p.y-6};
             break;
          case left:
-            points = new Point[]{
-                  new Point(p.x+5,p.y+5),
-                  new Point(p.x,  p.y),
-                  new Point(p.x+5,p.y-5),
-            };
+            points = new int[]{p.x+6,p.y+6, p.x,  p.y, p.x+6,p.y-6};
             break;
          case right:
-            points = new Point[]{
-                  new Point(p.x-5,p.y+5),
-                  new Point(p.x,p.y),
-                  new Point(p.x-5,p.y-5),
-            };
+            points = new int[]{p.x-6,p.y+6, p.x-1,p.y, p.x-6,p.y-6};
             break;
       }
-      fillPoly(gc, points);
+      gc.setBackground(display.getSystemColor(lineColor));
+      gc.fillPolygon(points);
    }
    
 

@@ -917,6 +917,12 @@ public class ParseMenuXML extends XML_BaseParser {
             // Add as monitored variable
             fPeripheral.addMonitoredVariable(variable);
          }
+//         String errorIf = otherVariable.getErrorIf();
+//         if (errorIf != null) {
+//            variable.setErrorIf(errorIf);
+//            // Add as monitored variable
+//            fPeripheral.addMonitoredVariable(variable);
+//         }
          variable.setRegister(otherVariable.getRegister());
 //         variable.setDataValue(otherVariable.getDataValue());
       }
@@ -943,6 +949,11 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
+      }
+      if (varElement.hasAttribute("errorIf")) {
+         variable.setErrorIf(getAttribute(varElement, "errorIf"));
          // Add as monitored variable
          fPeripheral.addMonitoredVariable(variable);
       }
@@ -1063,18 +1074,25 @@ public class ParseMenuXML extends XML_BaseParser {
       if (variable.getValueFormat() == null) {
          variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
       }
+      boolean dynamic = false;
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getRequiredLongExpressionAttribute(varElement, "min"));
+            dynamic = variable.setMin(getAttribute(varElement, "min"));
+//            variable.setMin(getRequiredLongExpressionAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getRequiredLongExpressionAttribute(varElement, "max"));
+            dynamic = variable.setMax(getAttribute(varElement, "max"));
+//            variable.setMax(getRequiredLongExpressionAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("disabledValue")) {
             variable.setDisabledValue(getRequiredLongExpressionAttribute(varElement, "disabledValue"));
          }
       } catch(NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
+      }
+      if (dynamic) {
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
       }
       if (varElement.hasAttribute("units")) {
          variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
@@ -1360,7 +1378,7 @@ public class ParseMenuXML extends XML_BaseParser {
          res = res.replace("$(_class)",      fPeripheral.getClassName());
          res = res.replace("$(_basename)",   fPeripheral.getBaseName());
       }
-      return res;
+      return res.trim();
    }
    
    /**
@@ -1424,6 +1442,28 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * Get attribute with given name and treat as key and apply usual key transformations
+    *  <li>"$(_name)"     => fProvider.getName()
+    *  <li>"$(_instance)" => fPeripheral.getInstance()
+    *  <li>For loop substitution
+    *  <li>fprovider.MakeKey()
+    * 
+    * @param element          Element to examine
+    * @param attributeName    Name to use for attribute
+    * 
+    * @return  Modified key or null if not found
+    * 
+    * @throws Exception
+    */
+   String getKeyAttribute(Element element, String attributeName) throws Exception {
+      String key = getAttribute(element, attributeName);
+      if (key == null) {
+         return null;
+      }
+      return fProvider.makeKey(key);
+   }
+   
+   /**
     * Get attribute 'key' or 'name' and apply usual key transformations
     *  <li>"$(_name)"     => fProvider.getName()
     *  <li>"$(_instance)" => fPeripheral.getInstance()
@@ -1432,7 +1472,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param element    Element to examine
     * 
-    * @return  Modified key or null if nor found
+    * @return  Modified key or null if not found
     * 
     * @throws Exception
     */
@@ -2926,16 +2966,18 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    private void parseGraphic(BaseModel parentModel, Element element) throws Exception {
-      String key         = getKeyAttribute(element);
-      String description = getAttribute(element, "description");
-      String tooltip     = getAttribute(element, "toolTip");
+      
       ClockSelectionFigure figure = new ClockSelectionFigure();
+      
       OpenGraphicModel model = new OpenGraphicModel(
             parentModel,
-            key,
-            description,
+            getKeyAttribute(element),
+            fProvider.safeGetVariable(getKeyAttribute(element, "var")),
             figure);
-      model.setToolTip(tooltip);
+      
+      model.setToolTip(getAttribute(element, "toolTip"));
+      model.setSimpleDescription(getAttribute(element, "description"));
+      
 //      fPeripheral.addFigure(figure);
       
       for (Node node = element.getFirstChild();
@@ -2945,10 +2987,11 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          String id     = getAttribute((Element)node, "id");
-         String varKey = getKeyAttribute((Element)node);
+         String varKey = getKeyAttribute((Element)node, "var");
          String type   = getAttribute((Element)node, "type");
+         String edit   = getAttribute((Element)node, "edit");
          String params = getAttribute((Element)node, "params");
-         figure.add(id, varKey, type, params);
+         figure.add(id, varKey, type, edit, params);
       }
    }
 
@@ -3425,7 +3468,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return null;
       }
-      String description = aliasModel.getDescription();
+      String description = aliasModel.getSimpleDescription();
       if (!description.isEmpty()) {
          if ((variable.getDescription() != null) && !variable.getDescription().isEmpty()) {
             throw new Exception("Alias tries to change description for " + key);

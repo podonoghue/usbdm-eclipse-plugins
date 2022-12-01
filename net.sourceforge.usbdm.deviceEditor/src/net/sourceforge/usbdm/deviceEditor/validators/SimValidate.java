@@ -183,10 +183,10 @@ public class SimValidate extends PeripheralValidator {
       final LongVariable   system_flexbus_clockVar      = safeGetLongVariable("system_flexbus_clock");
       final LongVariable   system_flash_clockVar        = getLongVariable("system_flash_clock");
 
-      final LongVariable   sim_clkdiv1_outdiv1Var       = getLongVariable("sim_clkdiv1_outdiv1");
-      final LongVariable   sim_clkdiv1_outdiv2Var       = getLongVariable("sim_clkdiv1_outdiv2");
-      final LongVariable   sim_clkdiv1_outdiv3Var       = safeGetLongVariable("sim_clkdiv1_outdiv3");
-      final LongVariable   sim_clkdiv1_outdiv4Var       = getLongVariable("sim_clkdiv1_outdiv4");
+      final ChoiceVariable   sim_clkdiv1_outdiv1Var     = getChoiceVariable("sim_clkdiv1_outdiv1");
+      final ChoiceVariable   sim_clkdiv1_outdiv2Var     = getChoiceVariable("sim_clkdiv1_outdiv2");
+      final ChoiceVariable   sim_clkdiv1_outdiv3Var     = getChoiceVariable("sim_clkdiv1_outdiv3");
+      final ChoiceVariable   sim_clkdiv1_outdiv4Var     = getChoiceVariable("sim_clkdiv1_outdiv4");
 
       final ChoiceVariable smc_pmctrl_runmVar           = getChoiceVariable("/SMC/smc_pmctrl_runm");
 
@@ -232,37 +232,34 @@ public class SimValidate extends PeripheralValidator {
       
       // All clocks are based on this value
       final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
-      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
+//      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
       
       // Core Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clock, system_core_clockVar.getValueAsLong()) {
+      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clockVar, system_core_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return frequency<=maximum;
          }
       };
       {
-         Severity      severity = Severity.OK;
-         StringBuilder sb       = new StringBuilder();
-         if ((coreDivisor.divisor == 0) || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
+         Severity severity = Severity.OK;
+         if (coreDivisor.failed() || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
          }
-         sb.append(coreDivisor.divisors);
-         system_core_clockVar.setStatus(new Status(sb.toString(), severity));
+         system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
       }
-      if (doGuiUpdates && (variable == system_core_clockVar)) {
+      if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
          // Target clock manually changed - update divisor
-         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
-         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor-1);
+//         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
       }
 
       // Bus Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, system_mcgoutclk_clock, system_bus_clockVar.getValueAsLong()) {
+      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, system_mcgoutclk_clockVar, system_bus_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=maximum) &&
@@ -273,23 +270,23 @@ public class SimValidate extends PeripheralValidator {
       {
          Severity      severity = Severity.OK;
          StringBuilder sb       = new StringBuilder();
-         if ((busDivisor.divisor == 0) || (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency)) {
+         if (busDivisor.failed() || (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(busDivisor.divisors);
          system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
       }
-      if (doGuiUpdates && (variable == system_bus_clockVar)) {
+      if (!busDivisor.failed() && doGuiUpdates && (variable == system_bus_clockVar)) {
          // Target clock manually changed - update divisors
-         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
+         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor-1);
          system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
       }
       // Flexbus Clock
       //===========================================
       if (sim_clkdiv1_outdiv3Var != null) {
          // Attempt to find acceptable divisor
-         final FindDivisor flexDivisor = new FindDivisor(maxFlexbusClockFreq, system_mcgoutclk_clock, system_flexbus_clockVar.getValueAsLong()) {
+         final FindDivisor flexDivisor = new FindDivisor(maxFlexbusClockFreq, system_mcgoutclk_clockVar, system_flexbus_clockVar.getValueAsLong()) {
             @Override
             boolean okValue(int divisor, double frequency) {
                return (frequency<=maximum) &&
@@ -301,23 +298,23 @@ public class SimValidate extends PeripheralValidator {
          {
             Severity      severity = Severity.OK;
             StringBuilder sb       = new StringBuilder();
-            if ((busDivisor.divisor == 0) || (system_flexbus_clockVar.getValueAsLong() != flexDivisor.nearestTargetFrequency)) {
+            if (flexDivisor.failed() || (system_flexbus_clockVar.getValueAsLong() != flexDivisor.nearestTargetFrequency)) {
                severity = Severity.ERROR;
                sb.append("Illegal Frequency\n");
             }
             sb.append(flexDivisor.divisors);
             system_flexbus_clockVar.setStatus(new Status(sb.toString(), severity));
          }
-         if (doGuiUpdates && (variable == system_flexbus_clockVar)) {
+         if (!flexDivisor.failed() && doGuiUpdates && (variable == system_flexbus_clockVar)) {
             // Target clock manually changed - update divisor
-            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
+            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor-1);
             system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
          }
       }
       // Flash Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final FindDivisor flashDivisor = new FindDivisor(maxFlashClockFreq, system_mcgoutclk_clock, system_flash_clockVar.getValueAsLong()) {
+      final FindDivisor flashDivisor = new FindDivisor(maxFlashClockFreq, system_mcgoutclk_clockVar, system_flash_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=maximum) &&
@@ -330,16 +327,16 @@ public class SimValidate extends PeripheralValidator {
       {
          Severity      severity = Severity.OK;
          StringBuilder sb       = new StringBuilder();
-         if ((busDivisor.divisor == 0) || (system_flash_clockVar.getValueAsLong() != flashDivisor.nearestTargetFrequency)) {
+         if (flashDivisor.failed() || (system_flash_clockVar.getValueAsLong() != flashDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(flashDivisor.divisors);
          system_flash_clockVar.setStatus(new Status(sb.toString(), severity));
       }
-      if (doGuiUpdates && (variable == system_flash_clockVar)) {
+      if (!flashDivisor.failed() && doGuiUpdates && (variable == system_flash_clockVar)) {
          // Target clock changed - validate
-         sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
+         sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor-1);
          system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
       }
    }
@@ -350,48 +347,77 @@ public class SimValidate extends PeripheralValidator {
       public final int    divisor;
       public final String divisors;
       public final long   maximum;
+      
+      private final boolean valuesNotFound;
+      
       /**
        * Creates table of acceptable frequencies and determines the nearest to target frequency
        * 
        * @param inputFrequency   Input frequency being divided
        * @param targetFrequency  Desired frequency
        */
-      public FindDivisor(long maximum, long inputFrequency, long targetFrequency) {
+      public FindDivisor(long maximum, LongVariable inputFrequencyVar, long targetFrequency) {
          this.maximum = maximum;
          HashSet<String> divisorSet= new HashSet<String>();
          double nearestValue   = Double.MAX_VALUE;
          int    nearestDivisor = 0;
          StringBuilder sb = new StringBuilder();
-         sb.append("Possible values:");
          int values = 0;
-         for (int divisor=16; divisor>0; divisor--) {
-            double frequency = inputFrequency/divisor;
-            if (!okValue(divisor, frequency)) {
-               continue;
-            }
-            if (values++ == 7) {
-               sb.append("\n");
-            }
-            String value = EngineeringNotation.convert(frequency, 3);
-            if (divisorSet.add(value)) {
-               sb.append(" "+value+"Hz");
-               if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
-                  nearestValue = frequency;
-                  nearestDivisor = divisor;
-               }
-            }
-         }
-         if (divisorSet.isEmpty()) {
+         Status status = inputFrequencyVar.getStatus();
+         if (!inputFrequencyVar.isEnabled()) {
             nearestTargetFrequency = 0;
-            sb.append(" No suitable values found");
+            valuesNotFound = true;
+            sb.append("Disabled by "+inputFrequencyVar.getName());
+         }
+         else if ((status != null) && status.greaterThan(Status.Severity.INFO)) {
+            nearestTargetFrequency = 0;
+            sb.append(inputFrequencyVar.getStatus().getSimpleText());
+            valuesNotFound = true;
          }
          else {
-            nearestTargetFrequency = Math.round(nearestValue);
+            Long inputFrequency = inputFrequencyVar.getRawValueAsLong();
+            for (int divisor=16; divisor>0; divisor--) {
+               double frequency = inputFrequency/divisor;
+               if ((frequency < 1.0) || !okValue(divisor, frequency)) {
+                  continue;
+               }
+               String value = EngineeringNotation.convert(frequency, 3);
+               if (divisorSet.add(value)) {
+                  if (values == 0) {
+                     sb.append("Possible values:");
+                  }
+                  if (values++ == 7) {
+                     sb.append("\n");
+                  }
+                  sb.append(" "+value+"Hz");
+                  if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
+                     nearestValue = frequency;
+                     nearestDivisor = divisor;
+                  }
+               }
+            }
+            valuesNotFound = divisorSet.isEmpty();
+            if (valuesNotFound) {
+               nearestTargetFrequency = 0;
+               sb.append(" No suitable values found");
+            }
+            else {
+               nearestTargetFrequency = Math.round(nearestValue);
+            }
          }
          divisor  = nearestDivisor;
          divisors = sb.toString();
       }
 
+      /**
+       * Indicates that no acceptable divisors were found
+       * 
+       * @return True => failed
+       */
+      public boolean failed() {
+         return this.valuesNotFound;
+      }
+      
       /**
        * Used to accept or reject proposed target frequencies/divisors
        * 

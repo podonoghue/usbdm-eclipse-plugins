@@ -38,17 +38,14 @@ class FllConfigure {
    // FLL multiplication factor for wide range
    private static final long FLL_WIDE_FACTOR   = 640;
 
-   private double nearestError     = Double.MAX_VALUE;
-   private double nearestFrequency = 0.0;
-   private int    nearest_frdiv    = 0;
-   private int    mcg_c1_frdiv_calc;
-   private double fllInputFrequency_calc;
-
    /** Calculated MCG_C1_FRDIV value */
-   public final int  mcg_c1_frdiv;
+   private int  mcg_c1_frdiv;
+
+   /** Calculated fllInputFrequency */
+   private long fllInputFrequency;
 
    /** MCG_C4_DRST_DRS value corresponding to fllTargetFrequency */
-   public final int mcg_c4_drst_drs;
+   private final int mcg_c4_drst_drs;
    
    /** Returns the status of the FLL i.e. whether input and output values are valid */
    private Status fllStatus;
@@ -60,9 +57,15 @@ class FllConfigure {
     * @param mcg_c4_dmx32Var     Clock mode (affects input range)
     * @param rangeDivisors       Possible dividers to select
     * 
+    * Updates mcg_c1_frdiv with best divider found
+    * Updates fllInputFrequency with value corresponding to above
+    * 
     * @return True => Found suitable divider
     */
-   boolean findDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) {
+   private boolean findFllDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) {
+
+      double nearestError        = Double.MAX_VALUE;
+      int    nearest_frdiv       = 0;
 
       long fllInMin;
       long fllInMax;
@@ -77,35 +80,45 @@ class FllConfigure {
       }
 
       boolean found = false;
-      for (mcg_c1_frdiv_calc=0; mcg_c1_frdiv_calc<rangeDivisors.length; mcg_c1_frdiv_calc++) {
+      double bestFllInputFrequency  = 0.0;
+      
+      for (int mcg_c1_frdiv_calc=0; mcg_c1_frdiv_calc<rangeDivisors.length; mcg_c1_frdiv_calc++) {
          
-         fllInputFrequency_calc = ((double)fllInputClock)/rangeDivisors[mcg_c1_frdiv_calc];
+         double fllInputFrequency_calc = ((double)fllInputClock)/rangeDivisors[mcg_c1_frdiv_calc];
          
          if (fllInMin>fllInputFrequency_calc) {
+            // Below range
             if ((fllInMin-fllInputFrequency_calc) < nearestError) {
-               nearestFrequency = fllInputFrequency_calc;
-               nearestError     = fllInMin-fllInputFrequency_calc;
-               nearest_frdiv    = mcg_c1_frdiv_calc;
-               //                  System.err.println(String.format("+%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
+               // Keep updated value even if out of range
+               nearestError          = fllInMin-fllInputFrequency_calc;
+               nearest_frdiv         = mcg_c1_frdiv_calc;
+               bestFllInputFrequency = fllInputFrequency_calc;
+//                  System.err.println(String.format("+%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
             }
          }
          else if (fllInputFrequency_calc>fllInMax) {
+            // Above range
             if ((fllInputFrequency_calc-fllInMax) < nearestError) {
-               nearestFrequency = fllInputFrequency_calc;
-               nearestError     = fllInputFrequency_calc-fllInMax;
-               nearest_frdiv    = mcg_c1_frdiv_calc;
-               //                  System.err.println(String.format("-%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
+               // Keep updated value even if out of range
+               nearestError          = fllInputFrequency_calc-fllInMax;
+               nearest_frdiv         = mcg_c1_frdiv_calc;
+               bestFllInputFrequency = fllInputFrequency_calc;
+//                  System.err.println(String.format("-%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
             }
          }
          else {
-            nearestFrequency = fllInputFrequency_calc;
-            nearestError     = 0.0;
-            nearest_frdiv    = mcg_c1_frdiv_calc;
-            //               System.err.println(String.format("=%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
+            // In range
+            nearestError          = 0.0;
+            nearest_frdiv         = mcg_c1_frdiv_calc;
+            bestFllInputFrequency = fllInputFrequency_calc;
+//               System.err.println(String.format("=%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
             found = true;
             break;
          }
       }
+      mcg_c1_frdiv       = nearest_frdiv;
+      fllInputFrequency  = Math.round(bestFllInputFrequency);
+
       return found;
    }
 
@@ -117,7 +130,7 @@ class FllConfigure {
     * @param mcg_c2_rangeVar            [out]    Range out after modification by FLL
     * @param mcg_c1_irefs               [in]     irefs value (affects clock source)
     * @param mcg_erc_clockVar           [in]     mcg_erc_clock source
-    * @param system_slow_irc_clock      [in]     Frequency of slow IRC
+    * @param system_slow_irc_clockVar   [in]     Frequency of slow IRC
     * @param mcg_c7_oscsel              [in]     OSCSEL value used to constrain dividers
     * @param mcg_c4_dmx32Var            [in]     Affects input range accepted
     * @param fll_enabledVar             [in]     Indicates if FLL is in use
@@ -132,7 +145,7 @@ class FllConfigure {
          final ChoiceVariable mcg_c2_rangeVar,
          boolean        mcg_c1_irefs,
          final Variable mcg_erc_clockVar,
-         long           system_slow_irc_clock,
+         final Variable system_slow_irc_clockVar,
          long           mcg_c7_oscsel,
          boolean        mcg_c4_dmx32,
          final Variable fll_enabledVar,
@@ -148,54 +161,57 @@ class FllConfigure {
       String  fllOrigin;
       String  fllInputOrigin;
 
-      long availableClock;
+      long system_slow_irc_clock = system_slow_irc_clockVar.getValueAsLong();
+      long mcg_erc_clock         = mcg_erc_clockVar.getValueAsLong();
+      
       if (mcg_c1_irefs) {
          // Slow IRC selected [32kHz]
-         fllOrigin      = "Slow internal reference clock";
+         fllOrigin      = system_slow_irc_clockVar.getOrigin();
          fllInputOrigin = fllOrigin;
-         fllStatus      = null;
-         availableClock = system_slow_irc_clock;
+         fllStatus      = system_slow_irc_clockVar.getStatus();
       }
       else {
          // ERCLK selected [OSCCLK, RTCCLK, IRC48MCLK]
          fllOrigin      = mcg_erc_clockVar.getOrigin();
          fllInputOrigin = fllOrigin+" / FRDIV";
          fllStatus      = mcg_erc_clockVar.getStatus();
-         availableClock = mcg_erc_clockVar.getValueAsLong();
       }
       fllInputFrequencyVar.setOrigin(fllInputOrigin);
       system_mcgffclk_clockVar.setOrigin(fllInputOrigin);
       
       fllOrigin = fllOrigin+" via FLL";
 
-      if ((fllStatus != null) && (fllStatus.getSeverity().greaterThan(Severity.OK))) {
+      if ((fllStatus != null) && (fllStatus.getSeverity().greaterThan(Severity.INFO))) {
          // Invalid input
-         fllStatus = new Status(fllStatus.getSimpleText()+": Invalid FLL input", Severity.WARNING);
+         fllStatus = new Status(fllStatus.getSimpleText()+": Invalid FLL input", Severity.ERROR);
          fllInputFrequencyVar.setStatus(fllStatus);
          fllInputFrequencyVar.setValue(0);
          system_mcgffclk_clockVar.setStatus(fllStatus);
          system_mcgffclk_clockVar.setValue(0);
+         
          // Use mcg_c2_rangeIn unless invalid
          mcg_c4_drst_drs = 0;
          mcg_c1_frdiv    = 0;
          mcg_c2_rangeVar.setValue(osc0_range);
          mcg_c2_rangeVar.setOrigin(osc0_rangeOrigin);
          fllOutputFrequencyVar.setOrigin(fllOrigin+"(invalid FLL input)");
+         fllOutputFrequencyVar.setStatus(fllStatus);
          return;
       }
 
       // Find input range & divisor
       //==============================
-      boolean found = false;
+      boolean acceptableFrdivFound = false;
       boolean osc_osc_cr_erclken = (osc_osc_cr_erclkenVar == null) || osc_osc_cr_erclkenVar.getValueAsBoolean();
       if (mcg_c1_irefs) {
          // [Slow IRC] - No dividers, Range value unconstrained by FLL
-         found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+         acceptableFrdivFound = true;
+         fllInputFrequency    = system_slow_irc_clock;
          // Use mcg_c2_rangeIn unless invalid
       }
       else if (mcg_c7_oscsel == 1) {
          // [RTCCLK] - Forced to LOW_RANGE_DIVISORS,  Range value unconstrained FLL
-         found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+         acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          fllOrigin += " after scaling by (Low range FRDIV)";
       }
       else if ((mcg_c7_oscsel != 0) && !osc_osc_cr_erclken) {
@@ -203,10 +219,10 @@ class FllConfigure {
          // Unconstrained - try both sets of dividers
          // Use whichever mcg_c2_rangeIn works
          osc0_range = 0;
-         found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
-         if (!found) {
+         acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+         if (!acceptableFrdivFound) {
             osc0_range = 1;
-            found = findDivider(availableClock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
+            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
          }
          fllOrigin        += " after scaling (Low/High range FRDIV)";
          osc0_rangeOrigin  = "Determined by FLL";
@@ -215,22 +231,22 @@ class FllConfigure {
          switch (osc0_range) {
          // Use osc0_range unless invalid
          case 0:
-            found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
             fllOrigin += " after scaling (Low range FRDIV)";
             break;
          case 1:
          case 2:
-            found = findDivider(availableClock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
+            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
             fllOrigin += " after scaling (High range FRDIV)";
             break;
          default:
             // Unconstrained - try both sets of dividers
             // Use whichever  mcg_c2_rangeIn works
             osc0_range = 0;
-            found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
-            if (!found) {
+            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+            if (!acceptableFrdivFound) {
                osc0_range = 1;
-               found = findDivider(availableClock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
+               acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
             }
             fllOrigin        += " after scaling (Low/High range FRDIV)";
             osc0_rangeOrigin  = "Determined by FLL";
@@ -240,38 +256,34 @@ class FllConfigure {
       // Record range in use
       mcg_c2_rangeVar.setValue(osc0_range);
       mcg_c2_rangeVar.setOrigin(osc0_rangeOrigin);
+
+      system_mcgffclk_clockVar.setValue(fllInputFrequency);
+      fllInputFrequencyVar.setValue(fllInputFrequency);
       
-      if (!found) {
+      if (!acceptableFrdivFound) {
          // No suitable divisor - Set invalid and use defaults
-         fllInputFrequencyVar.setValue(Math.round(nearestFrequency));
          String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s",
-               EngineeringNotation.convert(availableClock, 3));
+               EngineeringNotation.convert(fllInputFrequency, 3));
          fllStatus = new Status(msgText, Severity.WARNING);
-         fllInputFrequencyVar.setStatus(fllStatus);
-         mcg_c1_frdiv    = nearest_frdiv;
+//         fllInputFrequencyVar.setStatus(fllStatus);
          mcg_c4_drst_drs = 0;
-         system_mcgffclk_clockVar.setValue(Math.round(nearestFrequency));
-         system_mcgffclk_clockVar.setStatus((Status)null);
+         fllInputFrequencyVar.setStatus(fllStatus);
          fllOutputFrequencyVar.setStatus(fllStatus);
          fllOutputFrequencyVar.setOrigin(fllOrigin+"(invalid input frequency)");
          return;
       }
 
-      long inputFrequency  = Math.round(fllInputFrequency_calc);
-      mcg_c1_frdiv         = mcg_c1_frdiv_calc;
-
       // Record FLL input details
-      system_mcgffclk_clockVar.setValue(inputFrequency);
-      system_mcgffclk_clockVar.setStatus((Status)null);
-
-      fllInputFrequencyVar.setValue(inputFrequency);
       fllInputFrequencyVar.setStatus((Status)null);
+
+//      fllInputFrequencyVar.setValue(inputFrequency);
+//      fllInputFrequencyVar.setStatus((Status)null);
 
       // Determine possible output frequencies & check against desired value
       //=======================================================================
       int mcg_c4_drst_drs_calc = -1;
 
-      long fllOutFrequency = inputFrequency * (mcg_c4_dmx32?FLL_NARROW_FACTOR:FLL_WIDE_FACTOR);
+      long fllOutFrequency = fllInputFrequency * (mcg_c4_dmx32?FLL_NARROW_FACTOR:FLL_WIDE_FACTOR);
 
       Long fllTargetFrequency = fllOutputFrequencyVar.getRawValueAsLong();
 
@@ -284,7 +296,7 @@ class FllConfigure {
          }
       }
       StringBuilder sb       = new StringBuilder();
-      Severity      severity = Severity.INFO;
+      Severity      severity = Severity.OK;
       if (mcg_c4_drst_drs_calc >= 0) {
          // Adjust rounded value
          fllTargetFrequency = fllOutFrequency*(mcg_c4_drst_drs_calc+1);
@@ -314,11 +326,29 @@ class FllConfigure {
    }
 
    /**
-    * Returns the status of the FLL i.e. range of values, whether input and output values are valid
+    * Get status of the FLL i.e. range of values, whether input and output values are valid
     * 
     * @return Message
     */
    public Status getFllStatus() {
       return fllStatus;
+   }
+
+   /**
+    * Get calculated FRDIV value for FLL
+    * 
+    * @return
+    */
+   public int getFrdiv() {
+      return mcg_c1_frdiv;
+   }
+
+   /**
+    * Get calculated DRST_DRS value for FLL
+    * 
+    * @return
+    */
+   public int getDrstDrs() {
+      return mcg_c4_drst_drs;
    }
 }

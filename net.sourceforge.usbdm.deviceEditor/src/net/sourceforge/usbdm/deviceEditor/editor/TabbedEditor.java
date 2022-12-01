@@ -33,14 +33,14 @@ public class TabbedEditor implements IEditor {
       fTabFolder.setSimple(false);
       fTabFolder.setBackground(new Color[]{
             display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT),
-            display.getSystemColor(SWT.COLOR_WHITE)}, 
+            display.getSystemColor(SWT.COLOR_WHITE)},
             new int[]{100}, true);
       fTabFolder.setSelectionBackground(new Color[]{
             display.getSystemColor(SWT.COLOR_WHITE),
-            display.getSystemColor(SWT.COLOR_WHITE)}, 
+            display.getSystemColor(SWT.COLOR_WHITE)},
             new int[]{100}, true);
 //      fTabFolder.addListener(SWT.Selection, new Listener() {
-//         
+//
 //         @Override
 //         public void handleEvent(Event event) {
 //            Widget item = event.item;
@@ -57,10 +57,12 @@ public class TabbedEditor implements IEditor {
       return fTabFolder;
    }
 
+   @Override
    public Control getControl() {
       return fTabFolder;
    }
 
+   @Override
    public void setModel(BaseModel model) {
       if (fPeripheralPageModel == model) {
          return;
@@ -77,20 +79,20 @@ public class TabbedEditor implements IEditor {
          BaseModel pageModel = (BaseModel) child;
          CTabItem tabItem = new CTabItem(fTabFolder, SWT.NONE);
          tabItem.setText(pageModel.getName());
-         tabItem.setToolTipText(pageModel.getToolTip()); 
+         tabItem.setToolTipText(pageModel.getToolTip());
          if (pageModel instanceof TreeViewModel) {
             TreeEditor treeEditor = new TreeEditor() {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                   final TreeColumnInformation[] fColumnInformation = {
-                        new TreeColumnInformation("Property",        200, new NameColumnLabelProvider(),           null, 
+                        new TreeColumnInformation("Property",        200, new NameColumnLabelProvider(),           null,
                               "Name of property"),
-                        new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer), 
+                        new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer),
                               "Value of property"),
-                        new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer), 
+                        new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer),
                               "C Identifier for code generation\n"+
                               "If not blank code will be generated for the signal or peripheral"),
-                        new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer), 
+                        new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer),
                               InstanceColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
                               DescriptionColumnLabelProvider.getColumnToolTipText()),
@@ -108,15 +110,12 @@ public class TabbedEditor implements IEditor {
                }
             };
             tabItem.setControl(treeEditor.createControl(fTabFolder));
-            treeEditor.setModel((TreeViewModel) pageModel);
+            treeEditor.setModel(pageModel);
          }
          else if (pageModel instanceof SectionModel) {
             SectionEditor sectionEditor = new SectionEditor();
             tabItem.setControl(sectionEditor.createControl(fTabFolder));
             sectionEditor.setModel(pageModel);
-         }
-         else {
-            System.err.println("other");
          }
       }
       fTabFolder.setSelection(0);
@@ -127,6 +126,7 @@ public class TabbedEditor implements IEditor {
       
    }
 
+   @Override
    public Control createControl(Composite parent) {
       return createControl(parent, SWT.NONE);
    }

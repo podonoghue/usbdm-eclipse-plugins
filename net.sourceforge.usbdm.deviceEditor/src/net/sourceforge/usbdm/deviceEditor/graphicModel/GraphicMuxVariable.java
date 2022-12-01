@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -16,21 +17,21 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
    
    int numInputs;
 
-   public GraphicMuxVariable(int x, int y, int w, int h, int numInputs, Orientation orientation, String text, VariableWithChoices variableWithChoices) {
-      super(x, y, w, h, text, variableWithChoices);
+   public GraphicMuxVariable(int x, int y, int w, int h, int numInputs, Orientation orientation, String text, Boolean canEdit, VariableWithChoices variableWithChoices) {
+      super(x, y, w, h, text, canEdit, variableWithChoices);
       this.numInputs    = numInputs;
       this.orientation  = orientation;
       height            = (numInputs+1)*vScale;
    }
 
    public GraphicMuxVariable(int x, int y, int numInputs, Orientation orientation, String text, VariableWithChoices variableWithChoices) {
-      super(x, y, slope, (numInputs+1)*vScale, text, variableWithChoices);
+      super(x, y, slope, (numInputs+1)*vScale, text, true, variableWithChoices);
       this.numInputs    = numInputs;
       this.orientation  = orientation;
       height            = (numInputs+1)*vScale;
    }
 
-   public static GraphicMuxVariable create(String fId, String graphicParams, Variable var) {
+   public static GraphicMuxVariable create(String fId, String graphicParams, Boolean canEdit, Variable var) {
       
       String params[] = graphicParams.split(",");
       
@@ -62,7 +63,7 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
             h = slope;
             break;
       }
-      return new GraphicMuxVariable(x, y, w, h, numInputs, orientation, fId, (VariableWithChoices)var);
+      return new GraphicMuxVariable(x, y, w, h, numInputs, orientation, fId, canEdit, (VariableWithChoices)var);
    }
    
    @Override
@@ -70,7 +71,10 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       super.draw(display, gc);
       
 //      drawBoundary(gc);
-      
+
+      gc.setBackground(display.getSystemColor(backGroundColor));
+      gc.setForeground(display.getSystemColor(lineColor));
+
       fillPoly(gc, new Point[] {
             map(-slope/2, -height/2),
             map(slope/2,  -height/2+slope),
@@ -94,7 +98,7 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       Font font = new Font(display, data.getName(), 10, SWT.NORMAL);
 
       gc.setFont(font);
-      gc.setBackground(display.getSystemColor(backgroundColor));
+      gc.setBackground(display.getSystemColor(DEFAULT_BACKGROUND_COLOR));
       Point textPoint;
       switch(orientation) {
       default:
@@ -107,7 +111,7 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       case rot270:         textPoint = new Point( (x+(height/2)), (y-(slope/2)-10)); break;
       case rot270mirror:   textPoint = new Point( (x+(height/2)), (y-(slope/2)-10)); break;
       }
-      gc.drawText(text, textPoint.x, textPoint.y);
+      gc.drawText(name, textPoint.x, textPoint.y);
 
       font.dispose();
    }
@@ -115,7 +119,7 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
    @Override
    Point getRelativeInput(int index) {
       if (index >= numInputs) {
-         throw new RuntimeException("No such input (" + index + ") on "+text);
+         throw new RuntimeException("No such input (" + index + ") on "+name);
       }
       return new Point(-slope/2-1, ((1-numInputs+2*index)*vScale)/2);
    }
@@ -123,9 +127,14 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
    @Override
    Point getRelativeOutput(int index) {
       if (index > 0) {
-         throw new RuntimeException("No such output " + index + " on "+text);
+         throw new RuntimeException("No such output " + index + " on "+name);
       }
       return new Point((slope/2), 0);
+   }
+
+   @Override
+   Point getEditPoint() {
+      return new Point(x,y);
    }
    
 }

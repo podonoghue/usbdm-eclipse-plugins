@@ -4,11 +4,11 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
 public class BitmaskDialogue extends Dialog {
@@ -181,7 +181,7 @@ public class BitmaskDialogue extends Dialog {
             break;
          }
          selection = editor.getResult();
-         System.err.println("res = " + editor.getResultAsList() + " (0x" + Long.toHexString(editor.getResult())+")");
+//         System.err.println("res = " + editor.getResultAsList() + " (0x" + Long.toHexString(editor.getResult())+")");
       }
       
       while (!shell.isDisposed()) {
@@ -209,4 +209,4 @@ public class BitmaskDialogue extends Dialog {
    public void setTitle(String fTitle) {
       this.fTitle = fTitle;
    }
- } 
+ }

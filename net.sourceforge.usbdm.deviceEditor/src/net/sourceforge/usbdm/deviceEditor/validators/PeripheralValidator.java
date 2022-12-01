@@ -181,7 +181,7 @@ public class PeripheralValidator extends Validator {
       }
       if (primaryClockSourceName != null) {
          Variable primaryClockSourceVar = safeGetVariable(primaryClockSourceName);
-         status   = primaryClockSourceVar.getFilteredStatus();
+         status   = primaryClockSourceVar.getStatus();
          enabled  = primaryClockSourceVar.isEnabled();
          if (primaryClockSourceVar.getIsNamedClock()) {
             origin = primaryClockSourceVar.getName();
@@ -366,7 +366,7 @@ public class PeripheralValidator extends Validator {
       final Variable fControlledVar;
 
       /**
-       * The variable that is enabled by the expression
+       * The variable that is modified by the expression
        * 
        * @param controlledVar
        */
@@ -393,13 +393,33 @@ public class PeripheralValidator extends Validator {
                SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
                Boolean result = (Boolean)parser.evaluate(enabledByExpression);
                fControlledVar.enable(result);
+               if (!result) {
+                  fControlledVar.setStatus(new Status(fControlledVar.getEnabledByMessage(parser), Severity.INFO));
+               }
+               else {
+                  fControlledVar.setStatus((String)null);
+               }
             }
-            // Reference of form "[varName];expression"
+            String errorIfExpression = fControlledVar.getErrorIf();
+            if (errorIfExpression != null) {
+               SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
+               String errorMessage = null;
+               if ((Boolean)parser.evaluate(errorIfExpression)) {
+                  errorMessage = fControlledVar.getErrorIfMessage();
+               }
+               fControlledVar.setStatus(errorMessage);
+            }
+            // Reference of form "[varName],expression"
             String unlockedByExpression = fControlledVar.getUnlockedBy();
             if (unlockedByExpression != null) {
                SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
                Boolean unlocked = (Boolean)parser.evaluate(unlockedByExpression);
                fControlledVar.setLocked(!unlocked);
+            }
+            if (fControlledVar instanceof LongVariable) {
+               LongVariable lv = (LongVariable) fControlledVar;
+               lv.updateMin();
+               lv.updateMax();
             }
          } catch (Exception e) {
             System.err.println("Failed to validate "+fControlledVar);
@@ -413,7 +433,7 @@ public class PeripheralValidator extends Validator {
    };
 
    /**
-    * Add listeners to all variable in expression and clock as needed
+    * Add listeners to all variables used in expression and clock as needed
     * 
     * @param expressionString    String of form "expression" or "primaryVar#expression"
     * @param listener            Listener to add to variables
@@ -602,15 +622,44 @@ public class PeripheralValidator extends Validator {
     *
     * @param enabledVariable Variable that is dependent (has enabledBy)
     * 
+    * @return true => Listener added otherwise no action
+    * 
     * @throws Exception
     */
-   private void addEnabldedByListener(Variable enabledVariable, HashMap<String, Object> addedListeners) throws Exception {
+   private boolean addEnabledByListener(Variable enabledVariable, HashMap<String, Object> addedListeners) throws Exception {
       
+      String enabledByExpression = enabledVariable.getEnabledBy();
+      if (enabledByExpression == null) {
+         return false;
+      }
       // Get/create listener to link references to target
       // No need to check for duplicates as this would require multiple of the same dependent variable
-      String enabledByExpression = enabledVariable.getEnabledBy();
       ControlledByListener listener = new ControlledByListener(enabledVariable);
       addExpressionListeners(enabledByExpression, listener, enabledVariable);
+      return true;
+   }
+
+   /**
+    * This handles a variable that is forced error by other variables
+    * <li>Variable will have a errorIf="expression"
+    *
+    * @param erroredVariable Variable that is dependent (has errrorIf)
+    * 
+    * @return true => Listener added otherwise no action
+    * 
+    * @throws Exception
+    */
+   private boolean addErrorIfListener(Variable erroredVariable, HashMap<String, Object> addedListeners) throws Exception {
+      
+      String errorIfExpression = erroredVariable.getErrorIf();
+      if (errorIfExpression == null) {
+         return false;
+      }
+      // Get/create listener to link references to target
+      // No need to check for duplicates as this would require multiple of the same dependent variable
+      ControlledByListener listener = new ControlledByListener(erroredVariable);
+      addExpressionListeners(errorIfExpression, listener, erroredVariable);
+      return true;
    }
 
    /**
@@ -619,15 +668,48 @@ public class PeripheralValidator extends Validator {
     *
     * @param unlockedVariable Variable that is dependent (has enabledBy)
     * 
+    * @return true => Listener added otherwise no action
+    * 
     * @throws Exception
     */
-   private void addUnlockedByListener(Variable unlockedVariable, HashMap<String, Object> addedListeners) throws Exception {
+   private boolean addUnlockedByListener(Variable unlockedVariable, HashMap<String, Object> addedListeners) throws Exception {
       
+      String unlockedByExpression = unlockedVariable.getUnlockedBy();
+      if (unlockedByExpression == null) {
+         return false;
+      }
       // Get/create listener to link references to target
       // No need to check for duplicates as this would require multiple of the same dependent variable
-      String unlockedByExpression = unlockedVariable.getUnlockedBy();
       ControlledByListener listener = new ControlledByListener(unlockedVariable);
       addExpressionListeners(unlockedByExpression, listener, unlockedVariable);
+      return true;
+   }
+
+   /**
+    * This handles a variable that has dynamic min/max expressions
+    * 
+    * <li>Variable will have a min="expression" and/or max="expression"
+    *
+    * @param dynamicMinMaxVariable Variable that is dependent (has min/max expressions)
+    * 
+    * @return true => Listener added otherwise no action
+    * 
+    * @throws Exception
+    */
+   private boolean addMinMaxChangeListener(LongVariable dynamicMinMaxVariable, HashMap<String, Object> addedListeners) throws Exception {
+      
+      String dynamicExpression = dynamicMinMaxVariable.getMaxExpression();
+      if (dynamicExpression == null) {
+         dynamicExpression = dynamicMinMaxVariable.getMinExpression();
+      }
+      if (dynamicExpression == null) {
+         // No listener added
+         return false;
+      }
+      // Create listener to link references to target
+      // No need to check for duplicates as this would require multiple of the same dependent variable
+      addExpressionListeners(dynamicExpression, new ControlledByListener(dynamicMinMaxVariable), dynamicMinMaxVariable);
+      return true;
    }
 
    /**
@@ -670,17 +752,23 @@ public class PeripheralValidator extends Validator {
                throw new Exception("Monitored var '"+monitoredVariable+"' is of unsupported type");
             }
          }
-         if (monitoredVariable.getEnabledBy() != null) {
+         if (addErrorIfListener(monitoredVariable, addedListeners)) {
             actionFound = true;
-            addEnabldedByListener(monitoredVariable, addedListeners);
          }
-         if (monitoredVariable.getUnlockedBy() != null) {
+         if (addEnabledByListener(monitoredVariable, addedListeners)) {
             actionFound = true;
-            addUnlockedByListener(monitoredVariable, addedListeners);
          }
-         
+         if (addUnlockedByListener(monitoredVariable, addedListeners)) {
+            actionFound = true;
+         }
+         if (monitoredVariable instanceof LongVariable) {
+            LongVariable lv = (LongVariable) monitoredVariable;
+            if (addMinMaxChangeListener(lv, addedListeners)) {
+               actionFound = true;
+            }
+         }
          if (!actionFound) {
-            throw new Exception("Monitored var '"+monitoredVariable+"' doesn't have target or reference");
+            throw new Exception("Monitored var '"+monitoredVariable+"' doesn't have dynamic parameters or references");
          }
       }
    }

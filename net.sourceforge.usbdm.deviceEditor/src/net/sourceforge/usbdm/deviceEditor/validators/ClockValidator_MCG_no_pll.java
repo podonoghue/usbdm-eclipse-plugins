@@ -187,8 +187,6 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
       ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
       Variable       mcg_erc_clockVar = getVariable("mcg_erc_clock");
 
-      Variable system_slow_irc_clockVar   = getVariable("system_slow_irc_clock");
-
       //=======================================
       // Find FLL dividers
       FllConfigure fllCheck = new FllConfigure(
@@ -197,7 +195,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
             getChoiceVariable("mcg_c2_range0"),
             mcg_c1_irefs,
             mcg_erc_clockVar,
-            system_slow_irc_clockVar.getValueAsLong(),
+            getVariable("system_slow_irc_clock"),
             (mcg_c7_oscselVar == null)?0:mcg_c7_oscselVar.getValueAsLong(),
             mcg_c4_dmx32Var.getValueAsBoolean(),
             fll_enabledVar,
@@ -207,8 +205,8 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
             DRST_DRS_MAX
             );
 
-      mcg_c1_frdivVar.setValue(fllCheck.mcg_c1_frdiv);
-      mcg_c4_drst_drsVar.setValue(fllCheck.mcg_c4_drst_drs);
+      mcg_c1_frdivVar.setValue(fllCheck.getFrdiv());
+      mcg_c4_drst_drsVar.setValue(fllCheck.getDrstDrs());
 
       //======================================
       // system_mcgfllclk_clock update

@@ -109,7 +109,7 @@ public class NumericListVariable extends StringVariable {
 
    /**
     * Set minimum value for entry
-    *  
+    * 
     * @param min
     */
    public void setMin(long min) {
@@ -118,7 +118,7 @@ public class NumericListVariable extends StringVariable {
 
    /**
     * Set maximum value for entry
-    *  
+    * 
     * @param max
     */
    public void setMax(long max) {
@@ -197,5 +197,5 @@ public class NumericListVariable extends StringVariable {
       fMinListLength = (int) l;
       notifyListeners();
    }
-   
+
 }

@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -133,7 +134,7 @@ public class PeripheralDatabaseMerger {
          Entry<String, ArrayList<Peripheral>> pairs = it.next();
          for (Peripheral peripheral : pairs.getValue()) {
             PrintWriter writer = new PrintWriter(getPeripheralPath(getPeripheralFilename(peripheral)).toFile());
-            // Written with no owner so defaults are NOT inherited 
+            // Written with no owner so defaults are NOT inherited
             peripheral.writeSVD(writer, false, null);
             writer.close();
          }
@@ -185,7 +186,7 @@ public class PeripheralDatabaseMerger {
     * @param  device
     * @param  newPeripheral
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    void addPeripheralToMap(DevicePeripherals device, Peripheral newPeripheral) throws Exception {
       if (newPeripheral.getDerivedFrom() != null) {
@@ -202,7 +203,7 @@ public class PeripheralDatabaseMerger {
       // Check if equivalent to an exiting peripheral
       for(int index=0; index<peripheralList.size(); index++) {
          Peripheral peripheral = peripheralList.get(index);
-//         if (newPeripheral.getSourceFilename().equals("FGPIOA_MKE") && 
+//         if (newPeripheral.getSourceFilename().equals("FGPIOA_MKE") &&
 //               newPeripheral.getSourceFilename().equals(peripheral.getSourceFilename())) {
 //            System.err.println("Checking, "+newPeripheral.getSourceFilename()+" <> "+peripheral.getSourceFilename());
 //         }
@@ -214,7 +215,7 @@ public class PeripheralDatabaseMerger {
          }
          if (peripheral.getSourceFilename().equals(newPeripheral.getSourceFilename())) {
             newPeripheral.equivalent(peripheral);
-            throw new Exception("Opps, "+newPeripheral.getSourceFilename()+" == "+peripheral.getSourceFilename()+" but not equivalent");
+            throw new Exception("Failed sanity check, Expected "+newPeripheral.getSourceFilename()+" == "+peripheral.getSourceFilename()+" but not equivalent");
          }
       }
       // First time the device is used - clear references etc
@@ -228,7 +229,7 @@ public class PeripheralDatabaseMerger {
       peripheralList.add(newPeripheral);
    }
 
-   private final String xmlPreamble =  
+   private final String xmlPreamble =
          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                "<!DOCTYPE device>\n"
                ;

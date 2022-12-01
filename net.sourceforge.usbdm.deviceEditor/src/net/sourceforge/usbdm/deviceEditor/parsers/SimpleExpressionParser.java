@@ -115,6 +115,10 @@ public class SimpleExpressionParser {
       
       Character ch = skipSpace();
 
+//      if (fExpression.contains("/SIM/MCGOUTCLK_max[/SMC/smc_pmctrl_runm[1]]")) {
+//         System.err.println("Evaluating " + getDiagnostic());
+//      }
+//
       if (ch == null) {
          return null;
       }
@@ -137,10 +141,10 @@ public class SimpleExpressionParser {
       }
       String key = sb.toString();
       if ("true".equalsIgnoreCase(key)) {
-         return true;
+         return Boolean.TRUE;
       }
       if ("false".equalsIgnoreCase(key)) {
-         return false;
+         return Boolean.FALSE;
       }
       // Check for index
       ch = skipSpace();
@@ -168,6 +172,9 @@ public class SimpleExpressionParser {
          fCollectedIdentifiers.add(key);
       }
       
+      if (fProvider == null) {
+         throw new Exception("Provider used but not provided");
+      }
       key = fProvider.makeKey(key);
 
       Variable var = fProvider.safeGetVariable(key);
@@ -219,7 +226,7 @@ public class SimpleExpressionParser {
       boolean isDouble = false;
       while(fIndex<fExpression.length()) {
          ch = fExpression.charAt(fIndex);
-         if (!Character.isDigit(ch) && (ch != '.') && (ch != 'x') && (ch != 'b')) {
+         if (!Character.isDigit(ch) && !Character.isAlphabetic(ch) && (ch != '_') && (ch != '.')) {
             break;
          }
          if (ch == '.') {
@@ -233,14 +240,10 @@ public class SimpleExpressionParser {
          return Double.parseDouble(val);
       }
       return EngineeringNotation.parseAsLong(val);
-//      if (val.startsWith("0b") || val.startsWith("0B")) {
-//         return Long.parseLong(val.substring(2), 2);
-//      }
-//      return Long.decode(sb.toString());
    }
    
    /**
-    * Accepts number : digit+[.digit+]
+    * Accepts number : " char+[.char+] "
     * 
     * @return number value or null
     *
@@ -313,17 +316,13 @@ public class SimpleExpressionParser {
       if (ch == null) {
          throw new Exception("Unexpected end of expression");
       }
-      if ("+-~!".indexOf(ch)>0) {
+      if ("+-~!".indexOf(ch)>=0) {
+         
          fIndex++;
          result = evaluateFactor();
          switch (ch) {
             case '+' :
-               if (result instanceof Double) {
-                  return result;
-               } else if (result instanceof Long) {
-                  return result;
-               }
-               break;
+               return result;
             case '-' :
                if (result instanceof Double) {
                   return -(Double)result;
@@ -935,6 +934,12 @@ public class SimpleExpressionParser {
       fExpression  = null;
    }
 
+   private String getDiagnostic() {
+      return String.format("\nInput     '%s" + "'" +
+            "\n           %"+(fIndex+1)+"s", fExpression, "^")+
+             ".....";
+   }
+   
    /**
     * Evaluate expression supplied
     * 
@@ -964,13 +969,20 @@ public class SimpleExpressionParser {
          return result;
       } catch (Exception e) {
          String diagnostic =
-               String.format("\nInput     '%s" + "'" +
-                             "\n           %"+(fIndex+1)+"s", fExpression, "^")+
-                              "....." + e.getMessage()+"\n";
+               getDiagnostic()+"....." + e.getMessage()+"\n";
          throw new Exception(diagnostic, e);
       }
    }
 
+   /**
+    * Returns the last expression evaluated
+    * 
+    * @return Last expression
+    */
+   String getLastExpression() {
+      return fExpression;
+   }
+   
    /**
     * Immediately evaluate expression
     * 

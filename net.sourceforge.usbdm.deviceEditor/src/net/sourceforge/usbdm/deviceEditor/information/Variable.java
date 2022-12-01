@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -301,6 +303,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    private String fUnlockedBy;
 
+   /** Condition for forcing error on this variable */
+   private String ferrorIf;
+
    /**
     * Constructor
     * 
@@ -435,16 +440,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @param message
     */
-   public void setStatus(String message) {
+   public boolean setStatus(String message) {
       if ((fStatus != null) && (message != null) && fStatus.equals(message)) {
          // No significant change
-         return;
+         return false;
       }
       if (message == null) {
-         setStatus((Status)null);
+         return setStatus((Status)null);
       }
       else {
-         setStatus(new Status(message));
+         return setStatus(new Status(message));
       }
    }
 
@@ -453,17 +458,18 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @param message
     */
-   public void setStatus(Status message) {
+   public boolean setStatus(Status message) {
       if ((fStatus == null) && (message == null)) {
          // No change
-         return;
+         return false;
       }
       if ((fStatus != null) && (message != null) && fStatus.equals(message)) {
          // No significant change
-         return;
+         return false;
       }
       fStatus = message;
       notifyListeners();
+      return true;
    }
    
    /**
@@ -481,7 +487,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public Status getStatus() {
       if (!isEnabled()) {
          if (fStatus != null) {
-            return new Status(fStatus.getText(), Severity.INFO);
+            return fStatus;
          }
          return null;
       }
@@ -1193,7 +1199,39 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param enabledBy
     */
    public String getEnabledBy() {
-      return fEnabledBy;
+      if (fEnabledBy == null) {
+         return null;
+      }
+      String parts[] = fEnabledBy.split(",");
+      return parts[0];
+   }
+
+   /**
+    * Get description of enableBy on this variable
+    * 
+    * @param parser Used to construct description
+    * 
+    * @param enabledBy
+    */
+   public String getEnabledByMessage(SimpleExpressionParser parser) {
+      if (fEnabledBy == null) {
+         return null;
+      }
+      String parts[] = fEnabledBy.split(",");
+      if (parts.length>1) {
+         return parts[1];
+      }
+      StringBuilder sb = new StringBuilder();
+      sb.append("Disabled by ");
+      ArrayList<String> vars = parser.getCollectedIdentifiers();
+      if (vars.size() == 1) {
+         sb.append(vars.get(0));
+      }
+      else {
+         sb.append(" expression ");
+         sb.append(parts[0]);
+      }
+      return sb.toString();
    }
 
    public boolean evaluateEnable(Peripheral peripheral) throws Exception {
@@ -1202,6 +1240,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          return true;
       }
       return (Boolean)SimpleExpressionParser.evaluate(enableExpression, peripheral, Mode.EvaluateFully);
+   }
+
+   public boolean evaluateError(Peripheral peripheral) throws Exception {
+      String errroExpression = getErrorIf();
+      if (errroExpression == null) {
+         return true;
+      }
+      return (Boolean)SimpleExpressionParser.evaluate(errroExpression, peripheral, Mode.EvaluateFully);
    }
 
    public void setProvider(VariableProvider provider) {
@@ -1232,5 +1278,44 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public String getUnlockedBy() {
       return fUnlockedBy;
    }
+
+   /**
+    * Set condition for forcing error on this variable
+    * 
+    * @param errorIf
+    */
+   public void setErrorIf(String errorIf) {
+      ferrorIf = errorIf;
+   }
+
+   /**
+    * Get condition for forcing error on this variable
+    * 
+    * @param enabledBy
+    */
+   public String getErrorIf() {
+      if (ferrorIf == null) {
+         return null;
+      }
+      String parts[] = ferrorIf.split(",");
+      return parts[0];
+   }
+
+   /**
+    * Get description of forcing error on this variable
+    * 
+    * @param enabledBy
+    */
+   public String getErrorIfMessage() {
+      if (ferrorIf == null) {
+         return null;
+      }
+      String parts[] = ferrorIf.split(",");
+      if (parts.length>1) {
+         return parts[1];
+      }
+      return "Error due to failed expression " + parts[0];
+   }
+
 
 }

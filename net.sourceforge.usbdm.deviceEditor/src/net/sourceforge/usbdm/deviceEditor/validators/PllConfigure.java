@@ -41,14 +41,14 @@ public class PllConfigure {
     * @param pllPostDiv
     */
    public PllConfigure(
-         long pllOutMin, 
-         long pllOutMax, 
-         long pllInMin, 
-         long pllInMax, 
-         long prDivMin, 
-         long prDivMax, 
-         long vDivMin, 
-         long vDivMax, 
+         long pllOutMin,
+         long pllOutMax,
+         long pllInMin,
+         long pllInMax,
+         long prDivMin,
+         long prDivMax,
+         long vDivMin,
+         long vDivMax,
          long pllPostDiv) {
       
       PLL_OUT_MIN   = pllOutMin;
@@ -62,14 +62,14 @@ public class PllConfigure {
       PLL_POST_DIV  = (int) pllPostDiv;
    }
 
-   protected void validate(Variable mcg_erc_clockNode, 
-         Variable pll0InputFrequencyVar, 
-         Variable pll0OutputFrequencyVar, 
-         Variable mcg_c5_prdiv0Var, 
+   protected void validate(Variable mcg_erc_clockVar,
+         Variable pll0InputFrequencyVar,
+         Variable pll0OutputFrequencyVar,
+         Variable mcg_c5_prdiv0Var,
          Variable mcg_c6_vdiv0Var ) {
 
       // Main clock used by FLL
-      long mcg_erc_clockFreq = mcg_erc_clockNode.getValueAsLong();
+      long mcg_erc_clockFreq = mcg_erc_clockVar.getValueAsLong();
 
       long pllTargetFrequency = pll0OutputFrequencyVar.getRawValueAsLong();
 
@@ -81,11 +81,20 @@ public class PllConfigure {
       boolean pllInputValid  = false;
       boolean pllOutputValid = false;
 
-      Set<Long> pllFrequencies = new TreeSet<Long>(); 
+      Set<Long> pllFrequencies = new TreeSet<Long>();
 
       StringBuilder sb = new StringBuilder();
       long nearest_PllOutFrequency = Long.MAX_VALUE;
 
+      Status mcgErcStatus = mcg_erc_clockVar.getStatus();
+      if ((mcgErcStatus!= null) && mcgErcStatus.greaterThan(Severity.INFO)) {
+         // Input clock is invalid
+         pll0OutputFrequencyVar.setStatus(mcgErcStatus);
+         pll0InputFrequencyVar.setStatus(mcgErcStatus);
+         
+         // Change nothing
+         return;
+      }
       // Try each prescale value
       for (int mcg_prdiv_probe = PRDIV_MIN; mcg_prdiv_probe <= PRDIV_MAX; mcg_prdiv_probe++) {
          if (sb.length()>0) {
@@ -130,7 +139,7 @@ public class PllConfigure {
             if (Math.abs(pllOutFrequency - pllTargetFrequency) < (pllTargetFrequency/50)) {
                sb.append("=");
                pllOutputValid = true;
-            }         
+            }
          }
          if (sb.length()>0) {
             sb = new StringBuilder();
@@ -143,14 +152,14 @@ public class PllConfigure {
       mcg_c6_vdiv0Var.setStatus(new Status("Field value = 0b" + Integer.toBinaryString(mcg_vdiv-PLL_POST_DIV), Severity.OK));
 
       pll0InputFrequencyVar.setValue(mcg_erc_clockFreq/mcg_prdiv);
-      pll0InputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+"\n/mcg.c7.prdiv0");
-      pll0OutputFrequencyVar.setOrigin(mcg_erc_clockNode.getOrigin()+"\n via PLL");
+      pll0InputFrequencyVar.setOrigin(mcg_erc_clockVar.getOrigin()+"\n/mcg.c7.prdiv0");
+      pll0OutputFrequencyVar.setOrigin(mcg_erc_clockVar.getOrigin()+"\n via PLL");
 
       if (!pllInputValid) {
-         String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]", 
+         String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]",
                EngineeringNotation.convert(mcg_erc_clockFreq,3),
                EngineeringNotation.convert(PLL_IN_MIN,3),EngineeringNotation.convert(PLL_IN_MAX,3));
-         Status status = new Status(msg, Severity.WARNING);
+         Status status = new Status(msg, Severity.ERROR);
          pll0InputFrequencyVar.setStatus(status);
          pllStatus = status;
       }
@@ -164,9 +173,7 @@ public class PllConfigure {
          if (!pllOutputValid) {
             // PLL Output invalid
             status.append("Not possible to generate desired PLL frequency from input clock\n");
-            severity = Severity.WARNING;
-            // Update PLL in case it was approximated
-            pll0OutputFrequencyVar.setStatus(pllStatus);
+            severity = Severity.ERROR;
          }
          else {
             // PLL Output valid
@@ -174,6 +181,7 @@ public class PllConfigure {
                // Update PLL as it was approximated
                pllTargetFrequency = nearest_PllOutFrequency;
                pll0OutputFrequencyVar.setValue(pllTargetFrequency);
+//               System.err.println("PLL = " + pllTargetFrequency);
             }
          }
          status.append("Possible values = \n");

@@ -51,7 +51,7 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
          return fChoices[fSelection];
       }
       catch (Exception e) {
-         return "Opps";
+         return "Illegal current selection!!";
       }
    }
    

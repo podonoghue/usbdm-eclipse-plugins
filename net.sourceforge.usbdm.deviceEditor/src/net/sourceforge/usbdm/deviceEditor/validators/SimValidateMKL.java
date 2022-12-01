@@ -195,9 +195,9 @@ public class SimValidateMKL extends PeripheralValidator {
       //===========================================
       // Attempt to find acceptable divisor
       final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
-      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
+//      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
 
-      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clock, system_core_clockVar.getValueAsLong()) {
+      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clockVar, system_core_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return frequency<=maximum;
@@ -205,25 +205,22 @@ public class SimValidateMKL extends PeripheralValidator {
       };
       {
          Severity      severity = Severity.OK;
-         StringBuilder sb       = new StringBuilder();
-         if ((coreDivisor.divisor == 0) || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
+         if (coreDivisor.failed() || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
          }
-         sb.append(coreDivisor.divisors);
-         system_core_clockVar.setStatus(new Status(sb.toString(), severity));
+         system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
       }
-      if (doGuiUpdates && (variable == system_core_clockVar)) {
+      if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
          // Target clock manually changed - update divisor
          sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
-         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+//         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
       }
 
       // Bus & Flash Clock
       //===========================================
       // Attempt to find acceptable divisor
       final long coreFrequency     = system_core_clockVar.getValueAsLong();
-      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, coreFrequency, system_bus_clockVar.getValueAsLong()) {
+      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, system_core_clockVar, system_bus_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=maximum) &&
@@ -233,14 +230,14 @@ public class SimValidateMKL extends PeripheralValidator {
       {
          Severity      severity = Severity.OK;
          StringBuilder sb       = new StringBuilder();
-         if ((busDivisor.divisor == 0) || (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency)) {
+         if (busDivisor.failed() || (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
          sb.append(busDivisor.divisors);
          system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
       }
-      if (doGuiUpdates && (variable == system_bus_clockVar)) {
+      if (!busDivisor.failed() && doGuiUpdates && (variable == system_bus_clockVar)) {
          // Target clock manually changed - update divisors
          sim_clkdiv1_outdiv4Var.setValue(busDivisor.divisor);
          system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
@@ -253,13 +250,16 @@ public class SimValidateMKL extends PeripheralValidator {
       public final int    divisor;
       public final String divisors;
       public final long   maximum;
+      
+      private final boolean valuesNotFound;
+      
       /**
        * Creates table of acceptable frequencies and determines the nearest to target frequency
        * 
        * @param inputFrequency   Input frequency being divided
        * @param targetFrequency  Desired frequency
        */
-      public FindDivisor(long maximum, long inputFrequency, long targetFrequency) {
+      public FindDivisor(long maximum, LongVariable inputFrequencyVar, long targetFrequency) {
          this.maximum = maximum;
          HashSet<String> divisorSet= new HashSet<String>();
          double nearestValue   = Double.MAX_VALUE;
@@ -267,34 +267,52 @@ public class SimValidateMKL extends PeripheralValidator {
          StringBuilder sb = new StringBuilder();
          sb.append("Possible values:");
          int values = 0;
-         for (int divisor=16; divisor>0; divisor--) {
-            double frequency = inputFrequency/divisor;
-            if (!okValue(divisor, frequency)) {
-               continue;
-            }
-            if (values++ == 7) {
-               sb.append("\n");
-            }
-            String value = EngineeringNotation.convert(frequency, 3);
-            if (divisorSet.add(value)) {
-               sb.append(" "+value+"Hz");
-               if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
-                  nearestValue = frequency;
-                  nearestDivisor = divisor;
-               }
-            }
-         }
-         if (divisorSet.isEmpty()) {
+         if (inputFrequencyVar.getStatus().greaterThan(Status.Severity.INFO)) {
             nearestTargetFrequency = 0;
-            sb.append(" No suitable values found");
+            sb.append(inputFrequencyVar.getStatus().getSimpleText());
+            valuesNotFound = true;
          }
          else {
-            nearestTargetFrequency = Math.round(nearestValue);
+            Long inputFrequency = inputFrequencyVar.getValueAsLong();
+            for (int divisor=16; divisor>0; divisor--) {
+               double frequency = inputFrequency/divisor;
+               if ((frequency < 1.0) || !okValue(divisor, frequency)) {
+                  continue;
+               }
+               if (values++ == 7) {
+                  sb.append("\n");
+               }
+               String value = EngineeringNotation.convert(frequency, 3);
+               if (divisorSet.add(value)) {
+                  sb.append(" "+value+"Hz");
+                  if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
+                     nearestValue = frequency;
+                     nearestDivisor = divisor;
+                  }
+               }
+            }
+            valuesNotFound = divisorSet.isEmpty();
+            if (valuesNotFound) {
+               nearestTargetFrequency = 0;
+               sb.append(" No suitable values found");
+            }
+            else {
+               nearestTargetFrequency = Math.round(nearestValue);
+            }
          }
          divisor  = nearestDivisor;
          divisors = sb.toString();
       }
 
+      /**
+       * Indicates that no acceptable divisors were found
+       * 
+       * @return True => failed
+       */
+      public boolean failed() {
+         return this.valuesNotFound;
+      }
+      
       /**
        * Used to accept or reject proposed target frequencies/divisors
        * 

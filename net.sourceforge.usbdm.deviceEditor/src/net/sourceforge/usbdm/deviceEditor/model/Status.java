@@ -154,7 +154,12 @@ public class Status {
     * @return
     */
    public String getText() {
-      return fSeverity.name() + ": " + fText;
+      StringBuilder sb = new StringBuilder();
+      if (fSeverity.greaterThan(Severity.OK)) {
+         sb.append(fSeverity.name());
+         sb.append(" : ");
+      }
+      return sb.append(fText).toString();
    }
    /**
     * Returns message text without severity prefix

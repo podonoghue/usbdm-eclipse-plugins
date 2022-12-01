@@ -12,16 +12,18 @@ public class ClockSelectionFigure {
    ArrayList<InitialInformation> initialInformation = new ArrayList<InitialInformation>();
 
    private class InitialInformation {
-      private String fId;
-      private String fVarKey;
-      private Type   fType;
-      private String fParams;
+      private String  fId;
+      private String  fVarKey;
+      private Type    fType;
+      private String  fParams;
+      private Boolean fEdit;
       
-      InitialInformation(String id, String varKey, Type type, String params) {
+      InitialInformation(String id, String varKey, Type type, Boolean edit, String params) {
          fId     = id;
          fVarKey = varKey;
          fType   = type;
          fParams = params;
+         fEdit   = edit;
       }
       
       Graphic constructGraphic(VariableProvider variableProvider) throws Exception {
@@ -29,24 +31,31 @@ public class ClockSelectionFigure {
          if ((fVarKey != null) && !fVarKey.isBlank()) {
             var = variableProvider.getVariable(fVarKey);
          }
+         Boolean canEdit = fEdit || ((var != null) && (!var.isDerived()));
          switch(fType) {
+         case reference:
+            return GraphicReference.create(fId, fParams, canEdit, var);
+            
+         case annotation:
+            return GraphicAnnotation.create(fId, fParams, canEdit, var);
+            
          case label:
-            return GraphicLabel.create(fId, fParams, var);
+            return GraphicLabel.create(fId, fParams, canEdit, var);
             
          case box:
             return GraphicBox.create(fId, fParams);
             
          case variableBox:
-            return GraphicVariable.create(fId, fParams, var);
+            return GraphicVariable.create(fId, fParams, canEdit, var);
             
          case choice:
-            return GraphicVariable.create(fId, fParams, var);
+            return GraphicVariable.create(fId, fParams, canEdit, var);
             
          case mux:
-            return GraphicMuxVariable.create(fId, fParams, var);
+            return GraphicMuxVariable.create(fId, fParams, canEdit, var);
 
          case node:
-            return GraphicNode.create(fId, fParams, var);
+            return GraphicNode.create(fId, fParams, canEdit, var);
             
          default:
             return null;
@@ -68,9 +77,10 @@ public class ClockSelectionFigure {
     * @param id      Unique ID to identify object in figure
     * @param varKey  Key for variable associated with graphic (this should be absolute key)
     * @param params  Parameters used to construct graphic
+    * @param params2
     */
-   public void add(String id, String varKey, String type, String params) {
-      initialInformation.add(new InitialInformation(id, varKey, Graphic.Type.valueOf(type), params));
+   public void add(String id, String varKey, String type, String edit, String params) {
+      initialInformation.add(new InitialInformation(id, varKey, Graphic.Type.valueOf(type), Boolean.valueOf(edit), params));
    }
    
    /**

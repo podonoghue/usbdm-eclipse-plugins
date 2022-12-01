@@ -1821,10 +1821,11 @@ public class Peripheral extends ModeControl implements Cloneable {
          if (getInterruptEntries() == null) {
             System.err.println("Opps - expected vectors in derived peripheral");
          }
-         else
-         for (InterruptEntry interrupt : getInterruptEntries()) {
-            writer.write(RegisterUnion.getIndent(indent+3));
-            interrupt.writeSVD(writer, -1);
+         else {
+            for (InterruptEntry interrupt : getInterruptEntries()) {
+               writer.write(RegisterUnion.getIndent(indent+3));
+               interrupt.writeSVD(writer, -1);
+            }
          }
       }
       if (getAddressBlocks() != derived.getAddressBlocks()) {

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -16,8 +17,8 @@ class GraphicConnector extends GraphicBaseVariable {
       int dIndex;
       String[] path;
       
-      public GraphicConnector(Graphic source, Graphic destination, Variable var, Point start, Point end, String[] path) {
-         super(start.x, start.y, end.x-start.x, end.y-start.y, null, var);
+      public GraphicConnector(String id, Graphic source, Graphic destination, Variable var, Point start, Point end, String[] path) {
+         super(start.x, start.y, end.x-start.x, end.y-start.y, id, false, var);
          this.source      = source;
          this.destination = destination;
          this.path        = path;
@@ -30,15 +31,15 @@ class GraphicConnector extends GraphicBaseVariable {
 //         this.path        = null;
 //      }
 
-      public static GraphicConnector create(GraphicBaseVariable source, int sIndex, GraphicBaseVariable destination, int dIndex, Variable var, String[] path) {
-         return new GraphicConnector(source, destination, var, source.getOutput(sIndex), destination.getInput(dIndex), path);
+      public static GraphicConnector create(String id, GraphicBaseVariable source, int sIndex, GraphicBaseVariable destination, int dIndex, Variable var, String[] path) {
+         return new GraphicConnector(id, source, destination, var, source.getOutput(sIndex), destination.getInput(dIndex), path);
       }
       
-      public static GraphicConnector create(GraphicBaseVariable source, int sIndex, GraphicBaseVariable destination, int dIndex, Variable var) {
-         return new GraphicConnector(source, destination, var, source.getOutput(sIndex), destination.getInput(dIndex), null);
+      public static GraphicConnector create(String id, GraphicBaseVariable source, int sIndex, GraphicBaseVariable destination, int dIndex, Variable var) {
+         return new GraphicConnector(id, source, destination, var, source.getOutput(sIndex), destination.getInput(dIndex), null);
       }
       
-      public static GraphicConnector create(Hashtable<String, Graphic> graphicTable, String fId, String fParams, Variable var) throws Exception {
+      public static GraphicConnector create(Hashtable<String, Graphic> graphicTable, String id, String fParams, Variable var) throws Exception {
          String[] params = fParams.split(",");
          GraphicBaseVariable source       = (GraphicBaseVariable)graphicTable.get(params[0].trim());
          int sIndex                       = Integer.parseInt(params[1].trim());
@@ -52,7 +53,11 @@ class GraphicConnector extends GraphicBaseVariable {
             // Default to source
             var = source.getVariable();
          }
-         return create(source, sIndex, destination, dIndex, var, path);
+         if (var == null) {
+            // Default to destination
+            var = destination.getVariable();
+         }
+         return create(id, source, sIndex, destination, dIndex, var, path);
       }
 
       private void drawConnector(Display display, GC gc, int startX, int startY, int endX, int endY) {
@@ -60,20 +65,62 @@ class GraphicConnector extends GraphicBaseVariable {
          
          moveTo(startX, startY);
 
-         gc.setBackground(display.getSystemColor(lineColor));
-         Variable var = getVariable();
-         if ((var != null) && !var.isEnabled()) {
-            gc.setBackground(display.getSystemColor(disabledLineColor));
-            gc.setForeground(display.getSystemColor(disabledLineColor));
+         switch (checkVariableState(getVariable())) {
+         case disabled:
+            backGroundColor = DEFAULT_DISABLED_LINE_COLOR;
+            lineColor       = DEFAULT_DISABLED_LINE_COLOR;
+            break;
+         case errored:
+            backGroundColor = ERROR_COLOR;
+            lineColor       = ERROR_COLOR;
+            break;
+         case normal:
+         case notKnown:
+            backGroundColor = DEFAULT_LINE_COLOR;
+            lineColor       = DEFAULT_LINE_COLOR;
+            break;
          }
+
+         gc.setBackground(display.getSystemColor(lineColor));
+         gc.setForeground(display.getSystemColor(lineColor));
+
+         boolean drawingOn = true;
          if (path != null) {
             for (int index=0; index<path.length; index++) {
                String element = path[index].trim();
                switch (element.charAt(0)) {
                   default:
                      break;
+                  case 'o':
+                     if ("on".equalsIgnoreCase(element)) {
+                        drawingOn = true;
+                     }
+                     else if ("off".equalsIgnoreCase(element)) {
+                        drawingOn = false;
+                     }
+                     break;
                   case 'd':
                      gc.fillOval(currentX-3, currentY-3, 7, 7);
+                     break;
+                  case '(':
+                     if (element.charAt(1) == 'y') {
+                        int newY = endY + Integer.parseInt(element.substring(2, element.length()-1));
+                        if (drawingOn) {
+                           lineTo(gc, currentX, newY);
+                        }
+                        else {
+                           moveTo(currentX, newY);
+                        }
+                     }
+                     else if (element.charAt(1) == 'x') {
+                        int newX = endX + Integer.parseInt(element.substring(2, element.length()-1));
+                        if (drawingOn) {
+                           lineTo(gc, newX, currentY);
+                        }
+                        else {
+                           moveTo(newX, currentY);
+                        }
+                     }
                      break;
                   case 'y':
                      int newY = endY;
@@ -87,7 +134,12 @@ class GraphicConnector extends GraphicBaseVariable {
                            newY = currentY + Integer.parseInt(element);
                         }
                      }
-                     lineTo(gc, currentX, newY);
+                     if (drawingOn) {
+                        lineTo(gc, currentX, newY);
+                     }
+                     else {
+                        moveTo(currentX, newY);
+                     }
                      break;
                   case 'x':
                      int newX = endX;
@@ -103,7 +155,12 @@ class GraphicConnector extends GraphicBaseVariable {
                            }
                         }
                      }
-                     lineTo(gc, newX, currentY);
+                     if (drawingOn) {
+                        lineTo(gc, newX, currentY);
+                     }
+                     else {
+                        moveTo(newX, currentY);
+                     }
                      break;
                }
             }
@@ -133,38 +190,13 @@ class GraphicConnector extends GraphicBaseVariable {
       
       @Override
       void draw(Display display, GC gc) {
-         super.draw(display, gc);
+         
          fSelected = false;
          if (source != null) {
             fSelected = source.isSelected();
          }
          super.draw(display, gc);
          drawConnector(display, gc, x, y, x+w, y+h);
-         gc.setBackground(display.getSystemColor(fillColor));
-
-         // Try to pick up value from source or destination
-//         Variable var = null;
-//
-//         if (source instanceof GraphicVariable) {
-//            var = ((GraphicVariable) source).getVariable();
-//            if (!(var instanceof LongVariable) && !(var instanceof DoubleVariable)) {
-//               var = null;
-//            }
-//         }
-//         if ((var == null) && (destination instanceof GraphicVariable)) {
-//            var = ((GraphicVariable) destination).getVariable();
-//            if (!(var instanceof LongVariable) && !(var instanceof DoubleVariable)) {
-//               var = null;
-//            }
-//         }
-//         if (var != null) {
-//            String text = var.getValueAsString();
-//            FontData data = display.getSystemFont().getFontData()[0];
-//            Font font = new Font(display, data.getName(), 10, SWT.NORMAL);
-//            gc.setFont(font);
-//            gc.drawText(text, x+5, y-9);
-//            font.dispose();
-//         }
       }
 
       @Override
@@ -180,5 +212,10 @@ class GraphicConnector extends GraphicBaseVariable {
       @Override
       Point getRelativeOutput(int index) {
          return new Point(w,h);
+      }
+
+      @Override
+      Point getEditPoint() {
+         return null;
       }
    }

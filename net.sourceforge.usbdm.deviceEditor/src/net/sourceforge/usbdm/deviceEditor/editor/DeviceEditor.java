@@ -90,7 +90,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       super.setInput(editorInput);
 
       fFactory = null;
-      IResource input = (IResource)editorInput.getAdapter(IResource.class);
+      IResource input = editorInput.getAdapter(IResource.class);
       fProject = input.getProject();
       fPath = Paths.get(input.getLocation().toPortableString());
 
@@ -186,8 +186,8 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    /**
     * Creates the editor pages.
-    * @param display 
-    * @param label 
+    * @param display
+    * @param label
     */
    public void createPartControlJob(final Display display, final Composite parent, final Label status) {
 
@@ -231,11 +231,11 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             fTabFolder.setBorderVisible(true);
             fTabFolder.setBackground(new Color[]{
                   display.getSystemColor(SWT.COLOR_WHITE),
-                  display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT)}, 
+                  display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT)},
                   new int[]{100}, true);
             fTabFolder.setSelectionBackground(new Color[]{
                   display.getSystemColor(SWT.COLOR_WHITE),
-                  display.getSystemColor(SWT.COLOR_WHITE)}, 
+                  display.getSystemColor(SWT.COLOR_WHITE)},
                   new int[]{100}, true);
 
             fPeripheralParametersFolder = null;
@@ -322,12 +322,13 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    /**
     * Generate C code files
-    * @return 
+    * @return
     */
    public void generateCode() {
 
       Job job = new Job("Regenerate code files") {
 
+         @Override
          protected synchronized IStatus run(IProgressMonitor monitor) {
             SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
@@ -350,7 +351,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                   final ICProject cProject = CoreModel.getDefault().create(fProject);
                   subMonitor.subTask("Refreshing Index...");
                   indexManager.reindex(cProject);
-                  indexManager.joinIndexer(IIndexManager.FOREVER, subMonitor.newChild(60)); 
+                  indexManager.joinIndexer(IIndexManager.FOREVER, subMonitor.newChild(60));
                }
                else {
                   // Used for testing
@@ -388,7 +389,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       return generateCodeAction;
    }
 
-   /** 
+   /**
     * Create menu actions
     */
    private void makeActions() {
@@ -406,6 +407,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       MenuManager menuMgr = new MenuManager("#PopupMenu");
       menuMgr.setRemoveAllWhenShown(true);
       menuMgr.addMenuListener(new IMenuListener() {
+         @Override
          public void menuAboutToShow(IMenuManager manager) {
             // Dynamically fill context menu
             DeviceEditor.this.fillContextMenu(manager);
@@ -431,10 +433,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    @SuppressWarnings("unused")
    private void contributeToActionBars() {
       IEditorSite site = getEditorSite();
-      if (site == null) {
-         System.err.println("site is null");
-         return;
-      }
       IActionBars bars = site.getActionBars();
       fillLocalPullDown(bars.getMenuManager());
       fillLocalToolBar(bars.getToolBarManager());
@@ -467,7 +465,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    }
    
    @Override
-   public void doSaveAs() {  
+   public void doSaveAs() {
       FileDialog dialog = new FileDialog(getSite().getShell(), SWT.SAVE);
       dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.PROJECT_FILE_EXTENSION});
       dialog.setFilterPath(fPath.getParent().toString());
@@ -481,7 +479,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          Path path = FileSystems.getDefault().getPath(result);
          deviceInfo.saveSettingsAs(path, fProject);
       }
-   }   
+   }
 
    @Override
    public void doSave(IProgressMonitor monitor) {
@@ -513,7 +511,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model == fFactory) {
-         firePropertyChange(PROP_DIRTY);      
+         firePropertyChange(PROP_DIRTY);
       }
    }
 
@@ -522,7 +520,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       if (model == fFactory) {
          refreshModels();
       }
-      firePropertyChange(PROP_DIRTY);      
+      firePropertyChange(PROP_DIRTY);
    }
 
    DeviceEditorOutlinePage fOutlinePage = null;

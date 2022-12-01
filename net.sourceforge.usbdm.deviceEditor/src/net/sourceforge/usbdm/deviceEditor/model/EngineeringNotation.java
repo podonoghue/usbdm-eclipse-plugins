@@ -68,7 +68,7 @@ public class EngineeringNotation {
       /*                                  */ "^" +
       /* (#1)                             */ "(-)?" +
       /* (#2(#3,4)|(#5,6)|(#7,8))         */ "("+ BINARY_PATTERN+"|"+ HEX_PATTERN+"|"+ DEC_PATTERN+")" +
-      /*                                  */ "\\s*"+
+      /*                                  */ "[\\ \t\n_]*"+
       /* (#9)(#10)                        */ MULT_PATTERN+UNIT_PATTERN+
       /*                                  */ "$");
 
@@ -137,11 +137,11 @@ public class EngineeringNotation {
          throw new NumberFormatException("Illegal number as Long: " + num);
       }
       return Math.round(value);
-   } 
+   }
    
 //   /**
 //    * Test main
-//    * 
+//    *
 //    * @param args
 //    */
 //   public static void main(String[] args) {

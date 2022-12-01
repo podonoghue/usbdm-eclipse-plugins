@@ -65,7 +65,7 @@ public class BitmaskVariableModel extends VariableModel {
     * @return String in appropriate form e.g. 24.56MHz
     */
    private String getValueAsString(long value) {
-      return getVariable().getValueAsString(value);
+      return getVariable().formatValueAsString(value);
    }
 
    @Override
@@ -92,19 +92,23 @@ public class BitmaskVariableModel extends VariableModel {
       sb.append(super.getToolTip());
       boolean newLineNeeded = sb.length()>0;
 
-      if (getVariable().getMin() != Long.MIN_VALUE) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
+      try {
+         if (getVariable().getMin() != Long.MIN_VALUE) {
+            if (newLineNeeded) {
+               sb.append("\n");
+               newLineNeeded = false;
+            }
+            sb.append("min="+getValueAsString(getVariable().getMin())+" ");
          }
-         sb.append("min="+getValueAsString(getVariable().getMin())+" ");
-      }
-      if (getVariable().getMax() != Long.MAX_VALUE) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
+         if (getVariable().getMax() != Long.MAX_VALUE) {
+            if (newLineNeeded) {
+               sb.append("\n");
+               newLineNeeded = false;
+            }
+            sb.append("max="+getValueAsString(getVariable().getMax())+" ");
          }
-         sb.append("max="+getValueAsString(getVariable().getMax())+" ");
+      } catch (Exception e) {
+         return "Range evaluation error";
       }
       if (getVariable().getStep() != 1) {
          if (newLineNeeded) {
