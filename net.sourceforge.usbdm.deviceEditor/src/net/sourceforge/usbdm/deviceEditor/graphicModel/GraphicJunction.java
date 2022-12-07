@@ -11,40 +11,32 @@ import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
-public class GraphicNode extends GraphicBaseVariable {
+public class GraphicJunction extends GraphicBaseVariable {
 
-   public GraphicNode(int x, int y, String id, Boolean canEdit, Variable var) {
-      super(x, y, 10, 10, id, canEdit, var);
+   public GraphicJunction(int x, int y, String id, Boolean canEdit, Variable var) {
+      super(x, y, dotSize, dotSize, id, canEdit, var);
       inputs     = new Point[1];
-      inputs[0]  = new Point(-w/2, 0);
+      inputs[0]  = new Point(0, 0);
       outputs    = new Point[1];
-      outputs[0] = new Point(+w/2, 0);
+      outputs[0] = new Point(0, 0);
    }
 
-   public static GraphicNode create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicJunction create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
 
       String paramsArray[] = params.split(",");
       int x = originX+Integer.parseInt(paramsArray[0].trim());
       int y = originY+Integer.parseInt(paramsArray[1].trim());
 
-      GraphicNode t = new GraphicNode(x, y, id, canEdit, var);
+      GraphicJunction t = new GraphicJunction(x, y, id, false, var);
 
-      t.addInputsAndOutputs(2, paramsArray, 10, 10);
       return t;
    }
 
    @Override
    void draw(Display display, GC gc) {
       super.draw(display, gc);
-
-      gc.setBackground(display.getSystemColor(backGroundColor));
-      gc.setForeground(display.getSystemColor(lineColor));
       
-      //      drawBoundary(gc);
-
-      gc.fillRectangle(x-w/2,   y-h/2,    w,    h);
-      gc.setLineWidth(2);
-      gc.drawRectangle(x-w/2,   y-h/2,    w,    h);
+//      drawBoundary(gc);
 
       StringBuilder label = new StringBuilder();
       String name = getName();
@@ -68,17 +60,20 @@ public class GraphicNode extends GraphicBaseVariable {
 
          font.dispose();
       }
+      
+      gc.setBackground(display.getSystemColor(lineColor));
+      gc.fillOval(x-dotSize/2, y-dotSize/2, dotSize, dotSize);
    }
 
    @Override
    Point getEditPoint() {
-      return new Point((x+w-40), (y-25));
+      return new Point(x,y);
    }
 
    @Override
    public void reportParams(StringBuilder sb) {
       super.reportParams(sb);
-      sb.append(String.format("%-20s", "type=\"node\" "));
+      sb.append(String.format("%-20s", "type=\"junction\" "));
 
       StringBuilder params = new StringBuilder();
       params.append(String.format(" params=\"%4d,%4d\" ", x, y));

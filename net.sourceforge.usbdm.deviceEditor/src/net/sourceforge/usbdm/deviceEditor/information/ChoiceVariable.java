@@ -9,16 +9,10 @@ import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class ChoiceVariable extends VariableWithChoices {
 
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
-   }
-
    /** Name/choice pairs */
    private ChoiceData[] fData = null;
    
-   /** Current value (user format i.e name) */
+   /** Current value - index into choices */
    private Integer fValue = null;
    
    /** Default value of variable */
@@ -90,7 +84,7 @@ public class ChoiceVariable extends VariableWithChoices {
     * Listeners are informed if the variable changes.<br>
     * Special strings "Reserved" and "Default" are translated to the {@link #fDefaultValue} value
     * 
-    * @param value The value to set as a String
+    * @param value The index of the choice to select
     * 
     * @return True if variable actually changed value
     */
@@ -98,27 +92,46 @@ public class ChoiceVariable extends VariableWithChoices {
       if ((fValue != null) && fValue.equals(value)) {
          return false;
       }
-//      // XX Delete me
-//      if (getName().contains("mcg_c1_frdiv[1]") || getName().contains("range0[1]")) {
-//         System.err.println(getName()+"setValue(int="+value+"), cv=" + fValue);
-//      }
-      if (value<0) {
-         System.err.println("Warning value is not valid "+this+", "+value);
-         fValue = 0;
+      String[] choices = getChoices();
+      if ((value<0) || (value>choices.length)) {
+         System.err.println("setValue("+value+") - Illegal value for choice");
+         value = 0;
       }
-      getChoices();
       fValue = value;
       notifyListeners();
       return true;
    }
 
    /**
-    * Get current value or null if not yet set
+    * Get current value or null if not yet set<br>
+    * This will be the index of the currently selected value
     * 
     * @return
     */
    public Object getValue() {
-      return fValue;
+      return isEnabled()?fValue:fDisabledValue;
+   }
+
+   /**
+    * Get the variable value interpreted as a Long<br>
+    * This will be the index of the currently selected value
+    * 
+    * @return
+    */
+   @Override
+   public long getValueAsLong() {
+      return (int) getValue();
+   }
+   
+   @Override
+   public String getValueAsString() {
+      String[] choices = getChoices();
+      int index = (int) getValueAsLong();
+      if ((index<0) || (index>=choices.length)) {
+         System.err.println("getValueAsString() illegal index, "+index);
+         index = 0;
+      }
+      return choices[index];
    }
    
    /**
@@ -166,7 +179,7 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public boolean setValue(Object value) {
-//      // XX Delete me
+      // XX Delete me
 //      if (getName().contains("mcg_c1_frdiv")) {
 //         System.err.println("setValue(obj="+value+")");
 //      }
@@ -196,29 +209,6 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       throw new Exception("Value '"+value+"' Not suitable for choice variable "+getName());
    }
-
-   /**
-    * Get the variable value interpreted as a Long
-    * This will be the index of the currently selected value
-    * 
-    * @return
-    */
-   @Override
-   public long getValueAsLong() {
-      return fValue;
-   }
-   
-   @Override
-   public String getValueAsString() {
-      String[] choices = getChoices();
-      int index = isEnabled()?fValue:fDisabledValue;
-      if ((index<0) || (index>=choices.length)) {
-         index = 0;
-         System.err.println("getValueAsString() illegal index, "+index);
-      }
-      return choices[index];
-   }
-   
    @Override
    public String getSubstitutionValue() {
       return fData[fValue].getValue();
@@ -280,10 +270,6 @@ public class ChoiceVariable extends VariableWithChoices {
     * @param disabledValue
     */
    public void setDisabledValue(int disabledValue) {
-      // XXX Delete me
-//      if (getName().equals("cmp_cr0_filter_cnt")) {
-//         System.err.println("Found "+getName());
-//      }
       this.fDisabledValue = disabledValue;
    }
 
@@ -358,7 +344,7 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       if (fDisabledValue == null) {
          // Default not set yet - set disabled value
-         fDisabledValue = 0;
+         fDisabledValue = fDefaultValue;
       }
       return choices;
    }

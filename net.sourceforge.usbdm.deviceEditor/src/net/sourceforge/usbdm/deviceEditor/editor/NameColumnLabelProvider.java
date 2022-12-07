@@ -16,12 +16,6 @@ public class NameColumnLabelProvider extends BaseLabelProvider {
    }
 
    @Override
-   public String getToolTipText(Object element) {
-      // TODO Auto-generated method stub
-      return super.getToolTipText(element);
-   }
-
-   @Override
    public Image getImage(BaseModel model) {
       if (model.isError()) {
          return errorImage;

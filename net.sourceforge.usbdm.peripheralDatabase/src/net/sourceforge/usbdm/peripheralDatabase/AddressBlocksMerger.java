@@ -12,7 +12,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
  * If the peripheral has a non-zero getForcedBlockMultiple() then
  * blocks are rounded up in size to be a multiple.
  * If the peripheral has a non-zero getPreferredAccessWidth() then
- * the blocks width is made equal to this if compatible with the block 
+ * the blocks width is made equal to this if compatible with the block
  * size and address.
  */
 class AddressBlocksMerger {
@@ -35,9 +35,9 @@ class AddressBlocksMerger {
        * @param startAddress  Start address of block within peripheral
        * @param width         Width of register in bits
        * @param accessType    Access type for block
-       * @param isolatedIndex Isolated block index used to isolated from adjoining blocks 
+       * @param isolatedIndex Isolated block index used to isolated from adjoining blocks
        * 
-       * @throws Exception 
+       * @throws Exception
        */
       public BlockInfo(long startAddress, long width, AccessType accessType, int isolatedIndex) throws Exception {
          if (accessType == null) {
@@ -86,9 +86,9 @@ class AddressBlocksMerger {
       preferredAccessWidth = peripheral.getPreferredAccessWidth()/8;
       forcedBlockMultiple  = peripheral.getForcedBlockMultiple()/8;
       switch(forcedBlockMultiple) {
-         case 0  : 
+         case 0  :
          case 1  : addressMask = 0xFFFFFFFFL; break;
-         case 2  : addressMask = 0xFFFFFFFEL; break; 
+         case 2  : addressMask = 0xFFFFFFFEL; break;
          case 4  : addressMask = 0xFFFFFFFCL; break;
          default : throw new Exception("Unexpected forced address width");
       }
@@ -135,7 +135,6 @@ class AddressBlocksMerger {
       if ((bWidthBitmask & (1<<4)) != 0) {
          width = 32;
       }
-      // XXX Delete OK
 //      System.err.println(String.format("Adding Block     [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
       peripheralBlocks.add(new AddressBlock(bStartAddress, bSizeInBytes, width, "registers"));
    }
@@ -166,7 +165,6 @@ class AddressBlocksMerger {
          bAccessType   = accessType;
          return;
       }
-//    XXX Delete OK
 //      if (isolatedIndex != 0) {
 //         System.err.println(String.format(
 //               "Isolated Block   (s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
@@ -178,7 +176,7 @@ class AddressBlocksMerger {
 //            throw new Exception(String.format("Address is going backwards 0x%08X<0x%08X", startAddress, bStartAddress));
 //         }
          // Merge blocks that overlap irrespective of width
-         if ( (startAddress >= bStartAddress) && (startAddress < (bStartAddress+bSizeInBytes)) || 
+         if ( (startAddress >= bStartAddress) && (startAddress < (bStartAddress+bSizeInBytes)) ||
              (((startAddress == (bStartAddress+bSizeInBytes)) && ((preferredAccessWidth != 0) || ((widths&bWidthBitmask) != 0))))) {
             // Can add to current range
             if ((sizeInBytes+startAddress) > (bSizeInBytes+bStartAddress)) {
@@ -213,13 +211,12 @@ class AddressBlocksMerger {
     * @param width         Access width (and memory range size)
     * @param accessType    Access type
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private void processOriginalBlock(BlockInfo block) throws Exception {
       /*
        * This routine stages registers that overlap in a simple way
        */
-      // XXX Delete OK
 //      if (block.fIsolatedIndex != 0) {
 //         System.err.println(String.format(
 //               "processOriginalBlock(s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
@@ -236,7 +233,7 @@ class AddressBlocksMerger {
             pendingIsolatedIndex = block.fIsolatedIndex;
             return;
          }
-         if ((block.fStartAddress >= pendingStartAddress) && 
+         if ((block.fStartAddress >= pendingStartAddress) &&
                (block.fStartAddress < (pendingStartAddress+pendingSizeInBytes)) &&
                (block.fIsolatedIndex == pendingIsolatedIndex)) {
             // Add to pending block
@@ -361,21 +358,20 @@ class AddressBlocksMerger {
     * These ranges will be merged later on.
     * 
     * @param startAddress  Start address of block within peripheral
-    * @param isolatedIndex 
+    * @param isolatedIndex
     * @param register      Register to obtain block characteristics from
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public void addBlock(long startAddress, int isolatedIndex, Register register) throws Exception {
-//      // XXX Delete OK
 //      if (isolatedIndex != 0) {
 //         System.err.println("addBlock(Isolated block #"+isolatedIndex+")");
 //      }
       originalBlocks.add(
             new BlockInfo(
-                  startAddress, 
-                  register.getWidth(), 
-                  register.getAccessType(), 
+                  startAddress,
+                  register.getWidth(),
+                  register.getAccessType(),
                   isolatedIndex));
    }
 

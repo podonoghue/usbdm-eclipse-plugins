@@ -17,6 +17,7 @@ public abstract class GraphicBaseVariable extends Graphic {
    protected Point[] outputs = null;
    protected Point[] inputs  = null;
    
+   
    protected GraphicBaseVariable(int x, int y, int w, int h, String text, boolean canEdit, Variable var) {
       super(x, y, w, h, text);
       this.fVar = var;
@@ -72,7 +73,11 @@ public abstract class GraphicBaseVariable extends Graphic {
     * @return
     */
    boolean canEdit() {
-      return fCanEdit;
+      boolean edit =  fCanEdit;
+      if (fVar != null) {
+         edit = edit && !fVar.isLocked();
+      }
+      return edit;
    }
    
    abstract Point getEditPoint();
@@ -192,6 +197,17 @@ public abstract class GraphicBaseVariable extends Graphic {
             inputs = tInputs.toArray(new Point[tInputs.size()]);
          }
       }
+   }
+
+   @Override
+   public void reportParams(StringBuilder sb) {
+      super.reportParams(sb);
+      String var = "";
+      if (fVar != null) {
+         var = fVar.getName();
+         var = var.replace("[0]", "[%(n)]");
+      }
+      sb.append(String.format("%-40s", "var=\""+var+"\" "));
    }
    
 }

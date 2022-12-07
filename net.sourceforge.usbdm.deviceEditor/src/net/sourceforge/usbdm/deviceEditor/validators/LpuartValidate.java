@@ -50,8 +50,8 @@ public class LpuartValidate extends PeripheralValidator {
    }
    
    @Override
-   protected void createDependencies() throws Exception {
-      super.createDependencies();
+   protected boolean createDependencies() throws Exception {
+      return super.createDependencies();
       // No external dependencies
    }
 }

@@ -22,7 +22,7 @@ public class OscRfValidate extends PeripheralValidator {
 
    /**
     * Class to determine oscillator settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -54,7 +54,8 @@ public class OscRfValidate extends PeripheralValidator {
    }
    
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
+      return super.createDependencies();
       // No external dependencies
    }
 

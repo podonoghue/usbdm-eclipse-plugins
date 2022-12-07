@@ -11,23 +11,30 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
 public class GraphicAnnotation extends GraphicBaseVariable {
 
-   public GraphicAnnotation(int x, int y, int w, int h, String id, Boolean canEdit, Variable var) {
-      super(x, y, w, h, id, canEdit, var);
+   private final String format;
+
+   public GraphicAnnotation(int x, int y, int w, int h, String id, String format, Boolean canEdit, Variable var) {
+      super(x+w/2, y+h/2, w, h, id, canEdit, var);
       inputs     = new Point[1];
       inputs[0]  = new Point(0, 0);
       outputs    = new Point[1];
       outputs[0] = new Point(0, 0);
+      
+      this.format = format;
    }
 
-   public static GraphicAnnotation create(String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicAnnotation create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
 
       String paramsArray[] = params.split(",");
-      int x = Integer.parseInt(paramsArray[0].trim());
-      int y = Integer.parseInt(paramsArray[1].trim());
+      int x = originX+Integer.parseInt(paramsArray[0].trim());
+      int y = originY+Integer.parseInt(paramsArray[1].trim());
       int w = Integer.parseInt(paramsArray[2].trim());
       int h = Integer.parseInt(paramsArray[3].trim());
-
-      GraphicAnnotation t = new GraphicAnnotation(x, y, w, h, id, canEdit, var);
+      String format = null;
+      if (paramsArray.length>4) {
+         format = paramsArray[4];
+      }
+      GraphicAnnotation t = new GraphicAnnotation(x, y, w, h, id, format, canEdit, var);
 
       t.addInputsAndOutputs(4, paramsArray, 10, 10);
       return t;
@@ -42,25 +49,33 @@ public class GraphicAnnotation extends GraphicBaseVariable {
       
 //      drawBoundary(gc);
 
-      StringBuilder label = new StringBuilder();
-      String name = getName();
-      if (((getStyle()&NONAME) == 0) && (name != null) && !name.isBlank()) {
-         label.append(getName());
-      }
-      if ((getStyle()&NOVALUE) == 0) {
-         Variable var = getVariable();
-//         if ((var instanceof LongVariable) || (var instanceof DoubleVariable)) {
-            if (label.length() != 0) {
-               label.append(", ");
+      String label = "";
+      if (format == null) {
+         StringBuilder sb = new StringBuilder();
+         String name = getName();
+         if (((getStyle()&NONAME) == 0) && (name != null) && !name.isBlank()) {
+            sb.append(getName());
+         }
+         if ((getStyle()&NOVALUE) == 0) {
+            Variable var = getVariable();
+            if (sb.length() != 0) {
+               sb.append(", ");
             }
-            label.append(var.getValueAsString());
-//         }
+            sb.append(var.getValueAsString());
+         }
+         label = sb.toString();
+      }
+      else {
+         label = format;
+         label = label.replaceAll("%n", getName());
+         Variable var = getVariable();
+         label = label.replaceAll("%v", var.getValueAsString());
       }
       if (label.length() != 0) {
          FontData data = display.getSystemFont().getFontData()[0];
          Font font = new Font(display, data.getName(), 10, SWT.NORMAL);
          gc.setFont(font);
-         gc.drawText(label.toString(), (x-w/2+nameX+2), (y-h/2+2+nameY));
+         gc.drawText(label, (x-w/2+nameX+2), (y-h/2+1+nameY));
 
          font.dispose();
       }
@@ -69,6 +84,17 @@ public class GraphicAnnotation extends GraphicBaseVariable {
    @Override
    Point getEditPoint() {
       return new Point((x-w/2+2), (y-8));
+   }
+
+   @Override
+   public void reportParams(StringBuilder sb) {
+      super.reportParams(sb);
+      sb.append(String.format("%-20s", "type=\"annotation\" "));
+
+      StringBuilder params = new StringBuilder();
+      
+      params.append(String.format(" params=\"%4d,%4d,%4d,%4d\" ", x-w/2, y-h/2, w, h));
+      sb.append(String.format("%-60s", params.toString()));
    }
 
 }

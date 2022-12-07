@@ -33,7 +33,7 @@ public class CmpValidate extends PeripheralValidator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
       
 //      // Variable to watch
@@ -42,6 +42,8 @@ public class CmpValidate extends PeripheralValidator {
       cmp_filterVar       = getChoiceVariable("cmp_filter");
 //
 //      addToWatchedVariables(variablesToWatch);
+      
+      return false;
    }
 
 }

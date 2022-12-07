@@ -84,7 +84,7 @@ public class FtmValidate extends PeripheralValidator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
 
       final String[] externalVariables = {
@@ -92,6 +92,8 @@ public class FtmValidate extends PeripheralValidator {
             "/SIM/system_bus_clock",
       };
       addToWatchedVariables(externalVariables);
+      
+      return false;
    }
 
 }

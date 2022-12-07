@@ -22,9 +22,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
@@ -40,7 +38,7 @@ import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
-public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
+public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider {
 
    public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlingMethod";
 
@@ -312,11 +310,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param variable  Variable to add
     * 
     * @throws Exception if variable already exists
+    * TODO Modify listener approach for peripherals and validators
     */
    @Override
    public void addVariable(Variable variable) {
       super.addVariable(variable);
-      variable.addListener(this);
    }
 
    /**
@@ -438,22 +436,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
    
-   @Override
-   public void modelElementChanged(ObservableModel observableModel) {
-      if (observableModel instanceof Variable) {
-         variableChanged((Variable)observableModel);
-      }
-      
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-   }
-   
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-   }
-
    /**
     * Get priority - a number used to order the instantiation of peripherals
     * 
@@ -598,18 +580,18 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
 
-   ArrayList<String> fDepenedencies;
-   
-   public void addDependency(String dependencyVarName) {
-      if (fDepenedencies == null) {
-         fDepenedencies = new ArrayList<String>();
-      }
-      fDepenedencies.add(dependencyVarName);
-   }
-   
-   public ArrayList<String> getDependencies() {
-      return fDepenedencies;
-   }
+//   ArrayList<String> fDepenedencies;
+//
+//   public void addDependency(String dependencyVarName) {
+//      if (fDepenedencies == null) {
+//         fDepenedencies = new ArrayList<String>();
+//      }
+//      fDepenedencies.add(dependencyVarName);
+//   }
+//
+//   public ArrayList<String> getDependencies() {
+//      return fDepenedencies;
+//   }
 
    // List of clock selectors to update on validation
    private ArrayList<Variable> fMonitoredVariables = null;

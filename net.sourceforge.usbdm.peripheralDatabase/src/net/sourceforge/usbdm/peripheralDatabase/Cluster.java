@@ -980,7 +980,6 @@ public class Cluster extends ModeControl implements Cloneable {
 //      System.err.println(String.format("Cluster.addAddressBlocks(%s) addressOffset = 0x%04X", getName(), addressOffset));
       addressOffset += getAddressOffset();
       
-//      // XXX Delete OK
 //      if (isIsolated()) {
 //         System.err.println("addAddressBlocks(Isolated cluster " +getName() + ", #" + isolatedIndex + ")");
 //      }

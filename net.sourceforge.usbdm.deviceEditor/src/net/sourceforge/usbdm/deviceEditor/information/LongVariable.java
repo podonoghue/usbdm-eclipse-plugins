@@ -104,7 +104,7 @@ public class LongVariable extends Variable {
          }
          throw new Exception("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
       } catch (Exception e) {
-         e.printStackTrace();
+//         Activator.log(e.getMessage());
       }
       return fDefaultValue;
    }
@@ -359,6 +359,7 @@ public class LongVariable extends Variable {
     * @throws Exception
     */
    public void setMin(long min) throws Exception {
+      
       // Check if error state changed
       boolean statusChanged = ((fValue>=getMin()) && (fValue<min)) || ((fValue<getMin()) && (fValue>=min));
       fMin = min;
@@ -382,6 +383,7 @@ public class LongVariable extends Variable {
     * @throws Exception
     */
    public void setMax(long max) throws Exception {
+      
       // Check if error state changed
       boolean statusChanged = ((fValue<=getMax()) && (fValue>max)) || ((fValue>getMax()) && (fValue<=max));
       fMax = max;
@@ -407,8 +409,6 @@ public class LongVariable extends Variable {
     * @throws Exception
     */
    public boolean setMin(String attribute) throws Exception {
-      fMinExpression = attribute;
-      
       // Assume dynamic evaluation
       fMin = null;
       
@@ -420,7 +420,8 @@ public class LongVariable extends Variable {
          return false;
          
       } catch (Exception e) {
-         // Assume evaluated dynamically
+         // Assume evaluated dynamically - save for later
+         fMinExpression = attribute;
       }
       // Dynamic expression
       return true;
@@ -437,8 +438,6 @@ public class LongVariable extends Variable {
     * @throws Exception
     */
    public boolean setMax(String attribute) throws Exception {
-      fMaxExpression = attribute;
-      
       // Assume dynamic evaluation
       fMax = null;
       
@@ -449,7 +448,9 @@ public class LongVariable extends Variable {
          notifyListeners();
          return false;
       } catch (Exception e) {
-         // Assume evaluated dynamically
+         // Assume evaluated dynamically - save for later
+         fMaxExpression = attribute;
+         
       }
       // Dynamic expression
       return true;
@@ -465,7 +466,7 @@ public class LongVariable extends Variable {
       if (fMin == null) {
          SimpleExpressionParser parser = new SimpleExpressionParser(getProvider(), Mode.EvaluateFully);
          fMin = (Long) parser.evaluate(fMinExpression);
-         notifyListeners();
+         notifyStatusListeners();
       }
       return fMin;
    }
@@ -484,6 +485,9 @@ public class LongVariable extends Variable {
     */
    public void updateMax() {
       if (fMaxExpression != null) {
+//         if (getName().contains("system_lpuart_clock")) {
+//            System.err.println("updateMax() Found "+getName());
+//         }
          fMax = null;
       }
    }
@@ -496,9 +500,12 @@ public class LongVariable extends Variable {
     */
    public long getMax() throws Exception {
       if (fMax == null) {
+//         if (getName().contains("system_lpuart_clock")) {
+//            System.err.println("getMax() Found "+getName());
+//         }
          SimpleExpressionParser parser = new SimpleExpressionParser(getProvider(), Mode.EvaluateFully);
          fMax = (Long) parser.evaluate(fMaxExpression);
-         notifyListeners();
+         notifyStatusListeners();
       }
       return fMax;
    }

@@ -115,12 +115,6 @@ public class OpenGraphicModel extends EditableModel implements CellEditorProvide
    }
 
    @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
-   }
-
-   @Override
    public CellEditor createCellEditor(Tree tree) {
       return new GraphicEditor(tree, fFigure, fClockConfigVar);
    }

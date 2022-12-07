@@ -20,7 +20,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     mcg_mk_ics48mml
  *     mcg_mk
  */
-public class ClockValidator_SCG extends BaseClockValidator {
+public class ClockValidator_SCG extends IndexedValidator {
 
    private boolean initialisationDone = false;
    
@@ -74,10 +74,10 @@ public class ClockValidator_SCG extends BaseClockValidator {
     * @throws Exception
     */
    @Override
-   protected void validate(Variable variable) throws Exception {
-      for (int index=0; index<fDimension; index++) {
-         fIndex = index;
-         if (!initialisationDone) {
+   protected void validate(Variable variable, int index) throws Exception {
+      
+      if (!initialisationDone) {
+         for (int fIndex=0; fIndex<fDimension; fIndex++) {
             // Add SCG parameters
             pll_mult_min                   = getLongVariable("pll_mult_min").getValueAsLong();
             pll_mult_max                   = getLongVariable("pll_mult_max").getValueAsLong();
@@ -104,7 +104,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
             osc_medium_min_frequency       = getLongVariable("osc_medium_min_frequency").getValueAsLong();
             osc_high_min_frequency         = getLongVariable("osc_high_min_frequency").getValueAsLong();
             osc_high_max_frequency         = getLongVariable("osc_high_max_frequency").getValueAsLong();
-            
+
             LongVariable scg_spllcfg_multVar  = getLongVariable("scg_spllcfg_mult");
             scg_spllcfg_multVar.setOffset(-pll_mult_min);
             scg_spllcfg_multVar.setMin(pll_mult_min);
@@ -126,23 +126,11 @@ public class ClockValidator_SCG extends BaseClockValidator {
                system_spll_clockVar.reset();
             }
          }
+         initialisationDone = true;
+         fIndex = index;
       }
-      for (int fIndex=0; fIndex<fDimension; fIndex++) {
-         validateClocks(variable);
-      }
-      initialisationDone = true;
-      fIndex = 0;
-   }
 
-   /**
-    * @param variable
-    * @param index
-    * @throws Exception
-    */
-   protected void validateClocks(Variable variable) throws Exception {
 //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
-
-      super.validate(variable);
 
       StringVariable clockConfig = safeGetStringVariable("ClockConfig");
       clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
@@ -467,7 +455,7 @@ public class ClockValidator_SCG extends BaseClockValidator {
    }
    
    @Override
-   public void createDependencies() throws Exception {
-      super.createDependencies();
+   public boolean createDependencies() throws Exception {
+      return super.createDependencies();
    }
 }

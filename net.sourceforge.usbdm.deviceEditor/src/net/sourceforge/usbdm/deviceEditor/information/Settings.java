@@ -59,8 +59,8 @@ public class Settings {
          BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
          fDocumentUtilities = new XmlDocumentUtilities(writer);
          fDocumentUtilities.writeXmlFilePreamble(
-               path.getFileName().toString(), 
-               null, 
+               path.getFileName().toString(),
+               null,
                "Settings");
          save();
          writer.close();
@@ -81,8 +81,9 @@ public class Settings {
    /**
     * Retrieve item from settings
     * 
-    * @param key
-    * @return
+    * @param key Used for lookup
+    * 
+    * @return  Value found or null if not present
     */
    public String get(String key) {
       String value = fMap.get(key);
@@ -120,7 +121,7 @@ public class Settings {
             throw new Exception("Unexpected element " + element.getTagName());
          }
          fMap.put(element.getAttribute("key"), element.getAttribute("value"));
-      }      
+      }
    }
 
    /**
@@ -145,7 +146,7 @@ public class Settings {
             throw new Exception("Unexpected element " + element.getTagName());
          }
          loadSection(element);
-      }      
+      }
    }
 
    /**

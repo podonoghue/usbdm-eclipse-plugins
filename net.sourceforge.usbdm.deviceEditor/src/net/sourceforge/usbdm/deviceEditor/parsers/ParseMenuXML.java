@@ -45,12 +45,12 @@ import net.sourceforge.usbdm.deviceEditor.model.AliasPlaceholderModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.ErrorModel;
 import net.sourceforge.usbdm.deviceEditor.model.OpenGraphicModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -1211,10 +1211,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
 
-//      if (variable.getName().startsWith("cmp_filter")) {
-//         System.err.println("Found " + variable.getName());
-//      }
-//
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
       
@@ -1810,7 +1806,7 @@ public class ParseMenuXML extends XML_BaseParser {
                var = new DoubleVariable(name, indexedKey);
             }
             else if ("Boolean".equalsIgnoreCase(type)) {
-               var = new DoubleVariable(name, indexedKey);
+               var = new BooleanVariable(name, indexedKey);
             }
             else {
                var = new StringVariable(name, indexedKey);
@@ -2906,7 +2902,7 @@ public class ParseMenuXML extends XML_BaseParser {
          parseSignalsOption(parentModel, element);
       }
       else if (tagName == "validate") {
-         fValidators.add(parseValidate(element));
+         parseValidate(element);
       }
       else if (tagName == "clockCodeTemplate") {
          if (!element.hasAttribute("variable")) {
@@ -2935,9 +2931,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          parseTemplate(element);
       }
-      else if (tagName == "addDependency") {
-         fPeripheral.addDependency(getKeyAttribute(element));
-      }
+//      else if (tagName == "addDependency") {
+//         fPeripheral.addDependency(getKeyAttribute(element));
+//      }
       else if (tagName == "deleteOption") {
          parseDeleteOption(element);
       }
@@ -2965,6 +2961,39 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   private void parseGraphicBox(ClockSelectionFigure figure, Element boxElement) throws Exception {
+      
+      String boxId     = getAttribute(boxElement, "id");
+      String boxParams = getAttribute(boxElement, "params");
+      
+      int x = Integer.parseInt(getAttribute(boxElement, "x", "0"));
+      int y = Integer.parseInt(getAttribute(boxElement, "y", "0"));
+      
+      figure.add(x,y, boxId, null, "box", null, boxParams);
+      
+      for (Node node = boxElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element graphic = (Element) node;
+         if (graphic.getTagName() != "graphicItem") {
+            throw new Exception("Expected <graphicItem>");
+         }
+         if (!checkCondition(graphic)) {
+            // Discard element
+            continue;
+         }
+         String id     = getAttribute(graphic, "id");
+         String varKey = getKeyAttribute(graphic, "var");
+         String type   = getAttribute(graphic, "type");
+         String edit   = getAttribute(graphic, "edit");
+         String params = getAttribute(graphic, "params");
+         figure.add(x, y, id, varKey, type, edit, params);
+      }
+   }
+
    private void parseGraphic(BaseModel parentModel, Element element) throws Exception {
       
       ClockSelectionFigure figure = new ClockSelectionFigure();
@@ -2986,12 +3015,15 @@ public class ParseMenuXML extends XML_BaseParser {
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
-         String id     = getAttribute((Element)node, "id");
-         String varKey = getKeyAttribute((Element)node, "var");
-         String type   = getAttribute((Element)node, "type");
-         String edit   = getAttribute((Element)node, "edit");
-         String params = getAttribute((Element)node, "params");
-         figure.add(id, varKey, type, edit, params);
+         Element boxElement = (Element) node;
+         if (boxElement.getTagName() != "graphicBox") {
+            throw new Exception("Expected <graphicBox>");
+         }
+         if (!checkCondition(boxElement)) {
+            // Discard element
+            continue;
+         }
+         parseGraphicBox(figure, boxElement);
       }
    }
 
@@ -3258,6 +3290,8 @@ public class ParseMenuXML extends XML_BaseParser {
       long dimension = getLongAttributeWithVariableSubstitution(validateElement, "dim");
       ValidatorInformation validator = new ValidatorInformation(getAttribute(validateElement, "class"), (int)dimension);
       
+      SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.EvaluateFully);
+      
       for (Node node = validateElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -3270,12 +3304,11 @@ public class ParseMenuXML extends XML_BaseParser {
             String value =getAttribute(element, "value");
             
             // Do substitutions on parameter
-            value = fProvider.substitute(value);
             if (type.equalsIgnoreCase("long")) {
-               validator.addParam(EngineeringNotation.parseAsLong(value));
+               validator.addParam(parser.evaluate(value));
             }
             else if (type.equalsIgnoreCase("string")) {
-               validator.addParam(value);
+               validator.addParam(parser.evaluate(value));
             }
             else {
                throw new Exception("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");
@@ -3285,6 +3318,7 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("Unexpected field in <validate>, value = \'"+element.getTagName()+"\'");
          }
       }
+      fValidators.add(validator);
       return validator;
    }
 
@@ -3477,8 +3511,8 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String toolTip = aliasModel.getToolTip();
       if ((toolTip != null) && !toolTip.isEmpty()) {
-         if ((variable.getDisplayToolTip() != null) && !variable.getDisplayToolTip().isEmpty()) {
-            throw new Exception("Alias tries to change toolTip for " + key);
+         if ((variable.getToolTip() != null) && !variable.getToolTip().isEmpty()) {
+            throw new Exception("Alias tries to change toolTip for " + key + ", tooltip="+toolTip);
          }
          variable.setToolTip(toolTip);
       }
@@ -3533,6 +3567,7 @@ public class ParseMenuXML extends XML_BaseParser {
             OpenGraphicModel ogm = (OpenGraphicModel)model;
             ClockSelectionFigure figure = ogm.getFigure();
             figure.instantiateGraphics(provider);
+//            figure.report();
          }
          else {
             instantiateAliases(provider, model);
@@ -3560,7 +3595,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private static MenuData parse(Document document, VariableProvider provider, PeripheralWithState peripheral) throws Exception {
-      System.out.println("Loading document:" + document.getBaseURI());
+      // XXX Trace parsing peripheral files here
+//      System.out.println("Loading document:" + document.getBaseURI());
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");

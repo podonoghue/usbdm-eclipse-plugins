@@ -10,7 +10,7 @@ public class WriterForPort extends PeripheralWithState {
    public WriterForPort(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
 
-      // Can't create instances of this peripheral 
+      // Can't create instances of this peripheral
       fCanCreateInstance = false;
 
       // Can create type declarations for signals belonging to this peripheral
@@ -22,8 +22,7 @@ public class WriterForPort extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      // TODO Auto-generated method stub
-      return null;
+      return "PORT";
    }
 
 }

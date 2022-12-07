@@ -10,14 +10,15 @@ public abstract class Graphic {
    public static enum Height        {small, large};
    public static enum ShowValue     {quiet};
    public static enum Orientation   {normal, rot90, rot180, rot270, mirror, rot90mirror, rot180mirror, rot270mirror, };
-   public static enum Type          {variableBox, box, choice, mux, hmux, connector, node, label, reference, annotation};
+   public static enum Type          {variableBox, box, choice, mux, hmux, connector, node, junction, label, reference, annotation};
    public static final int NONE     =0b0000;
    public static final int NONAME   =0b0001;
    public static final int NOVALUE  =0b0010;
    
    final static int vScale             = 20;
    final static int hScale             = 10;
-   
+   final static int dotSize            = 7;
+
    final static int DEFAULT_BACKGROUND_COLOR     = SWT.COLOR_WHITE;
    final static int DEFAULT_LINE_COLOR           = SWT.COLOR_BLACK;
    final static int DEFAULT_SELECTED_LINE_COLOR  = SWT.COLOR_BLUE;
@@ -180,7 +181,23 @@ public abstract class Graphic {
    }
    
    /**
-    * Convert a point from global to graphic relative
+    * Convert a point    public String getStyle(int style) {
+      StringBuilder sb = new StringBuilder();
+      if ((style&NONAME) != 0) {
+         if (sb.length()!=0) {
+            sb.append("|");
+         }
+         sb.append("NONAME");
+      }
+      if ((style&NOVALUE) != 0) {
+         if (sb.length()!=0) {
+            sb.append("|");
+         }
+         sb.append("NOVALUE");
+      }
+      return sb.toString();
+   }
+from global to graphic relative
     * 
     * @param point
     * 
@@ -353,6 +370,10 @@ public abstract class Graphic {
     * @param y Y coord (absolute)
     */
    void lineTo(GC gc, int x, int y) {
+      final int width  = 1;
+      
+      gc.setLineWidth(width);
+      
       gc.drawLine(currentX, currentY, x, y);
       if (y > currentY) {
          direction = Direction.down;
@@ -376,26 +397,77 @@ public abstract class Graphic {
     *  Draw arrow at current location and with current direction
     */
    void drawArrow(Display display, GC gc) {
+      final int width  = 5;
+      final int length = 10;
       Point p = new Point(currentX, currentY);
       int points[];
       switch (direction) {
          default:
          case up:
-            points = new int[]{p.x-6,p.y+6, p.x,p.y, p.x+6,p.y+6};
+            points = new int[]{p.x-width,p.y+length, p.x,p.y, p.x+width,p.y+length};
             break;
          case down:
-            points = new int[]{p.x-6,p.y-6, p.x,p.y, p.x+6,p.y-6};
+            points = new int[]{p.x-width,p.y-length, p.x,p.y, p.x+width,p.y-length};
             break;
          case left:
-            points = new int[]{p.x+6,p.y+6, p.x,  p.y, p.x+6,p.y-6};
+            points = new int[]{p.x+length,p.y+width, p.x,  p.y, p.x+length,p.y-width};
             break;
          case right:
-            points = new int[]{p.x-6,p.y+6, p.x-1,p.y, p.x-6,p.y-6};
+            points = new int[]{p.x-length,p.y+width, p.x-1,p.y, p.x-length,p.y-width};
             break;
       }
       gc.setBackground(display.getSystemColor(lineColor));
       gc.fillPolygon(points);
    }
+
+   /**
+    * Get string representation of style
+    * 
+    * @param style
+    * 
+    * @return
+    */
+   public String getStyle(int style) {
+      StringBuilder sb = new StringBuilder();
+      if ((style&NONAME) != 0) {
+         if (sb.length()!=0) {
+            sb.append("|");
+         }
+         sb.append("NONAME");
+      }
+      if ((style&NOVALUE) != 0) {
+         if (sb.length()!=0) {
+            sb.append("|");
+         }
+         sb.append("NOVALUE");
+      }
+      return sb.toString();
+   }
    
+   /**
+    * Returns XML describing the graphic
+    * 
+    * @param sb
+    */
+   final public String report() {
+      StringBuilder sb = new StringBuilder();
+      sb.append("<graphicItem ");
+      reportParams(sb);
+      sb.append("/>");
+      return sb.toString();
+   }
+
+   /**
+    * Adds XML parameters describing the graphic to buffer
+    * 
+    * @param sb
+    */
+   protected void reportParams(StringBuilder sb) {
+      String styleString = getStyle(style);
+      if (!styleString.isBlank()) {
+         styleString = ","+styleString;
+      }
+      sb.append(String.format("%-32s", "id=\""+id+styleString+"\" "));
+   }
 
 }

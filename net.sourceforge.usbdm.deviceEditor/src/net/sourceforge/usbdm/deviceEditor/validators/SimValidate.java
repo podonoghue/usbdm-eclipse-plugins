@@ -19,7 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  * Sim_xxx
  */
-public class SimValidate extends PeripheralValidator {
+public class SimValidate extends IndexedValidator {
 
    private final long MAX_RUN_CORE_CLOCK_FREQ;
    private final long MAX_RUN_BUS_CLOCK_FREQ;
@@ -57,21 +57,6 @@ public class SimValidate extends PeripheralValidator {
       MAX_HSRUN_FLASH_CLOCK_FREQ    = (values.size()>8)?(Long)it.next():0;
    }
 
-   /**
-    * 
-    * @throws Exception
-    */
-   @Override
-   public void validate(Variable variable) throws Exception {
-
-      validateNonindexedVariables(variable);
-
-      for(fIndex=0; fIndex<fDimension; fIndex++) {
-         validateIndexVariables(variable);
-      }
-      fIndex = 0;
-   }
-
    static class StringPair {
       final String left;
       final String right;
@@ -91,16 +76,6 @@ public class SimValidate extends PeripheralValidator {
          this.right = right;
       }
    };
-
-   /**
-    * 
-    * @param variable
-    * @throws Exception
-    */
-   public void validateNonindexedVariables(Variable variable) throws Exception {
-      super.validate(variable);
-
-   }
 
    void validateUsbfsClock(LongVariable system_peripheral_clockVar) throws Exception {
 
@@ -169,7 +144,12 @@ public class SimValidate extends PeripheralValidator {
     * @param variable
     * @throws Exception
     */
-   void validateIndexVariables(Variable variable) throws Exception {
+   /**
+    * 
+    * @throws Exception
+    */
+   @Override
+   public void validate(Variable variable, int index) throws Exception {
 
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock");
@@ -185,7 +165,7 @@ public class SimValidate extends PeripheralValidator {
 
       final ChoiceVariable   sim_clkdiv1_outdiv1Var     = getChoiceVariable("sim_clkdiv1_outdiv1");
       final ChoiceVariable   sim_clkdiv1_outdiv2Var     = getChoiceVariable("sim_clkdiv1_outdiv2");
-      final ChoiceVariable   sim_clkdiv1_outdiv3Var     = getChoiceVariable("sim_clkdiv1_outdiv3");
+      final ChoiceVariable   sim_clkdiv1_outdiv3Var     = safeGetChoiceVariable("sim_clkdiv1_outdiv3");
       final ChoiceVariable   sim_clkdiv1_outdiv4Var     = getChoiceVariable("sim_clkdiv1_outdiv4");
 
       final ChoiceVariable smc_pmctrl_runmVar           = getChoiceVariable("/SMC/smc_pmctrl_runm");
@@ -429,7 +409,7 @@ public class SimValidate extends PeripheralValidator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
 
       // Variable to watch
@@ -443,7 +423,14 @@ public class SimValidate extends PeripheralValidator {
             "/MCG/system_mcgoutclk_clock",
             "/MCG/usb1pfdclk_Clock",
             "/SMC/smc_pmctrl_runm",
+            "system_core_clock",
+            "system_bus_clock",
+            "system_flexbus_clock",
+            "system_flash_clock",
+            "sim_sopt2_usbsrc",
       };
       addToWatchedVariables(externalVariables);
+      
+      return false;
    }
 }

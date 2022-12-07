@@ -4,8 +4,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -25,7 +25,6 @@ import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
-import net.sourceforge.usbdm.deviceEditor.model.Status;
 
 public class GraphicsDialogue {
 
@@ -182,26 +181,21 @@ public class GraphicsDialogue {
          combo.pack();
          combo.setVisible(true);
          
-         combo.addListener (SWT.DefaultSelection, e -> System.out.println (e.widget + " - Default Selection"));
-         combo.addListener (SWT.Selection,        e -> System.out.println (e.widget + " - Changed"));
+//         combo.addListener (SWT.DefaultSelection, e -> System.out.println (e.widget + " - Default Selection"));
+//         combo.addListener (SWT.Selection,        e -> System.out.println (e.widget + " - Changed"));
          
-         combo.addSelectionListener(new SelectionListener() {
+         combo.addSelectionListener(new SelectionAdapter() {
             
             @Override
             public void widgetSelected(SelectionEvent arg0) {
                String value = combo.getText();
-               System.err.println("Combo value = " + value);
+//               System.err.println("Combo value = " + value);
                if ((value != null) && !value.isBlank()) {
-                  var.setValue(value.trim());
+                  VariableWithChoices cVar = var;
+                  cVar.setValueByName(value.trim());
                }
                dispose();
                currentEditor = null;
-            }
-            
-            @Override
-            public void widgetDefaultSelected(SelectionEvent arg0) {
-               // TODO Auto-generated method stub
-               
             }
          });
          
@@ -288,16 +282,26 @@ public class GraphicsDialogue {
             }
             StringBuilder sb = new StringBuilder();
             sb.append(var.getKey());
-            String tooltip = var.getToolTip();
-            if (tooltip != null) {
-               sb.append("\n");
-               sb.append(tooltip.toString());
+//            String tooltip = var.getToolTip();
+//            if (tooltip != null) {
+//               sb.append("\n");
+//               sb.append(tooltip.toString());
+//            }
+            String toolTip = var.getDisplayToolTip();
+            if (toolTip != null) {
+               sb.append("\n\n");
+               sb.append(toolTip);
             }
-            Status status = var.getStatus();
-            if (status != null) {
-               sb.append("\n");
-               sb.append(status.getText());
-            }
+//            String origin = var.getOrigin();
+//            if (origin != null) {
+//               sb.append("\nOrigin: ");
+//               sb.append(origin);
+//            }
+//            Status status = var.getStatus();
+//            if (status != null) {
+//               sb.append("\n");
+//               sb.append(status.getText());
+//            }
             Point p = canvas.toDisplay(evt.x, evt.y);
             hoverShell.show(p.x, p.y, sb.toString());
          }
@@ -362,7 +366,7 @@ public class GraphicsDialogue {
       scrollComposite.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
       canvas = new Canvas(scrollComposite, SWT.NONE);
       canvas.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-      canvas.setSize(1100, 1200);
+      canvas.setSize(1100, 1400);
       scrollComposite.setContent(canvas);
 
       canvas.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
@@ -401,7 +405,7 @@ public class GraphicsDialogue {
       Shell shell = new Shell(display);
       shell.setText("Graphic Editor");
       shell.setLayout(new FillLayout());
-      shell.setSize(1100, 1000);
+      shell.setSize(1100, 1400);
       
       GraphicsDialogue gd = new GraphicsDialogue(shell, "GUI", createTestFigure());
       gd.open();

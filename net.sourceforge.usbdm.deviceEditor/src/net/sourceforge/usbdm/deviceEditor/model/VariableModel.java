@@ -45,12 +45,6 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       return name + (modified?" *":"");
    }
 
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
-   }
-
    /**
     * @return the Variable associated with this model
     */

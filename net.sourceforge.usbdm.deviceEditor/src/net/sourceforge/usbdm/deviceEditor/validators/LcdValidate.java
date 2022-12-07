@@ -3,12 +3,12 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -31,7 +31,7 @@ public class LcdValidate extends PeripheralValidator {
 
    /**
     * Class to validate LCD settings
-    * @throws Exception 
+    * @throws Exception
     */
    @Override
    public void validate(Variable variable) throws Exception {
@@ -93,19 +93,19 @@ public class LcdValidate extends PeripheralValidator {
       switch ((int)lcd_gcr_clockVar.getValueAsLong()) {
       default:
          lcd_gcr_clockVar.setValue(0);
-      case 0: 
+      case 0:
          lcd_gcr_altdivVar.enable(false);
          lcdClockVar.setValue(system_erclk32k_clockVar.getValueAsLong());
          lcdClockVar.setOrigin(system_erclk32k_clockVar.getOrigin());
          lcdClockVar.setStatus(system_erclk32k_clockVar.getFilteredStatus());
          break;
-      case 1: 
+      case 1:
          lcd_gcr_altdivVar.enable(true);
          lcdClockVar.setValue(system_mcgirclk_clockVar.getValueAsLong() / divider);
          lcdClockVar.setOrigin(system_mcgirclk_clockVar.getOrigin() + " / ALTDIV");
          lcdClockVar.setStatus(system_mcgirclk_clockVar.getFilteredStatus());
          break;
-      case 2: 
+      case 2:
          lcd_gcr_altdivVar.enable(true);
          lcdClockVar.setValue(osc0_oscer_clockVar.getValueAsLong() / divider);
          lcdClockVar.setOrigin(osc0_oscer_clockVar.getOrigin() + " / ALTDIV");
@@ -115,7 +115,7 @@ public class LcdValidate extends PeripheralValidator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       // Clock Mapping
       //=================
       final String   osc0_peripheral    = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
@@ -126,6 +126,8 @@ public class LcdValidate extends PeripheralValidator {
             osc0_peripheral+"/oscer_clock",
       };
       addToWatchedVariables(externalVariables);
+      
+      return false;
    }
 
 }

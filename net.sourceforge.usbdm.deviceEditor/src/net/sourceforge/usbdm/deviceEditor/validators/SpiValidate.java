@@ -25,8 +25,8 @@ public class SpiValidate extends PeripheralValidator {
    }
    
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
-      // No external dependencies
+      return false;
    }
 }

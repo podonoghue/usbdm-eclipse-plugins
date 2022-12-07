@@ -1,6 +1,6 @@
 /*
 ===============================================================================================================
-| History                                                                                                      
+| History
 ---------------------------------------------------------------------------------------------------------------
 | 19 Jan 2015 | Constructor changes etc                                                           | V4.10.6.250
 ===============================================================================================================
@@ -37,7 +37,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param registerModel The model that represents the register and owns the bit-fields
     * @param register      The register to obtain bit-field information from
-    * @throws Exception 
+    * @throws Exception
     */
    private static void createFieldModels(RegisterModel registerModel, Register register, ModelInformation pInformation) {
       ModelInformation information = new ModelInformation(pInformation);
@@ -61,7 +61,7 @@ public class UsbdmDevicePeripheralsModel {
     * @param  peripheralModel The model that represents the peripheral and owns the registers
     * @param  register        The register to obtain register information from
     * @param  pInformation    Format for register to this level
-    * @throws RegisterException 
+    * @throws RegisterException
     * 
     * @throws Exception
     */
@@ -178,8 +178,8 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param device      The model that represents the device (entire tree) that owns the peripherals
     * @param peripheral  The peripheral to obtain register information from
-    * @throws RegisterException 
-    * @throws Exception 
+    * @throws RegisterException
+    * @throws Exception
     */
    private static void createPeripheralModel(DeviceModel device, Peripheral peripheral, GdbCommonInterface gdbInterface) throws RegisterException {
       // Create peripheral mode
@@ -199,7 +199,7 @@ public class UsbdmDevicePeripheralsModel {
 
    private static HashSet<String> excludedPeripherals = null;
    
-   /** 
+   /**
     * Indicates devices in the database which are NOT to be displayed
     * 
     * @param name Device name to check
@@ -264,11 +264,10 @@ public class UsbdmDevicePeripheralsModel {
          if (isExcludedPeripheral(peripheral.getName())) {
             continue;
          }
-//       // XXX Delete OK
 //         if (peripheral.getName().equalsIgnoreCase("CAN0")) {
 //            System.err.println("Found : " + peripheral.toString());
 //         }
-         createPeripheralModel(deviceModel, peripheral, gdbInterface);     
+         createPeripheralModel(deviceModel, peripheral, gdbInterface);
       }
    }
 
@@ -282,7 +281,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @param gdbInterface
-    * @throws Exception 
+    * @throws Exception
     */
    public static final UsbdmDevicePeripheralsModel createModel(GdbCommonInterface gdbInterface, SVDIdentifier svdIdentifier) {
       UsbdmDevicePeripheralsModel model = null;
@@ -299,12 +298,12 @@ public class UsbdmDevicePeripheralsModel {
    
 //   /**
 //    * Factory
-//    * 
+//    *
 //    * Loads device model using path to SVD file or device name and associates GDB session
-//    * 
+//    *
 //    * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
 //    * @param gdbInterface
-//    * @throws Exception 
+//    * @throws Exception
 //    */
 //   public static final UsbdmDevicePeripheralsModel createModel(GdbCommonInterface gdbInterface, DevicePeripherals devicePeripherals) {
 //      UsbdmDevicePeripheralsModel model = null;
@@ -322,7 +321,7 @@ public class UsbdmDevicePeripheralsModel {
     * For use without device
     * 
     * @param gdbInterface
-    * @throws Exception 
+    * @throws Exception
     */
    private UsbdmDevicePeripheralsModel(GdbCommonInterface gdbInterface) {
       this.gdbInterface = gdbInterface;
@@ -336,7 +335,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @param gdbInterface
-    * @throws Exception 
+    * @throws Exception
     */
    private UsbdmDevicePeripheralsModel(GdbCommonInterface gdbInterface, SVDIdentifier svdIdentifier) throws Exception {
       this.gdbInterface = gdbInterface;
@@ -350,7 +349,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @param gdbInterface
-    * @throws Exception 
+    * @throws Exception
     */
 //   private UsbdmDevicePeripheralsModel(GdbCommonInterface gdbInterface, DevicePeripherals devicePeripherals) throws Exception {
 //      this.gdbInterface = gdbInterface;
@@ -366,6 +365,7 @@ public class UsbdmDevicePeripheralsModel {
       model = new DeviceModel("Auto");
       
       Job job = new Job("Loading Peripheral models") {
+         @Override
          protected IStatus run(IProgressMonitor monitor) {
             monitor.beginTask("Loading Peripheral models...", 10);
             try {
@@ -374,6 +374,7 @@ public class UsbdmDevicePeripheralsModel {
                e.printStackTrace();
             }
             Display.getDefault().asyncExec(new Runnable() {
+               @Override
                public void run() {
                   model.notifyStructureChangeListeners();
                   model.notifyListeners();
@@ -400,7 +401,7 @@ public class UsbdmDevicePeripheralsModel {
    }
    
    /**
-    * Get model 
+    * Get model
     * 
     * @return
     */

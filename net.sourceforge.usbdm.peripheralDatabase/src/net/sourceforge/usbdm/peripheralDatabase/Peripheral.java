@@ -443,7 +443,6 @@ public class Peripheral extends ModeControl implements Cloneable {
          // derived from so they should always agree.
          return;
       }
-//      // XXX Delete OK
 //      System.err.println("Creating address blocks for ============= " + getName());
       sortRegisters();
       try {

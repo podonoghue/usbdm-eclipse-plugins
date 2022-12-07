@@ -19,11 +19,11 @@ public class GraphicLabel extends GraphicBaseVariable {
       outputs[0] = new Point(+w/2, 0);
    }
 
-   static public GraphicLabel create(String id, String params, Boolean canEdit, Variable var) {
+   static public GraphicLabel create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
 
       String paramsArray[] = params.split(",");
-      int    x = Integer.parseInt(paramsArray[0].trim());
-      int    y = Integer.parseInt(paramsArray[1].trim());
+      int    x = originX+Integer.parseInt(paramsArray[0].trim());
+      int    y = originY+Integer.parseInt(paramsArray[1].trim());
       int    w = Integer.parseInt(paramsArray[2].trim());
       Height ht = Height.valueOf(paramsArray[3].trim());
       GraphicLabel t = new GraphicLabel(x, y, w, ht, id, canEdit, var);

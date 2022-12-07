@@ -45,26 +45,26 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    private MuxSelection fResetMuxValue = MuxSelection.unassigned;
 
-   /** Status indicating if multiple Signals are mapped to this Pin (Warning) */ 
+   /** Status indicating if multiple Signals are mapped to this Pin (Warning) */
    private Status fStatus = null;
 
-   /** Status of associated signals i.e. if a mapped signal is also mapped to another pin (Warning) */ 
+   /** Status of associated signals i.e. if a mapped signal is also mapped to another pin (Warning) */
    private Status fAssociatedStatus = null;
 
-   /** 
+   /**
     * Split a description or code identifier. <br>
     * Semicolons may be escaped with '\' <br>
     * Names are always non-null but may be empty<br>
     * Example: <br>
     * <pre>
-    *   "first;second"  => "first"         "second"       
-    *   "first\;first"  => "first;first"   ""             
-    *   "first"         => "first"         ""             
-    *   "first\;"       => "first;"        ""             
-    *   ";second"       => ""              "second"       
-    *   "\;first"       => ";first"        ""             
-    *   ""              => ""              ""             
-    * </pre>   
+    *   "first;second"  => "first"         "second"
+    *   "first\;first"  => "first;first"   ""
+    *   "first"         => "first"         ""
+    *   "first\;"       => "first;"        ""
+    *   ";second"       => ""              "second"
+    *   "\;first"       => ";first"        ""
+    *   ""              => ""              ""
+    * </pre>
     * 
     * @param names Names to split
     * @return  Array of split names
@@ -101,7 +101,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    
    /**
     * Create empty pin function for given pin
-    * @param deviceInfo 
+    * @param deviceInfo
     * 
     * @param fVariantName Name of the pin, usually the port name e.g. PTA1
     */
@@ -201,7 +201,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Get name of the pin, usually the port name e.g. PTA1 
+    * Get name of the pin, usually the port name e.g. PTA1
     * 
     * @return Pin name
     */
@@ -210,7 +210,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Get location of the pin e.g. p23 
+    * Get location of the pin e.g. p23
     * 
     * @return Pin name or null if not found in current package
     */
@@ -497,7 +497,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /**
     * Get status of this pin and mapped signal
     * 
-    * @return Status 
+    * @return Status
     */
    public Status getStatus() {
       if (fAssociatedStatus != null) {
@@ -526,10 +526,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return MappingInfo.UNASSIGNED_MAPPING;
    }
    
-   /** 
+   /**
     * Set current pin multiplexor setting.
     * 
-    * Listening signals are modified 
+    * Listening signals are modified
     * 
     * @param newMuxValue Multiplexor value to set
     */
@@ -623,7 +623,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          /*
           * Migrate old style setting
           */
-         String propString = settings.get(getOldPCRKey()+"_"+muxSelection.getShortName()); 
+         String propString = settings.get(getOldPCRKey()+"_"+muxSelection.getShortName());
          if (propString != null) {
             long properties = Long.parseUnsignedLong(propString, 16);
             info.select(null, true);
@@ -632,7 +632,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          /*
           * Load new style setting
           */
-         propString = settings.get(getPCRKey()+"_"+muxSelection.getShortName()); 
+         propString = settings.get(getPCRKey()+"_"+muxSelection.getShortName());
          if (propString != null) {
             long properties = Long.parseUnsignedLong(propString, 16);
             info.select(null, true);
@@ -672,10 +672,12 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    /**
     * Set editor dirty via deviceInfo
+    * 
+    * @param justChanged false => no change in dirty state, true => set dirty
     */
-   void setDirty(boolean dirty) {
-      if (fDeviceInfo != null) {
-         fDeviceInfo.setDirty(dirty);
+   void setDirty(boolean justChanged) {
+      if (justChanged && (fDeviceInfo != null)) {
+         fDeviceInfo.setDirty(true);
       }
    }
    
@@ -728,7 +730,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             }
          }
          else {
-            /* 
+            /*
              * MKE unusual port mapping
              * GPIOA = [PTD, PTC, PTB, PTA]
              * GPIOB = [PTH, PTG, PTF, PTE]
@@ -738,17 +740,17 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
                int portPinNumber = Integer.parseUnsignedInt(m.group(2));
                String portInstance = m.group(1);
                String portPin      = Integer.toString(portPinNumber%8);
-               final String[] APorts = {"A", "B", "C", "D"}; 
-               final String[] BPorts = {"E", "F", "G", "H"}; 
-               final String[] CPorts = {"I", "X", "X", "X"}; 
+               final String[] APorts = {"A", "B", "C", "D"};
+               final String[] BPorts = {"E", "F", "G", "H"};
+               final String[] CPorts = {"I", "X", "X", "X"};
                switch(m.group(1)) {
-               case "A" : 
+               case "A" :
                   portInstance = APorts[portPinNumber/8];
                   break;
-               case "B" : 
+               case "B" :
                   portInstance = BPorts[portPinNumber/8];
                   break;
-               case "C" : 
+               case "C" :
                   portInstance = CPorts[portPinNumber/8];
                   break;
                }
@@ -865,7 +867,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
       /**
        *  Get PCR.IRQC field value (integer)
-       *  
+       * 
        * @return Value
        */
       public int getValue() {
@@ -875,7 +877,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
 //   /**
 //    * Get Pin Interrupt/DMA functions
-//    * 
+//    *
 //    * @return function
 //    */
 //   public PinIrqDmaValue getInterruptDmaSetting() {
@@ -884,7 +886,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 //
 //   /**
 //    * Set Pin Interrupt/DMA functions
-//    * 
+//    *
 //    * @param value Function to set
 //    */
 //   public void setInterruptDmaSetting(PinIrqDmaValue value) {
@@ -975,7 +977,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
       /**
        *  Get PCR.PULL field value (integer)
-       *  
+       * 
        * @return Value
        */
       public int getValue() {

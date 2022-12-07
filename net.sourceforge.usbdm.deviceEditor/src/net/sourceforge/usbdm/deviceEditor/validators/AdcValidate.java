@@ -74,7 +74,7 @@ public class AdcValidate extends PeripheralValidator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
       
       // Variable to watch
@@ -92,7 +92,7 @@ public class AdcValidate extends PeripheralValidator {
                                 
       adcClockFrequencyVar      = getLongVariable("adcClockFrequency");
       
-//      addToWatchedVariables(variablesToWatch);
+      return false;
    }
 
 }

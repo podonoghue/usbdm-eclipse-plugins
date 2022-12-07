@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.graphicModel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Hashtable;
 
 import net.sourceforge.usbdm.deviceEditor.graphicModel.Graphic.Type;
@@ -17,13 +19,17 @@ public class ClockSelectionFigure {
       private Type    fType;
       private String  fParams;
       private Boolean fEdit;
+      private int     originX;
+      private int     originY;
       
-      InitialInformation(String id, String varKey, Type type, Boolean edit, String params) {
+      InitialInformation(int x, int y, String id, String varKey, Type type, Boolean edit, String params) {
          fId     = id;
          fVarKey = varKey;
          fType   = type;
          fParams = params;
          fEdit   = edit;
+         originX = x;
+         originY = y;
       }
       
       Graphic constructGraphic(VariableProvider variableProvider) throws Exception {
@@ -34,28 +40,29 @@ public class ClockSelectionFigure {
          Boolean canEdit = fEdit || ((var != null) && (!var.isDerived()));
          switch(fType) {
          case reference:
-            return GraphicReference.create(fId, fParams, canEdit, var);
+            return GraphicReference.create(originX, originY, fId, fParams, canEdit, var);
             
          case annotation:
-            return GraphicAnnotation.create(fId, fParams, canEdit, var);
+            return GraphicAnnotation.create(originX, originY, fId, fParams, canEdit, var);
             
          case label:
-            return GraphicLabel.create(fId, fParams, canEdit, var);
+            return GraphicLabel.create(originX, originY, fId, fParams, canEdit, var);
             
          case box:
-            return GraphicBox.create(fId, fParams);
+            return GraphicBox.create(originX, originY, fId, fParams);
             
          case variableBox:
-            return GraphicVariable.create(fId, fParams, canEdit, var);
-            
          case choice:
-            return GraphicVariable.create(fId, fParams, canEdit, var);
+            return GraphicVariable.create(originX, originY, fId, fParams, canEdit, var);
             
          case mux:
-            return GraphicMuxVariable.create(fId, fParams, canEdit, var);
+            return GraphicMuxVariable.create(originX, originY, fId, fParams, canEdit, var);
 
          case node:
-            return GraphicNode.create(fId, fParams, canEdit, var);
+            return GraphicNode.create(originX, originY, fId, fParams, canEdit, var);
+            
+         case junction:
+            return GraphicJunction.create(originX, originY, fId, fParams, canEdit, var);
             
          default:
             return null;
@@ -71,20 +78,51 @@ public class ClockSelectionFigure {
       }
    }
    
+   public void report() {
+      StringBuilder sb = new StringBuilder();
+      sb.append("<graphic>\n");
+      for (Graphic info:objects) {
+         sb.append("   ");
+         sb.append(info.report());
+         sb.append("\n");
+      };
+      sb.append("</graphic>\n");
+      System.err.println(sb.toString());
+   }
+   
+   public void reportOld() {
+
+      StringBuilder sb = new StringBuilder();
+      sb.append("<graphic>\n");
+      for (InitialInformation info:initialInformation) {
+         sb.append("<graphicItem ");
+         sb.append(String.format("id=\"%s\" ", info.fId));
+         sb.append(String.format("var=\"%s\" ", info.fVarKey));
+         sb.append(String.format("type=\"%s\" ", info.fType));
+         sb.append(String.format("type=\"%s\" ", info.fParams));
+         //               sb.append(String.format("type=\"%s\"", info.));
+         sb.append("/>\n");
+      };
+      sb.append("</graphic>\n");
+      System.err.println(sb.toString());
+   }
+
    /**
     * Add information to construct a graphic
+    * @param y
+    * @param x
     * 
     * @param id      Unique ID to identify object in figure
     * @param varKey  Key for variable associated with graphic (this should be absolute key)
     * @param params  Parameters used to construct graphic
-    * @param params2
+    * @param params2`
     */
-   public void add(String id, String varKey, String type, String edit, String params) {
-      initialInformation.add(new InitialInformation(id, varKey, Graphic.Type.valueOf(type), Boolean.valueOf(edit), params));
+   public void add(int x, int y, String id, String varKey, String type, String edit, String params) {
+      initialInformation.add(new InitialInformation(x, y, id, varKey, Graphic.Type.valueOf(type), Boolean.valueOf(edit), params));
    }
    
    /**
-    * Get list if graphic objects
+    * Get list of graphic objects
     * 
     * @param variableProvider  Provider to obtain needed variable from
     * 
@@ -126,6 +164,34 @@ public class ClockSelectionFigure {
             }
          };
          initialInformation = null;
+         
+         Arrays.sort(objects, new Comparator<Graphic>() {
+            @Override
+            public int compare(Graphic o1, Graphic o2) {
+               // Boxes first
+               if (o1 instanceof GraphicBox) {
+                  if (!(o2 instanceof GraphicBox)) {
+                     return -1;
+                  }
+                  return (o1.x - o2.x);
+               }
+               if (o2 instanceof GraphicBox) {
+                  return 1;
+               }
+               
+               // Connectors next
+               if (o1 instanceof GraphicConnector) {
+                  if (!(o2 instanceof GraphicConnector)) {
+                     return -1;
+                  }
+                  return 0;
+               }
+               if (o2 instanceof GraphicConnector) {
+                  return 1;
+               }
+               return (o1.x - o2.x);
+            }
+         });
       }
    }
 

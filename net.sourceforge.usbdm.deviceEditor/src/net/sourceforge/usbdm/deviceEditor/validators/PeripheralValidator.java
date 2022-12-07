@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ClockSelectionVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
@@ -71,28 +72,8 @@ public class PeripheralValidator extends Validator {
       return (PeripheralWithState) super.getPeripheral();
    }
 
-   /**
-    * Validate peripheral settings dialogue
-    * 
-    * @param variable   Variable trigger change leading to validation (may be null)
-    * 
-    * @throws Exception
-    */
    @Override
    protected void validate(Variable variable) throws Exception {
-      if (variable == null) {
-         validateAllClockSelectors();
-      }
-   }
-
-   private void validateAllClockSelectors() throws Exception {
-//      ArrayList<Variable> monitoredVariables = getPeripheral().getMonitoredVariables();
-//      if (monitoredVariables == null) {
-//         return;
-//      }
-//      for (Variable monitoredVariable:monitoredVariables) {
-//         monitoredVariable.???
-//      }
    }
 
    boolean isClockDependent(String key) {
@@ -363,30 +344,26 @@ public class PeripheralValidator extends Validator {
 
    protected class ControlledByListener implements IModelChangeListener {
 
+      /** Variable being re-evaluated */
       final Variable fControlledVar;
 
       /**
-       * The variable that is modified by the expression
+       * Creates a listener for variable changes<br>
+       * On change, the given variable's expressions are re-evaluated:
+       *  <li>enabledBy expression
+       *  <li>errorIf expression
+       *  <li>unlockedBy expression
+       *  <li>min and max expressions
        * 
-       * @param controlledVar
+       * @param controlledVar Variable to re-evaluate on change
        */
       public ControlledByListener(Variable controlledVar) {
          fControlledVar = controlledVar;
       }
 
       @Override
-      public void modelStructureChanged(ObservableModel observableModel) {
-      }
-
-      @Override
       public void modelElementChanged(ObservableModel observableModel) {
          try {
-            /**
-             * Validate a variable referencing another variable
-             * 
-             * reference=... is the controlling source
-             * The variable itself the target
-             */
             // Reference of form "[varName];expression"
             String enabledByExpression = fControlledVar.getEnabledBy();
             if (enabledByExpression != null) {
@@ -425,6 +402,10 @@ public class PeripheralValidator extends Validator {
             System.err.println("Failed to validate "+fControlledVar);
             e.printStackTrace();
          }
+      }
+
+      @Override
+      public void modelStructureChanged(ObservableModel observableModel) {
       }
 
       @Override
@@ -713,7 +694,7 @@ public class PeripheralValidator extends Validator {
    }
 
    /**
-    * Add monitored variable and their references to watched variables<br>
+    * Adds listeners for all variables that have dependencies
     * 
     * @throws Exception
     */
@@ -778,7 +759,7 @@ public class PeripheralValidator extends Validator {
     * 
     * @param externalVariables Variables to add
     */
-   protected void addToWatchedVariables(String name) {
+   private void addToWatchedVariables(String name) {
       Variable var = safeGetVariable(name);
       if (var == null) {
          if (fIndex==0) {
@@ -788,7 +769,7 @@ public class PeripheralValidator extends Validator {
          }
       }
       else {
-         var.addListener(getPeripheral());
+         var.addListener(this);
       }
    }
 
@@ -801,12 +782,9 @@ public class PeripheralValidator extends Validator {
       if (variablesToWatch == null) {
          return;
       }
-      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
-         for (String name:variablesToWatch) {
-            addToWatchedVariables(name);
-         }
+      for (String name:variablesToWatch) {
+         addToWatchedVariables(name);
       }
-      fIndex = 0;
    }
 
    /**
@@ -818,14 +796,41 @@ public class PeripheralValidator extends Validator {
       if (variablesToWatch == null) {
          return;
       }
-      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
-         for (String name:variablesToWatch) {
-            addToWatchedVariables(name);
-         }
+      for (String name:variablesToWatch) {
+         addToWatchedVariables(name);
       }
-      fIndex = 0;
    }
 
+   /**
+    * Add this validator as a listener on each variable in list
+    * 
+    * @param variablesToWatch
+    */
+   protected void addSpecificWatchedVariables(String[] variablesToWatch) {
+
+      for (String varName:variablesToWatch) {
+         Variable var = safeGetVariable(varName);
+         if (var != null) {
+            var.addListener(this);
+         }
+      }
+   }
+   
+   /**
+    * Add this validator as a listener on each variable in list
+    * 
+    * @param variablesToWatch
+    */
+   protected void addSpecificWatchedVariables(ArrayList<String> variablesToWatch) {
+
+      for (String varName:variablesToWatch) {
+         Variable var = safeGetVariable(varName);
+         if (var != null) {
+            var.addListener(this);
+         }
+      }
+   }
+   
    /**
     * Create reference to a target variable by obtaining its name from given variable <br>
     * The name of the target variable will be added to namesToWatch
@@ -895,6 +900,24 @@ public class PeripheralValidator extends Validator {
     * @param namesToWatch  List of names of variables to be watched
     * 
     * @return Target variable
+    * 
+    * @throws Exception if target variable doesn't exist
+    */
+   protected ChoiceVariable createChoiceVariableReference(String targetName, ArrayList<String> namesToWatch) throws Exception {
+
+      ChoiceVariable reference = getChoiceVariable(targetName);
+      namesToWatch.add(targetName);
+      return reference;
+   }
+
+   /**
+    * Create reference to a target by name <br>
+    * The name of the target variable will be added to namesToWatch
+    * 
+    * @param targetName    Name of Variable
+    * @param namesToWatch  List of names of variables to be watched
+    * 
+    * @return Target variable
     */
    protected BooleanVariable safeCreateBooleanVariableReference(String targetName, ArrayList<String> namesToWatch) {
 
@@ -924,9 +947,10 @@ public class PeripheralValidator extends Validator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
-      addToWatchedVariables(getPeripheral().getDependencies());
+   protected boolean createDependencies() throws Exception {
+//      addToWatchedVariables(getPeripheral().getDependencies());
       addMonitoredVariableListeners();
+      return false;
    }
 
    /**

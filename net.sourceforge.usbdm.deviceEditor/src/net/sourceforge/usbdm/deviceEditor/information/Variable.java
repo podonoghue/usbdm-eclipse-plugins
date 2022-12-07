@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
@@ -731,8 +733,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     */
    public String getDisplayToolTip() {
       StringBuilder sb = new StringBuilder();
+      if (fToolTip != null) {
+         sb.append(fToolTip);
+      }
       Status status = getStatus();
       if (status != null) {
+         if (sb.length() != 0) {
+            sb.append("\n\n");
+         }
          if (status.greaterThan(Status.Severity.WARNING)) {
             sb.append(status.getText());
          }
@@ -740,15 +748,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
             sb.append(status.getSimpleText());
          }
       }
-      if (fToolTip != null) {
-         if (sb.length() != 0) {
-            sb.append('\n');
-         }
-         sb.append(fToolTip);
-      }
       if (fOrigin != null) {
          if (sb.length() != 0) {
-            sb.append('\n');
+            sb.append("\n\n");
          }
          sb.append("Origin: ");
          sb.append(fOrigin);
@@ -1317,5 +1319,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return "Error due to failed expression " + parts[0];
    }
 
+   /**
+    * Get index from variable
+    * 
+    * @return Index or -1 if not indexed
+    */
+   public int getIndex() {
+      String name = getName();
+      Pattern p = Pattern.compile("\\w+\\[(\\d+)\\]");
+      Matcher m = p.matcher(name);
+      if (!m.matches()) {
+         if (name.contains("[")) {
+            System.err.println("Opps");
+         }
+         return -1;
+      }
+      return Integer.parseInt(m.group(1));
+   }
 
 }

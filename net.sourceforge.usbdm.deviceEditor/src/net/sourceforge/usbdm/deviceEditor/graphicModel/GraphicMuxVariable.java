@@ -31,12 +31,12 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       height            = (numInputs+1)*vScale;
    }
 
-   public static GraphicMuxVariable create(String fId, String graphicParams, Boolean canEdit, Variable var) {
+   public static GraphicMuxVariable create(int originX, int originY, String fId, String graphicParams, Boolean canEdit, Variable var) {
       
       String params[] = graphicParams.split(",");
       
-      int x           = Integer.parseInt(params[0].trim());
-      int y           = Integer.parseInt(params[1].trim());
+      int x           = originX+Integer.parseInt(params[0].trim());
+      int y           = originY+Integer.parseInt(params[1].trim());
       int numInputs   = Integer.parseInt(params[2].trim());
       
       Orientation orientation = Orientation.normal;
@@ -137,4 +137,18 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       return new Point(x,y);
    }
    
+   @Override
+   public void reportParams(StringBuilder sb) {
+      super.reportParams(sb);
+      sb.append(String.format("%-20s", "type=\"mux\" "));
+
+      StringBuilder params = new StringBuilder();
+      String orgString = "";
+      if (orientation != Orientation.normal) {
+         orgString = ", "+orientation.name();
+      }
+      params.append(String.format(" params=\"%4d,%4d,%4d%s\" ", x, y, numInputs, orgString));
+      sb.append(String.format("%-60s", params.toString()));
+   }
+
 }

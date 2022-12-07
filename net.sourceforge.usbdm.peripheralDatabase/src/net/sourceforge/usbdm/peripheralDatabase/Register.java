@@ -514,7 +514,6 @@ public class Register extends Cluster implements Cloneable {
     */
    @Override
    public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, int isolatedIndex, long addressOffset) throws Exception {
-//    // XXX Delete OK
 //      System.err.println(String.format("Register.addAddressBlocks(%s) addressOffset = 0x%04X, offset = 0x%04X", getName(), addressOffset, addressOffset+getAddressOffset()));
 //      if (isIsolated()) {
 //         System.err.println("addAddressBlocks(Isolated register " +getName() + ", #" + isolatedIndex + ")");

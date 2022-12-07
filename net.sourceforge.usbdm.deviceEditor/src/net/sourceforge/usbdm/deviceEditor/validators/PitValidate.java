@@ -91,9 +91,8 @@ public class PitValidate extends PeripheralValidator {
    }
    
    @Override
-   protected void createDependencies() throws Exception {
-      super.createDependencies();
-      
-//      addToWatchedVariables(externalVariables);
+   protected boolean createDependencies() throws Exception {
+      return super.createDependencies();
+      // No external dependencies
    }
 }

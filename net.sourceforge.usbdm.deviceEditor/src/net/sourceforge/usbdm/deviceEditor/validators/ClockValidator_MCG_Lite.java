@@ -17,7 +17,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     mcg_mk_ics48mml
  *     mcg_mk
  */
-public class ClockValidator_MCG_Lite extends BaseClockValidator {
+public class ClockValidator_MCG_Lite extends IndexedValidator {
 
    String         osc0_peripheralName       = null;
    String         osc0_description          = null;
@@ -43,15 +43,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
     * @throws Exception
     */
    @Override
-   protected void validate(Variable variable) throws Exception {
-      for (int index=0; index<fDimension; index++) {
-         fIndex = index;
-         validateClocks(variable);
-      }
-      fIndex = 0;
-   }
-
-   protected void validateClocks(Variable variable) throws Exception {
+   protected void validate(Variable variable, int index) throws Exception {
 //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       super.validate(variable);
@@ -240,7 +232,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
    }
    
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
 
       //  MCG OSC0 input always exists
@@ -268,5 +260,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          }
       }
       fIndex = 0;
+      
+      return false;
    }
 }

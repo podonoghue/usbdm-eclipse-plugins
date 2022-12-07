@@ -220,7 +220,7 @@ public class PdbValidate extends PeripheralValidator {
    }
    
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
 
       NumChannels             = (int)getLongVariable("NumChannels").getValueAsLong();
@@ -232,5 +232,7 @@ public class PdbValidate extends PeripheralValidator {
             "/SIM/system_bus_clock",
       };
       addToWatchedVariables(externalVariables);
+      
+      return false;
    }
 }

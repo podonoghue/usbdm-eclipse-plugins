@@ -44,12 +44,23 @@ public class GraphicBox extends Graphic {
       
       int polyIndex = 1;
       for (int index=0; index<path.length; index++, polyIndex++) {
-         int newCoord = Integer.parseInt(path[index].substring(1));
          if (path[index].charAt(0) == 'x') {
-            currentX = newCoord;
+            if (path[index].length()>1) {
+               int newCoord = Integer.parseInt(path[index].substring(1));
+               currentX += newCoord;
+            }
+            else {
+               currentX = this.path[0];
+            }
          }
          else if (path[index].charAt(0) == 'y') {
-            currentY = newCoord;
+            if (path[index].length()>1) {
+               int newCoord = Integer.parseInt(path[index].substring(1));
+               currentY += newCoord;
+            }
+            else {
+               currentY = this.path[1];
+            }
          }
          pointsX[polyIndex]    = currentX;
          pointsY[polyIndex]    = currentY;
@@ -64,12 +75,12 @@ public class GraphicBox extends Graphic {
       polygon = new Polygon(pointsX, pointsY, pointsX.length);
    }
 
-   static public GraphicBox create(String id, String params) {
+   static public GraphicBox create(int originX, int originY, String id, String params) {
 
       String paramsArray[] = params.split(",");
       
-      int x = Integer.parseInt(paramsArray[0].trim());
-      int y = Integer.parseInt(paramsArray[1].trim());
+      int x = originX+Integer.parseInt(paramsArray[0].trim());
+      int y = originY+Integer.parseInt(paramsArray[1].trim());
 
       String path[] = new String[paramsArray.length-2];
       for (int index=2; index<paramsArray.length; index++) {
@@ -103,6 +114,34 @@ public class GraphicBox extends Graphic {
    @Override
    protected boolean contains(int xx, int yy) {
       return polygon.contains(new java.awt.Point(xx,yy));
+   }
+
+   @Override
+   public void reportParams(StringBuilder sb) {
+      super.reportParams(sb);
+      sb.append(String.format("%-35s", "var=\"\" "));
+      sb.append(String.format("%-20s", "type=\"box\" "));
+
+      StringBuilder params = new StringBuilder();
+      
+      params.append(String.format(" params=\"%4d,%4d", x, y));
+      int currentX = path[0];
+      int currentY = path[1];
+      for (int index=2; index<path.length-2; index+=2) {
+         // Each pair is an (X,Y)
+         if (path[index] != currentX) {
+            // Change in x
+            params.append(String.format(",%6s", "x"+path[index]));
+            currentX = path[index];
+         }
+         if (path[index+1] != currentY) {
+            // Change in y
+            params.append(String.format(",%6s", "y"+path[index+1]));
+            currentY = path[index+1];
+         }
+      }
+      params.append("\" ");
+      sb.append(String.format("%-60s", params.toString()));
    }
 
 }

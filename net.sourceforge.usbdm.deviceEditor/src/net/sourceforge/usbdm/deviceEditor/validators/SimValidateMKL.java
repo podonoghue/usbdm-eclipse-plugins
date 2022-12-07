@@ -19,7 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  * Sim_xxx
  */
-public class SimValidateMKL extends PeripheralValidator {
+public class SimValidateMKL extends IndexedValidator {
 
    private final long MAX_RUN_CORE_CLOCK_FREQ;
    private final long MAX_RUN_BUS_CLOCK_FREQ;
@@ -43,14 +43,9 @@ public class SimValidateMKL extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int index) throws Exception {
 
-      validateNonindexedVariables(variable);
-
-      for(fIndex=0; fIndex<fDimension; fIndex++) {
-         validateIndexVariables(variable);
-      }
-      fIndex = 0;
+      validateIndexVariables(variable);
    }
 
    static class StringPair {
@@ -72,16 +67,6 @@ public class SimValidateMKL extends PeripheralValidator {
          this.right = right;
       }
    };
-
-   /**
-    * 
-    * @param variable
-    * @throws Exception
-    */
-   public void validateNonindexedVariables(Variable variable) throws Exception {
-      super.validate(variable);
-
-   }
 
    void validateUsbfsClock(LongVariable system_peripheral_clockVar) throws Exception {
 
@@ -324,7 +309,7 @@ public class SimValidateMKL extends PeripheralValidator {
    }
 
    @Override
-   protected void createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       super.createDependencies();
 
       // Variable to watch
@@ -340,5 +325,7 @@ public class SimValidateMKL extends PeripheralValidator {
             "/SMC/smc_pmctrl_runm",
       };
       addToWatchedVariables(externalVariables);
+      
+      return false;
    }
 }

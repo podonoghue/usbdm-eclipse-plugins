@@ -1508,12 +1508,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       DeviceVariantInformation deviceInformation =
             new DeviceVariantInformation(variantName, manual, findOrCreateDevicePackage(packageName), deviceName);
       fVariantInformationTable.put(variantName, deviceInformation);
-
-      // TODO - check this
-//      if (fVariantName == null) {
-//         // Set default device to first variant
-//         setVariantName(variantName);
-//      }
       return deviceInformation;
    };
 
@@ -1742,6 +1736,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          setDeviceSubFamily(subFamilyName);
 
          // Create dependencies between peripherals
+         // TODO Modify listener approach for peripherals and validators
+
          for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
             Peripheral peripheral =  entry.getValue();
             ArrayList<Validator> validators = peripheral.getValidators();
@@ -1853,7 +1849,19 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          
          // Allow all variable change notifications
          fInitPhase = InitPhase.VariableAndGuiPropagationAllowed;
-         
+
+//         System.err.println("Cleaning min-max");
+         /**
+          * Trigger updates of calculated min and max
+          */
+         for (Entry<String, Variable> entry:fVariables.entrySet()) {
+            Variable var = fVariables.get(entry.getKey());
+            if (var instanceof LongVariable) {
+               LongVariable lv = (LongVariable) var;
+               lv.getMin();
+               lv.getMax();
+            }
+         }
          /**
           * Sanity check - (usually) no persistent variables should change value initially
           */
@@ -1943,12 +1951,21 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return fIsDirty;
    }
 
+//   boolean dirtyIsLive = false;
+   
    /**
     * Indicates if the data has changed since being loaded
     * 
     * @return true if changed
     */
    public void setDirty(boolean dirty) {
+//      if (!dirty) {
+//         System.err.println("setDirty("+dirty+")");
+//         dirtyIsLive = true;
+//      }
+//      if (dirty && dirtyIsLive) {
+//         System.err.println("setDirty("+dirty+")");
+//      }
       fIsDirty = dirty;
       notifyListeners();
    }
@@ -2165,6 +2182,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (fVariables.put(variable.getKey(), variable) != null) {
          throw new RuntimeException("Variable already present \'"+variable.getKey()+"\'");
       }
+      // Listener for variable change (sets dirty)
+      variable.addListener(this);
    }
    
    /**

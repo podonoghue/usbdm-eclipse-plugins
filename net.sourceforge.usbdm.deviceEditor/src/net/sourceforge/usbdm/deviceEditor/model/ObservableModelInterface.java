@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+/**
+ * Allows change listeners to be added to this object
+s */
 public interface ObservableModelInterface {
 
    /**

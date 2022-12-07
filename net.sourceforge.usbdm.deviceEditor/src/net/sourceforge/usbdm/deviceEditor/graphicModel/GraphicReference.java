@@ -21,11 +21,11 @@ public class GraphicReference extends GraphicBaseVariable {
       outputs[0] = new Point(+w/2, 0);
    }
 
-   public static GraphicReference create(String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicReference create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
 
       String paramsArray[] = params.split(",");
-      int x = Integer.parseInt(paramsArray[0].trim());
-      int y = Integer.parseInt(paramsArray[1].trim());
+      int x = originX+Integer.parseInt(paramsArray[0].trim());
+      int y = originY+Integer.parseInt(paramsArray[1].trim());
       int w = Integer.parseInt(paramsArray[2].trim());
 
       GraphicReference t = new GraphicReference(x, y, w, id, canEdit, var);
@@ -70,6 +70,17 @@ public class GraphicReference extends GraphicBaseVariable {
    @Override
    Point getEditPoint() {
       return new Point(x-w/2+4, y-h/2+2);
+   }
+
+   @Override
+   public void reportParams(StringBuilder sb) {
+      super.reportParams(sb);
+      sb.append(String.format("%-20s", "type=\"reference\" "));
+
+      StringBuilder params = new StringBuilder();
+      
+      params.append(String.format(" params=\"%4d,%4d,%4d\" ", x, y, w));
+      sb.append(String.format("%-60s", params.toString()));
    }
 
 }

@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-
 public abstract class VariableWithChoices extends Variable {
 
    /** List of choices to be re-created each time */
@@ -81,6 +78,30 @@ public abstract class VariableWithChoices extends Variable {
 //         }
       }
       return fChoices;
+   }
+
+   /**
+    * Set value by name
+    * 
+    * @param name Name of choice to select
+    * 
+    * @return True => value changed
+    */
+   public boolean setValueByName(String name) {
+      
+      String[] choiceData = getChoices();
+      if (choiceData == null) {
+         return false;
+      }
+      
+      int index = 0;
+      for (String choice:choiceData) {
+         if (choice.equalsIgnoreCase(name)) {
+            break;
+         }
+         index++;
+      }
+      return setValue(index);
    }
 
 
@@ -184,83 +205,5 @@ public abstract class VariableWithChoices extends Variable {
          return format;
       }
       return  getBaseNameFromKey(getKey()).toUpperCase()+"(%s)";
-   }
-   
-   @Override
-   public String getSubstitutionValue() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public String getValueAsString() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public boolean setValue(Object value) {
-      // TODO Auto-generated method stub
-      return false;
-   }
-
-   @Override
-   public void setValueQuietly(Object value) {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public String getPersistentValue() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public void setPersistentValue(String value) throws Exception {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public void setDefault(Object value) {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   public void setDisabledValue(Object value) {
-      // TODO Auto-generated method stub
-      
-   }
-
-   @Override
-   Object getDefault() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   protected VariableModel privateCreateModel(BaseModel parent) {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public boolean isDefault() {
-      // TODO Auto-generated method stub
-      return false;
-   }
-
-   @Override
-   public Object getNativeValue() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
    }
 }

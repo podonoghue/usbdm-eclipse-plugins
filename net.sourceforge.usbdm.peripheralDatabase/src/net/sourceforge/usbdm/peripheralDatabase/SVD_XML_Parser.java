@@ -111,7 +111,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String WIDTH_TAG                        = "width";
    static final String WRITECONSTRAINT_TAG              = "writeConstraint";
    
-   DevicePeripherals fDevicePeripherals = null;          
+   DevicePeripherals fDevicePeripherals = null;
    Peripheral        fCurrentPeripheral = null;
    
    /**
@@ -131,13 +131,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    
    /**
     * Parse a <enumeratedValue> element
-    * @param field 
+    * @param field
     * 
     * @param  enumeratedValue <enumeratedValue> element
     * 
     * @return Enumeration described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private static Enumeration parseEnumeratedValue(Field field, Element enumeratedValue) throws Exception {
 
@@ -236,9 +236,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @param  enumeratedValuesElement <enumeratedValues> element
     * 
-    * @return Device described 
+    * @return Device described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private static void parseEnumeratedValues(Field field, Element enumeratedValuesElement) throws Exception {
 
@@ -263,13 +263,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    
    /**
     * Parse a <field> element
-    * @param register 
+    * @param register
     * 
     * @param  fieldElement <field> element
     * 
     * @return Device described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private Field parseField(Register register, Element fieldElement) throws Exception {
       Field field = null;
@@ -293,10 +293,10 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == IGNOREOVERLAP_PROCESSING) {
                field.setIgnoreOverlap(true);
-            }            
+            }
             else if (element.getNodeName() == HIDE_PROCESSING) {
                field.setHidden(true);
-            }            
+            }
             continue;
          }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
@@ -376,7 +376,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @param  register Register to add fields to
     * @param  fieldsElement <fields> element
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private void parseFields(Register register, Element fieldsElement) throws Exception {
       for (Node node = fieldsElement.getFirstChild();
@@ -393,7 +393,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             }
          }
          else {
-            throw new Exception(String.format("Unexpected field in <fields>, reg = \'%s\', field = \'%s\'", 
+            throw new Exception(String.format("Unexpected field in <fields>, reg = \'%s\', field = \'%s\'",
                   register.getName(), element.getTagName()));
          }
       }
@@ -401,13 +401,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
 
    /**
     * Parse a <register> element
-    * @param peripheral 
+    * @param peripheral
     * 
     * @param  registerElement <register> element
     * 
     * @return Register described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
 
@@ -453,18 +453,17 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == HIDE_PROCESSING) {
                register.setHidden(true);
-            }         
+            }
             else if (element.getNodeName() == ISOLATE_PROCESSING) {
-//               // XXX Delete OK
 //               System.err.println("Setting register '" + register.getName() + "' as isolated " + register.isIsolated());
                register.setIsolated();
             }
             else if (element.getNodeName() == DODERIVEDMACROS_PROCESSING) {
                register.setDoDerivedMacros(true);
-            }         
+            }
             else if (element.getNodeName() == KEEPASARRAY_PROCESSING) {
                register.setKeepAsArray(true);
-            }         
+            }
             else {
                throw new Exception("parseRegister() - unknown attribute " + element.getNodeName());
             }
@@ -510,7 +509,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             register.setAccessType(getAccessElement(element));
          }
          else if (derived)  {
-            throw new Exception(String.format("Unexpected field in derived <register>, p=%s, r=%s, v=%s", 
+            throw new Exception(String.format("Unexpected field in derived <register>, p=%s, r=%s, v=%s",
                   peripheral.getName(), register.getName(), element.getTagName()));
          }
          else if (element.getTagName() == SIZE_TAG) {
@@ -533,7 +532,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             //TODO: Implement alternateRegister
          }
          else {
-            throw new Exception(String.format("Unexpected field in <register>, p=%s, r=%s, v=%s", 
+            throw new Exception(String.format("Unexpected field in <register>, p=%s, r=%s, v=%s",
                   peripheral.getName(), register.getName(), element.getTagName()));
          }
       }
@@ -584,7 +583,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          //TODO Where register names are mapped
          mappedNames.add(new Pair(Pattern.compile("^TRNG0_(.*)$"),  "$1"));  // e.g. TRNG0_MCTL => MCTL
          mappedNames.add(new Pair(Pattern.compile("^CAU_(.*)$"),    "$1"));  // e.g. CAU_LDR_CASR => LDR_CASR
-         mappedNames.add(new Pair(Pattern.compile("^LTC0_(.*)$"),   "$1"));  // e.g. 
+         mappedNames.add(new Pair(Pattern.compile("^LTC0_(.*)$"),   "$1"));  // e.g.
       }
       for (Pair p : mappedNames) {
          Matcher matcher = p.regex.matcher(name);
@@ -600,13 +599,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
 
    /**
     * Parse a <cluster> element
-    * @param peripheral 
+    * @param peripheral
     * 
     * @param  peripheralElement <register> element
     * 
     * @return Register described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private Cluster parseCluster(Peripheral peripheral, Element clusterElement) throws Exception {
 
@@ -625,17 +624,17 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == HIDE_PROCESSING) {
                cluster.setHidden(true);
-            }            
+            }
             else if (element.getNodeName() == DODERIVEDMACROS_PROCESSING) {
                cluster.setDoDerivedMacros(true);
-            }         
+            }
             else if (element.getNodeName() == ISOLATE_PROCESSING) {
 //               System.err.println("Cluster PROCESSING_INSTRUCTION_NODE '" + element.getData() + "'");
                cluster.setIsolated();
-            }         
+            }
             else if (element.getNodeName() == KEEPASARRAY_PROCESSING) {
                cluster.setKeepAsArray(true);
-            }         
+            }
             else {
                throw new Exception("parseCluster() - unknown attribute '" + element.getNodeName() + "'");
             }
@@ -703,7 +702,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @param  peripheral Peripheral to add registers to
     * @param  peripheralElement <registers> element
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private void parseRegisters(Peripheral peripheral, Element peripheralElement) throws Exception {
 
@@ -751,8 +750,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @param  addressBlockElement <addressBlock> element
     * 
     * @return AddressBlock described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private AddressBlock parseAddressBlock(Element addressBlockElement) throws Exception {
 
@@ -768,7 +767,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == WIDTH_PROCESSING) {
                addressBlock.setWidthInBits((int)getIntElement(element));
-            }            
+            }
             else {
                throw new Exception("Unexpected PROCESSING_INSTRUCTION_NODE node', value = \'"+element.getNodeName()+"\'");
             }
@@ -859,8 +858,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @param  interruptElement <interrupt> element
     * 
     * @return InterruptEntry described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
 
@@ -909,8 +908,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @param  interruptElement <interrupt> element
     * 
     * @return InterruptEntry described
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    private InterruptEntry parseInterrupt(Element interruptElement, Peripheral peripheral) throws Exception {
       InterruptEntry interruptEntry =  parseInterrupt(interruptElement);
@@ -926,9 +925,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @param  peripheralElement <peripheral> element
     * 
-    * @return Peripheral described 
+    * @return Peripheral described
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
 
@@ -968,19 +967,19 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == SOURCEFILE_PROCESSING) {
                fCurrentPeripheral.setSourceFilename(stripQuotes(element.getTextContent()));
-            }            
+            }
             if (element.getNodeName() == PREFERREDACCESSWIDTH_PROCESSING) {
                fCurrentPeripheral.setBlockAccessWidth((int)getIntElement(element));
-            }            
+            }
             if (element.getNodeName() == FORCED_ACCESS_PROCESSING) {
                System.err.println("OPPS");
-            }            
+            }
             if (element.getNodeName() == FORCED_BLOCK_PROCESSING) {
                fCurrentPeripheral.setForcedBlockMultiple((int)getIntElement(element));
-            }            
+            }
             if (element.getNodeName() == REFRESH_WHOLE_PERIPHERAL_PROCESSING) {
                fCurrentPeripheral.setRefreshAll(true);
-            }            
+            }
             continue;
          }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
@@ -1007,9 +1006,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == HEADERSTRUCTNAME_TAG) {
             fCurrentPeripheral.setHeaderStructName(element.getTextContent());
-         }
-         else if (element.getTagName() == DISABLECONDITION_TAG) {
-            //TODO: Implement disableCondition
          }
          else if (element.getTagName() == BASEADDRESS_TAG) {
             fCurrentPeripheral.setBaseAddress(getIntElement(element));

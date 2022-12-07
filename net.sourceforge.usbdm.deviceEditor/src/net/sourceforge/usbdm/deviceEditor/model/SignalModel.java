@@ -28,7 +28,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
 //      if (getName().contains(watchedName)) {
 //         System.err.println("SignalModel(" + getName() + "):"+this.hashCode() + ", parent = " + parent + ": " + parent.hashCode() );
 //         System.err.flush();
-//      }         
+//      }
 
       fSignal = signal;
 
@@ -119,7 +119,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public String getValueAsString() {
       if (fSignal.checkMappingConflicted() != null) {
-         return "Multiple"; 
+         return "Multiple";
       }
       int index = fSignal.getFirstMappedPinInformation().getMux().ordinal();
       if (index<0) {
@@ -153,15 +153,9 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       setStatus(status);
 
       if (model instanceof Signal) {
-         // XXX Delete OK
-//         Signal signal = (Signal)model;
-//         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Signal("+signal.getName()+")");
          update();
       }
       if (model instanceof Pin) {
-         // XXX Delete OK
-//         Pin pin = (Pin)model;
-//         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Pin("+pin.getName()+")");
          update();
       }
    }
@@ -231,7 +225,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public boolean isInactive() {
       MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
-      return ((currentMapping == null) || 
+      return ((currentMapping == null) ||
               (currentMapping.getMux() == MuxSelection.unassigned));
    }
 
@@ -244,12 +238,6 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public void elementStatusChanged(ObservableModel observableModel) {
       updateAncestors();
-   }
-
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
    }
 
 }

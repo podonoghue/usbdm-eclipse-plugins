@@ -134,7 +134,7 @@ public class EngineeringNotation {
    public static long parseAsLong(String num) {
       double value = parse(num);
       if ((value<Long.MIN_VALUE) || (value>Long.MAX_VALUE)) {
-         throw new NumberFormatException("Illegal number as Long: " + num);
+         throw new NumberFormatException("EngineeringNotation.parseAsLong("+num+"): Illegal number as Long");
       }
       return Math.round(value);
    }

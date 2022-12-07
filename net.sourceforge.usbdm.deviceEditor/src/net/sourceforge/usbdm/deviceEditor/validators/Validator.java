@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
@@ -15,11 +17,10 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
-public abstract class Validator {
+public abstract class Validator implements IModelChangeListener {
 
    private   final Peripheral       fPeripheral;
    protected final DeviceInfo       fDeviceInfo;
-   protected final int              fDimension;
    protected int                    fIndex=0;
    protected boolean                fVerbose = false;
    
@@ -31,7 +32,6 @@ public abstract class Validator {
     */
    public Validator(Peripheral peripheral, int dimension) {
       fPeripheral = peripheral;
-      fDimension  = dimension;
       fDeviceInfo = fPeripheral.getDeviceInfo();
    }
 
@@ -43,7 +43,6 @@ public abstract class Validator {
     */
    public Validator(Peripheral peripheral) {
       fPeripheral  = peripheral;
-      fDimension = 0;
       fDeviceInfo = fPeripheral.getDeviceInfo();
    }
 
@@ -388,56 +387,102 @@ public abstract class Validator {
       return (DoubleVariable) variable;
    }
 
-   /**
-    * Create dependencies between variable providers i.e. connect validators to external variables
-    * @throws Exception
-    */
-   protected abstract void createDependencies() throws Exception;
-   
-   class adapter implements IModelChangeListener {
-
-      @Override
-      public void modelElementChanged(ObservableModel observableModel) {
-         try {
-            validate(null);
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
-      }
-
-      @Override
-      public void modelStructureChanged(ObservableModel observableModel) {
-      }
-
-      @Override
-      public void elementStatusChanged(ObservableModel observableModel) {
-      }
+   private static class ValidateInfo {
+      final public Validator validator;
+      final public Variable  variable;
       
+      public ValidateInfo(Validator validator, Variable variable) {
+         this.validator = validator;
+         this.variable  = variable;
+      }
+   }
+
+   static List<ValidateInfo> validationQueue = null;
+
+   static synchronized List<ValidateInfo> getQueue() {
+      if (validationQueue == null) {
+         validationQueue = new LinkedList<ValidateInfo>();
+      }
+      return validationQueue;
+   }
+
+   static synchronized List<ValidateInfo> addValidation(Validator validator, Variable var) {
+      
+      List<ValidateInfo> validationQueue = getQueue();
+      
+      if (validationQueue.isEmpty()) {
+         validationQueue.add(new ValidateInfo(validator, var));
+         return validationQueue;
+      }
+      else {
+         validationQueue.add(new ValidateInfo(validator, var));
+         return null;
+      }
    }
    
-   /**
-    * Adds dependencies for validators:<br>
-    * <li> Connect validators to external variable changes
-    * <li> Connect validators to signal changes
-    * 
-    * @throws Exception
-    */
-   public void addDependencies() throws Exception {
+   @Override
+   public void modelElementChanged(ObservableModel observableModel) {
       try {
-         createDependencies();
+         Variable var = null;
+         if (observableModel instanceof Variable) {
+            var = (Variable) observableModel;
+         }
+         List<ValidateInfo> queue = addValidation(this, var);
+         if (queue == null) {
+            return;
+         }
+         while (!queue.isEmpty()) {
+            ValidateInfo item = queue.get(0);
+            item.validator.validate(item.variable);
+            queue.remove(0);
+         }
       } catch (Exception e) {
          e.printStackTrace();
       }
-      if (fPeripheral instanceof Peripheral) {
-       Vector<Signal> table = fPeripheral.getSignalTables().get(0).table;
-       for(Signal signal:table) {
-          if (signal != null) {
-             signal.addListener(new adapter());
-          }
-       }
-      }
    }
 
+   @Override
+   public void modelStructureChanged(ObservableModel observableModel) {
+   }
+
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+   }
+
+   
+   /**
+    * Adds dependencies for validators:<br>
+    * 
+    * <li> Connect validators to external variable changes
+    * <li> Connect validators to signal changes
+    */
+   public void addDependencies() {
+
+      boolean needSignalDependencies = true;
+
+      try {
+         needSignalDependencies = createDependencies();
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      if (needSignalDependencies) {
+         Vector<Signal> table = fPeripheral.getSignalTables().get(0).table;
+         for(Signal signal:table) {
+            if (signal != null) {
+               signal.addListener(this);
+            }
+         }
+      }
+   }
+   
+   /**
+    * Add explicit dependencies on variables i.e. connect validators to external variables
+    * 
+    * @return True  => Indicates default (peripheral) dependencies should be added
+    * @return False => All needed dependencies have already been added.
+    */
+   protected abstract boolean createDependencies() throws Exception;
+   
    /**
     * Gets peripheral
     * 

@@ -40,11 +40,26 @@ class GraphicConnector extends GraphicBaseVariable {
       }
       
       public static GraphicConnector create(Hashtable<String, Graphic> graphicTable, String id, String fParams, Variable var) throws Exception {
-         String[] params = fParams.split(",");
-         GraphicBaseVariable source       = (GraphicBaseVariable)graphicTable.get(params[0].trim());
-         int sIndex                       = Integer.parseInt(params[1].trim());
-         GraphicBaseVariable destination  = (GraphicBaseVariable)graphicTable.get(params[2].trim());
-         int dIndex                       = Integer.parseInt(params[3].trim());
+         String[] params = null;
+         GraphicBaseVariable source = null;
+         int sIndex;
+         GraphicBaseVariable destination = null;
+         int dIndex;
+         try {
+            params = fParams.split(",");
+            source = (GraphicBaseVariable)graphicTable.get(params[0].trim());
+            sIndex = Integer.parseInt(params[1].trim());
+            destination = (GraphicBaseVariable)graphicTable.get(params[2].trim());
+            dIndex = Integer.parseInt(params[3].trim());
+         } catch (NumberFormatException e) {
+            throw new Exception("Failed parse arguments for "+id+", params = "+fParams);
+         }
+         if (source == null) {
+            throw new Exception("Failed to find connector source "+params[0].trim()+" in "+id);
+         }
+         if (destination == null) {
+            throw new Exception("Failed to find connector destination "+params[2].trim()+" in "+id);
+         }
          String path[] = null;
          if (params.length > 4) {
             path = Arrays.copyOfRange(params, 4, params.length);
@@ -100,7 +115,7 @@ class GraphicConnector extends GraphicBaseVariable {
                      }
                      break;
                   case 'd':
-                     gc.fillOval(currentX-3, currentY-3, 7, 7);
+                     gc.fillOval(currentX-dotSize/2, currentY-dotSize/2, dotSize, dotSize);
                      break;
                   case '(':
                      if (element.charAt(1) == 'y') {
@@ -185,7 +200,9 @@ class GraphicConnector extends GraphicBaseVariable {
                lineTo(gc,  endX-5,            endY);
             }
          }
-         drawArrow(display, gc);
+         if (!(destination instanceof GraphicJunction)) {
+            drawArrow(display, gc);
+         }
       }
       
       @Override
@@ -218,4 +235,27 @@ class GraphicConnector extends GraphicBaseVariable {
       Point getEditPoint() {
          return null;
       }
+      
+      @Override
+      public void reportParams(StringBuilder sb) {
+         super.reportParams(sb);
+         sb.append(String.format("%-20s", "type=\"connector\" "));
+
+         StringBuilder params = new StringBuilder();
+         String commaIfNeeded = (path != null)?",":"";
+         params.append(String.format(" params=\"%-20s%-20s", source.getId()+","+sIndex+",", destination.getId()+","+dIndex+commaIfNeeded));
+         if (path != null) {
+            boolean needComma = false;
+            for (int index=0; index<path.length; index++) {
+               if (needComma) {
+                  params.append(",");
+               }
+               needComma = true;
+               params.append(path[index].trim());
+            }
+         }
+         params.append("\" ");
+         sb.append(String.format("%-90s", params.toString()));
+      }
+      
    }
