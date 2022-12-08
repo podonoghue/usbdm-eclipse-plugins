@@ -10,7 +10,7 @@ public abstract class Graphic {
    public static enum Height        {small, large};
    public static enum ShowValue     {quiet};
    public static enum Orientation   {normal, rot90, rot180, rot270, mirror, rot90mirror, rot180mirror, rot270mirror, };
-   public static enum Type          {variableBox, box, choice, mux, hmux, connector, node, junction, label, reference, annotation};
+   public static enum Type          {variableBox, box, choice, mux, hmux, connector, node, junction, label, reference, annotation, group};
    public static final int NONE     =0b0000;
    public static final int NONAME   =0b0001;
    public static final int NOVALUE  =0b0010;

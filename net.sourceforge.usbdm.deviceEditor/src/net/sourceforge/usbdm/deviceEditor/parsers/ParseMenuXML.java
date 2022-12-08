@@ -2961,15 +2961,20 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
-   private void parseGraphicBox(ClockSelectionFigure figure, Element boxElement) throws Exception {
+   private void parseGraphicBoxOrGroup(int boxX, int boxY, ClockSelectionFigure figure, Element boxElement) throws Exception {
       
-      String boxId     = getAttribute(boxElement, "id");
-      String boxParams = getAttribute(boxElement, "params");
+      String boxId     = getAttribute(boxElement, "id", "");
+      String boxParams = getAttribute(boxElement, "params", "");
       
-      int x = Integer.parseInt(getAttribute(boxElement, "x", "0"));
-      int y = Integer.parseInt(getAttribute(boxElement, "y", "0"));
+      boxX += Integer.parseInt(getAttribute(boxElement, "x"));
+      boxY += Integer.parseInt(getAttribute(boxElement, "y"));
       
-      figure.add(x,y, boxId, null, "box", null, boxParams);
+      int x = boxX;
+      int y = boxY;
+      
+      if (boxElement.getTagName().equals("graphicBox")) {
+         figure.add(x,y, boxId, null, "box", null, boxParams);
+      }
       
       for (Node node = boxElement.getFirstChild();
             node != null;
@@ -2978,19 +2983,34 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element graphic = (Element) node;
-         if (graphic.getTagName() != "graphicItem") {
-            throw new Exception("Expected <graphicItem>");
-         }
          if (!checkCondition(graphic)) {
             // Discard element
             continue;
          }
-         String id     = getAttribute(graphic, "id");
-         String varKey = getKeyAttribute(graphic, "var");
-         String type   = getAttribute(graphic, "type");
-         String edit   = getAttribute(graphic, "edit");
-         String params = getAttribute(graphic, "params");
-         figure.add(x, y, id, varKey, type, edit, params);
+         String tagName = graphic.getTagName();
+         if (tagName == "graphicItem") {
+            String id     = getAttribute(graphic, "id");
+            String varKey = getKeyAttribute(graphic, "var");
+            String type   = getAttribute(graphic, "type");
+            String edit   = getAttribute(graphic, "edit");
+            String params = getAttribute(graphic, "params");
+            figure.add(x, y, id, varKey, type, edit, params);
+            continue;
+         }
+         if (tagName == "offset") {
+            x = boxX + Integer.parseInt(getAttribute(graphic, "x", "0"));
+            y = boxY + Integer.parseInt(getAttribute(graphic, "y", "0"));
+            continue;
+         }
+         if (tagName == "graphicBox") {
+            parseGraphicBoxOrGroup(x, y, figure, graphic);
+            continue;
+         }
+         if (graphic.getTagName() == "graphicGroup") {
+            parseGraphicBoxOrGroup(x, y, figure, graphic);
+            continue;
+         }
+         throw new Exception("Expected tag = <graphicItem>/<offset>/<graphicBox>/<graphicGroup>, found = <"+tagName+">");
       }
    }
 
@@ -3016,14 +3036,20 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element boxElement = (Element) node;
-         if (boxElement.getTagName() != "graphicBox") {
-            throw new Exception("Expected <graphicBox>");
-         }
          if (!checkCondition(boxElement)) {
             // Discard element
             continue;
          }
-         parseGraphicBox(figure, boxElement);
+         String tagName = boxElement.getTagName();
+         if (tagName == "graphicBox") {
+            parseGraphicBoxOrGroup(0, 0, figure, boxElement);
+            continue;
+         }
+         if (tagName == "graphicGroup") {
+            parseGraphicBoxOrGroup(0, 0, figure, boxElement);
+            continue;
+         }
+         throw new Exception("Expected tag = <graphicBox>, found = <"+tagName+">");
       }
    }
 
@@ -3509,7 +3535,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          variable.setDescription(description);
       }
-      String toolTip = aliasModel.getToolTip();
+      String toolTip = aliasModel.getRawToolTip();
       if ((toolTip != null) && !toolTip.isEmpty()) {
          if ((variable.getToolTip() != null) && !variable.getToolTip().isEmpty()) {
             throw new Exception("Alias tries to change toolTip for " + key + ", tooltip="+toolTip);

@@ -165,7 +165,17 @@ public abstract class GraphicBaseVariable extends Graphic {
     */
    Point getRelativeOutput() { return getRelativeOutput(0); }
    
-   public void addInputsAndOutputs(int startAt, String paramsArray[], int w, int h) {
+   /**
+    * Create inputs and outputs from param array
+    * 
+    * @param startAt       Element of array to start at
+    * @param paramsArray   Parameter array to process
+    * 
+    * @param w             Width of graphic
+    * @param h             Height of graphic
+    * @throws Exception
+    */
+   public void addInputsAndOutputs(int startAt, String paramsArray[], int w, int h) throws Exception {
 
       if (paramsArray.length>startAt) {
          ArrayList<Point> tOutputs =  new ArrayList<Point>();
@@ -188,6 +198,9 @@ public abstract class GraphicBaseVariable extends Graphic {
                case 'e': tOutputs.add(new Point(+w/2, 0   )); break;
                case 'w': tOutputs.add(new Point(-w/2, 0   )); break;
                }
+            }
+            else {
+               throw new Exception("Unexpected input/output parameter + \""+param+"\"");
             }
          }
          if (!tOutputs.isEmpty()) {

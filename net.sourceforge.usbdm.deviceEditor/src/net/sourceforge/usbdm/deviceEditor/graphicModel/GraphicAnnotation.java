@@ -23,7 +23,7 @@ public class GraphicAnnotation extends GraphicBaseVariable {
       this.format = format;
    }
 
-   public static GraphicAnnotation create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicAnnotation create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) throws Exception {
 
       String paramsArray[] = params.split(",");
       int x = originX+Integer.parseInt(paramsArray[0].trim());
@@ -36,7 +36,7 @@ public class GraphicAnnotation extends GraphicBaseVariable {
       }
       GraphicAnnotation t = new GraphicAnnotation(x, y, w, h, id, format, canEdit, var);
 
-      t.addInputsAndOutputs(4, paramsArray, 10, 10);
+      t.addInputsAndOutputs(5, paramsArray, 10, 10);
       return t;
    }
 

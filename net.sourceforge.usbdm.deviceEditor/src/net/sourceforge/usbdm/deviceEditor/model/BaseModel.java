@@ -45,10 +45,9 @@ public abstract class BaseModel implements Cloneable {
 
    /** Index for indexed models */
    private int                   fIndex;
-
    
-   /** 
-    * Set the Factory using these models 
+   /**
+    * Set the Factory using these models
     * 
     * @param factory
     */
@@ -84,6 +83,7 @@ public abstract class BaseModel implements Cloneable {
    protected void refresh() {
       final StructuredViewer viewer = getViewer();
       Display.getDefault().asyncExec(new Runnable() {
+         @Override
          public void run() {
             if ((viewer != null) && (!viewer.getControl().isDisposed())) {
                viewer.refresh();
@@ -105,6 +105,7 @@ public abstract class BaseModel implements Cloneable {
          fModelsToRefresh.add(origin);
 
          Display.getDefault().asyncExec(new Runnable() {
+            @Override
             public void run() {
                fModelsToRefresh.remove(origin);
                if ((viewer != null) && (!viewer.getControl().isDisposed())) {
@@ -128,6 +129,7 @@ public abstract class BaseModel implements Cloneable {
       final BaseModel        currentElement = this;
       
       Display.getDefault().asyncExec(new Runnable() {
+         @Override
          public void run() {
             if ((viewer != null) && (!viewer.getControl().isDisposed())) {
                BaseModel element = currentElement;
@@ -272,23 +274,24 @@ public abstract class BaseModel implements Cloneable {
     * Returns a string representing the value in an appropriate form for model
     * 
     * @return String representation e.g. "PTA3"
-    * @throws MemoryException 
+    * @throws MemoryException
     */
    public String getValueAsString() {
       return "";
    }
 
    /**
-    * Gets a string representation of the name suitable for tree view  
+    * Gets a string representation of the name suitable for tree view
     *
     * @return string
     */
+   @Override
    public String toString() {
       return getClass().getSimpleName()+"("+fName+", "+getDescription()+")";
    }
 
    /**
-    * Indicates if the value has changed compared to the reference value  
+    * Indicates if the value has changed compared to the reference value
     *
     * @return true/false
     */
@@ -354,7 +357,7 @@ public abstract class BaseModel implements Cloneable {
       return false;
    }
 
-   /** 
+   /**
     * Indicates that model value may be changed
     * 
     * @return
@@ -398,7 +401,7 @@ public abstract class BaseModel implements Cloneable {
       return getStatus();
    }
 
-   /** 
+   /**
     * Indicates that model value is in error and an error icon to be displayed
     * Note - Error are propagated from children
     * 
@@ -409,7 +412,7 @@ public abstract class BaseModel implements Cloneable {
       return (msg != null) && (msg.greaterThan(Status.Severity.WARNING));
    }
 
-   /** 
+   /**
     * Indicates that model value is in warning and an error icon to be displayed
     * 
     * @return
@@ -419,7 +422,7 @@ public abstract class BaseModel implements Cloneable {
       return (msg != null) && (msg.greaterThan(Status.Severity.INFO));
    }
 
-   /** 
+   /**
     * Indicates that element is inactive and should be displayed dimmed.
     * 
     * @return
@@ -428,7 +431,7 @@ public abstract class BaseModel implements Cloneable {
       return false;
    }
 
-   /** 
+   /**
     * Indicates that element is enabled
     * 
     * @return
@@ -439,6 +442,16 @@ public abstract class BaseModel implements Cloneable {
 
    /**
     * Get tool tip
+    * 
+    * @return
+    */
+   public String getRawToolTip() {
+      return fToolTip;
+   }
+   
+   /**
+    * Get tool tip
+    * This may be modified by the current status
     * 
     * @return
     */

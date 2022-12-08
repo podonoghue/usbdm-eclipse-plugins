@@ -21,7 +21,7 @@ public class GraphicNode extends GraphicBaseVariable {
       outputs[0] = new Point(+w/2, 0);
    }
 
-   public static GraphicNode create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicNode create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) throws Exception {
 
       String paramsArray[] = params.split(",");
       int x = originX+Integer.parseInt(paramsArray[0].trim());

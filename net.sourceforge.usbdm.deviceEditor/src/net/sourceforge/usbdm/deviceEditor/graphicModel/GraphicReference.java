@@ -21,7 +21,7 @@ public class GraphicReference extends GraphicBaseVariable {
       outputs[0] = new Point(+w/2, 0);
    }
 
-   public static GraphicReference create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) {
+   public static GraphicReference create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) throws Exception {
 
       String paramsArray[] = params.split(",");
       int x = originX+Integer.parseInt(paramsArray[0].trim());
@@ -30,7 +30,7 @@ public class GraphicReference extends GraphicBaseVariable {
 
       GraphicReference t = new GraphicReference(x, y, w, id, canEdit, var);
 
-      t.addInputsAndOutputs(2, paramsArray, 10, 10);
+      t.addInputsAndOutputs(3, paramsArray, 10, 10);
       return t;
    }
 
@@ -41,7 +41,8 @@ public class GraphicReference extends GraphicBaseVariable {
       gc.setBackground(display.getSystemColor(backGroundColor));
       gc.setForeground(display.getSystemColor(lineColor));
       
-      drawBoundary(gc);
+      gc.fillRectangle(x-w/2, y-h/2, w, h);
+      gc.drawRectangle(x-w/2, y-h/2, w, h);
 
       StringBuilder label = new StringBuilder();
       String name = getName();
