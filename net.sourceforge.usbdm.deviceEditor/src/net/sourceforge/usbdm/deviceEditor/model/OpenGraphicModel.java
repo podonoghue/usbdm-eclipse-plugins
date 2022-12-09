@@ -44,30 +44,10 @@ public class OpenGraphicModel extends EditableModel implements CellEditorProvide
          return "";
       }
 
-//      @Override
-//      protected Button createButton(Composite parent) {
-//         Button button = new Button(parent, SWT.NONE);
-//         button.setText("Click Me!");
-//         Rectangle r = parent.getBounds();
-//         button.setBounds(r);
-////         button.pack();
-//         return button;
-////         return super.createButton(parent);
-//      }
-//
-//      @Override
-//      protected Control createContents(Composite cell) {
-//         Button button = new Button(cell, SWT.NONE);
-//         button.setText("");
-//         button.pack();
-//         return button;
-////         return super.createContents(cell);
-//      }
-
       @Override
       protected Control createControl(Composite parent) {
          Button button = new Button(parent, SWT.NONE);
-         button.setText("Click Me!");
+         button.setText("Open dialogue");
          button.addMouseListener(new MouseAdapter() {
 
             @Override
@@ -111,7 +91,7 @@ public class OpenGraphicModel extends EditableModel implements CellEditorProvide
 
    @Override
    public String getValueAsString() {
-      return "Click to open dialogue";
+      return "Open dialogue";
    }
 
    @Override

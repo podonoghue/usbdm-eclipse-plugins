@@ -366,7 +366,7 @@ public class GraphicsDialogue {
       scrollComposite.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
       canvas = new Canvas(scrollComposite, SWT.NONE);
       canvas.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-      canvas.setSize(1100, 1400);
+      canvas.setSize(1100, 2000);
       scrollComposite.setContent(canvas);
 
       canvas.setBackground(display.getSystemColor(SWT.COLOR_WHITE));

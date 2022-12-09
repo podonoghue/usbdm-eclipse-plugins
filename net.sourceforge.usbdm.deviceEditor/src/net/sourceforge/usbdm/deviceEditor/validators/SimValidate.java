@@ -94,7 +94,7 @@ public class SimValidate extends IndexedValidator {
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
             // Using USB CLKIN pin
             sim_clkdiv2_usbVar.enable(false);
-            sim_clkdiv2_usbVar.setOrigin("Not used with external clock");
+            sim_clkdiv2_usbVar.setOrigin("Not used with external USB clock");
             sim_clkdiv2_usbVar.setLocked(false);
          }
          else {
@@ -423,6 +423,7 @@ public class SimValidate extends IndexedValidator {
             "/MCG/system_mcgoutclk_clock",
             "/MCG/usb1pfdclk_Clock",
             "/SMC/smc_pmctrl_runm",
+            "system_peripheral_clock",
             "system_core_clock",
             "system_bus_clock",
             "system_flexbus_clock",
