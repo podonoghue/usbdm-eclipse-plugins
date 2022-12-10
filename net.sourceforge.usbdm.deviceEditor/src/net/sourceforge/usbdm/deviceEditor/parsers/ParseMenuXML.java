@@ -2961,13 +2961,41 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   private void parseEquation(Element element) throws Exception {
+      String key        = getKeyAttribute(element);
+      String expression = getAttribute(element, "value");
+      
+      SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.EvaluateFully);
+      Object result = parser.evaluate(expression);
+      
+      Variable var = fProvider.safeGetVariable(key);
+      if (var == null) {
+         if (result instanceof Long) {
+            var = new LongVariable(expression, key);
+         }
+         else if (result instanceof Double) {
+            var = new DoubleVariable(expression, key);
+         }
+         else if (result instanceof Boolean) {
+            var = new BooleanVariable(expression, key);
+         }
+         else {
+            throw new Exception("Unexpected type for expression result. Type = "+result.getClass()+", eqn = "+expression);
+         }
+         fProvider.addVariable(var);
+      }
+      var.setValue(result);
+   }
+
    private void parseGraphicBoxOrGroup(int boxX, int boxY, ClockSelectionFigure figure, Element boxElement) throws Exception {
       
       String boxId     = getAttribute(boxElement, "id", "");
       String boxParams = getAttribute(boxElement, "params", "");
       
-      boxX += Integer.parseInt(getAttribute(boxElement, "x"));
-      boxY += Integer.parseInt(getAttribute(boxElement, "y"));
+      SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.EvaluateFully);
+      
+      boxX +=  (int)(long)parser.evaluate(getAttribute(boxElement, "x"));
+      boxY +=  (int)(long)parser.evaluate(getAttribute(boxElement, "y"));
       
       int x = boxX;
       int y = boxY;
@@ -3010,6 +3038,10 @@ public class ParseMenuXML extends XML_BaseParser {
             parseGraphicBoxOrGroup(x, y, figure, graphic);
             continue;
          }
+         if (tagName == "equation") {
+            parseEquation(graphic);
+            continue;
+         }
          throw new Exception("Expected tag = <graphicItem>/<offset>/<graphicBox>/<graphicGroup>, found = <"+tagName+">");
       }
    }
@@ -3047,6 +3079,10 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          if (tagName == "graphicGroup") {
             parseGraphicBoxOrGroup(0, 0, figure, boxElement);
+            continue;
+         }
+         if (tagName == "equation") {
+            parseEquation(boxElement);
             continue;
          }
          throw new Exception("Expected tag = <graphicBox>, found = <"+tagName+">");

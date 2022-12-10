@@ -22,6 +22,12 @@ public class ClockSelectionFigure {
       private int     originX;
       private int     originY;
       
+      @Override
+      public
+      String toString() {
+         return "fId="+fId+", fVarKey="+fVarKey+", fType="+fType+", fParams="+fParams;
+      }
+      
       InitialInformation(int x, int y, String id, String varKey, Type type, Boolean edit, String params) {
          fId     = id;
          fVarKey = varKey;
@@ -64,6 +70,8 @@ public class ClockSelectionFigure {
          case junction:
             return GraphicJunction.create(originX, originY, fId, fParams, canEdit, var);
             
+         case connector:
+         case group:
          default:
             return null;
          }
@@ -137,7 +145,7 @@ public class ClockSelectionFigure {
       if ((objects == null)) {
          objects = new Graphic[initialInformation.size()];
          int index = 0;
-         // Construct objects apart from connectors
+         // Construct objects apart from connectors and non-graphic
          for (InitialInformation info:initialInformation) {
             try {
                Graphic graphic = info.constructGraphic(variableProvider);
@@ -147,6 +155,7 @@ public class ClockSelectionFigure {
                   graphicTable.put(ids[0], graphic);
                }
             } catch (Exception e) {
+               System.err.println("Failed to instantiate "+info);
                e.printStackTrace();
             }
          };
@@ -155,11 +164,16 @@ public class ClockSelectionFigure {
             try {
                if (info.fType == Type.connector) {
                   Graphic graphic = info.constructGraphic(graphicTable, variableProvider);
+                  if (graphic == null) {
+                     System.err.println("Opps");
+                  }
                   objects[index++] = graphic;
                   String[] ids = info.fId.split(",");
                   graphicTable.put(ids[0], graphic);
                }
+               // Ignore non-graphic
             } catch (Exception e) {
+               System.err.println("Failed to instantiate "+info);
                e.printStackTrace();
             }
          };
