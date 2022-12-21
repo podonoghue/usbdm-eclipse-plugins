@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -13,7 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class UartValidate extends PeripheralValidator {
 
-   public UartValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public UartValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

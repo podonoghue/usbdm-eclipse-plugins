@@ -18,14 +18,10 @@ public class FrdivValidator extends IndexedValidator {
    /** Used to indicate range is unconstrained by oscillator */
    public static final int    UNCONSTRAINED_RANGE = 3;
    
-   // Range for FLL input - Wide
+   // Range for FLL input - Use wide range as FLL will validate final value
    private static final long FLL_CLOCK_WIDE_MIN   = 31250L;
    private static final long FLL_CLOCK_WIDE_MAX   = 39063L;
    
-   // Range for FLL input - Narrow
-   private static final long FLL_CLOCK_NARROW_MIN = 32768L-100;
-   private static final long FLL_CLOCK_NARROW_MAX = 32768L+100;
-
    // Low range FLL divisors
    private static final int[] LOW_RANGE_DIVISORS  = {
          1, 2, 4, 8, 16, 32, 64, 128
@@ -40,7 +36,7 @@ public class FrdivValidator extends IndexedValidator {
    /** Calculated MCG_C1_FRDIV value */
    private int  mcg_c1_frdiv;
 
-   public FrdivValidator(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
+   public FrdivValidator(PeripheralWithState peripheral, Integer dimension) {
       super(peripheral, dimension);
    }
 
@@ -60,38 +56,26 @@ public class FrdivValidator extends IndexedValidator {
       double nearestError        = Double.MAX_VALUE;
       int    nearest_frdiv       = 0;
 
-      long fllInMin;
-      long fllInMax;
-      
-      if (mcg_c4_dmx32Var) {
-         fllInMin = FLL_CLOCK_NARROW_MIN;
-         fllInMax = FLL_CLOCK_NARROW_MAX;
-      }
-      else {
-         fllInMin = FLL_CLOCK_WIDE_MIN;
-         fllInMax = FLL_CLOCK_WIDE_MAX;
-      }
-
       boolean found = false;
       
       for (int mcg_c1_frdiv_calc=0; mcg_c1_frdiv_calc<rangeDivisors.length; mcg_c1_frdiv_calc++) {
          
          double fllInputFrequency_calc = ((double)fllInputClock)/rangeDivisors[mcg_c1_frdiv_calc];
          
-         if (fllInMin>fllInputFrequency_calc) {
+         if (FLL_CLOCK_WIDE_MIN>fllInputFrequency_calc) {
             // Below range
-            if ((fllInMin-fllInputFrequency_calc) < nearestError) {
+            if ((FLL_CLOCK_WIDE_MIN-fllInputFrequency_calc) < nearestError) {
                // Keep updated value even if out of range
-               nearestError          = fllInMin-fllInputFrequency_calc;
+               nearestError          = FLL_CLOCK_WIDE_MIN-fllInputFrequency_calc;
                nearest_frdiv         = mcg_c1_frdiv_calc;
 //                  System.err.println(String.format("+%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
             }
          }
-         else if (fllInputFrequency_calc>fllInMax) {
+         else if (fllInputFrequency_calc>FLL_CLOCK_WIDE_MAX) {
             // Above range
-            if ((fllInputFrequency_calc-fllInMax) < nearestError) {
+            if ((fllInputFrequency_calc-FLL_CLOCK_WIDE_MAX) < nearestError) {
                // Keep updated value even if out of range
-               nearestError          = fllInputFrequency_calc-fllInMax;
+               nearestError          = fllInputFrequency_calc-FLL_CLOCK_WIDE_MAX;
                nearest_frdiv         = mcg_c1_frdiv_calc;
 //                  System.err.println(String.format("-%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
             }
@@ -120,7 +104,7 @@ public class FrdivValidator extends IndexedValidator {
       final ChoiceVariable  mcg_c1_frdivVar    = getChoiceVariable("mcg_c1_frdiv");
       
       // Oscillator range determined from crystal
-      final ChoiceVariable oscillatorRangeVar = getChoiceVariable("/OSC0/oscillatorRange");
+      final Variable oscillatorRangeVar = getVariable("/OSC0/oscillatorRange");
       int oscillatorRange = (int) oscillatorRangeVar.getValueAsLong();
 
       ChoiceVariable mcg_c2_rangeVar    = getChoiceVariable("mcg_c2_range0");
@@ -130,12 +114,6 @@ public class FrdivValidator extends IndexedValidator {
       String         mcg_c2_rangeOrigin = "Determined by OSC0";
 
       if (mcg_c1_irefsVar.getValueAsBoolean()) {
-         
-         // Internal reference selected FRDIV disabled (not used)
-         mcg_c1_frdivVar.enable(false);
-         mcg_c1_frdivVar.setStatus(new Status("Disabled by IREFS", Severity.INFO));
-         mcg_c1_frdivVar.setOrigin(null);
-         
          // Pass through range from OSC as no sensible user value
          mcg_c2_rangeVar.setValue(mcg_c2_range);
          mcg_c2_rangeVar.setOrigin(mcg_c2_rangeOrigin);
@@ -147,8 +125,6 @@ public class FrdivValidator extends IndexedValidator {
       final long           mcg_erc_clock          = mcg_erc_clockVar.getValueAsLong();
       final Status         mcg_erc_clockStatus    = mcg_erc_clockVar.getStatus();
       
-      mcg_c1_frdivVar.enable(true);
-
       if ((mcg_erc_clockStatus != null) && (mcg_erc_clockStatus.getSeverity().greaterThan(Severity.INFO))) {
          
          // ERC invalid so FRDIV is invalid as well
@@ -171,7 +147,6 @@ public class FrdivValidator extends IndexedValidator {
          // FRDIV not used by FLL - don't update value
          mcg_c1_frdivVar.clearStatus();
          mcg_c1_frdivVar.setOrigin("");
-//         mcg_c1_frdivVar.notifyListeners();
          
          if (oscillatorRange != UNCONSTRAINED_RANGE) {
             // Range is controlled by OSC
@@ -189,16 +164,18 @@ public class FrdivValidator extends IndexedValidator {
       
       // Find input range & divisor
       //==============================
-      final ChoiceVariable  mcg_c7_oscselVar  = getChoiceVariable("mcg_c7_oscsel");
-      int mcg_c7_oscsel = (int) mcg_c7_oscselVar.getValueAsLong();
+      int mcg_c7_oscsel = 0;
       
+      final ChoiceVariable  mcg_c7_oscselVar  = safeGetChoiceVariable("mcg_c7_oscsel");
+      if (mcg_c7_oscselVar != null) {
+         mcg_c7_oscsel = (int) mcg_c7_oscselVar.getValueAsLong();
+      }
       final BooleanVariable mcg_c4_dmx32Var = getBooleanVariable("mcg_c4_dmx32");
       boolean mcg_c4_dmx32 = mcg_c4_dmx32Var.getValueAsBoolean();
       
       boolean acceptableFrdivFound = false;
       
       if (mcg_c7_oscsel == 1) {
-         
          // ERC = RTCCLK - Forced to LOW_RANGE_DIVISORS, mcg_c2_range has no effect on FRDIV
          acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
 
@@ -208,7 +185,6 @@ public class FrdivValidator extends IndexedValidator {
          }
       }
       else {
-         
          // Use osc0_range unless unconstrained
          switch (oscillatorRange) {
          case 0:

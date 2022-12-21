@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
@@ -14,7 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class TpmValidate extends PeripheralValidator {
    
-   public TpmValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public TpmValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

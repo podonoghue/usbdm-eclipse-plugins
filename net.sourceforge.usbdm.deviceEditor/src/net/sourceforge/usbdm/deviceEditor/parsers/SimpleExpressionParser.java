@@ -191,13 +191,16 @@ public class SimpleExpressionParser {
             throw new Exception("Failed to find variable '" + key + "'");
          }
          if (var instanceof BooleanVariable) {
-            return Boolean.parseBoolean(var.getNativeValue().toString());
+            return var.getValueAsBoolean();
+//            return Boolean.parseBoolean(var.getNativeValue().toString());
          }
          if (var instanceof LongVariable) {
-            return Long.parseLong(var.getNativeValue().toString());
+            return var.getValueAsLong();
+//            return Long.parseLong(var.getNativeValue().toString());
          }
          if (var instanceof DoubleVariable) {
-            return Double.parseDouble(var.getNativeValue().toString());
+            return var.getValueAsDouble();
+//            return Double.parseDouble(var.getNativeValue().toString());
          }
          if (var instanceof ChoiceVariable) {
             return var.getValueAsLong();
@@ -955,9 +958,6 @@ public class SimpleExpressionParser {
       if (expression == null) {
          return true;
       }
-//      if (expression.endsWith("==0")) {
-//         System.err.println("Found " + expression);
-//      }
       fCollectedIdentifiers = new ArrayList<String>();
       fExpression = expression;
       fIndex = 0;

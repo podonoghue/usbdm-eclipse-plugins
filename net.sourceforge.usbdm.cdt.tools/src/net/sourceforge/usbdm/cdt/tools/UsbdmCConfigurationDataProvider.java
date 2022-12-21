@@ -14,7 +14,7 @@ public class UsbdmCConfigurationDataProvider
 
    @Override
    public CConfigurationData loadConfiguration(
-         ICConfigurationDescription cfgDescription, 
+         ICConfigurationDescription cfgDescription,
          IProgressMonitor           monitor) throws CoreException {
       System.err.println("UsbdmCConfigurationDataProvider.loadConfiguration()");
       return super.loadConfiguration(cfgDescription, monitor);
@@ -23,8 +23,8 @@ public class UsbdmCConfigurationDataProvider
    @Override
    public CConfigurationData createConfiguration(
          ICConfigurationDescription    cfgDescription,
-         ICConfigurationDescription    baseCfgDescription, 
-         CConfigurationData            baseData, 
+         ICConfigurationDescription    baseCfgDescription,
+         CConfigurationData            baseData,
          boolean                       clone,
          IProgressMonitor monitor) throws CoreException {
       System.err.println("UsbdmCConfigurationDataProvider.createConfiguration()");
@@ -33,11 +33,10 @@ public class UsbdmCConfigurationDataProvider
 
    @Override
    public void removeConfiguration(
-         ICConfigurationDescription cfgDescription, 
+         ICConfigurationDescription cfgDescription,
          CConfigurationData         data,
          IProgressMonitor           monitor) {
       
-      // TODO Auto-generated method stub
       System.err.println("UsbdmCConfigurationDataProvider.removeConfiguration()");
       super.removeConfiguration(cfgDescription, data, monitor);
    }

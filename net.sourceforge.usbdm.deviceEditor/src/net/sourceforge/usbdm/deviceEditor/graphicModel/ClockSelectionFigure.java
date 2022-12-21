@@ -10,9 +10,14 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class ClockSelectionFigure {
-   Graphic[]                     objects            = null;
-   ArrayList<InitialInformation> initialInformation = new ArrayList<InitialInformation>();
-
+   private Graphic[]                     objects            = null;
+   private ArrayList<InitialInformation> initialInformation = new ArrayList<InitialInformation>();
+   private final VariableProvider fProvider;
+   
+   public ClockSelectionFigure(VariableProvider provider) {
+      fProvider = provider;
+   }
+   
    private class InitialInformation {
       private String  fId;
       private String  fVarKey;
@@ -89,7 +94,7 @@ public class ClockSelectionFigure {
    public void report() {
       StringBuilder sb = new StringBuilder();
       sb.append("<graphic>\n");
-      for (Graphic info:objects) {
+      for (Graphic info:getObjects()) {
          sb.append("   ");
          sb.append(info.report());
          sb.append("\n");
@@ -142,7 +147,7 @@ public class ClockSelectionFigure {
 
       Hashtable<String, Graphic> graphicTable =  new Hashtable<String, Graphic>();
 
-      if ((objects == null)) {
+      if ((getObjects() == null)) {
          objects = new Graphic[initialInformation.size()];
          int index = 0;
          // Construct objects apart from connectors and non-graphic
@@ -150,7 +155,7 @@ public class ClockSelectionFigure {
             try {
                Graphic graphic = info.constructGraphic(variableProvider);
                if (graphic != null) {
-                  objects[index++] = graphic;
+                  getObjects()[index++] = graphic;
                   String[] ids = info.fId.split(",");
                   graphicTable.put(ids[0], graphic);
                }
@@ -167,7 +172,7 @@ public class ClockSelectionFigure {
                   if (graphic == null) {
                      System.err.println("Opps");
                   }
-                  objects[index++] = graphic;
+                  getObjects()[index++] = graphic;
                   String[] ids = info.fId.split(",");
                   graphicTable.put(ids[0], graphic);
                }
@@ -179,7 +184,7 @@ public class ClockSelectionFigure {
          };
          initialInformation = null;
          
-         Arrays.sort(objects, new Comparator<Graphic>() {
+         Arrays.sort(getObjects(), new Comparator<Graphic>() {
             @Override
             public int compare(Graphic o1, Graphic o2) {
                // Boxes first
@@ -219,7 +224,7 @@ public class ClockSelectionFigure {
     * @throws Exception
     */
    public Graphic[] getGraphics() throws Exception {
-      return objects;
+      return getObjects();
    }
 
    int size = 0;
@@ -231,11 +236,24 @@ public class ClockSelectionFigure {
     * @return
     */
    public Graphic add(Graphic graphic) {
-      if (objects == null) {
+      if (getObjects() == null) {
          objects = new Graphic[100];
       }
-      objects[size++] = graphic;
+      getObjects()[size++] = graphic;
       return graphic;
+   }
+
+   public Graphic[] getObjects() {
+      return objects;
+   }
+
+   /**
+    * Returns the variable provider associated with this figure
+    * 
+    * @return Variable provider
+    */
+   public VariableProvider getProvider() {
+      return fProvider;
    }
    
 }

@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
@@ -18,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class PdbValidate extends PeripheralValidator {
 
-   public PdbValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public PdbValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

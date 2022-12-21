@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.viewers.TreeViewer;
+
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BitField;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumNumericValue;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumTextValue;
@@ -15,13 +22,6 @@ import net.sourceforge.usbdm.annotationEditor.AnnotationModel.SelectionTag;
 //import net.sourceforge.usbdm.annotationEditor.ErrorNode;
 //import net.sourceforge.usbdm.annotationEditor.AnnotationModelNode;
 //import net.sourceforge.usbdm.annotationEditor.HeadingModelNode;
-
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.ITypedRegion;
-import org.eclipse.jface.viewers.TreeViewer;
 
 /**
  * Used to create a model from the wizard description embedded in the C file
@@ -81,7 +81,7 @@ public class AnnotationParser {
    private final static String textPatternString           = "<\\s*(?<textValue>"+TEXT_PATTERN+")\\s*=\\s*>(?<textBody>[^<]*)";
    
    private final static int     matchFlags         = Pattern.DOTALL;
-   public final static String  wizardPatternString = 
+   public final static String  wizardPatternString =
          "(?<wizardStart>"+wizardStartString+")|"+
                "(?<wizardEnd>"+wizardEndString+")|"+
                "(?<annotation>"+wizardAnnotationString+")|"+
@@ -114,7 +114,7 @@ public class AnnotationParser {
          IMarker marker = resource.createMarker(markerId);
          marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
          marker.setAttribute(IMarker.MESSAGE, message);
-         marker.setAttribute(IMarker.LINE_NUMBER, lineNumber); 
+         marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
          return marker;
       }
    }
@@ -177,14 +177,14 @@ public class AnnotationParser {
       }
       else if (control.equals("e")) {
          // Start of Heading with enable
-         // May specify bit-field 
+         // May specify bit-field
          // May specify offset
          // May specify inversion (using !)
          OptionHeadingModelNode heading = annotationModel.new OptionHeadingModelNode(annotationModel, text, offset, bitField);
          heading.setPolarity(polarity);
          currentNode.addChild(heading);
          currentNode       = heading;
-         currentOption     = (OptionModelNode) heading;
+         currentOption     = heading;
          currentEnumValue  = null;
       }
       else if (control.equals("/e")) {
@@ -199,7 +199,7 @@ public class AnnotationParser {
       }
       else if (control.equals("o")) {
          // Numeric Option with selection or number entry.
-         // May specify bit-field 
+         // May specify bit-field
          // May specify offset
          currentOption = new NumericOptionModelNode(annotationModel, text, offset, bitField);
          currentNode.addChild(currentOption);
@@ -207,14 +207,14 @@ public class AnnotationParser {
       }
       else if (control.equals("pllConfigure")) {
          // Is this used??
-         // May specify bit-field 
+         // May specify bit-field
          // May specify offset
          currentOption = new PllConfigurationModelNode(annotationModel, text, offset, bitField);
          currentNode.addChild(currentOption);
       }
       else if (control.equals("q")) {
          // Binary option for bit values which can be set via a check-box or selection
-         // May specify bit-field 
+         // May specify bit-field
          // May specify offset
          BinaryOptionModelNode optionNode = new BinaryOptionModelNode(annotationModel, text, offset, bitField);
          optionNode.setPolarity(polarity);
@@ -224,7 +224,7 @@ public class AnnotationParser {
       }
       else if (control.equals("s")) {
          // ASCII string entry.
-         // May specify length 
+         // May specify length
          // May specify offset
          int length = 0;
          if (bitField != null) {
@@ -264,7 +264,7 @@ public class AnnotationParser {
       }
       ((NumericOptionModelNode)currentOption).setRange(new Range(startValue, endValue, stepSize));
       if (useHex) {
-         ((NumericOptionModelNode)currentOption).setUseHex(true); 
+         ((NumericOptionModelNode)currentOption).setUseHex(true);
       }
    }
  
@@ -511,7 +511,7 @@ public class AnnotationParser {
             }
          } while (m.find());
       } catch (Exception e) {
-         String message = String.format("Error @line %d: Failed to parse annotation \'%s\'", 
+         String message = String.format("Error @line %d: Failed to parse annotation \'%s\'",
                lineNumber, buff.substring(m.start(), m.end()).trim());
          currentNode.addChild(constructErrorNode(message, e));
          if ((e.getMessage() != null) && !e.getMessage().isEmpty()) {
@@ -536,7 +536,7 @@ public class AnnotationParser {
          if (sArgs == null) {
             // Use default constructor
             //            System.err.println(String.format("Creating function: %s()", className));
-            validatorClass = (MyValidator) clazz.getConstructor().newInstance();         
+            validatorClass = (MyValidator) clazz.getConstructor().newInstance();
          }
          else {
             long args[] = new long[sArgs.length];
@@ -544,45 +544,45 @@ public class AnnotationParser {
                args[index] = Long.parseLong(sArgs[index].trim());
             }
             switch (sArgs.length) {
-            case 1: 
+            case 1:
                validatorClass = (MyValidator) clazz.getConstructor(long.class).
                newInstance(args[0]);
                break;
-            case 2: 
+            case 2:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class).
                newInstance(args[0],args[1]);
                break;
-            case 3: 
+            case 3:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2]);
                break;
-            case 4: 
+            case 4:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2],args[3]);
                break;
-            case 5: 
+            case 5:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2],args[3],args[4]);
                break;
-            case 6: 
+            case 6:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2],args[3],args[4],args[5]);
                break;
-            case 7: 
+            case 7:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2],args[3],args[4],args[5], args[6]);
                break;
-            case 8: 
+            case 8:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7]);
                break;
-            case 9: 
+            case 9:
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class,long.class,long.class,long.class).
                newInstance(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8]);
                break;
             default:
                validatorClass = (MyValidator) clazz.getConstructor(long[].class).newInstance(args);
-            } 
+            }
          }
          newValidators.add(validatorClass);
          validatorClass.setModel(annotationModel);
@@ -688,19 +688,18 @@ public class AnnotationParser {
    }
 
    void xx() {
-      String text = 
+      String text =
             "/*"+
             "---- <<< Use Configuration Wizard in Context Menu >>> ----"+
-            "      /*\r\n" + 
-            "       *  <s1>  mtb_ram\r\n" + 
-            "       *      <\"ram_lo\"=> ram_lower\r\n" + 
+            "      /*\r\n" +
+            "       *  <s1>  mtb_ram\r\n" +
+            "       *      <\"ram_lo\"=> ram_lower\r\n" +
             "       *      <\"ram_hi\"=> ram_higher\r\n <i>   xxx*/";
       try {
          AnnotationModelNode rootNode =  new AnnotationModelNode(annotationModel, "Root");
          currentNode = rootNode;
          parseComment(text);
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }
@@ -712,7 +711,7 @@ public class AnnotationParser {
             //            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12  >",
             //            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12 (0x1234)  >",
             //            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12(1,2,3,4)  >",
-            //            "<name=oscclk_clock  >", 
+            //            "<name=oscclk_clock  >",
             //            "<0-50000000>",
             //            "<i> hello there */",
 //            "<o> VOUT33 [VOUT33]",
@@ -731,7 +730,7 @@ public class AnnotationParser {
                         "<\"aaa\"=> string stuff",
                         "<\'bbb\'=> character stuff",
                         "<s1>  mtb_ram\r\n",
-                        "<\"ram_lo\"=> ram_lo\r\n", 
+                        "<\"ram_lo\"=> ram_lo\r\n",
                         "<\"ram_hi\"=> ram_hi\r\n",
                         "<\"\"=> this is a\r\n",
 
@@ -853,7 +852,7 @@ public class AnnotationParser {
 //            System.out.println("SELECTIONNAME_GROUP = \'"+SELECTIONNAME_GROUP+"\'");
          }
          else {
-            System.err.println("No match");            
+            System.err.println("No match");
          }
       }
    }

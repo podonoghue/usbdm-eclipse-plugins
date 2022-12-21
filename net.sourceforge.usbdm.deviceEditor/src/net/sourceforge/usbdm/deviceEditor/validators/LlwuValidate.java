@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
@@ -14,7 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 public class LlwuValidate extends PeripheralValidator {
    boolean donePinNames = false;
    
-   public LlwuValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public LlwuValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

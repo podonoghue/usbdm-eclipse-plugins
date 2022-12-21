@@ -22,7 +22,7 @@ public class WriterForSim extends PeripheralWithState {
 
    @Override
    public int getPriority() {
-      return 1000;
+      return 1100;
    }
 
    @Override

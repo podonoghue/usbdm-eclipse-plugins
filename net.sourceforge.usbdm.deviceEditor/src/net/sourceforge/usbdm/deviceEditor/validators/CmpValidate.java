@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -16,7 +14,7 @@ public class CmpValidate extends PeripheralValidator {
 
    private ChoiceVariable        cmp_filterVar             = null;
    
-   public CmpValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public CmpValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

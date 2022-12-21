@@ -19,6 +19,9 @@ public class OpenGraphicModel extends EditableModel implements CellEditorProvide
 
    private final ClockSelectionFigure fFigure;
    private final Variable fClockConfigVar;
+   
+   /// Clock configuration index for this figure
+   private Integer fClockConfigIndex;
 
    class GraphicEditor extends DialogCellEditor {
       final ClockSelectionFigure fFigure;
@@ -63,21 +66,22 @@ public class OpenGraphicModel extends EditableModel implements CellEditorProvide
       @Override
       protected void doSetFocus() {
       }
-      
-      
    }
 
    /**
     * 
-    * @param parent           Owning mode
+    * @param parent           Owning model
     * @param key              Name to display
     * @param clockConfigVar   Associated variable
+    * @param clockConfigIndex Clock configuration index for this figure
     * @param figure           Figure to display when clicked.
     */
-   public OpenGraphicModel(BaseModel parent, String key, Variable clockConfigVar, ClockSelectionFigure figure) {
+   public OpenGraphicModel(
+         BaseModel parent, String key, Variable clockConfigVar, Integer clockConfigIndex, ClockSelectionFigure figure) {
       super(parent, Variable.getBaseNameFromKey(key));
       fClockConfigVar    = clockConfigVar;
       fFigure = figure;
+      fClockConfigIndex = clockConfigIndex;
    }
 
    @Override

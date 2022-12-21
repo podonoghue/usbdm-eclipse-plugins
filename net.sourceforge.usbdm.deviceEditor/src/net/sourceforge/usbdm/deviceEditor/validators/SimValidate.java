@@ -90,21 +90,27 @@ public class SimValidate extends IndexedValidator {
       if (sim_clkdiv2_usbVar != null) {
          // USB divider CLKDIV2 exists
 
-         int usbCalcValue = -1;
+         long perClock = system_peripheral_clockVar.getValueAsLong();
+
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
             // Using USB CLKIN pin
             sim_clkdiv2_usbVar.enable(false);
             sim_clkdiv2_usbVar.setOrigin("Not used with external USB clock");
             sim_clkdiv2_usbVar.setLocked(false);
          }
+         else if (perClock==0) {
+            sim_clkdiv2_usbVar.enable(false);
+            sim_clkdiv2_usbVar.setOrigin(system_peripheral_clockVar.getOrigin());
+            sim_clkdiv2_usbVar.setLocked(false);
+         }
          else {
             // Using internal clock
 
             // Try to auto calculate divisor
-            long clock = system_peripheral_clockVar.getValueAsLong();
+            int usbCalcValue = -1;
             for (int  usbdiv=0; usbdiv<=7; usbdiv++) {
                for (int  usbfrac=0; usbfrac<=1; usbfrac++) {
-                  long testValue = Math.round(clock*(usbfrac+1.0)/(usbdiv+1.0));
+                  long testValue = Math.round(perClock*(usbfrac+1.0)/(usbdiv+1.0));
                   if (testValue == 48000000) {
                      usbCalcValue = (usbdiv<<1) + usbfrac;
                      break;
@@ -150,7 +156,8 @@ public class SimValidate extends IndexedValidator {
     */
    @Override
    public void validate(Variable variable, int index) throws Exception {
-
+//      System.err.println("validate() - entry");
+      
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock");
 
@@ -319,6 +326,8 @@ public class SimValidate extends IndexedValidator {
          sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor-1);
          system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
       }
+      
+//      System.err.println("validate() - exit");
    }
 
    private abstract static class FindDivisor {
@@ -429,6 +438,7 @@ public class SimValidate extends IndexedValidator {
             "system_flexbus_clock",
             "system_flash_clock",
             "sim_sopt2_usbsrc",
+            "sim_clkdiv2_usb",
       };
       addToWatchedVariables(externalVariables);
       

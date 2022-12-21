@@ -56,6 +56,7 @@ public class FllValidator extends IndexedValidator {
       fllInputFrequencyVar.setOrigin(fllInputFrequencyOrigin);
       fllInputFrequencyVar.setValue(fllInputFrequency);
       
+      fll_enabled = fll_enabled && (fllInputFrequency>0);
       fllInputFrequencyVar.enable(fll_enabled);
       system_mcgfllclk_clockVar.enable(fll_enabled);
       
@@ -92,6 +93,7 @@ public class FllValidator extends IndexedValidator {
                      EngineeringNotation.convert(fllInMax, 3)),
                Severity.ERROR);
          fllInputFrequencyVar.setStatus(fllInputStatus);
+         system_mcgfllclk_clockVar.setStatus(fllInputStatus);
          return;
       }
       // OK - input is acceptable
@@ -155,6 +157,9 @@ public class FllValidator extends IndexedValidator {
       variablesToWatch.add("system_mcgffclk_clock");
       variablesToWatch.add("system_mcgfllclk_clock");
       variablesToWatch.add("mcg_c4_dmx32");
+      variablesToWatch.add("mcg_c4_dmx32");
+      variablesToWatch.add("/SMC/smc_pmctrl_runm");
+      variablesToWatch.add("mcgClockMode");
 
       addSpecificWatchedVariables(variablesToWatch);
       

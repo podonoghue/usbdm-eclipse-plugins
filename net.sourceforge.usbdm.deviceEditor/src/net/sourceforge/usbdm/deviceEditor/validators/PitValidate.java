@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -17,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class PitValidate extends PeripheralValidator {
 
-   public PitValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public PitValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

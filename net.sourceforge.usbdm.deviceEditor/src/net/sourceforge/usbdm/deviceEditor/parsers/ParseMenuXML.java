@@ -874,6 +874,18 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * Get default valueFormat.<br>
+    * This is constructed from the variable name e.g.  sim_clkdiv1_outdiv1 => SIM_CLKDIV1_OUTDIV1(%s)
+    * 
+    * @param variable Variable to examine
+    * 
+    * @return Default value format
+    */
+   private String getDefaultValueFormat(Variable variable) {
+      return Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)";
+   }
+   
+   /**
     * Parse attributes common to most variables<br>
     * Also creates model.
     * Processes the following attributes:
@@ -910,7 +922,12 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setLocked(otherVariable.isLocked());
          variable.setDerived(otherVariable.getDerived());
          variable.setTypeName(otherVariable.getTypeName());
-         variable.setValueFormat(otherVariable.getValueFormat());
+         String valueFormat     = otherVariable.getValueFormat();
+         String autoValueFormat = getDefaultValueFormat(otherVariable);
+         if (!autoValueFormat.equals(valueFormat)) {
+            // Copy from other variable only if not default generated one
+            variable.setValueFormat(otherVariable.getValueFormat());
+         }
          String enabledBy = otherVariable.getEnabledBy();
          if (enabledBy != null) {
             variable.setEnabledBy(enabledBy);
@@ -946,6 +963,11 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("valueFormat")) {
          variable.setValueFormat(getAttribute(varElement, "valueFormat"));
+      }
+      if (varElement.hasAttribute("ref")) {
+         variable.setReference(getAttribute(varElement, "ref"));
+         // Add as monitored variable
+         fPeripheral.addMonitoredVariable(variable);
       }
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
@@ -987,15 +1009,13 @@ public class ParseMenuXML extends XML_BaseParser {
          // Add as monitored variable
          fPeripheral.addMonitoredVariable(variable);
       }
-      if (varElement.hasAttribute("ref")) {
-         variable.setReference(getAttribute(varElement, "ref"));
-         // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
-      }
       if (varElement.hasAttribute("isNamedClock")) {
          variable.setIsNamedClock(Boolean.valueOf(getAttribute(varElement, "isNamedClock")));
       }
-      
+      if (variable.getValueFormat() == null) {
+         variable.setValueFormat(getDefaultValueFormat(variable));
+      }
+
       // Internal data value
       if (varElement.hasAttribute("data")) {
          throw new Exception("data attribute not supported");
@@ -1033,9 +1053,6 @@ public class ParseMenuXML extends XML_BaseParser {
       RtcTimeVariable variable = (RtcTimeVariable) createVariable(varElement, RtcTimeVariable.class);
 
       parseCommonAttributes(parent, varElement, variable);
-      if (variable.getValueFormat() == null) {
-         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
-      }
       try {
          if (varElement.hasAttribute("disabledValue")) {
             variable.setDisabledValue(getRequiredLongAttribute(varElement, "disabledValue"));
@@ -1068,11 +1085,10 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMin(otherVariable.getMin());
          variable.setMax(otherVariable.getMax());
          variable.setUnits(otherVariable.getUnits());
-         variable.setValueFormat(otherVariable.getValueFormat());
       }
       parseCommonAttributes(parent, varElement, variable);
       if (variable.getValueFormat() == null) {
-         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
+//         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
       }
       boolean dynamic = false;
       try {
@@ -1802,11 +1818,16 @@ public class ParseMenuXML extends XML_BaseParser {
             if ("Int".equalsIgnoreCase(type)) {
                var = new LongVariable(name, indexedKey);
             }
+            else if ("Integer".equalsIgnoreCase(type)) {
+               var = new LongVariable(name, indexedKey);
+            }
             else if ("Float".equalsIgnoreCase(type)) {
                var = new DoubleVariable(name, indexedKey);
             }
             else if ("Boolean".equalsIgnoreCase(type)) {
                var = new BooleanVariable(name, indexedKey);
+               ((BooleanVariable)var).setFalseValue("false");
+               ((BooleanVariable)var).setTrueValue("true");
             }
             else {
                var = new StringVariable(name, indexedKey);
@@ -2985,6 +3006,7 @@ public class ParseMenuXML extends XML_BaseParser {
          fProvider.addVariable(var);
       }
       var.setValue(result);
+      var.setDerived(true);
    }
 
    private void parseGraphicBoxOrGroup(int boxX, int boxY, ClockSelectionFigure figure, Element boxElement) throws Exception {
@@ -2994,8 +3016,8 @@ public class ParseMenuXML extends XML_BaseParser {
       
       SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.EvaluateFully);
       
-      boxX +=  (int)(long)parser.evaluate(getAttribute(boxElement, "x"));
-      boxY +=  (int)(long)parser.evaluate(getAttribute(boxElement, "y"));
+      boxX +=  (int)(long)parser.evaluate(getAttribute(boxElement, "x", "0"));
+      boxY +=  (int)(long)parser.evaluate(getAttribute(boxElement, "y", "0"));
       
       int x = boxX;
       int y = boxY;
@@ -3048,12 +3070,13 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private void parseGraphic(BaseModel parentModel, Element element) throws Exception {
       
-      ClockSelectionFigure figure = new ClockSelectionFigure();
+      ClockSelectionFigure figure = new ClockSelectionFigure(fProvider);
       
       OpenGraphicModel model = new OpenGraphicModel(
             parentModel,
             getKeyAttribute(element),
             fProvider.safeGetVariable(getKeyAttribute(element, "var")),
+            getIntAttribute(element, "clockConfigIndex"),
             figure);
       
       model.setToolTip(getAttribute(element, "toolTip"));
@@ -3294,7 +3317,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
    public static class ValidatorInformation {
       private String            fClassName;
-      private ArrayList<Object> fParams = new ArrayList<Object>();
+      private ArrayList<Object> fParams = null;
       private int               fDimension;
 
       /**
@@ -3312,6 +3335,9 @@ public class ParseMenuXML extends XML_BaseParser {
        * @param param
        */
       void addParam(Object param) {
+         if (fParams == null) {
+            fParams = new ArrayList<Object>();
+         }
          fParams.add(param);
       }
 
@@ -3657,8 +3683,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private static MenuData parse(Document document, VariableProvider provider, PeripheralWithState peripheral) throws Exception {
-      // XXX Trace parsing peripheral files here
-//      System.out.println("Loading document:" + document.getBaseURI());
+      // TODO Trace parsing peripheral files here
+      System.out.println("Loading document:" + document.getBaseURI());
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
@@ -3741,12 +3767,28 @@ public class ParseMenuXML extends XML_BaseParser {
             int dimension = v.getDimension();
             PeripheralValidator validator;
             if (dimension>0) {
+               if (v.getParams() != null) {
+                  // peripheral+dim+args
                   Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, Integer.class, v.getParams().getClass());
                   validator = (PeripheralValidator) constructor.newInstance(peripheral, dimension, v.getParams());
+               }
+               else {
+                  // peripheral+dim
+                  Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, Integer.class);
+                  validator = (PeripheralValidator) constructor.newInstance(peripheral, dimension);
+               }
             }
             else {
+               if (v.getParams() != null) {
+                  // peripheral+args
                   Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass());
                   validator = (PeripheralValidator) constructor.newInstance(peripheral, v.getParams());
+               }
+               else {
+                  // peripheral
+                  Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class);
+                  validator = (PeripheralValidator) constructor.newInstance(peripheral);
+               }
             }
             peripheral.addValidator(validator);
          } catch (Exception e) {

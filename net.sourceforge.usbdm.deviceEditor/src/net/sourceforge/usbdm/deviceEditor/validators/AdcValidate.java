@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -40,7 +38,7 @@ public class AdcValidate extends PeripheralValidator {
    
    private static long ADC_CLOCK_VALUES[] = {FADC_LP0_HS0_MAX, FADC_LP0_HS1_MAX, FADC_LP1_HS0_MAX, FADC_LP1_HS1_MAX};
 
-   public AdcValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public AdcValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

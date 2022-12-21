@@ -236,6 +236,15 @@ public class BooleanVariable extends VariableWithChoices {
    }
 
    /**
+    * Set the name/value representing the FALSE value
+    * 
+    * @param name/value for FALSE value
+    */
+   public void setTrueValue(String falseValue) {
+      this.fTrue = new ChoiceData("True", falseValue);
+   }
+
+   /**
     * Get the name/value representing the FALSE value
     * 
     * @return the name/value for FALSE value
@@ -251,6 +260,15 @@ public class BooleanVariable extends VariableWithChoices {
     */
    public void setFalseValue(ChoiceData falseValue) {
       this.fFalse = falseValue;
+   }
+
+   /**
+    * Set the name/value representing the FALSE value
+    * 
+    * @param name/value for FALSE value
+    */
+   public void setFalseValue(String falseValue) {
+      this.fFalse = new ChoiceData("False", falseValue);
    }
 
    @Override

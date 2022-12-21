@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
@@ -25,7 +24,7 @@ public class LcdValidate extends PeripheralValidator {
    
    private static final Status UNMAPPED_PIN_STATUS = new Status("Not all signals are mapped to pins", Severity.WARNING);
 
-   public LcdValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public LcdValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 

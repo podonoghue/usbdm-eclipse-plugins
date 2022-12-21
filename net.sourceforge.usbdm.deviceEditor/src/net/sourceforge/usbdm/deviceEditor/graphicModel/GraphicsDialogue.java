@@ -18,13 +18,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import net.sourceforge.usbdm.deviceEditor.graphicModel.Graphic.Height;
-import net.sourceforge.usbdm.deviceEditor.graphicModel.Graphic.Orientation;
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
+import net.sourceforge.usbdm.deviceEditor.model.ModelChangeAdapter;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 public class GraphicsDialogue {
 
@@ -83,14 +81,14 @@ public class GraphicsDialogue {
    }
 
    public void paint(Display display, GC gc) {
-      for (Graphic obj:fFigure.objects) {
+      for (Graphic obj:fFigure.getObjects()) {
          obj.draw(display, gc);
       }
    }
 
    private Graphic findTopObject(int x, int y) {
-      for (int index=fFigure.objects.length; --index>=0; ) {
-         Graphic obj = fFigure.objects[index];
+      for (int index=fFigure.getObjects().length; --index>=0; ) {
+         Graphic obj = fFigure.getObjects()[index];
          if (obj.contains(x,y)) {
             return obj;
          }
@@ -308,45 +306,15 @@ public class GraphicsDialogue {
       }
    }
 
-   static ClockSelectionFigure createTestFigure() throws Exception {
-      ClockSelectionFigure figure = new ClockSelectionFigure();
-
-      LongVariable fastIrcVar  = new LongVariable(null, "/XX/fastIrc");
-      fastIrcVar.setUnits(Units.Hz);
-      fastIrcVar.setValue(1100000);
-      fastIrcVar.setToolTip("help for fastIrc");
-      GraphicBaseVariable fastIrc     = (GraphicBaseVariable) figure.add(new GraphicVariable(20,  25, 110, Height.large, "FAST IRC", true, fastIrcVar));
+   ModelChangeAdapter runModeChangeListener = new ModelChangeAdapter() {
       
-      LongVariable fcrdivVar  = new LongVariable(null, "/XX/fcrdiv");
-      fcrdivVar.setToolTip("help for fcrdivVar");
-      fcrdivVar.setUnits(Units.Hz);
-      fcrdivVar.setValue(1000);
-      GraphicBaseVariable fcrdiv = (GraphicBaseVariable) figure.add(new GraphicVariable(210, 35,  60, Height.small, "FCRDIV IRC", true, fcrdivVar));
-      figure.add(GraphicConnector.create("", fastIrc, 0, fcrdiv, 0, null));
-
-      Variable slowIrcVar  = new LongVariable(null, "/XX/slowIrc");
-      slowIrcVar.setToolTip("help for slowIrcVar");
-      GraphicBaseVariable slowIrc     = (GraphicBaseVariable) figure.add(new GraphicVariable(20, 75, 110, Height.large, "SLOW IRC", true,  slowIrcVar));
-
-      Variable frdivVar  = new LongVariable(null, "/XX/frdiv");
-      frdivVar.setToolTip("help for frdivVar");
-      GraphicBaseVariable frdiv       = (GraphicBaseVariable) figure.add(new GraphicVariable(20, 150, 90, Height.large, "FRDIV", true,  frdivVar));
-
-      ChoiceVariable ircsVar  = new ChoiceVariable(null, "/XX/ircs");
-      GraphicBaseVariable ircs        = (GraphicBaseVariable) figure.add(new GraphicMuxVariable(350, 25, 3, Orientation.normal, "IRCS", ircsVar));
-      figure.add(GraphicConnector.create("", fcrdiv,  0, ircs, 0, null));
-      figure.add(GraphicConnector.create("", slowIrc, 0, ircs, 1, null));
-      figure.add(GraphicConnector.create("", frdiv,   0, ircs, 2, null));
-
-      GraphicBaseVariable ircs_node   = (GraphicBaseVariable) figure.add(new GraphicNode(400, 60, "IRCS", true, ircsVar));
-      figure.add(GraphicConnector.create("", ircs, 0, ircs_node, 0, null));
-
-      fastIrc.setSelected(true);
-      fcrdiv.setSelected(true);
-      ircs.setSelected(true);
-      ircs_node.setSelected(true);
-      return figure;
-   }
+      @Override
+      public void modelElementChanged(ObservableModel observableModel) {
+         System.err.println("Run Mode changed " + observableModel);
+      }
+   };
+   
+   Variable runModeVar;
 
    Canvas canvas;
    
@@ -390,27 +358,22 @@ public class GraphicsDialogue {
          mouseMove(evt.x, evt.y);
       });
 
+      try {
+         runModeVar = fFigure.getProvider().getVariable("/SMC/smc_pmctrl_runm[%(n)]");
+         runModeVar.addListener(runModeChangeListener);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      
       shell.open();
       while (!shell.isDisposed()) {
          if (!display.readAndDispatch())
             display.sleep();
       }
+      
+      runModeVar.removeListener(runModeChangeListener);
       shell.dispose();
       hoverShell.dispose();
-   }
-
-   public static void main(String[] args) throws Exception {
-      Display display = new Display();
-
-      Shell shell = new Shell(display);
-      shell.setText("Graphic Editor");
-      shell.setLayout(new FillLayout());
-      shell.setSize(1100, 1400);
-      
-      GraphicsDialogue gd = new GraphicsDialogue(shell, "GUI", createTestFigure());
-      gd.open();
-      
-      display.dispose();
    }
 
 }

@@ -198,12 +198,12 @@ public abstract class VariableWithChoices extends Variable {
       return makeEnum(fData.getEnumName());
    }
 
-   @Override
-   public String getValueFormat() {
-      String format = super.getValueFormat();
-      if (format != null) {
-         return format;
-      }
-      return  getBaseNameFromKey(getKey()).toUpperCase()+"(%s)";
-   }
+//   @Override
+//   public String getValueFormat() {
+//      String format = super.getValueFormat();
+////      if (format != null) {
+//         return format;
+////      }
+////      return  getBaseNameFromKey(getKey()).toUpperCase()+"(%s)";
+//   }
 }

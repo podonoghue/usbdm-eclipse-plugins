@@ -18,7 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class ClockValidator_MCG extends IndexedValidator {
 
-   public ClockValidator_MCG(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
+   public ClockValidator_MCG(PeripheralWithState peripheral, Integer dimension) {
       super(peripheral, dimension);
    }
 
@@ -28,7 +28,7 @@ public class ClockValidator_MCG extends IndexedValidator {
     */
    @Override
    protected void validate(Variable variable, int index) throws Exception {
-      //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
+//      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       // Check configuration name is valid C identifier
       StringVariable clockConfig = getStringVariable("ClockConfig");
@@ -168,11 +168,11 @@ public class ClockValidator_MCG extends IndexedValidator {
       pll0InputFrequencyVar.enable(pllEnabled);
       pll0OutputFrequencyVar.enable(pllEnabled);
    }
-
+    
    @Override
    protected boolean createDependencies() throws Exception {
       super.createDependencies();
-
+ 
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 

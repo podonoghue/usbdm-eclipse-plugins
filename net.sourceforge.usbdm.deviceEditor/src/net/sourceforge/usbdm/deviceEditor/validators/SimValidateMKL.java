@@ -38,16 +38,6 @@ public class SimValidateMKL extends IndexedValidator {
       MAX_VLPR_BUS_CLOCK_FREQ       = (Long)it.next();
    }
 
-   /**
-    * 
-    * @throws Exception
-    */
-   @Override
-   public void validate(Variable variable, int index) throws Exception {
-
-      validateIndexVariables(variable);
-   }
-
    static class StringPair {
       final String left;
       final String right;
@@ -81,21 +71,27 @@ public class SimValidateMKL extends IndexedValidator {
       if (sim_clkdiv2_usbVar != null) {
          // USB divider CLKDIV2 exists
 
-         int usbCalcValue = -1;
+         long perClock = system_peripheral_clockVar.getValueAsLong();
+
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
             // Using USB CLKIN pin
             sim_clkdiv2_usbVar.enable(false);
-            sim_clkdiv2_usbVar.setOrigin("Not used with external clock");
+            sim_clkdiv2_usbVar.setOrigin("Not used with external USB clock");
+            sim_clkdiv2_usbVar.setLocked(false);
+         }
+         else if (perClock==0) {
+            sim_clkdiv2_usbVar.enable(false);
+            sim_clkdiv2_usbVar.setOrigin(system_peripheral_clockVar.getOrigin());
             sim_clkdiv2_usbVar.setLocked(false);
          }
          else {
             // Using internal clock
 
             // Try to auto calculate divisor
-            long clock = system_peripheral_clockVar.getValueAsLong();
+            int usbCalcValue = -1;
             for (int  usbdiv=0; usbdiv<=7; usbdiv++) {
                for (int  usbfrac=0; usbfrac<=1; usbfrac++) {
-                  long testValue = Math.round(clock*(usbfrac+1.0)/(usbdiv+1.0));
+                  long testValue = Math.round(perClock*(usbfrac+1.0)/(usbdiv+1.0));
                   if (testValue == 48000000) {
                      usbCalcValue = (usbdiv<<1) + usbfrac;
                      break;
@@ -135,7 +131,12 @@ public class SimValidateMKL extends IndexedValidator {
     * @param variable
     * @throws Exception
     */
-   void validateIndexVariables(Variable variable) throws Exception {
+   /**
+    * 
+    * @throws Exception
+    */
+   @Override
+   public void validate(Variable variable, int index) throws Exception {
 
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock");
@@ -147,8 +148,8 @@ public class SimValidateMKL extends IndexedValidator {
       final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock");
       final LongVariable   system_bus_clockVar          = getLongVariable("system_bus_clock");
 
-      final LongVariable   sim_clkdiv1_outdiv1Var       = getLongVariable("sim_clkdiv1_outdiv1");
-      final LongVariable   sim_clkdiv1_outdiv4Var       = getLongVariable("sim_clkdiv1_outdiv4");
+      final ChoiceVariable   sim_clkdiv1_outdiv1Var     = getChoiceVariable("sim_clkdiv1_outdiv1");
+      final ChoiceVariable   sim_clkdiv1_outdiv4Var     = getChoiceVariable("sim_clkdiv1_outdiv4");
 
       final ChoiceVariable smc_pmctrl_runmVar           = getChoiceVariable("/SMC/smc_pmctrl_runm");
 
@@ -175,13 +176,13 @@ public class SimValidateMKL extends IndexedValidator {
       }
       // Permit GUI derived updates?
       boolean doGuiUpdates = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
-
+      
       // Core & System Clock
       //===========================================
       // Attempt to find acceptable divisor
       final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
 //      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
-
+      
       final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clockVar, system_core_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
@@ -189,7 +190,7 @@ public class SimValidateMKL extends IndexedValidator {
          }
       };
       {
-         Severity      severity = Severity.OK;
+         Severity severity = Severity.OK;
          if (coreDivisor.failed() || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
             severity = Severity.ERROR;
          }
@@ -197,7 +198,7 @@ public class SimValidateMKL extends IndexedValidator {
       }
       if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
          // Target clock manually changed - update divisor
-         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
+         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor-1);
 //         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
       }
 
@@ -224,7 +225,7 @@ public class SimValidateMKL extends IndexedValidator {
       }
       if (!busDivisor.failed() && doGuiUpdates && (variable == system_bus_clockVar)) {
          // Target clock manually changed - update divisors
-         sim_clkdiv1_outdiv4Var.setValue(busDivisor.divisor);
+         sim_clkdiv1_outdiv4Var.setValue(busDivisor.divisor-1);
          system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
       }
    }
@@ -250,25 +251,33 @@ public class SimValidateMKL extends IndexedValidator {
          double nearestValue   = Double.MAX_VALUE;
          int    nearestDivisor = 0;
          StringBuilder sb = new StringBuilder();
-         sb.append("Possible values:");
          int values = 0;
-         if (inputFrequencyVar.getStatus().greaterThan(Status.Severity.INFO)) {
+         Status status = inputFrequencyVar.getStatus();
+         if (!inputFrequencyVar.isEnabled()) {
+            nearestTargetFrequency = 0;
+            valuesNotFound = true;
+            sb.append("Disabled by "+inputFrequencyVar.getName());
+         }
+         else if ((status != null) && status.greaterThan(Status.Severity.INFO)) {
             nearestTargetFrequency = 0;
             sb.append(inputFrequencyVar.getStatus().getSimpleText());
             valuesNotFound = true;
          }
          else {
-            Long inputFrequency = inputFrequencyVar.getValueAsLong();
+            Long inputFrequency = inputFrequencyVar.getRawValueAsLong();
             for (int divisor=16; divisor>0; divisor--) {
                double frequency = inputFrequency/divisor;
                if ((frequency < 1.0) || !okValue(divisor, frequency)) {
                   continue;
                }
-               if (values++ == 7) {
-                  sb.append("\n");
-               }
                String value = EngineeringNotation.convert(frequency, 3);
                if (divisorSet.add(value)) {
+                  if (values == 0) {
+                     sb.append("Possible values:");
+                  }
+                  if (values++ == 7) {
+                     sb.append("\n");
+                  }
                   sb.append(" "+value+"Hz");
                   if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
                      nearestValue = frequency;
@@ -323,6 +332,13 @@ public class SimValidateMKL extends IndexedValidator {
             "/MCG/system_mcgoutclk_clock",
             "/MCG/usb1pfdclk_Clock",
             "/SMC/smc_pmctrl_runm",
+            "system_peripheral_clock",
+            "system_core_clock",
+            "system_bus_clock",
+            "system_flexbus_clock",
+            "system_flash_clock",
+            "sim_sopt2_usbsrc",
+            "sim_clkdiv2_usb",
       };
       addToWatchedVariables(externalVariables);
       

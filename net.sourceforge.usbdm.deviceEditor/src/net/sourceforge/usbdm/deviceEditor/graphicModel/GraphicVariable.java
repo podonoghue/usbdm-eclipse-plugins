@@ -53,13 +53,26 @@ public class GraphicVariable extends GraphicBaseVariable {
       gc.setFont(font);
       
       if (h>=2*vScale) {
-         Point p = map(-w/2+6, -17);
-         gc.drawText(name,                             p.x, p.y);
-         p = map(-w/2+6, 0);
-         gc.drawText(getVariable().getValueAsString(), p.x, p.y);
+         if ((this.getStyle()&NONAME) == 0) {
+            Point p = map(-w/2+6, -17);
+            gc.drawText(name,                             p.x, p.y);
+         }
+         if ((this.getStyle()&NOVALUE) == 0) {
+            Point p = map(-w/2+6, 0);
+            gc.drawText(getVariable().getValueAsString(), p.x, p.y);
+         }
       }
       else {
-         String label = name+",  "+getVariable().getValueAsString();
+         String label = "";
+         if ((this.getStyle()&NONAME) == 0) {
+            label = name;
+         }
+         if ((this.getStyle()&NOVALUE) == 0) {
+            if ((this.getStyle()&NONAME) == 0) {
+               label = label +",  ";
+            }
+            label = label+getVariable().getValueAsString();
+         }
          Point p = map(-w/2+6, -8);
          gc.drawText(label, p.x, p.y);
       }

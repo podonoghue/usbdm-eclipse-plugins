@@ -38,26 +38,6 @@ public class PeripheralValidator extends Validator {
     * 
     * @param peripheral
     */
-   public PeripheralValidator(PeripheralWithState peripheral, int index) {
-      super(peripheral, index);
-   }
-
-   /**
-    * Peripheral dialogue validator <br>
-    * Constructor used by derived classes
-    * 
-    * @param peripheral
-    */
-   public PeripheralValidator(PeripheralWithState peripheral, ArrayList<Object> list) {
-      super(peripheral);
-   }
-
-   /**
-    * Peripheral dialogue validator <br>
-    * Constructor used by derived classes
-    * 
-    * @param peripheral
-    */
    public PeripheralValidator(PeripheralWithState peripheral) {
       super(peripheral);
    }
@@ -363,18 +343,30 @@ public class PeripheralValidator extends Validator {
 
       @Override
       public void modelElementChanged(ObservableModel observableModel) {
+         
+
          try {
+            // Reference of form "[varName];expression"
+            String reference = fControlledVar.getReference();
+            if (reference != null) {
+               // Variable being controlled is itself
+               updateTarget(fControlledVar, fControlledVar, reference);
+            }
+            
             // Reference of form "[varName];expression"
             String enabledByExpression = fControlledVar.getEnabledBy();
             if (enabledByExpression != null) {
                SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
                Boolean result = (Boolean)parser.evaluate(enabledByExpression);
                fControlledVar.enable(result);
+               if (enabledByExpression.contains("system_peripheral_clock")) {
+                  System.err.println("Found " + enabledByExpression + " => " + result);
+               }
                if (!result) {
                   fControlledVar.setStatus(new Status(fControlledVar.getEnabledByMessage(parser), Severity.INFO));
                }
                else {
-                  fControlledVar.setStatus((String)null);
+                  fControlledVar.clearStatus();
                }
             }
             String errorIfExpression = fControlledVar.getErrorIf();
@@ -517,27 +509,6 @@ public class PeripheralValidator extends Validator {
    }
    
    /**
-    * This handles a variable that depends on other variables
-    * This variable will have a reference="expression"
-    *
-    * @param dependentVariable Variable that is dependent (has reference)
-    * 
-    * @throws Exception
-    */
-   void addDependentVariableListener(Variable dependentVariable) throws Exception {
-      
-      // Get/create listener to link references to target
-      // No need to check for duplicates as this would require multiple of the same dependent variable
-      String referenceString = dependentVariable.getReference();
-      DependentVariableListener listener = new DependentVariableListener(dependentVariable);
-      if ((referenceString == null) || (referenceString.isBlank())) {
-         throw new Exception("Reference is missing for dependent var '"+dependentVariable+"'");
-      }
-      
-      addExpressionListeners(referenceString, listener, dependentVariable);
-   }
-   
-   /**
     * This handles a ChoiceVariable
     * <li> target="variable"  specifier controlled variable
     * <li> Each choice has ref="expression" specifying relationship
@@ -588,13 +559,45 @@ public class PeripheralValidator extends Validator {
          for (ChoiceData choiceData:choiceDatas) {
             String references = choiceData.getReference();
             if ((references == null) || (references.isBlank())) {
-               throw new Exception("Choice varu=iable reference is missing for selector var '"+choiceVariable+"'");
+               throw new Exception("Choice variable reference is missing for selector var '"+choiceVariable+"'");
             }
             for (String expression:references.split(";")) {
                addExpressionListeners(expression, listener, choiceVariable);
             }
          }
       }
+   }
+   
+   /**
+    * This handles a variable that depends on other variables
+    * This variable will have a reference="expression"
+    *
+    * @param controlledVariable Variable that is dependent (has reference)
+    * 
+    * @throws Exception
+    */
+   boolean addDependentVariableListener(Variable controlledVariable) throws Exception {
+      
+      String enabledByExpression = controlledVariable.getReference();
+
+      if (enabledByExpression == null) {
+         return false;
+      }
+
+         // Get/create listener to link references to target
+//      // No need to check for duplicates as this would require multiple of the same dependent variable
+//      String referenceString = dependentVariable.getReference();
+//      DependentVariableListener listener = new DependentVariableListener(dependentVariable);
+//      if ((referenceString == null) || (referenceString.isBlank())) {
+//         throw new Exception("Reference is missing for dependent var '"+dependentVariable+"'");
+//      }
+//      addExpressionListeners(referenceString, listener, dependentVariable);
+      
+      // Get/create listener to link references to target
+      // No need to check for duplicates as this would require multiple of the same dependent variable
+      ControlledByListener listener = new ControlledByListener(controlledVariable);
+      addExpressionListeners(enabledByExpression, listener, controlledVariable);
+      return true;
    }
    
    /**
@@ -709,12 +712,6 @@ public class PeripheralValidator extends Validator {
       
       for (Variable monitoredVariable:monitoredVariables) {
          boolean actionFound = false;
-         if (monitoredVariable.getReference() != null) {
-            // This variable depends on other variables
-            // Has attribute ref="expression"
-            addDependentVariableListener(monitoredVariable);
-            actionFound = true;
-         }
          if (monitoredVariable.getTarget() != null) {
             // This variable controls other variables
             // Has attribute target="variable"
@@ -732,6 +729,12 @@ public class PeripheralValidator extends Validator {
             else {
                throw new Exception("Monitored var '"+monitoredVariable+"' is of unsupported type");
             }
+         }
+         if (monitoredVariable.getReference() != null) {
+            // This variable depends on other variables
+            // Has attribute ref="expression"
+            addDependentVariableListener(monitoredVariable);
+            actionFound = true;
          }
          if (addErrorIfListener(monitoredVariable, addedListeners)) {
             actionFound = true;

@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -10,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class SpiValidate extends PeripheralValidator {
 
-   public SpiValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public SpiValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
 
