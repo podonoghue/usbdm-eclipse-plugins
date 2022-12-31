@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="net.sourceforge.usbdm.cdt.feature">
+      <category name="usbdm.cdt.plugin"/>
+   </feature>
+   <category-def name="usbdm.cdt.plugin" label="USBDM CDT Plugin">
+      <description>
+         USBDM Plugins for Eclipse
+      </description>
+   </category-def>
+</site>

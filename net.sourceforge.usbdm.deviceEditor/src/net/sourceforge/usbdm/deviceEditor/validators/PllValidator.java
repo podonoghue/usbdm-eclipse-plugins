@@ -55,7 +55,8 @@ public class PllValidator extends IndexedValidator {
 
       try {
          // Update PRDIV0 and VDIV0 limits
-         for (fIndex=0; fIndex<dimension; fIndex++) {
+         for (int clockIndex=0; clockIndex<dimension; clockIndex++) {
+            setClockIndex(clockIndex);
             LongVariable mcg_c5_prdiv0Var = getLongVariable("mcg_c5_prdiv0");
             mcg_c5_prdiv0Var.setOffset(-PRDIV_MIN);
             mcg_c5_prdiv0Var.setMin(PRDIV_MIN);
@@ -66,7 +67,6 @@ public class PllValidator extends IndexedValidator {
             mcg_c6_vdiv0Var.setMin(VDIV_MIN);
             mcg_c6_vdiv0Var.setMax(VDIV_MAX);
          }
-         fIndex = 0;
       } catch (Exception e) {
          e.printStackTrace();
       }

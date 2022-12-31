@@ -1,7 +1,7 @@
 Automatic-Module-Name: net.sourceforge.usbdm.constants
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: USBDM Eclipse Plugin
+Bundle-Name: USBDM CDT Plugin
 Bundle-SymbolicName: net.sourceforge.usbdm.constants;singleton:=true
 Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.constants.Activator
@@ -14,4 +14,3 @@ Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: USBDM
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8

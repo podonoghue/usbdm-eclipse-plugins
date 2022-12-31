@@ -6,14 +6,14 @@
  *******************************************************************************/
 package net.sourceforge.usbdm.constants;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.UsbdmJniConstants;
 
-import org.eclipse.jface.resource.ImageDescriptor;
-
 public class UsbdmSharedConstants {
 
-   // Keys used in GDB Launch configurations 
+   // Keys used in GDB Launch configurations
    private final static String  LAUNCH_ATTRIBUTE_KEY                  = "net.sourceforge.usbdm.gdb.";                    //$NON-NLS-1$
                                                                                                                          
    public final static String  LAUNCH_DEVICE_NAME_KEY                = LAUNCH_ATTRIBUTE_KEY+"deviceName";               //$NON-NLS-1$
@@ -65,24 +65,24 @@ public class UsbdmSharedConstants {
    public final static boolean DEFAULT_USE_BINARY_OFFSET             = false;
    public final static String  DEFAULT_BINARY_OFFSET_VALUE           = "";                                              //$NON-NLS-1$
                                                                      
-   // Default - Don't set PC                                         
+   // Default - Don't set PC
    public final static boolean DEFAULT_SET_PC_REGISTER               = false;
    public final static String  DEFAULT_PC_REGISTER_VALUE             = "__HardReset";                                   //$NON-NLS-1$
                                                                      
-   // Default - stop at main                                         
+   // Default - stop at main
    public final static boolean DEFAULT_DO_STOP_AT_MAIN               = true;
    public final static String  DEFAULT_STOP_AT_MAIN_ADDRESS          = "main";                                          //$NON-NLS-1$
                                                                      
-   // Default - Resume execution after load or connect               
+   // Default - Resume execution after load or connect
    public final static boolean DEFAULT_DO_RESET                      = true;
    public final static boolean DEFAULT_DO_RESUME                     = true;
    public final static boolean DEFAULT_DO_HALT                       = false;
                                                                      
-   // Default - Load symbols                                         
+   // Default - Load symbols
    public final static boolean DEFAULT_USE_EXTERNAL_SYMBOL_FILE      = false;
    public final static String  DEFAULT_EXTERNAL_SYMBOL_FILE_NAME     = DEFAULT_EXTERNAL_FILE_NAME;
                                                                      
-   // Not used                                                       
+   // Not used
    public final static boolean DEFAULT_USE_SYMBOLS_OFFSET            = false;
    public final static String  DEFAULT_SYMBOLS_OFFSET_VALUE          = "";                                              //$NON-NLS-1$
                                                                      
@@ -103,7 +103,7 @@ public class UsbdmSharedConstants {
    public final static String CODESOURCERY_ARM_BUILD_ID                   = "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.codesourceryARM";      //$NON-NLS-1$
    public final static String CODESOURCERY_COLDFIRE_BUILD_ID              = "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.codesourceryColdfire"; //$NON-NLS-1$
                                                                            
-   // Keys used for Eclipse dynamic variables as settings files            
+   // Keys used for Eclipse dynamic variables as settings files
    public final static String ARMLTD_ARM_PATH_VAR                         = "usbdm_armLtd_arm_path";                 //$NON-NLS-1$
    public final static String ARMLTD_ARM_PREFIX_VAR                       = "usbdm_armLtd_arm_prefix";               //$NON-NLS-1$
                                                                            
@@ -113,9 +113,7 @@ public class UsbdmSharedConstants {
    public final static String CODESOURCERY_COLDFIRE_PATH_VAR              = "usbdm_codesourcery_coldfire_path";      //$NON-NLS-1$
    public final static String CODESOURCERY_COLDFIRE_PREFIX_VAR            = "usbdm_codesourcery_coldfire_prefix";    //$NON-NLS-1$
 
-   @Deprecated
    public final static String USBDM_MAKE_COMMAND_VAR                      = "usbdm_make_command";                    //$NON-NLS-1$
-   @Deprecated
    public final static String USBDM_RM_COMMAND_VAR                        = "usbdm_rm_command";                      //$NON-NLS-1$
 
    public final static String USBDM_APPLICATION_PATH_VAR                  = "usbdm_application_path";                //$NON-NLS-1$
@@ -131,7 +129,7 @@ public class UsbdmSharedConstants {
    public final static String USBDM_CFV1_SERVER_OPTION                     = "-target=cfv1";                         //$NON-NLS-1$
    public final static String USBDM_CFVx_SERVER_OPTION                     = "-target=cfvx";                         //$NON-NLS-1$
                                                                                                                     
-   // Descriptive names                                                                                             
+   // Descriptive names
    public final static String USBDM_INTERFACE_NAME                         = "USBDM Interface";                      //$NON-NLS-1$
    public final static String ARM_INTERFACE_NAME                           = "ARM Interface";                        //$NON-NLS-1$
    public final static String CFV1_INTERFACE_NAME                          = "Coldfire V1 Interface";                //$NON-NLS-1$
@@ -161,6 +159,7 @@ public class UsbdmSharedConstants {
       }
       /**  Returns a legible name for use in GUI
        */
+      @Override
       public String toString() {
          return legibleName;
       }

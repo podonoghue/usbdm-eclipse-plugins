@@ -359,7 +359,7 @@ public class GraphicsDialogue {
       });
 
       try {
-         runModeVar = fFigure.getProvider().getVariable("/SMC/smc_pmctrl_runm[%(n)]");
+         runModeVar = fFigure.getProvider().getVariable("/SMC/smc_pmctrl_runm["+fFigure.getfClockSelection()+"]");
          runModeVar.addListener(runModeChangeListener);
       } catch (Exception e) {
          e.printStackTrace();

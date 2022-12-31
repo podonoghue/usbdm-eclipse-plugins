@@ -6,9 +6,8 @@ Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.freescale;singleton:=true
 Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.freescale.Activator
 Bundle-Vendor: USBDM
-Require-Bundle: org.eclipse.core.runtime,
- net.sourceforge.usbdm.peripheralDatabase,
+Require-Bundle: net.sourceforge.usbdm.peripheralDatabase,
+ org.eclipse.core.runtime,
  org.eclipse.osgi
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.peripherals.freescale
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8

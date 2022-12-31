@@ -20,4 +20,3 @@ Import-Package: org.eclipse.core.resources,
  org.eclipse.swt.layout,
  org.eclipse.swt.widgets,
  org.eclipse.ui.plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8

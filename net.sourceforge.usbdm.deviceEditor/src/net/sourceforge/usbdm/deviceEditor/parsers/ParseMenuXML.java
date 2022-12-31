@@ -2028,7 +2028,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String registerName = controlVar.getRegister();
       
       if (registerName != null) {
-//         if (registerName.equalsIgnoreCase("pdb_xxx_pt")) {
+//         if (registerName.equalsIgnoreCase("control")) {
 //            System.err.println("Found "+registerName);
 //         }
          Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
@@ -2758,7 +2758,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fPeripheral.removeMonitoredVariable(safeGetVariable(key));
 
       boolean mustExist = Boolean.parseBoolean(getAttribute(element, "mustExist"));
-      boolean wasDeleted = fProvider.removeVariable(key);
+      boolean wasDeleted = fProvider.removeVariableByName(key);
 
       if (mustExist  && !wasDeleted) {
          throw new Exception("Variable '" + key + "' was not found to delete in deleteOption");
@@ -3070,13 +3070,12 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private void parseGraphic(BaseModel parentModel, Element element) throws Exception {
       
-      ClockSelectionFigure figure = new ClockSelectionFigure(fProvider);
+      ClockSelectionFigure figure = new ClockSelectionFigure(fProvider, 0 /* getIntAttribute(element, "clockConfigIndex" */);
       
       OpenGraphicModel model = new OpenGraphicModel(
             parentModel,
             getKeyAttribute(element),
             fProvider.safeGetVariable(getKeyAttribute(element, "var")),
-            getIntAttribute(element, "clockConfigIndex"),
             figure);
       
       model.setToolTip(getAttribute(element, "toolTip"));

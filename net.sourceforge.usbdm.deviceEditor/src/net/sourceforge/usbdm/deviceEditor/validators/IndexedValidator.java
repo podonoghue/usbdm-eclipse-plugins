@@ -17,18 +17,19 @@ public abstract class IndexedValidator extends PeripheralValidator {
    @Override
    final protected void validate(Variable variable) throws Exception {
       super.validate(variable);
-      int index = -1;
+      int varIndex = -1;
       if (variable != null) {
-         index = variable.getIndex();
+         varIndex = variable.getIndex();
       }
-      if (index == -1) {
-         for (fIndex=0; fIndex<fDimension; fIndex++) {
-            validate(variable, fIndex);
+      if (varIndex < 0) {
+         for (int clockIndex=0; clockIndex<fDimension; clockIndex++) {
+            setClockIndex(clockIndex);
+            validate(variable, clockIndex);
          }
       }
       else {
-         fIndex = index;
-         validate(variable, fIndex);
+         setClockIndex(varIndex);
+         validate(variable, varIndex);
       }
    }
    
@@ -44,10 +45,11 @@ public abstract class IndexedValidator extends PeripheralValidator {
       if (variablesToWatch == null) {
          return;
       }
-      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+      for(int fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+         setClockIndex(fIndex);
          super.addToWatchedVariables(variablesToWatch);
       }
-      fIndex = 0;
+      setClockIndex(0);
    }
 
    /**
@@ -60,10 +62,11 @@ public abstract class IndexedValidator extends PeripheralValidator {
       if (variablesToWatch == null) {
          return;
       }
-      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+      for(int fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+         setClockIndex(fIndex);
          super.addToWatchedVariables(variablesToWatch);
       }
-      fIndex = 0;
+      setClockIndex(0);
    }
 
    /**
@@ -76,7 +79,8 @@ public abstract class IndexedValidator extends PeripheralValidator {
       if (variablesToWatch == null) {
          return;
       }
-      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+      for(int fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+         setClockIndex(fIndex);
          super.addSpecificWatchedVariables(variablesToWatch);
       }
    }
@@ -91,10 +95,10 @@ public abstract class IndexedValidator extends PeripheralValidator {
       if (variablesToWatch == null) {
          return;
       }
-      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+      for(int fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+         setClockIndex(fIndex);
          super.addSpecificWatchedVariables(variablesToWatch);
       }
    }
-   
 
 }

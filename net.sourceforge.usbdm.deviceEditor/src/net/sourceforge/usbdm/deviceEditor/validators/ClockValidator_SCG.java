@@ -77,7 +77,8 @@ public class ClockValidator_SCG extends IndexedValidator {
    protected void validate(Variable variable, int index) throws Exception {
       
       if (!initialisationDone) {
-         for (int fIndex=0; fIndex<fDimension; fIndex++) {
+         for (int clockIndex=0; clockIndex<fDimension; clockIndex++) {
+            setClockIndex(index);
             // Add SCG parameters
             pll_mult_min                   = getLongVariable("pll_mult_min").getValueAsLong();
             pll_mult_max                   = getLongVariable("pll_mult_max").getValueAsLong();
@@ -127,7 +128,7 @@ public class ClockValidator_SCG extends IndexedValidator {
             }
          }
          initialisationDone = true;
-         fIndex = index;
+         setClockIndex(index);
       }
 
 //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
@@ -136,7 +137,7 @@ public class ClockValidator_SCG extends IndexedValidator {
       clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
 
       Variable     enableClockConfigurationVar      =  getVariable("enableClockConfiguration");
-      if (fIndex == 0) {
+      if (index == 0) {
          // Clock configuration 0 is always enables
          if (enableClockConfigurationVar.isEnabled()) {
             enableClockConfigurationVar.enable(false);

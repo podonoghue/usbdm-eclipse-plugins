@@ -5,7 +5,8 @@ Bundle-SymbolicName: net.sourceforge.usbdm.utilities;singleton:=true
 Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.utilities.Activator
 Bundle-Vendor: USBDM
-Require-Bundle: javax.inject,
+Require-Bundle: net.sourceforge.usbdm.cdt.ui,
+ javax.inject,
  org.eclipse.osgi,
  org.eclipse.jface,
  org.eclipse.e4.ui.services,
@@ -13,12 +14,10 @@ Require-Bundle: javax.inject,
  org.eclipse.core.runtime,
  org.eclipse.e4.core.di,
  org.eclipse.core.resources,
- net.sourceforge.usbdm.cdt.ui,
  org.eclipse.cdt.core,
  org.eclipse.ui.workbench,
  org.eclipse.debug.core,
  org.eclipse.ui.ide
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: net.sourceforge.usbdm.utilities
 Import-Package: javax.annotation;version="1.2.0",
  javax.inject;version="1.0.0"

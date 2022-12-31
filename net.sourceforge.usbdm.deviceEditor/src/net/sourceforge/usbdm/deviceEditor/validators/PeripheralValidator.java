@@ -765,7 +765,7 @@ public class PeripheralValidator extends Validator {
    private void addToWatchedVariables(String name) {
       Variable var = safeGetVariable(name);
       if (var == null) {
-         if (fIndex==0) {
+         if (getClockIndex() == 0) {
             if (fVerbose) {
                System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
             }

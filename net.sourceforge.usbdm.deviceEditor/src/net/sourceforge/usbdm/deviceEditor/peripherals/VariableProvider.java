@@ -36,35 +36,10 @@ public class VariableProvider {
             return name;
          }
          if (name.charAt(0) == '/') {
-            // Don't modify explicit variables
+            // Don't modify full path
             return name;
          }
          return "/"+getName()+"/"+name;
-      }
-   }
-   
-   /**
-    * KeyMaker that adds indices to key
-    */
-   protected final class IndexKeyMaker implements IKeyMaker {
-      private final String    fIndex;
-      private final IKeyMaker fKeyMaker;
-
-      /**
-       * Constructor
-       * 
-       * @param keyMaker   KeyMaker to wrap
-       * @param index      Index to add
-       */
-      public IndexKeyMaker(IKeyMaker keyMaker, int index) {
-         fIndex    = "[" + index + "]";
-         fKeyMaker = keyMaker;
-      }
-      
-      @Override
-      public String makeKey(String name) {
-         name = fKeyMaker.makeKey(name);
-         return name.replaceAll("\\.$", fIndex);
       }
    }
    
@@ -127,42 +102,6 @@ public class VariableProvider {
    }
 
    /**
-    * Set value of variable
-    * 
-    * @param key     Key used to identify variable
-    * @param value   New value for variable
-    */
-   public void setVariableValue(String key, String value) {
-      fDeviceInfo.setVariableValue(key, value);
-   }
-
-   /**
-    * Get value of variable
-    * 
-    * @param key     Key used to identify variable
-    * 
-    * @return Value for variable
-    */
-   public String getVariableValue(String key) throws Exception {
-      return fDeviceInfo.getVariableValue(key);
-   }
-
-   /**
-    * Get value of variable
-    * 
-    * @param key     Key used to identify variable
-    * 
-    * @return Value for variable
-    */
-   public String safeGetVariableValue(String key) {
-      Variable var = safeGetVariable(key);
-      if (var == null) {
-         return null;
-      }
-      return var.getValueAsString();
-   }
-
-   /**
     * Adds a variable
     * 
     * @param variable  Variable to add
@@ -191,7 +130,7 @@ public class VariableProvider {
     * 
     * @return true if variable existed and removed, false otherwise
     */
-   public boolean removeVariable(String variableName) {
+   public boolean removeVariableByName(String variableName) {
       boolean present = fDeviceInfo.safeGetVariable(variableName) != null;
       if (!present) {
          return false;
@@ -274,7 +213,5 @@ public class VariableProvider {
    public DeviceInfo getDeviceInfo() {
       return fDeviceInfo;
    }
-   
-
 
 }

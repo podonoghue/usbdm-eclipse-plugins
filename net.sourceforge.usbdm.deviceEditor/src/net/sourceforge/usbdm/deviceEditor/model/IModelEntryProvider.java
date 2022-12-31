@@ -21,36 +21,6 @@ public interface IModelEntryProvider {
    public BaseModel getModel(BaseModel parent);
    
    /**
-    * Set value of variable
-    * 
-    * @param key     Key used to identify variable
-    * @param value   New value for variable
-    * 
-    * @throws Exception if variable doesn't exist
-    */
-   public void setVariableValue(String key, String value) throws Exception;
-
-   /**
-    * Get value of variable
-    * 
-    * @param key     Key used to identify variable
-    * 
-    * @return Value for variable
-    * 
-    * @throws Exception if variable doesn't exist
-    */
-   public String getVariableValue(String key) throws Exception;
-
-   /**
-    * Get value of variable
-    * 
-    * @param key     Key used to identify variable
-    * 
-    * @return Value for variable or null
-    */
-   public String safeGetVariableValue(String key);
-
-   /**
     * Get variable with given key
     * 
     * @param key     Key to lookup variable

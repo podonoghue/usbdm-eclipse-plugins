@@ -7,7 +7,7 @@ Bundle-Vendor: USBDM
 Bundle-Activator: net.sourceforge.usbdm.gdb.ui.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
-Bundle-Version: 5.2.0.qualifier
+Bundle-Version: 5.0.0.qualifier
 Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
  net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  net.sourceforge.usbdm.jni;bundle-version="5.0.0",
@@ -43,4 +43,3 @@ Import-Package: org.eclipse.cdt.core.model,
  org.eclipse.core.runtime;version="3.4.0",
  org.eclipse.debug.core.commands,
  org.eclipse.ui.views.navigator
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8

@@ -13,9 +13,13 @@ public class ClockSelectionFigure {
    private Graphic[]                     objects            = null;
    private ArrayList<InitialInformation> initialInformation = new ArrayList<InitialInformation>();
    private final VariableProvider fProvider;
+
+   /// Clock configuration index for this figure
+   private final int fClockSelection;
    
-   public ClockSelectionFigure(VariableProvider provider) {
+   public ClockSelectionFigure(VariableProvider provider, int clockSelection) {
       fProvider = provider;
+      fClockSelection = clockSelection;
    }
    
    private class InitialInformation {
@@ -254,6 +258,15 @@ public class ClockSelectionFigure {
     */
    public VariableProvider getProvider() {
       return fProvider;
+   }
+
+   /**
+    *  Get clock configuration index for this figure
+    * 
+    * @return Clock configuration index for this figure
+    */
+   public int getfClockSelection() {
+      return fClockSelection;
    }
    
 }

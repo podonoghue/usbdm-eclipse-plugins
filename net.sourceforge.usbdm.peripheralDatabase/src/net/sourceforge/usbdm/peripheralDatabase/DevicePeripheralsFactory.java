@@ -25,7 +25,7 @@ public class DevicePeripheralsFactory {
     * 
     * @param folderPath Path of folder containing SCD files and optional DeviceList.xml index file
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public DevicePeripheralsFactory(Path folderPath) {
       fFolderPath = folderPath;
@@ -35,7 +35,7 @@ public class DevicePeripheralsFactory {
    /**
     * Creates factory using default path to device folder
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public DevicePeripheralsFactory() {
       fFolderPath = getDefaultPath();
@@ -79,10 +79,10 @@ public class DevicePeripheralsFactory {
     *  Creates peripheral database for device
     * 
     *  @param path Full path to SVD file
-    *  
+    * 
     *  @return device peripheral description or null on error
-    *  
-    *  @throws Exception 
+    * 
+    *  @throws Exception
     */
    public DevicePeripherals getDevicePeripherals(Path path) throws UsbdmException {
       
@@ -95,7 +95,7 @@ public class DevicePeripheralsFactory {
     *  Creates peripheral database for device
     * 
     *  @param deviceName Name of device or SVD file name e.g. "MK20D5", default extensions will be tried e.g. ".xml"
-    *  
+    * 
     *  @return device peripheral description or null on error
     */
    public DevicePeripherals getDevicePeripherals(String deviceName) {
@@ -160,7 +160,7 @@ public class DevicePeripheralsFactory {
     * 
     *  @param deviceList   Device list file to use as index
     *  @param deviceName   Device name as appears in deviceList file
-    *  
+    * 
     *  @return device peripheral description or null on error
     */
    public DevicePeripherals getDevicePeripherals(DeviceFileList deviceList, String deviceName) {
@@ -190,9 +190,9 @@ public class DevicePeripheralsFactory {
 
 //   /**
 //    * Maps raw device name to generic name e.g. MK11DN512M5 -> MK11D5
-//    * 
+//    *
 //    * @param originalName name to map
-//    * 
+//    *
 //    * @return mapped name or null if not mapped
 //    */
 //   private String getMappedSvdName(String originalName) {

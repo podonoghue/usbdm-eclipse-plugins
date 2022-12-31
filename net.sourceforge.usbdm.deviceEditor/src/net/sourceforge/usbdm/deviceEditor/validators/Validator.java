@@ -21,8 +21,10 @@ public abstract class Validator implements IModelChangeListener {
 
    private   final Peripheral       fPeripheral;
    protected final DeviceInfo       fDeviceInfo;
-   protected int                    fIndex=0;
+
    protected boolean                fVerbose = false;
+   
+   private   int                    fClockIndex=0;
    
    /**
     * Create validator
@@ -51,7 +53,7 @@ public abstract class Validator implements IModelChangeListener {
     * @return Valid => null<br>
     *         Invalid => Error string
     */
-   protected boolean isValidCIdentifier(String id) {
+   protected static boolean isValidCIdentifier(String id) {
       
       return ((id != null) && id.matches("[_a-zA-Z][_a-zA-z0-9]*"));
    }
@@ -116,7 +118,7 @@ public abstract class Validator implements IModelChangeListener {
    }
 
    /**
-    * Add a variable to provider
+    * Add a variable to associated peripheral
     * 
     * @param variable
     */
@@ -133,9 +135,10 @@ public abstract class Validator implements IModelChangeListener {
     * @return Variable or null if not found
     */
    protected Variable safeGetVariable(String key) {
-      Variable variable = fPeripheral.safeGetVariable(fPeripheral.makeKey(key)+"["+fIndex+"]");
+      key = fPeripheral.makeKey(key);
+      Variable variable = fPeripheral.safeGetVariable(key+"["+fClockIndex+"]");
       if (variable == null) {
-         variable = fPeripheral.safeGetVariable(fPeripheral.makeKey(key));
+         variable = fPeripheral.safeGetVariable(key);
       }
       return variable;
    }
@@ -519,5 +522,12 @@ public abstract class Validator implements IModelChangeListener {
       return fDeviceInfo;
    }
 
+   public int getClockIndex() {
+      return fClockIndex;
+   }
+
+   public void setClockIndex(int fIndex) {
+      this.fClockIndex = fIndex;
+   }
    
 }

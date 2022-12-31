@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -17,20 +16,20 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class RtcValidate extends PeripheralValidator {
 
-   // Constants
-   private boolean          rtcSharesPins         = false;
-   
-   /** /OSC0/osc_input_freq (only used if shared RTC/OSC0 share crystal pins */
-   private LongVariable     osc0_input_freqVar    = null;
-
-   /** /OSC0/osc32k_clock (only used of shared RTC/OSC0 share crystal pins */
-   private LongVariable     osc0_osc32k_clockVar  = null;
-
-   /** /RTC/osc_input_freq - may be linked by software to /OSC0/osc_input_freq */
-   private LongVariable     rtc_osc_input_freqVar = null;
-
-   /** /RTC/osc_clock - may be linked by software to /OSC0/osc_clock */
-   private LongVariable     rtc_osc_clockVar      = null;
+//   // Constants
+//   private boolean          rtcSharesPins         = false;
+//
+//   /** /OSC0/osc_input_freq (only used if shared RTC/OSC0 share crystal pins */
+//   private LongVariable     osc0_input_freqVar    = null;
+//
+//   /** /OSC0/osc32k_clock (only used of shared RTC/OSC0 share crystal pins */
+//   private LongVariable     osc0_osc32k_clockVar  = null;
+//
+//   /** /RTC/osc_input_freq - may be linked by software to /OSC0/osc_input_freq */
+//   private LongVariable     rtc_osc_input_freqVar = null;
+//
+//   /** /RTC/osc_clock - may be linked by software to /OSC0/osc_clock */
+//   private LongVariable     rtc_osc_clockVar      = null;
 
    /**
     * @param peripheral Associated peripheral

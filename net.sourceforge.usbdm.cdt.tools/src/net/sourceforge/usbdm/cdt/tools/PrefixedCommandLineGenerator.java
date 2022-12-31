@@ -2,12 +2,9 @@
  * Basic ManagedCommandLineGenerator
  * 
  *  Adds GCC derivative prefix e.g. arm-eabi-none- to commandName
- *  
+ * 
  */
 package net.sourceforge.usbdm.cdt.tools;
-
-import net.sourceforge.usbdm.constants.ToolInformationData;
-import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 
 import org.eclipse.cdt.managedbuilder.core.IBuildObject;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
@@ -15,6 +12,8 @@ import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.internal.core.ResourceConfiguration;
+import net.sourceforge.usbdm.constants.ToolInformationData;
+import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 
 @SuppressWarnings("restriction")
 public class PrefixedCommandLineGenerator extends ManagedCommandLineGenerator {
@@ -92,7 +91,7 @@ public class PrefixedCommandLineGenerator extends ManagedCommandLineGenerator {
 ////         System.err.println("PrefixedCmdLineGenerator.getToolPrefix() Found tool prefix = " + toolPrefix);
 //      }
 //      else {
-//         
+//
 //      }
       return toolPrefix;
    }
@@ -110,11 +109,11 @@ public class PrefixedCommandLineGenerator extends ManagedCommandLineGenerator {
    @Override
    public IManagedCommandLineInfo generateCommandLineInfo(
          ITool      tool,
-         String     commandName, 
-         String[]   flags, 
+         String     commandName,
+         String[]   flags,
          String     outputFlag,
-         String     outputPrefix, 
-         String     outputName, 
+         String     outputPrefix,
+         String     outputName,
          String[]   inputResources,
          String     commandLinePattern) {
 
@@ -129,6 +128,6 @@ public class PrefixedCommandLineGenerator extends ManagedCommandLineGenerator {
       }
       else {
          return (IToolChain)parent;
-      }      
+      }
    }
 }

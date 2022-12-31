@@ -5,4 +5,3 @@ Bundle-Name: USBDM Help
 Bundle-SymbolicName: net.sourceforge.usbdm.help;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: USBDM
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8

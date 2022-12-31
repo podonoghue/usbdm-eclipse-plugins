@@ -24,7 +24,7 @@ public abstract class MyValidator {
    }
    
    /**
-    * Sets the model 
+    * Sets the model
     * 
     * @param model
     */
@@ -117,7 +117,7 @@ public abstract class MyValidator {
     */
    protected void update(final TreeViewer viewer, final NumericOptionModelNode node, long value) {
       final long limitedValue = node.limitedValue(value);
-      if ((node.safeGetValueAsLong() == limitedValue) && 
+      if ((node.safeGetValueAsLong() == limitedValue) &&
           (node.getErrorMessage() == null)) {
          // No update needed (after constricting to target range)
          return;
@@ -151,8 +151,8 @@ public abstract class MyValidator {
     */
    protected void update(final TreeViewer viewer, final NumericOptionModelNode node, long value, final Message message) {
       final long limitedValue = node.limitedValue(value);
-      if ((node.safeGetValueAsLong() == limitedValue) && 
-          (((node.getErrorMessage() == null) && (message == null)) || 
+      if ((node.safeGetValueAsLong() == limitedValue) &&
+          (((node.getErrorMessage() == null) && (message == null)) ||
            ((message != null) && (message.equals(node.getMessage()))))) {
          // No update needed (after constricting to target range)
          return;
@@ -303,7 +303,7 @@ public abstract class MyValidator {
     * @note Done delayed on the display thread
     */
    private synchronized void refresh(final TreeViewer viewer) {
-      synchronized (updatePending) {
+      synchronized (this) {
          if (updatePending) {
             return;
          }
@@ -314,7 +314,7 @@ public abstract class MyValidator {
          public void run () {
             if (!viewer.getControl().isDisposed()) {
                viewer.refresh();
-               synchronized (updatePending) {
+               synchronized (this) {
                   updatePending = false;
                }
             }

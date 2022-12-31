@@ -10,6 +10,6 @@ Bundle-NativeCode: i386/usbdm.4.dll;i386/usbdm-jni.4.dll;i386/usbdm-debug.4.dll;
 Automatic-Module-Name: net.sourceforge.usbdm.jni
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.jni
-Require-Bundle: org.eclipse.ui.workbench,
- org.eclipse.core.runtime,
- org.eclipse.equinox.registry
+Require-Bundle: org.eclipse.ui.workbench;bundle-version="3.127.0",
+ org.eclipse.core.runtime;bundle-version="3.26.100",
+ org.eclipse.equinox.registry;bundle-version="3.11.200"

@@ -7,15 +7,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.jni.UsbdmException;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * @author pgo
@@ -112,7 +112,7 @@ public class ExampleList {
    }
    
    /**
-    * @param projectInfo    project info 
+    * @param projectInfo    project info
     * 
     * @param exampleElement <example> element
     * 
@@ -139,11 +139,11 @@ public class ExampleList {
    /**
     * Parse exampleList
     * 
-    * @param exampleListElement <exampleList> element 
+    * @param exampleListElement <exampleList> element
     * 
     * @return list of project elements
-    *  
-    * @throws UsbdmException 
+    * 
+    * @throws UsbdmException
     */
    private ArrayList<ProjectInformation> parseExampleList(Element exampleListElement) throws UsbdmException {
       
@@ -166,7 +166,7 @@ public class ExampleList {
 //         File    file       = path.toFile();
 //         if (!file.isFile() || !file.canRead()) {
 //            throw new UsbdmException("Failed to find Example Project file: " + path.toString());
-//         }         
+//         }
          String family = element.getAttribute("family");
          ProjectInformation projectInfo = new ProjectInformation(description, longDescription, path, family, buildTool);
          projectList.add(projectInfo);
@@ -179,7 +179,7 @@ public class ExampleList {
    /**
     * Parse the information from the document
     * 
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    void parseDocument() throws UsbdmException {
       // Get the root element
@@ -213,7 +213,7 @@ public class ExampleList {
    /**
     * @param iPath path to example list XML file
     * 
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    void parseXmlFile(IPath iPath) throws UsbdmException {
 

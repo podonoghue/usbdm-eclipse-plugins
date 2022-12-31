@@ -2222,41 +2222,20 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
    }
 
-   /**
-    * Get value of variable
-    * 
-    * @param key  Key used to identify variable
-    * 
-    * @throws Exception if variable doesn't exist
-    */
-   @Override
-   public String getVariableValue(String key) throws Exception {
-      return getVariable(key).getValueAsString();
-   }
-
-   @Override
-   public String safeGetVariableValue(String key) {
-      Variable var = safeGetVariable(key);
-      if (var == null) {
-         return null;
-      }
-      return var.getValueAsString();
-   }
-
    @Override
    public Variable safeGetVariable(String key) {
+      if (key.endsWith("[]")) {
+         // Use 0 index
+         return fVariables.safeGet(key.substring(0,key.length()-2)+"[0]");
+      }
       Variable var = fVariables.safeGet(key);
       if (var == null) {
          // Try active clock selection as well
          var = fVariables.safeGet(key+"["+fActiveClockSelection+"]");
       }
       if ((var == null) && key.endsWith(".")) {
-         // Try 0 index as well
-         var = fVariables.safeGet(key.substring(0,key.length()-1)+"[0]");
-      }
-      if ((var == null) && key.endsWith("[]")) {
-         // Try 0 index as well
-         var = fVariables.safeGet(key.substring(0,key.length()-2)+"[0]");
+         // No longer supported
+         throw new RuntimeException("Dot at end of key");
       }
       return var;
    }
@@ -2268,23 +2247,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          throw new Exception("Variable does not exist for key \'"+key+"\'");
       }
       return variable;
-   }
-
-   /**
-    * Set value of variable
-    * 
-    * @param key  Key used to identify variable
-    * 
-    * @throws Exception if variable doesn't exist
-    */
-   @Override
-   public void setVariableValue(String key, String value) {
-      Variable variable = fVariables.get(key);
-      if (variable == null) {
-         System.err.println(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
-         throw new RuntimeException(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
-      }
-      setDirty(variable.setValue(value));
    }
 
    /**

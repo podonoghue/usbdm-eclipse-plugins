@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="net.sourceforge.usbdm.cdt.feature"
+      label="USBDM Eclipse CDT Feature"
+      version="5.1.0.qualifier"
+      provider-name="USBDM"
+      plugin="net.sourceforge.usbdm.constants"
+      os="linux,win32"
+      arch="x86,x86_64">
+
+   <description url="https://sourceforge.net/projects/usbdm/">
+      USBDM Plugin for Eclipse CDT
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      USBDM
+Copyright (C) 2007-15  Peter O&apos;Donoghue
+   </copyright>
+
+   <license url="http://www.eclipse.org/org/documents/epl-v10.php">
+      This plugin contains components licensed under the Eclipse Public License.
+Non-derivative components are licensed under the GPL.
+   </license>
+
+   <plugin
+         id="net.sourceforge.usbdm.jni"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.deviceDatabase"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.deviceEditor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripheralDatabase"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.constants"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.cdt.tools"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.gdb.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.cdt.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.atmel"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.freescale"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.stmicro"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.view"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.usbdm"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.annotationEditor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.help"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.utilities"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>
