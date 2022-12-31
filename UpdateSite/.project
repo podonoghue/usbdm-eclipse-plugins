@@ -8,4 +8,11 @@
 	</buildSpec>
 	<natures>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>settings.xml</name>
+			<type>1</type>
+			<location>/home/peter/.m2/settings.xml</location>
+		</link>
+	</linkedResources>
 </projectDescription>

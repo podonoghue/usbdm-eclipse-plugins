@@ -92,14 +92,14 @@
          </plugin>
 
          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jarsigner-plugin</artifactId>
             <version>1.2</version>
             <configuration>
-               <keystore>file:///home/vogella/eclipse-signing.keystore</keystore>
-               <storepass>voclipse</storepass>
-               <alias>selfsigned</alias>
-               <keypass>PASSWORD</keypass>
+               <storetype>${keystore.type}</storetype>
+               <keystore>${keystore.path}</keystore>
+               <alias>${keystore.alias}</alias>
+               <storepass>${keystore.store.password}</storepass>
+               <keypass>${keystore.key.password}</keypass>
             </configuration>
             <executions>
                <execution>

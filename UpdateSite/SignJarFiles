@@ -2,28 +2,31 @@
 
 export JAVA_HOME=/usr/lib/jvm/default-java
 
-#KEY_PASSWORD=MHYe7EhRRqv2mKYK
-STORE_PASSWORD=changeit
-KEY_STORE=$JAVA_HOME/lib/security/cacerts
-USBDM_PLUGIN_HOME=/home/peter/Documents/Development/usbdm/usbdm-eclipse-plugins
-USBDM_UPDATE_SITE=${USBDM_PLUGIN_HOME}/UpdateSite
-KEY_ALIAS=Peter
+STORE_PASSWORD=XXXX
 
 # Get key password 
-read -s -p "Password for certificate: " KEY_PASSWORD
-#echo password = ${KEY_PASSWORD}
+#read -s -p "Password for certificate store: " STORE_PASSWORD
+#echo password = ${STORE_PASSWORD}
 
-# Generate self-signed certificate
-#sudo keytool -genkey -dname cn=Peter\ O\'Donoghue,c=AU -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} -keypass ${KEY_PASSWORD} -validity 180
+KEY_STORE=$JAVA_HOME/lib/security/cacerts
 
-# Delete self-signed certificate
-#sudo keytool -delete -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} -validity 180
+USBDM_PLUGIN_HOME=/home/peter/Documents/Development/usbdm/usbdm-eclipse-plugins
+USBDM_UPDATE_SITE=${USBDM_PLUGIN_HOME}/UpdateSite
+KEY_ALIAS=JarSigning
 
-# List certificates
-#sudo keytool -list -cacerts -storepass ${STORE_PASSWORD} -validity 180
+echo Deleting self-signed certificate
+sudo keytool -delete -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} -validity 180
+
+echo Generating self-signed certificate
+sudo keytool -genkey -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} -validity 4360 -dname "cn=Peter O'Donoghue, ou=USBDM, o=USBDM, c=AU"
+
+echo List certificates
+sudo keytool -list -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} 
+
+exit
 
 # Sign jars
-for f in ${USBDM_UPDATE_SITE}/features/*.jar ${USBDM_UPDATE_SITE}/plugins/*.jar ${USBDM_UPDATE_SITE}/*.jar; do
+for f in ${USBDM_UPDATE_SITE}/target/repository/features/*.jar ${USBDM_UPDATE_SITE}/target/repository/plugins/*.jar; do
    echo $f
-   jarsigner -keystore ${KEY_STORE} -storepass ${STORE_PASSWORD} -keypass ${KEY_PASSWORD} $f ${KEY_ALIAS}
+   echo jarsigner -keystore ${KEY_STORE} -storepass ${STORE_PASSWORD} $f ${KEY_ALIAS}
 done
