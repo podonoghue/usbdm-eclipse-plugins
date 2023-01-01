@@ -32,7 +32,7 @@ public class GraphicAnnotation extends GraphicBaseVariable {
       int h = Integer.parseInt(paramsArray[3].trim());
       String format = null;
       if (paramsArray.length>4) {
-         format = paramsArray[4];
+         format = paramsArray[4].trim();
       }
       GraphicAnnotation t = new GraphicAnnotation(x, y, w, h, id, format, canEdit, var);
 

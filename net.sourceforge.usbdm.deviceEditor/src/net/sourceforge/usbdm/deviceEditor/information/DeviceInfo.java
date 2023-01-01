@@ -2375,7 +2375,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return Device name
     */
    public static String getDeviceName(String variantName) {
-      final String packageSuffixes = "(VLF|VFT|VDC|VLH|VLL|VMP|VMP|VMC|VFK|VLC|VFM|VLQ|VMD)";
+      final String packageSuffixes = "(VLF|VFT|VDC|VLH|VLL|VMP|VMP|VMC|VFK|VLC|VFM|VLQ|VMD|VFG|CAF)";
       DeviceNamePattern patterns[] = {
             new DeviceNamePattern("^(MK(L)?\\d+(Z|DN|DX|FN|FX)\\d+(M\\d+)?)"+packageSuffixes+"(\\d+)$", "$1M$6"), // MK20DN32VLF5 -> MK20D5
       };

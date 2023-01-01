@@ -64,15 +64,16 @@ public class OscValidate extends PeripheralValidator {
    private ChoiceVariable   oscModeVar                     =  null;
    private ChoiceVariable   osc_cr_scpVar                  =  null;
    private ChoiceVariable   oscillatorRangeVar             =  null;
-   private LongVariable     osc_clockVar                   =  null;
    private LongVariable     osc_input_freqVar              =  null;
 
-   // Check if RTC has control of oscillator pins
-   private boolean  rtcSharesPins           = false;
-   private BooleanVariable rtc_cr_osceVar   = null;
+   // Indicates if RTC has control of oscillator pins
+   private BooleanVariable rtcForcingVar;
 
    // Indicates that the OSC must use a 32kHz xtal = low range only
    private boolean onlyLowFrequencySupported;
+
+   // Indicates whether OSC enabled
+   private BooleanVariable oscEnableVar = null;
 
    public OscValidate(PeripheralWithState peripheral) {
       super(peripheral);
@@ -101,16 +102,17 @@ public class OscValidate extends PeripheralValidator {
       super.validate(variable);
 
       // Check if RTC has control of oscillator pins
-      boolean rtcForcing       = rtcSharesPins && rtc_cr_osceVar.getValueAsBoolean();
+      boolean rtcForcing       = (rtcForcingVar != null) && rtcForcingVar.getValueAsBoolean();
       
       String  rangeOrigin      = "Unused";
       int     oscillatorRange  = UNCONSTRAINED_RANGE;
 
       long    osc_input_freq   = osc_input_freqVar.getValueAsLong();
-      long    osc_clockFreq    = 0;
       
       String  osc_clockOrg     = getPeripheral().getName();
       Status  osc_clockStatus  = null;
+      
+      boolean oscEnable = oscEnableVar.getValueAsBoolean();
       
       if (rtcForcing) {
          // RTC controlling XTAL pins
@@ -119,19 +121,13 @@ public class OscValidate extends PeripheralValidator {
          osc_input_freqVar.setMin(EXTERNAL_EXTAL_RANGE1_MIN);
          osc_input_freqVar.setMax(EXTERNAL_EXTAL_RANGE1_MAX);
 
-         Status rtcInUseMessage = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.WARNING);
+         Status rtcInUseStatus = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.WARNING);
 
          oscModeVar.enable(false);
-         oscModeVar.setStatus(rtcInUseMessage);
+         oscModeVar.setStatus(rtcInUseStatus);
 
-//         osc_clockFreq = osc32k_clockVar.getValueAsLong();
-//
-//         osc_clockVar.setOrigin(osc32k_clockVar.getOrigin());
-//         osc_clockVar.setStatus(osc32k_clockVar.getStatus());
-//         osc_clockVar.setValue(osc_clockFreq);
-         
          oscillatorRangeVar.enable(false);
-         oscillatorRangeVar.setStatus(rtcInUseMessage);
+         oscillatorRangeVar.setStatus(rtcInUseStatus);
 
          // Using oscillator - range is forced by RTC
          oscillatorRange  = 0;
@@ -148,12 +144,12 @@ public class OscValidate extends PeripheralValidator {
             osc_clockOrg     += " (low range)";
          }
          osc_cr_scpVar.enable(false);
-         osc_cr_scpVar.setStatus(rtcInUseMessage);
+         osc_cr_scpVar.setStatus(rtcInUseStatus);
       }
       else {
          // OSC controlling XTAL pins
 
-         oscModeVar.enable(true);
+         oscModeVar.enable(oscEnable);
          oscModeVar.clearStatus();
 
          boolean oscillatorInUse = oscModeVar.getValueAsLong() != 0L;
@@ -216,16 +212,8 @@ public class OscValidate extends PeripheralValidator {
          osc_cr_scpVar.clearStatus();
       }
 
-      boolean osc_clockOK = (osc_clockStatus==null) || osc_clockStatus.getSeverity().lessThan(Severity.WARNING);
-
       osc_input_freqVar.setStatus(osc_clockStatus);
-
-      if (!rtcForcing) {
-         osc_clockFreq = osc_clockOK?osc_input_freq:0;
-         osc_clockVar.setOrigin(osc_clockOrg);
-         osc_clockVar.setStatus(osc_clockStatus);
-         osc_clockVar.setValue(osc_clockFreq);
-      }
+      osc_input_freqVar.enable(oscEnable||rtcForcing);
       
       oscillatorRangeVar.setValue(oscillatorRange);
       oscillatorRangeVar.setOrigin(rangeOrigin);
@@ -239,20 +227,19 @@ public class OscValidate extends PeripheralValidator {
       
       // Some device only support low range XTAL
       onlyLowFrequencySupported      =  safeGetVariable("/MCG/mcg_c2_range0") == null;
-      
-      // XTAL pins shared with RTC OSC
-      rtcSharesPins                  =  safeGetBooleanVariable("/SIM/rtc_shared") != null;
-      if (rtcSharesPins) {
-         rtc_cr_osceVar              =  createBooleanVariableReference("/RTC/rtc_cr_osce", externalVariablesList);
-      }
-      oscModeVar                     =  createChoiceVariableReference("/MCG/oscMode", externalVariablesList);
+
+      // Inputs
+      rtcForcingVar                  =  safeGetBooleanVariable("/SIM/RtcForcing", externalVariablesList);
+      oscEnableVar                   =  getBooleanVariable("OscEnable", externalVariablesList);
+      osc_input_freqVar              =  getLongVariable("osc_input_freq", externalVariablesList);
+
       osc_cr_scpVar                  =  getChoiceVariable("osc_cr_scp");
       oscillatorRangeVar             =  getChoiceVariable("oscillatorRange");
-      osc_clockVar                   =  createLongVariableReference("osc_clock", externalVariablesList);
-      osc_input_freqVar              =  createLongVariableReference("osc_input_freq", externalVariablesList);
+      oscModeVar                     =  getChoiceVariable("/MCG/oscMode");
 
       addToWatchedVariables(externalVariablesList);
       
+      // Use explicit dependencies
       return false;
    }
 }

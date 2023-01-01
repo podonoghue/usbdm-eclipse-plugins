@@ -132,6 +132,9 @@ public class ParseFamilyXML extends XML_BaseParser {
             Pin    pin      = fDeviceInfo.findPin(pinName);
             String location = element.getAttribute("location");
             DevicePackage  devicePackage = fDeviceInfo.findDevicePackage(packageName);
+            if (devicePackage == null) {
+               throw new Exception("Failed to find device package for packageName = \'"+packageName+"\'");
+            }
             devicePackage.addPin(pin, location);
          }
          else {

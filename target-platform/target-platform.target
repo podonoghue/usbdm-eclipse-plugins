@@ -2,6 +2,6 @@
 <?pde version="3.8"?>
 <target name="target-platform">
    <locations>
-      <location path="/home/peter/eclipse/cpp-2022-06/eclipse" type="Profile"/>
+      <location path="/home/peter/eclipse/cpp-2022-12/eclipse" type="Profile"/>
    </locations>
 </target>

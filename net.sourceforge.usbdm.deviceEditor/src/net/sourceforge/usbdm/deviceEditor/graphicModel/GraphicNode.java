@@ -7,14 +7,20 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
 public class GraphicNode extends GraphicBaseVariable {
 
+   boolean isBooleanVariable = false;
+   
    public GraphicNode(int x, int y, String id, Boolean canEdit, Variable var) {
       super(x, y, 10, 10, id, canEdit, var);
+      
+      isBooleanVariable = (var != null) && (var instanceof BooleanVariable);
+      
       inputs     = new Point[1];
       inputs[0]  = new Point(-w/2, 0);
       outputs    = new Point[1];
@@ -46,6 +52,10 @@ public class GraphicNode extends GraphicBaseVariable {
       gc.setLineWidth(2);
       gc.drawRectangle(x-w/2,   y-h/2,    w,    h);
 
+      if (isBooleanVariable && getVariable().getValueAsBoolean()) {
+         gc.drawLine(x-w/2,   y-h/2,    x+w/2,    y+h/2);
+         gc.drawLine(x+w/2,   y-h/2,    x-w/2,    y+h/2);
+      }
       StringBuilder label = new StringBuilder();
       String name = getName();
       if (((getStyle()&NONAME) == 0) && (name != null) && !name.isBlank()) {

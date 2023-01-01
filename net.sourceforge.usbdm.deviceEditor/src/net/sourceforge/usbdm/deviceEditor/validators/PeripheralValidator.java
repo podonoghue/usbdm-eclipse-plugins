@@ -845,7 +845,7 @@ public class PeripheralValidator extends Validator {
     * 
     * @throws Exception if target variable doesn't exist
     */
-   protected LongVariable createLongVariableIndirectReference(String indirectName, ArrayList<String> namesToWatch) throws Exception {
+   protected LongVariable getLongVariableIndirect(String indirectName, ArrayList<String> namesToWatch) throws Exception {
 
       LongVariable reference = null;
       StringVariable nameVar = safeGetStringVariable(indirectName);
@@ -888,7 +888,7 @@ public class PeripheralValidator extends Validator {
     * 
     * @throws Exception if target variable doesn't exist
     */
-   protected LongVariable createLongVariableReference(String targetName, ArrayList<String> namesToWatch) throws Exception {
+   protected LongVariable getLongVariable(String targetName, ArrayList<String> namesToWatch) throws Exception {
 
       LongVariable reference = getLongVariable(targetName);
       namesToWatch.add(targetName);
@@ -906,7 +906,7 @@ public class PeripheralValidator extends Validator {
     * 
     * @throws Exception if target variable doesn't exist
     */
-   protected ChoiceVariable createChoiceVariableReference(String targetName, ArrayList<String> namesToWatch) throws Exception {
+   protected ChoiceVariable getChoiceVariable(String targetName, ArrayList<String> namesToWatch) throws Exception {
 
       ChoiceVariable reference = getChoiceVariable(targetName);
       namesToWatch.add(targetName);
@@ -922,7 +922,7 @@ public class PeripheralValidator extends Validator {
     * 
     * @return Target variable
     */
-   protected BooleanVariable safeCreateBooleanVariableReference(String targetName, ArrayList<String> namesToWatch) {
+   protected BooleanVariable safeGetBooleanVariable(String targetName, ArrayList<String> namesToWatch) {
 
       BooleanVariable reference = safeGetBooleanVariable(targetName);
       if ((reference != null) && (namesToWatch != null)) {
@@ -942,7 +942,7 @@ public class PeripheralValidator extends Validator {
     * 
     * @throws Exception if target variable doesn't exist
     */
-   protected BooleanVariable createBooleanVariableReference(String targetName, ArrayList<String> namesToWatch) throws Exception {
+   protected BooleanVariable getBooleanVariable(String targetName, ArrayList<String> namesToWatch) throws Exception {
 
       BooleanVariable reference = getBooleanVariable(targetName);
       namesToWatch.add(targetName);
