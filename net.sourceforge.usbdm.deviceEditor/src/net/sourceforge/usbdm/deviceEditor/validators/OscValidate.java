@@ -230,7 +230,7 @@ public class OscValidate extends PeripheralValidator {
 
       // Inputs
       rtcForcingVar                  =  safeGetBooleanVariable("/SIM/RtcForcing", externalVariablesList);
-      oscEnableVar                   =  getBooleanVariable("OscEnable", externalVariablesList);
+      oscEnableVar                   =  getBooleanVariable("EnableOsc", externalVariablesList);
       osc_input_freqVar              =  getLongVariable("osc_input_freq", externalVariablesList);
 
       osc_cr_scpVar                  =  getChoiceVariable("osc_cr_scp");

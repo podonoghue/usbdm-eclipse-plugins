@@ -3004,6 +3004,7 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("Unexpected type for expression result. Type = "+result.getClass()+", eqn = "+expression);
          }
          fProvider.addVariable(var);
+         var.setDerived(true);
       }
       var.setValue(result);
       var.setDerived(true);
