@@ -87,6 +87,13 @@ public class PeripheralValidator extends Validator {
       return makeClockSpecificName(key, getDeviceInfo().getActiveClockSelection());
    }
    
+   class VariableUpdateInfo {
+      Object  value   = null;
+      Status  status  = null;
+      String  origin  = null;
+      boolean enable  = true;
+   };
+   
    /**
     * Update target value
     * 
@@ -97,86 +104,93 @@ public class PeripheralValidator extends Validator {
     * @throws Exception
     */
    void updateTarget(Variable controlVar, Variable targetVariable, String reference) throws Exception {
+      
+      VariableUpdateInfo info = determineVariableUpdate(controlVar, targetVariable, reference);
+      if (targetVariable != null) {
+         info.enable = info.enable && targetVariable.evaluateEnable(getPeripheral());
+         targetVariable.setStatus(info.status);
+         if (info.value != null) {
+            targetVariable.setValue(info.value);
+         }
+         if (info.origin != null) {
+            targetVariable.setOrigin(info.origin);
+         }
+         targetVariable.enable(info.enable);
+      }
+      if ((controlVar != null) && (controlVar instanceof ClockSelectionVariable)) {
+         ClockSelectionVariable cv = (ClockSelectionVariable) controlVar;
+         cv.setDisplayValue(info.value.toString());
+      }
+   }
 
+   VariableUpdateInfo determineVariableUpdate(Variable controlVar, Variable targetVariable, String reference) throws Exception {
 //      if (controlVar.getName().equals("cmp_cr0_filter")) {
 //         System.err.println("Found " + controlVar.getName());
 //      }
+      VariableUpdateInfo info = new VariableUpdateInfo();
+      
       if ("disabled".equalsIgnoreCase(reference)) {
          if (targetVariable != null) {
-            targetVariable.setValue(0);
-            targetVariable.setStatus((Status)null);
-            targetVariable.setOrigin("Disabled by "+controlVar.getName());
-            targetVariable.enable(false);
+            info.origin = "Disabled by "+controlVar.getName();
+            info.enable = false;
          }
-         return;
+         return info;
       }
-//      if (reference.contains("SIM/system_bus_clock[0]")) {
-//         System.err.println("Found " + reference);
-//      }
       String data[]     = reference.split("#");
       String expression = data[data.length-1];
       SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
       if (expression.isBlank()) {
-         // This selection doesn't update target
-         if (targetVariable != null) {
-            targetVariable.setOrigin(null);
-         }
-         return;
+         throw new Exception("Expression is empty");
+//         // This selection doesn't update target
+//         if (targetVariable != null) {
+//            targetVariable.setOrigin(null);
+//         }
+//         return null;
       }
-      Object result = parser.evaluate(expression);
+      info.value = parser.evaluate(expression);
       ArrayList<String>  identifiers = parser.getCollectedIdentifiers();
 
-      String primaryClockSourceName = null;
-      String origin = "";
-      Status status = null;
-      boolean enabled = true;
+      String primaryVariableInExpressionName = null;
       if (data.length>1) {
-         primaryClockSourceName = data[0];
+         primaryVariableInExpressionName = data[0];
+      }
+      else if (identifiers.size()>0) {
+         primaryVariableInExpressionName = identifiers.get(0);
       }
       else {
-         if (identifiers.size()>0) {
-            primaryClockSourceName = identifiers.get(0);
-         } else {
-            origin = "[Fixed]";
-         }
+         // No variables in expression - assume a constant value
+         info.origin = "[Fixed]";
       }
-      if (primaryClockSourceName != null) {
-         Variable primaryClockSourceVar = safeGetVariable(primaryClockSourceName);
-         status   = primaryClockSourceVar.getStatus();
-         enabled  = primaryClockSourceVar.isEnabled();
-         if (primaryClockSourceVar.getIsNamedClock()) {
-            origin = primaryClockSourceVar.getName();
+      
+      // Assume enabled (may be later disabled by enabledBy expression)
+      info.enable = true;
+      if (primaryVariableInExpressionName != null) {
+         // Get status and enable from primary variable
+         Variable primaryVariableInExpression = safeGetVariable(primaryVariableInExpressionName);
+         info.status   = primaryVariableInExpression.getStatus();
+         info.enable   = primaryVariableInExpression.isEnabled();
+         if (primaryVariableInExpression.getIsNamedClock()) {
+            info.origin = primaryVariableInExpression.getName();
          }
          else {
-            origin   = primaryClockSourceVar.getOrigin();
+            info.origin   = primaryVariableInExpression.getOrigin();
          }
       }
       if (controlVar != targetVariable) {
          if (controlVar instanceof VariableWithChoices) {
-            origin = origin + "\n[selected by " + controlVar.getName() +"]";
+            info.origin = info.origin + "\n[selected by " + controlVar.getName() +"]";
          }
          else {
-            origin = origin + "\n[modified by " + parser.getCollectedIdentifiers() +"]";
+            info.origin = info.origin + "\n[modified by " + parser.getCollectedIdentifiers() +"]";
          }
       }
       else {
          if (identifiers.size()>1) {
-            String t = String.join(", ", identifiers).replace(primaryClockSourceName, "");
-            origin = origin + "\n[modified by " + t +"]";
+            String t = String.join(", ", identifiers).replace(primaryVariableInExpressionName, "");
+            info.origin = info.origin + "\n[modified by " + t +"]";
          }
       }
-      if (targetVariable != null) {
-         enabled = enabled && targetVariable.evaluateEnable(getPeripheral());
-         targetVariable.setValue(result);
-         targetVariable.setOrigin(origin);
-         targetVariable.setStatus(status);
-         targetVariable.enable(enabled);
-      }
-      if (controlVar instanceof ClockSelectionVariable) {
-         ClockSelectionVariable cv = (ClockSelectionVariable) controlVar;
-         cv.setDisplayValue(result.toString());
-      }
-      return;
+      return info;
    }
 
    /**
@@ -346,37 +360,37 @@ public class PeripheralValidator extends Validator {
          
 
          try {
+            VariableUpdateInfo info;
+            
+            if (fControlledVar.getName().contains("osc_clock")) {
+               System.err.println("Found, obs = " + observableModel);
+            }
             // Reference of form "[varName];expression"
             String reference = fControlledVar.getReference();
             if (reference != null) {
                // Variable being controlled is itself
-               updateTarget(fControlledVar, fControlledVar, reference);
+               info = determineVariableUpdate(fControlledVar, fControlledVar, reference);
+            }
+            else {
+               info = new VariableUpdateInfo();
             }
             
             // Reference of form "[varName];expression"
             String enabledByExpression = fControlledVar.getEnabledBy();
             if (enabledByExpression != null) {
                SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
-               Boolean result = (Boolean)parser.evaluate(enabledByExpression);
-               fControlledVar.enable(result);
-               if (enabledByExpression.contains("system_peripheral_clock")) {
-                  System.err.println("Found " + enabledByExpression + " => " + result);
-               }
-               if (!result) {
-                  fControlledVar.setStatus(new Status(fControlledVar.getEnabledByMessage(parser), Severity.INFO));
-               }
-               else {
-                  fControlledVar.clearStatus();
+               info.enable = (Boolean)parser.evaluate(enabledByExpression);
+               if (!info.enable) {
+                  info.status = new Status(fControlledVar.getEnabledByMessage(parser), Severity.INFO);
                }
             }
+            
             String errorIfExpression = fControlledVar.getErrorIf();
             if (errorIfExpression != null) {
                SimpleExpressionParser parser = new SimpleExpressionParser(getPeripheral(), Mode.EvaluateFully);
-               String errorMessage = null;
                if ((Boolean)parser.evaluate(errorIfExpression)) {
-                  errorMessage = fControlledVar.getErrorIfMessage();
+                  info.status = new Status(fControlledVar.getErrorIfMessage());
                }
-               fControlledVar.setStatus(errorMessage);
             }
             // Reference of form "[varName],expression"
             String unlockedByExpression = fControlledVar.getUnlockedBy();
@@ -385,6 +399,16 @@ public class PeripheralValidator extends Validator {
                Boolean unlocked = (Boolean)parser.evaluate(unlockedByExpression);
                fControlledVar.setLocked(!unlocked);
             }
+            
+            fControlledVar.enable(info.enable);
+            fControlledVar.setStatus(info.status);
+            if (info.value != null) {
+               fControlledVar.setValue(info.value);
+            }
+            if (info.origin != null) {
+               fControlledVar.setOrigin(info.origin);
+            }
+            
             if (fControlledVar instanceof LongVariable) {
                LongVariable lv = (LongVariable) fControlledVar;
                lv.updateMin();

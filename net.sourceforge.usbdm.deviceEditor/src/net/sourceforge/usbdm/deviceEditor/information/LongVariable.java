@@ -361,7 +361,10 @@ public class LongVariable extends Variable {
    public void setMin(long min) throws Exception {
       
       // Check if error state changed
-      boolean statusChanged = ((fValue>=getMin()) && (fValue<min)) || ((fValue<getMin()) && (fValue>=min));
+      boolean oldError = (fValue<getMin()) || (fValue>getMax());
+      boolean newError = (fValue<min)      || (fValue>getMax());
+      
+      boolean statusChanged = oldError != newError;
       fMin = min;
       if ((fDefaultValue == null) || (fDefaultValue<fMin)) {
          setDefault(fMin);
@@ -371,7 +374,8 @@ public class LongVariable extends Variable {
          fDisabledValue = fMin;
       }
       if (statusChanged) {
-         notifyStatusListeners();
+         notifyListeners();
+//         notifyStatusListeners();
       }
    }
 
@@ -385,7 +389,10 @@ public class LongVariable extends Variable {
    public void setMax(long max) throws Exception {
       
       // Check if error state changed
-      boolean statusChanged = ((fValue<=getMax()) && (fValue>max)) || ((fValue>getMax()) && (fValue<=max));
+      boolean oldError = (fValue<getMin()) || (fValue>getMax());
+      boolean newError = (fValue<getMin()) || (fValue>max);
+      
+      boolean statusChanged = oldError != newError;
       fMax = max;
       if ((fDefaultValue == null) ||(fDefaultValue>fMax)) {
          setDefault(fMax);
@@ -394,7 +401,8 @@ public class LongVariable extends Variable {
          fDisabledValue = fMax;
       }
       if (statusChanged) {
-         notifyStatusListeners();
+         notifyListeners();
+//         notifyStatusListeners();
       }
    }
 
@@ -416,6 +424,8 @@ public class LongVariable extends Variable {
          // Try as simply expression
          SimpleExpressionParser parser = new SimpleExpressionParser(null, Mode.EvaluateFully);
          fMin = (Long) parser.evaluate(attribute);
+         // Remove dynamic expression
+         fMaxExpression = null;
          notifyListeners();
          return false;
          
@@ -445,12 +455,13 @@ public class LongVariable extends Variable {
       SimpleExpressionParser parser = new SimpleExpressionParser(null, Mode.EvaluateFully);
       try {
          fMax = (Long) parser.evaluate(attribute);
+         // Remove dynamic expression
+         fMaxExpression = null;
          notifyListeners();
          return false;
       } catch (Exception e) {
          // Assume evaluated dynamically - save for later
          fMaxExpression = attribute;
-         
       }
       // Dynamic expression
       return true;

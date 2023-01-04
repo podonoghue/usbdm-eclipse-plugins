@@ -1236,6 +1236,15 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return sb.toString();
    }
 
+   /**
+    * Evaluate this variable's enableBy expression
+    * 
+    * @param peripheral
+    * 
+    * @return
+    * 
+    * @throws Exception
+    */
    public boolean evaluateEnable(Peripheral peripheral) throws Exception {
       String enableExpression = getEnabledBy();
       if (enableExpression == null) {
