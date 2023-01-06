@@ -243,6 +243,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          }
          return name;
       }
+      
+      public String getEnabledBy() {
+         return fEnabledBy;
+      }
    }
 
    /** Name of variable visible to user */
@@ -433,8 +437,8 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       String value = getSubstitutionValue();
       boolean wrap = value.length()>40;
       return String.format(getSimpleClassName()+
-            "(Name=%s, Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))",
-            getName(), getKey(), getSubstitutionValue(), getValueAsString());
+            "(Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))",
+            getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    /**

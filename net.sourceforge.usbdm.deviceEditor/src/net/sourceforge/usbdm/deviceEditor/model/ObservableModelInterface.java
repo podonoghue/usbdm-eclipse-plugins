@@ -6,7 +6,8 @@ s */
 public interface ObservableModelInterface {
 
    /**
-    * Add a model change listener to listen for changes
+    * Add a model change listener to listen for changes<br>
+    * Duplicate listeners are discarded
     * 
     * @param listener Listener to add
     */

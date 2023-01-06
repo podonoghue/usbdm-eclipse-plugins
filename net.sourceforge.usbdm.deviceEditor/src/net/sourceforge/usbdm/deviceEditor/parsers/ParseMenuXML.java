@@ -932,7 +932,7 @@ public class ParseMenuXML extends XML_BaseParser {
          if (enabledBy != null) {
             variable.setEnabledBy(enabledBy);
             // Add as monitored variable
-            fPeripheral.addMonitoredVariable(variable);
+            fPeripheral.addDynamicVariable(variable);
          }
 //         String errorIf = otherVariable.getErrorIf();
 //         if (errorIf != null) {
@@ -967,22 +967,22 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("ref")) {
          variable.setReference(getAttribute(varElement, "ref"));
          // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
+         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
          // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
+         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("errorIf")) {
          variable.setErrorIf(getAttribute(varElement, "errorIf"));
          // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
+         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("unlockedBy")) {
          variable.setUnlockedBy(getAttribute(varElement, "unlockedBy"));
          // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
+         fPeripheral.addDynamicVariable(variable);
       }
       variable.setRegister(getAttribute(varElement, "register"));
 //    variable.setDataValue(getAttribute(varElement, "data"));
@@ -1007,7 +1007,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("target")) {
          variable.setTarget(getAttribute(varElement, "target"));
          // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
+         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("isNamedClock")) {
          variable.setIsNamedClock(Boolean.valueOf(getAttribute(varElement, "isNamedClock")));
@@ -1097,7 +1097,7 @@ public class ParseMenuXML extends XML_BaseParser {
 //            variable.setMin(getRequiredLongExpressionAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            dynamic = variable.setMax(getAttribute(varElement, "max"));
+            dynamic = variable.setMax(getAttribute(varElement, "max")) || dynamic;
 //            variable.setMax(getRequiredLongExpressionAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("disabledValue")) {
@@ -1108,7 +1108,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (dynamic) {
          // Add as monitored variable
-         fPeripheral.addMonitoredVariable(variable);
+         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("units")) {
          variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
@@ -1230,6 +1230,11 @@ public class ParseMenuXML extends XML_BaseParser {
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
       
+      if (variable.hasDynamicChoices()) {
+         // Add as monitored variable
+         fPeripheral.addDynamicVariable(variable);
+      }
+
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
       }
@@ -1832,7 +1837,16 @@ public class ParseMenuXML extends XML_BaseParser {
             else {
                var = new StringVariable(name, indexedKey);
             }
-            var.setValue(values[index]);
+            Object exprValue = null;
+//            try {
+               SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.CheckIdentifierExistance);
+               exprValue = parser.evaluate(values[index]);
+//            } catch (Exception e) {
+//               SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.CheckIdentifierExistance);
+//               exprValue = parser.evaluate(values[index]);
+//               System.err.println("Warning: Failed to fully evaluate constant expression '"+values[index] +"'");
+//            }
+            var.setValue(exprValue);
             var.setDescription(description);
             var.setDerived(isDerived);
             var.setHidden(isHidden);
@@ -3171,7 +3185,7 @@ public class ParseMenuXML extends XML_BaseParser {
       final Integer               defaultEntry;
       
       public ChoiceInformation(ArrayList<ChoiceData> entries, Integer defaultEntry) {
-         this.entries = entries;
+         this.entries      = entries;
          this.defaultEntry = defaultEntry;
       }
    }

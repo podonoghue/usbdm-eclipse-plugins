@@ -183,20 +183,25 @@ public abstract class GraphicBaseVariable extends Graphic {
          
          for (int index=startAt; index<paramsArray.length; index++) {
             String param = paramsArray[index].trim();
+            int offset = 0;
+            if (param.length()>2) {
+               // Offset
+               offset = Integer.parseInt(param.substring(2));
+            }
             if (param.charAt(0) == 'i') {
                switch(param.charAt(1)) {
-               case 'n': tInputs.add(new Point(0,    -h/2)); break;
-               case 's': tInputs.add(new Point(0,    +h/2)); break;
-               case 'e': tInputs.add(new Point(+w/2, 0   )); break;
-               case 'w': tInputs.add(new Point(-w/2, 0   )); break;
+               case 'n': tInputs.add(new Point(offset,   -h/2)); break;
+               case 's': tInputs.add(new Point(offset,   +h/2)); break;
+               case 'e': tInputs.add(new Point(+w/2,     offset   )); break;
+               case 'w': tInputs.add(new Point(-w/2,     offset   )); break;
                }
             }
             else if (param.charAt(0) == 'o') {
                switch(param.charAt(1)) {
-               case 'n': tOutputs.add(new Point(0,    -h/2)); break;
-               case 's': tOutputs.add(new Point(0,    +h/2)); break;
-               case 'e': tOutputs.add(new Point(+w/2, 0   )); break;
-               case 'w': tOutputs.add(new Point(-w/2, 0   )); break;
+               case 'n': tOutputs.add(new Point(offset,  -h/2)); break;
+               case 's': tOutputs.add(new Point(offset,  +h/2)); break;
+               case 'e': tOutputs.add(new Point(+w/2,    offset   )); break;
+               case 'w': tOutputs.add(new Point(-w/2,    offset   )); break;
                }
             }
             else {

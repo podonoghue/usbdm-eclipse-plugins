@@ -240,7 +240,7 @@ public class SimpleExpressionParser {
       };
       String val = sb.toString();
       if (isDouble) {
-         return Double.parseDouble(val);
+         return EngineeringNotation.parse(val);
       }
       return EngineeringNotation.parseAsLong(val);
    }
@@ -961,10 +961,11 @@ public class SimpleExpressionParser {
       fCollectedIdentifiers = new ArrayList<String>();
       fExpression = expression;
       fIndex = 0;
+      Object result=null;
       try {
-         Object result = evaluateExpression();
+         result = evaluateExpression();
          if ((fIndex) != fExpression.length()) {
-            throw new Exception("Unexpected characters at end of expression");
+            throw new Exception("Unexpected characters at end of expression, found='"+result);
          }
          return result;
       } catch (Exception e) {

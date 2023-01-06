@@ -599,16 +599,17 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 //   private ClockSelectionFigure fFigure;
    
    /**
-    * Add variable as clock selector
+    * Add variable as dynamic variable i.e. a variable that is affected by other variables
+    * through ref="", enabledBy="" or having dynamic choices.
     * 
-    * @param clockSelector Clock selector to add
+    * @param monitoredVariable Variable to add
     */
-   public void addMonitoredVariable(Variable clockSelector) {
+   public void addDynamicVariable(Variable monitoredVariable) {
       if (fMonitoredVariables == null) {
          fMonitoredVariables = new ArrayList<Variable>();
       }
-      if (!fMonitoredVariables.contains(clockSelector)) {
-         fMonitoredVariables.add(clockSelector);
+      if (!fMonitoredVariables.contains(monitoredVariable)) {
+         fMonitoredVariables.add(monitoredVariable);
       }
    }
    

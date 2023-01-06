@@ -42,6 +42,32 @@ public abstract class VariableWithChoices extends Variable {
       fChoices = null;
    }
    
+   public void updateChoices() {
+      String[] choices = getChoices();
+      if (getValueAsLong()>=choices.length) {
+         setValue(0);
+      }
+      notifyListeners();
+   }
+   
+   /**
+    * Indicates that at least one choice is dynamic
+    * 
+    * @return
+    */
+   public boolean hasDynamicChoices() {
+      if (fDynamicChoices) {
+         return true;
+      }
+      for (ChoiceData choice:getChoiceData()) {
+         if (choice.isDynamic()) {
+            fDynamicChoices = true;
+            return true;
+         }
+      }
+      return false;
+   }
+
    /**
     * @return the choices
     * @throws Exception
@@ -103,7 +129,6 @@ public abstract class VariableWithChoices extends Variable {
       }
       return setValue(index);
    }
-
 
    /**
     * Get index of current value in choice entries
@@ -198,12 +223,4 @@ public abstract class VariableWithChoices extends Variable {
       return makeEnum(fData.getEnumName());
    }
 
-//   @Override
-//   public String getValueFormat() {
-//      String format = super.getValueFormat();
-////      if (format != null) {
-//         return format;
-////      }
-////      return  getBaseNameFromKey(getKey()).toUpperCase()+"(%s)";
-//   }
 }

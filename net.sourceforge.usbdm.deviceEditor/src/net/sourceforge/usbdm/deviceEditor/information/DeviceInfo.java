@@ -41,6 +41,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Customiser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.peripherals.DynamicVariableProcessing;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ProcessProjectActions;
@@ -1735,16 +1736,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
          setDeviceSubFamily(subFamilyName);
 
-         // Create dependencies between peripherals
-         // TODO Modify listener approach for peripherals and validators
-
+         // Create dependencies between variables and peripherals
          for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
             Peripheral peripheral =  entry.getValue();
             ArrayList<Validator> validators = peripheral.getValidators();
             for (Validator validator:validators) {
-               //                  validator.createDependencies();
                validator.addDependencies();
             }
+            DynamicVariableProcessing.addMonitoredVariableListeners(peripheral);
          }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
@@ -2470,7 +2469,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public InitPhase getInitialisationPhase() {
       return fInitPhase;
    }
-   
+
 //   /**
 //    * Test main
 //    *

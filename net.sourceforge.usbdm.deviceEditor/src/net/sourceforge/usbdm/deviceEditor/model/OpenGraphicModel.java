@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import java.nio.file.Path;
+
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.swt.SWT;
@@ -33,7 +36,13 @@ public class OpenGraphicModel extends EditableModel implements CellEditorProvide
       @Override
       protected Object openDialogBox(Control paramControl) {
          StringBuilder description = new StringBuilder();
+
+         Path workspacePath   = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile().toPath();
+         Path projectFilePath = Variable.getDeviceInfo().getProjectSettingsPath();
+         description.append(workspacePath.relativize(projectFilePath).toString() + " - ");
+
          description.append(getDescription());
+         
          if (fVar != null) {
             description.append(" : ");
             description.append(fVar.getValueAsString());

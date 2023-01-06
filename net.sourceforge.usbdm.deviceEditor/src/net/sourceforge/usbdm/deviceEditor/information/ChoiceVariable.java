@@ -371,7 +371,8 @@ public class ChoiceVariable extends VariableWithChoices {
     * @param entries The name/value entries to set
     */
    public void setChoiceData(ArrayList<ChoiceData> entries) {
-      fData          = entries.toArray(new ChoiceData[entries.size()]);
+      
+      fData = entries.toArray(new ChoiceData[entries.size()]);
       if (fDefaultValue != null) {
          defaultHasChanged = true;
       }
