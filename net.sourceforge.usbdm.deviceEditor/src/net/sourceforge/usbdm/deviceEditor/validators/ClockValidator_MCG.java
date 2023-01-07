@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.Status;
-import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -66,9 +64,6 @@ public class ClockValidator_MCG extends IndexedValidator {
       Variable   fll_enabledVar        = getVariable("fll_enabled");
       Variable   fllInputFrequencyVar  = getVariable("fllInputFrequency");
 
-      boolean mcg_c2_ircsVar_StatusWarning = false;
-      Variable mcg_c2_ircsVar              = getVariable("mcg_c2_ircs");
-
       Variable mcg_c11_pllcsVar = safeGetVariable("mcg_c11_pllcs");
       boolean pllIsInternal = (mcg_c11_pllcsVar == null) || !mcg_c11_pllcsVar.getValueAsBoolean();
 
@@ -116,8 +111,6 @@ public class ClockValidator_MCG extends IndexedValidator {
          mcg_c2_lp    = 1;     //* Required
          pllEnabled   = false;
          mcg_c5_pllclken0Var.enable(false);
-         // Add BLPE/BLPI warning
-         mcg_c2_ircsVar_StatusWarning = mcg_c2_ircsVar.getValueAsLong() == 0;
          break;
       case McgClockMode_BLPE:
          mcg_c1_irefs = false; //* Required
@@ -126,8 +119,6 @@ public class ClockValidator_MCG extends IndexedValidator {
          mcg_c2_lp    = 1;     //* Required
          pllEnabled   = false;
          mcg_c5_pllclken0Var.enable(false);
-         // Add BLPE/BLPI warning
-         mcg_c2_ircsVar_StatusWarning = mcg_c2_ircsVar.getValueAsLong() == 0;
          break;
       case McgClockMode_PBE:
          mcg_c1_irefs = false; //* Required
@@ -154,13 +145,6 @@ public class ClockValidator_MCG extends IndexedValidator {
       mcg_c2_lpVar.setValue(mcg_c2_lp);
       mcg_c1_irefsVar.setValue(mcg_c1_irefs);
       
-      if (mcg_c2_ircsVar_StatusWarning) {
-         mcg_c2_ircsVar.setStatus(new Status("Fast IRC clock should be selected if entering VLPR mode", Severity.WARNING));
-      }
-      else {
-         mcg_c2_ircsVar.clearStatus();
-      }
-
       // Determine MCG external reference clock [mcg_erc_clock]
       //========================================================
       fllInputFrequencyVar.enable(fllEnable);

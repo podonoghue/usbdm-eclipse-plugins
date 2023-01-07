@@ -241,13 +241,13 @@ public class DynamicVariableProcessing {
     * 
     * @param controlVar       Variable controlling outcome
     * @param targetVariable   Target being controlled
-    * @param reference        Reference string either "expression" or "primaryVar;expression" or "disabled"
+    * @param expression       Reference string either "expression" or "primaryVar;expression" or "disabled"
     * 
     * @throws Exception
     */
-   private void updateTarget(Variable controlVar, Variable targetVariable, String reference) throws Exception {
+   private VariableUpdateInfo updateTarget(Variable controlVar, Variable targetVariable, String expression) throws Exception {
 
-      VariableUpdateInfo info = determineVariableUpdate(controlVar, targetVariable, reference);
+      VariableUpdateInfo info = determineVariableUpdate(controlVar, targetVariable, expression);
       
       if ((targetVariable != null) && (info != null)) {
          info.enable = info.enable && targetVariable.evaluateEnable(fPeripheral);
@@ -264,6 +264,7 @@ public class DynamicVariableProcessing {
          ClockSelectionVariable cv = (ClockSelectionVariable) controlVar;
          cv.setDisplayValue(info.value.toString());
       }
+      return info;
    }
 
    private DynamicChoiceVariableListener getOrCreateDynamicChoiceVariableListener(ChoiceVariable var) {
