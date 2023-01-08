@@ -194,7 +194,7 @@ public class OscValidate extends PeripheralValidator {
       ArrayList<String> externalVariablesList = new ArrayList<String>();
       
       // Some device only support low range XTAL
-      onlyLowFrequencySupported      =  safeGetVariable("/MCG/mcg_c2_range0") == null;
+      onlyLowFrequencySupported      =  safeGetVariable("/MCG/mcg_c2_range0[]") == null;
 
       // Constants
       OscMode_NotConfigured          =  getLongVariable("/OscMode_NotConfigured").getValueAsLong();

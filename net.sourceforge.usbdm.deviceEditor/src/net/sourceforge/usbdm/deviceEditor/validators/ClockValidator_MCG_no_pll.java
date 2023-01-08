@@ -31,18 +31,18 @@ public class ClockValidator_MCG_no_pll extends IndexedValidator {
       //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       // Check configuration name is valid C identifier
-      StringVariable clockConfig = getStringVariable("ClockConfig");
+      StringVariable clockConfig = getStringVariable("ClockConfig[]");
       clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
 
       // Enable whole category from clock enable variable
-      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
+      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[]");
       clockConfig.enable(enableClockConfigurationVar.getValueAsBoolean());
 
       //=================================
 
-      Variable mcg_c1_irefsVar                  = getVariable("mcg_c1_irefs");
-      Variable mcg_c1_clksVar                   = getVariable("mcg_c1_clks");
-      Variable mcg_c2_lpVar                     = getVariable("mcg_c2_lp");
+      Variable mcg_c1_irefsVar                  = getVariable("mcg_c1_irefs[]");
+      Variable mcg_c1_clksVar                   = getVariable("mcg_c1_clks[]");
+      Variable mcg_c2_lpVar                     = getVariable("mcg_c2_lp[]");
 
       // Main clock mode
       //===============================
@@ -52,14 +52,14 @@ public class ClockValidator_MCG_no_pll extends IndexedValidator {
 
       // Main clock mode
       //====================
-      ChoiceVariable mcgClockModeVar   = getChoiceVariable("mcgClockMode");
+      ChoiceVariable mcgClockModeVar   = getChoiceVariable("mcgClockMode[]");
       McgClockMode   clock_mode        = McgClockMode.valueOf(mcgClockModeVar.getEnumValue());
 
-      Variable   fll_enabledVar        = getVariable("fll_enabled");
-      Variable   fllInputFrequencyVar  = getVariable("fllInputFrequency");
+      Variable   fll_enabledVar        = getVariable("fll_enabled[]");
+      Variable   fllInputFrequencyVar  = getVariable("fllInputFrequency[]");
 
       boolean mcg_c2_ircsVar_StatusWarning = false;
-      Variable mcg_c2_ircsVar              = getVariable("mcg_c2_ircs");
+      Variable mcg_c2_ircsVar              = getVariable("mcg_c2_ircs[]");
 
       boolean fllEnable  = false;
 
@@ -128,15 +128,15 @@ public class ClockValidator_MCG_no_pll extends IndexedValidator {
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-      variablesToWatch.add("ClockConfig");
-      variablesToWatch.add("enableClockConfiguration");
-      variablesToWatch.add("mcgClockMode");
-      variablesToWatch.add("mcg_c6_plls");
-      variablesToWatch.add("mcg_c5_pllclken0");
-      variablesToWatch.add("mcg_c11_pllcs");
+      variablesToWatch.add("ClockConfig[]");
+      variablesToWatch.add("enableClockConfiguration[]");
+      variablesToWatch.add("mcgClockMode[]");
+      variablesToWatch.add("mcg_c6_plls[]");
+      variablesToWatch.add("mcg_c5_pllclken0[]");
+      variablesToWatch.add("mcg_c11_pllcs[]");
       
       // mcg_erc_clock is the main clock input to MCG
-      variablesToWatch.add("mcg_erc_clock");
+      variablesToWatch.add("mcg_erc_clock[]");
 
       addSpecificWatchedVariables(variablesToWatch);
 

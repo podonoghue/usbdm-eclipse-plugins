@@ -78,7 +78,7 @@ public class TpmValidate extends PeripheralValidator {
       super.createDependencies();
 
       final String[] externalVariables = {
-            "/SIM/system_tpm_clock"
+            "/SIM/system_tpm_clock[]"
       };
       addToWatchedVariables(externalVariables);
       

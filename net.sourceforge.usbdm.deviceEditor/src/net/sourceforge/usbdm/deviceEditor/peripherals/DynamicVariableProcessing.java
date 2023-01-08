@@ -505,37 +505,23 @@ public class DynamicVariableProcessing {
       return key.endsWith("[]");
    }
 
-   /**
-    * Converts a variable key into a clock specific key e.g. varkey[] => varKey[clockIndex]
-    * 
-    * @param key        Key to convert
-    * @param clockIndex Clock index to insert if needed
-    * 
-    * @return  Converted key or original if not indexed key
-    */
-   private String makeClockSpecificName(String key, int clockIndex) {
-      if (isClockDependent(key)) {
-         key = key.substring(0,key.length()-2)+"["+clockIndex+"]";
-      }
-      return key;
-   }
-
-   //   /**
-   //    * Converts a variable key into a clock specific key e.g. varkey[] => varKey[activeClockSelection]
-   //    *
-   //    * @param key        Key to convert
-   //    * @param clockIndex Clock index to insert as needed
-   //    *
-   //    * @return  Converted key or original if not indexed key
-   //    */
-   //   private String makeClockSpecificName(String key) {
-   //      return makeClockSpecificName(key, fDeviceInfo.getActiveClockSelection());
-   //   }
-   //
+//   /**
+//    * Converts a variable key into a clock specific key e.g. varkey[] => varKey[clockIndex]
+//    *
+//    * @param key        Key to convert
+//    * @param clockIndex Clock index to insert if needed
+//    *
+//    * @return  Converted key or original if not indexed key
+//    */
+//   private String makeClockSpecificName(String key, int clockIndex) {
+//      if (isClockDependent(key)) {
+//         key = key.substring(0,key.length()-2)+"["+clockIndex+"]";
+//      }
+//      return key;
+//   }
 
    /**
-    * Get Variable from associated peripheral. <br>
-    * Tries to obtain an indexed variable or failing that an unindexed one.
+    * Get Variable from associated peripheral.
     * 
     * @param key  Key to lookup variable
     * 
@@ -549,13 +535,13 @@ public class DynamicVariableProcessing {
    }
 
    /**
-    * Get Variable from associated peripheral. <br>
-    * Tries to obtain an indexed variable or failing that an unindexed one.
+    * Get Variable from associated peripheral.
     * 
     * @param key  Key to lookup variable
     * 
-    * @return Variable or null if not found
-    * @throws Exception
+    * @return Variable
+    * 
+    * @throws Exception if variable not found
     */
    protected Variable getVariable(String key) throws Exception {
       Variable var = safeGetVariable(key);
@@ -585,35 +571,20 @@ public class DynamicVariableProcessing {
        *  - Each referenced variable in expression
        *  - Clock selection if any referenced variable is dependent on active clock selection
        */
-      int numberOfClockSettings = (int)fDeviceInfo.getVariable("/SIM/numberOfClockSettings").getValueAsLong();
-      Variable clockSelectorVar = fDeviceInfo.getVariable("/MCG/currentClockConfig");
-
       String parts[] = expressionString.split("#");
       // The right-most entry is the expression (may be by itself)
       String expression = parts[parts.length-1];
       SimpleExpressionParser parser = new SimpleExpressionParser(fPeripheral, Mode.CollectIdentifiers);
       parser.evaluate(expression);
       ArrayList<String> identifiers = parser.getCollectedIdentifiers();
-      if (parser.isClockDependent()) {
-         // Make sensitive to clock selector
-         clockSelectorVar.addListener(listener);
-      }
       for (String refName:identifiers) {
          if (isClockDependent(refName)) {
-            // Make sensitive to all clock variations of reference
-            for (int clockSel=0; clockSel<numberOfClockSettings; clockSel++) {
-               Variable referenceVar = safeGetVariable(makeClockSpecificName(refName, clockSel));
-               if (referenceVar == null) {
-                  throw new Exception("Clock reference variable '"+refName+"' not found for Clock selector var '"+owningVar+"'");
-               }
-               // Watch references
-               referenceVar.addListener(listener);
-            }
+            throw new Exception("Unexpected indexed variable '"+refName+"' in expression for '"+owningVar+"'");
          }
          else {
             Variable reference = safeGetVariable(refName);
             if (reference == null) {
-               throw new Exception("Clock reference variable '"+refName+"' not found for Clock selector var '"+owningVar+"'");
+               throw new Exception("Variable '"+refName+"' not found in expression for '"+owningVar+"'");
             }
             // Watch references
             reference.addListener(listener);
@@ -653,14 +624,14 @@ public class DynamicVariableProcessing {
 
       String referenceString = stringVariable.getValueAsString();
       if ((referenceString == null) || (referenceString.isBlank())) {
-         throw new Exception("Clock reference is missing for Clock selector var '"+stringVariable+"'");
+         throw new Exception("Reference is missing for String var '"+stringVariable+"'");
       }
       if ("disabled".equalsIgnoreCase(referenceString)) {
          return;
       }
       Variable reference = safeGetVariable(referenceString);
       if (reference == null) {
-         throw new Exception("Clock reference variable '"+referenceString+"' not found for Clock selector var '"+stringVariable+"'");
+         throw new Exception("Reference variable '"+referenceString+"' not found for String var '"+stringVariable+"'");
       }
       // Watch references
       reference.addListener(listener);
@@ -694,7 +665,7 @@ public class DynamicVariableProcessing {
             // Sanity check target
             Variable target  = safeGetVariable(targetName);
             if (target == null) {
-               throw new Exception("Target '"+targetName+"' not found for Clock selector var '"+choiceVariable+"' have target");
+               throw new Exception("Target '"+targetName+"' not found for choice var '"+choiceVariable+"'");
             }
          }
 
@@ -712,7 +683,7 @@ public class DynamicVariableProcessing {
          for (ChoiceData choiceData:choiceDatas) {
             String references = choiceData.getReference();
             if ((references == null) || (references.isBlank())) {
-               throw new Exception("Choice variable reference is missing for selector var '"+choiceVariable+"'");
+               throw new Exception("Reference is missing for choice '"+choiceData.getName()+"' in choice var '"+choiceVariable+"'");
             }
             for (String expression:references.split(";")) {
                addExpressionListeners(expression, listener, choiceVariable);

@@ -40,7 +40,7 @@ public class PeripheralValidator extends Validator {
     * @return
     */
    @Override
-   public PeripheralWithState getPeripheral() {
+   protected PeripheralWithState getPeripheral() {
       return (PeripheralWithState) super.getPeripheral();
    }
 
@@ -53,14 +53,11 @@ public class PeripheralValidator extends Validator {
     * 
     * @param externalVariables Variables to add
     */
-   private void addToWatchedVariables(String name) {
+   protected void addToWatchedVariables(String name) {
+      
       Variable var = safeGetVariable(name);
       if (var == null) {
-         if (getClockIndex() == 0) {
-            if (fVerbose) {
-               System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
-            }
-         }
+         System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
       }
       else {
          var.addListener(this);

@@ -8,6 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 public abstract class IndexedValidator extends PeripheralValidator {
 
    protected final int fDimension;
+   protected int       fClockIndex=0;
 
    protected IndexedValidator(PeripheralWithState peripheral, int dimension) {
       super(peripheral);
@@ -34,6 +35,33 @@ public abstract class IndexedValidator extends PeripheralValidator {
    }
    
    protected abstract void validate(Variable variable, int index) throws Exception;
+   
+   /**
+    * Get Variable from associated peripheral. <br>
+    * Tries to obtain an indexed variable or failing that an unindexed one.
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable or null if not found
+    */
+   @Override
+   protected Variable safeGetVariable(String key) {
+      
+      // Make absolute relative to peripheral
+      key = getPeripheral().makeKey(key);
+      
+      if (key.endsWith("[]")) {
+         // Make specific to current clock index
+         key = key.replace("[]", "["+fClockIndex+"]");
+      }
+      else {
+         // XXX Remove eventually
+         if (getPeripheral().safeGetVariable(key+"[1]") != null) {
+            throw new RuntimeException("Use of indexed var '"+key+"' without index");
+         }
+      }
+      return getPeripheral().safeGetVariable(key);
+   }
    
    /**
     * Add to watched variables
@@ -99,6 +127,14 @@ public abstract class IndexedValidator extends PeripheralValidator {
          setClockIndex(fIndex);
          super.addSpecificWatchedVariables(variablesToWatch);
       }
+   }
+
+   protected int getClockIndex() {
+      return fClockIndex;
+   }
+
+   protected void setClockIndex(int fIndex) {
+      this.fClockIndex = fIndex;
    }
 
 }

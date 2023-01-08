@@ -227,7 +227,7 @@ public class PdbValidate extends PeripheralValidator {
       NumPulseOutputs         = (int)getLongVariable("NumPulseOutputs").getValueAsLong();
       
       final String[] externalVariables = {
-            "/SIM/system_bus_clock",
+            "/SIM/system_bus_clock[]",
       };
       addToWatchedVariables(externalVariables);
       

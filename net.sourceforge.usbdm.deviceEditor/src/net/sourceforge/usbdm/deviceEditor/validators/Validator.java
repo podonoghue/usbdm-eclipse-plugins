@@ -24,8 +24,6 @@ public abstract class Validator implements IModelChangeListener {
 
    protected boolean                fVerbose = false;
    
-   private   int                    fClockIndex=0;
-   
    /**
     * Create validator
     * 
@@ -125,7 +123,7 @@ public abstract class Validator implements IModelChangeListener {
    protected void addVariable(Variable variable) {
       fPeripheral.addVariable(variable);
    }
-   
+
    /**
     * Get Variable from associated peripheral. <br>
     * Tries to obtain an indexed variable or failing that an unindexed one.
@@ -135,12 +133,16 @@ public abstract class Validator implements IModelChangeListener {
     * @return Variable or null if not found
     */
    protected Variable safeGetVariable(String key) {
+
+      // Make absolute relative to peripheral
       key = fPeripheral.makeKey(key);
-      Variable variable = fPeripheral.safeGetVariable(key+"["+fClockIndex+"]");
-      if (variable == null) {
-         variable = fPeripheral.safeGetVariable(key);
+
+      // XXX Remove eventually
+      if (getPeripheral().safeGetVariable(key+"[1]") != null) {
+         throw new RuntimeException("Use of indexed var '"+key+"' without index");
       }
-      return variable;
+
+      return fPeripheral.safeGetVariable(key);
    }
    
    /**
@@ -509,7 +511,7 @@ public abstract class Validator implements IModelChangeListener {
     * 
     * @return
     */
-   public Peripheral getPeripheral() {
+   protected Peripheral getPeripheral() {
       return fPeripheral;
    }
 
@@ -518,16 +520,8 @@ public abstract class Validator implements IModelChangeListener {
     * 
     * @return
     */
-   public DeviceInfo getDeviceInfo() {
+   protected DeviceInfo getDeviceInfo() {
       return fDeviceInfo;
-   }
-
-   public int getClockIndex() {
-      return fClockIndex;
-   }
-
-   public void setClockIndex(int fIndex) {
-      this.fClockIndex = fIndex;
    }
    
 }

@@ -100,14 +100,14 @@ public class FrdivValidator extends IndexedValidator {
    @Override
    protected void validate(Variable variable, int index) throws Exception {
 
-      final BooleanVariable mcg_c1_irefsVar    = getBooleanVariable("mcg_c1_irefs");
-      final ChoiceVariable  mcg_c1_frdivVar    = getChoiceVariable("mcg_c1_frdiv");
+      final BooleanVariable mcg_c1_irefsVar    = getBooleanVariable("mcg_c1_irefs[]");
+      final ChoiceVariable  mcg_c1_frdivVar    = getChoiceVariable("mcg_c1_frdiv[]");
       
       // Oscillator range determined from crystal
       final Variable oscillatorRangeVar = getVariable("/OSC0/oscillatorRange");
       int oscillatorRange = (int) oscillatorRangeVar.getValueAsLong();
 
-      ChoiceVariable mcg_c2_rangeVar    = getChoiceVariable("mcg_c2_range0");
+      ChoiceVariable mcg_c2_rangeVar    = getChoiceVariable("mcg_c2_range0[]");
       
       // Defaults - controlled by OSC0
       Integer        mcg_c2_range       = (oscillatorRange==UNCONSTRAINED_RANGE)?0:oscillatorRange;
@@ -121,7 +121,7 @@ public class FrdivValidator extends IndexedValidator {
          return;
       }
       
-      final LongVariable   mcg_erc_clockVar       = getLongVariable("mcg_erc_clock");
+      final LongVariable   mcg_erc_clockVar       = getLongVariable("mcg_erc_clock[]");
       final long           mcg_erc_clock          = mcg_erc_clockVar.getValueAsLong();
       final Status         mcg_erc_clockStatus    = mcg_erc_clockVar.getStatus();
       
@@ -137,7 +137,7 @@ public class FrdivValidator extends IndexedValidator {
          return;
       }
       
-      final BooleanVariable fll_enabledVar = getBooleanVariable("fll_enabled");
+      final BooleanVariable fll_enabledVar = getBooleanVariable("fll_enabled[]");
       boolean frdivInUse  = fll_enabledVar.getValueAsBoolean();
       
       mcg_c1_frdivVar.setLocked(frdivInUse);
@@ -166,11 +166,11 @@ public class FrdivValidator extends IndexedValidator {
       //==============================
       int mcg_c7_oscsel = 0;
       
-      final ChoiceVariable  mcg_c7_oscselVar  = safeGetChoiceVariable("mcg_c7_oscsel");
+      final ChoiceVariable  mcg_c7_oscselVar  = safeGetChoiceVariable("mcg_c7_oscsel[]");
       if (mcg_c7_oscselVar != null) {
          mcg_c7_oscsel = (int) mcg_c7_oscselVar.getValueAsLong();
       }
-      final BooleanVariable mcg_c4_dmx32Var = getBooleanVariable("mcg_c4_dmx32");
+      final BooleanVariable mcg_c4_dmx32Var = getBooleanVariable("mcg_c4_dmx32[]");
       boolean mcg_c4_dmx32 = mcg_c4_dmx32Var.getValueAsBoolean();
       
       boolean acceptableFrdivFound = false;
@@ -237,14 +237,14 @@ public class FrdivValidator extends IndexedValidator {
 
       variablesToWatch.add("/OSC0/oscillatorRange");
       
-      variablesToWatch.add("fll_enabled");
-      variablesToWatch.add("mcg_c1_irefs");
-      variablesToWatch.add("mcg_erc_clock");
-      variablesToWatch.add("mcg_c7_oscsel");
-      variablesToWatch.add("mcg_c4_dmx32");
-      variablesToWatch.add("mcgClockMode");
+      variablesToWatch.add("fll_enabled[]");
+      variablesToWatch.add("mcg_c1_irefs[]");
+      variablesToWatch.add("mcg_erc_clock[]");
+      variablesToWatch.add("mcg_c7_oscsel[]");
+      variablesToWatch.add("mcg_c4_dmx32[]");
+      variablesToWatch.add("mcgClockMode[]");
 
-      variablesToWatch.add("mcg_c1_frdiv");
+      variablesToWatch.add("mcg_c1_frdiv[]");
 
       addSpecificWatchedVariables(variablesToWatch);
       

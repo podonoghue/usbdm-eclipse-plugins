@@ -2224,14 +2224,36 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    @Override
    public Variable safeGetVariable(String key) {
       if (key.endsWith("[]")) {
+         String baseKey = key.substring(0,key.length()-2);
+         
+         // XXX Eventually remove
+         if (fVariables.safeGet(baseKey) != null) {
+            throw new RuntimeException("Use of non-indexed variable '"+baseKey+"' with []");
+         }
          // Use 0 index
-         return fVariables.safeGet(key.substring(0,key.length()-2)+"[0]");
+         return fVariables.safeGet(baseKey+"[0]");
+      }
+      else if (key.endsWith("[0]")) {
+         String baseKey = key.substring(0,key.length()-3);
+         
+         // XXX Eventually remove
+         if (fVariables.safeGet(baseKey) != null) {
+            throw new RuntimeException("Use of non-indexed variable '"+baseKey+"' with [0]");
+         }
+         // Use 0 index
+         return fVariables.safeGet(key);
+      }
+      else {
+         // XXX Eventually remove
+         if (fVariables.safeGet(key+"[0]") != null) {
+            throw new RuntimeException("Use of indexed variable '"+key+"' without index");
+         }
       }
       Variable var = fVariables.safeGet(key);
-      if (var == null) {
-         // Try active clock selection as well
-         var = fVariables.safeGet(key+"["+fActiveClockSelection+"]");
-      }
+//      if (var == null) {
+//         // Try active clock selection as well
+//         var = fVariables.safeGet(key+"["+fActiveClockSelection+"]");
+//      }
       if ((var == null) && key.endsWith(".")) {
          // No longer supported
          throw new RuntimeException("Dot at end of key");

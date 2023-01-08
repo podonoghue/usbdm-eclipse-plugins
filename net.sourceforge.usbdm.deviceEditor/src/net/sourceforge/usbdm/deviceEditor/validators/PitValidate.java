@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -90,7 +92,19 @@ public class PitValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      return super.createDependencies();
-      // No external dependencies
+      super.createDependencies();
+ 
+      // Variable to watch
+      ArrayList<String> variablesToWatch = new ArrayList<String>();
+
+      variablesToWatch.add("pitInputClock");
+      variablesToWatch.add("numChannels");
+      variablesToWatch.add("pit_ldval_tsv[]");
+      variablesToWatch.add("pit_period[]");
+      variablesToWatch.add("pit_frequency[]");
+
+      addSpecificWatchedVariables(variablesToWatch);
+
+      return false;
    }
 }

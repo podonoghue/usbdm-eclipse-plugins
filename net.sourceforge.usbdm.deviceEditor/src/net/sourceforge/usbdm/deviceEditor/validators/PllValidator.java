@@ -57,12 +57,12 @@ public class PllValidator extends IndexedValidator {
          // Update PRDIV0 and VDIV0 limits
          for (int clockIndex=0; clockIndex<dimension; clockIndex++) {
             setClockIndex(clockIndex);
-            LongVariable mcg_c5_prdiv0Var = getLongVariable("mcg_c5_prdiv0");
+            LongVariable mcg_c5_prdiv0Var = getLongVariable("mcg_c5_prdiv0[]");
             mcg_c5_prdiv0Var.setOffset(-PRDIV_MIN);
             mcg_c5_prdiv0Var.setMin(PRDIV_MIN);
             mcg_c5_prdiv0Var.setMax(PRDIV_MAX);
 
-            LongVariable mcg_c6_vdiv0Var = getLongVariable("mcg_c6_vdiv0");
+            LongVariable mcg_c6_vdiv0Var = getLongVariable("mcg_c6_vdiv0[]");
             mcg_c6_vdiv0Var.setOffset(-VDIV_MIN);
             mcg_c6_vdiv0Var.setMin(VDIV_MIN);
             mcg_c6_vdiv0Var.setMax(VDIV_MAX);
@@ -80,15 +80,15 @@ public class PllValidator extends IndexedValidator {
    protected void validate(Variable variable, int index) throws Exception {
 
 //      final LongVariable   mcg_erc_clockVar       = getLongVariable("mcg_erc_clock");
-      final LongVariable   pll0InputFrequencyVar  = getLongVariable("pll0InputFrequency");
-      final LongVariable   pll0OutputFrequencyVar = getLongVariable("pll0OutputFrequency");
+      final LongVariable   pll0InputFrequencyVar  = getLongVariable("pll0InputFrequency[]");
+      final LongVariable   pll0OutputFrequencyVar = getLongVariable("pll0OutputFrequency[]");
 //      final LongVariable   usb1pfdclk_ClockVar    = safeGetLongVariable("/SIM/usb1pfdclk_Clock");
 //      final ChoiceVariable mcg_c7_oscselVar       = safeGetChoiceVariable("mcg_c7_oscsel");
       
 //      long mcg_erc_clockFreq  = mcg_erc_clockVar.getValueAsLong();
       long pllTargetFrequency = pll0OutputFrequencyVar.getRawValueAsLong();
 
-      BooleanVariable pll0EnabledVar = getBooleanVariable("pll0Enabled");
+      BooleanVariable pll0EnabledVar = getBooleanVariable("pll0Enabled[]");
       boolean pll0Enabled = pll0EnabledVar.getValueAsBoolean();
       
       pll0InputFrequencyVar.enable(pll0Enabled);
@@ -174,8 +174,8 @@ public class PllValidator extends IndexedValidator {
       }
       
       // Update with 'best value' - irrespective of whether they are acceptable
-      final LongVariable mcg_c5_prdiv0Var       = getLongVariable("mcg_c5_prdiv0");
-      final LongVariable mcg_c6_vdiv0Var        = getLongVariable("mcg_c6_vdiv0");
+      final LongVariable mcg_c5_prdiv0Var       = getLongVariable("mcg_c5_prdiv0[]");
+      final LongVariable mcg_c6_vdiv0Var        = getLongVariable("mcg_c6_vdiv0[]");
 
       mcg_c5_prdiv0Var.setValue(mcg_prdiv);
       mcg_c5_prdiv0Var.setStatus(new Status("Field value = 0b" + Long.toBinaryString(mcg_prdiv-1), Severity.OK));
@@ -241,9 +241,9 @@ public class PllValidator extends IndexedValidator {
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-      variablesToWatch.add("pll0Enabled");
-      variablesToWatch.add("pll0InputFrequency");
-      variablesToWatch.add("pll0OutputFrequency");
+      variablesToWatch.add("pll0Enabled[]");
+      variablesToWatch.add("pll0InputFrequency[]");
+      variablesToWatch.add("pll0OutputFrequency[]");
       
       addSpecificWatchedVariables(variablesToWatch);
 

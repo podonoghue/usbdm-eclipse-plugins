@@ -86,8 +86,8 @@ public class FtmValidate extends PeripheralValidator {
       super.createDependencies();
 
       final String[] externalVariables = {
-            "/MCG/system_mcgffclk_clock",
-            "/SIM/system_bus_clock",
+            "/MCG/system_mcgffclk_clock[]",
+            "/SIM/system_bus_clock[]",
       };
       addToWatchedVariables(externalVariables);
       

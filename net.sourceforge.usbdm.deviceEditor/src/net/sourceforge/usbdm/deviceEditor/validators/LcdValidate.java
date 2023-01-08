@@ -41,7 +41,7 @@ public class LcdValidate extends PeripheralValidator {
       LongVariable   osc0_oscer_clockVar       =  getLongVariable(osc0_peripheral+"/oscer_clock");
       
       LongVariable   system_erclk32k_clockVar  =  getLongVariable("/SIM/system_erclk32k_clock");
-      LongVariable   system_mcgirclk_clockVar  =  getLongVariable("/MCG/system_mcgirclk_clock");
+      LongVariable   system_mcgirclk_clockVar  =  getLongVariable("/MCG/system_mcgirclk_clock[]");
       ChoiceVariable lcd_gcr_clockVar          =  getChoiceVariable("lcd_gcr_clock");
       ChoiceVariable lcd_gcr_altdivVar         =  getChoiceVariable("lcd_gcr_altdiv");
       DoubleVariable lcdClockVar               =  getDoubleVariable("lcdClock");
@@ -121,7 +121,7 @@ public class LcdValidate extends PeripheralValidator {
       
       final String[] externalVariables = {
             "/SIM/system_erclk32k_clock",
-            "/MCG/system_mcgirclk_clock",
+            "/MCG/system_mcgirclk_clock[]",
             osc0_peripheral+"/oscer_clock",
       };
       addToWatchedVariables(externalVariables);

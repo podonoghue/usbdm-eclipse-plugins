@@ -31,30 +31,30 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
 //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       // Check configuration name is valid C identifier
-      StringVariable clockConfig = getStringVariable("ClockConfig");
+      StringVariable clockConfig = getStringVariable("ClockConfig[]");
       clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum name");
 
       // Enable whole category from clock enable variable
-      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration");
+      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[]");
       clockConfig.enable(enableClockConfigurationVar.getValueAsBoolean());
 
       // C1
       //=================================
-      Variable mcg_c1_clksVar            = getVariable("mcg_c1_clks");
+      Variable mcg_c1_clksVar            = getVariable("mcg_c1_clks[]");
                                        
       // C2
       //=================================
-      Variable mcg_c2_range0Var          = safeGetVariable("mcg_c2_range0");
-      Variable mcg_c2_ircsVar            = getVariable("mcg_c2_ircs");
+      Variable mcg_c2_range0Var          = safeGetVariable("mcg_c2_range0[]");
+      Variable mcg_c2_ircsVar            = getVariable("mcg_c2_ircs[]");
                                      
       // MC
       //=================================
-      Variable mcg_mc_hircenVar          = safeGetVariable("mcg_mc_hircen");
-      Variable mcg_mc_hirclpenVar        = safeGetVariable("mcg_mc_hirclpen");
+      Variable mcg_mc_hircenVar          = safeGetVariable("mcg_mc_hircen[]");
+      Variable mcg_mc_hirclpenVar        = safeGetVariable("mcg_mc_hirclpen[]");
                                        
       // Internal (HIRC)
       //=================================
-      Variable system_irc48m_clockVar  = safeGetVariable("/SIM/system_irc48m_clock");
+      Variable system_irc48m_clockVar  = safeGetVariable("/SIM/system_irc48m_clock[]");
                                        
       if (mcg_c2_range0Var != null) {
          long rangeIn = osc0_oscillatorRangeVar.getValueAsLong();
@@ -69,11 +69,11 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
       
       // Main clock mode
       //====================
-      ChoiceVariable mcgClockModeVar    = getChoiceVariable("mcgClockMode");
+      ChoiceVariable mcgClockModeVar    = getChoiceVariable("mcgClockMode[]");
       McgClockMode   mcgClockMode       = McgClockMode.valueOf(mcgClockModeVar.getEnumValue());
       
       // Run mode
-      ChoiceVariable smc_pmctrl_runmVar = getChoiceVariable("/SMC/smc_pmctrl_runm");
+      ChoiceVariable smc_pmctrl_runmVar = getChoiceVariable("/SMC/smc_pmctrl_runm[]");
       SmcRunMode     smcRunMode         = SmcRunMode.valueOf(smc_pmctrl_runmVar.getEnumValue());
 
       switch (mcgClockMode) {
@@ -145,12 +145,12 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
       osc0_peripheralName        = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
       osc0_oscillatorRangeVar    = safeGetVariable(osc0_peripheralName+"/oscillatorRange");
       final String watchedVariables0[] = {
-            "ClockConfig",
-            "mcgClockMode",
+            "ClockConfig[]",
+            "mcgClockMode[]",
             osc0_peripheralName+"/oscillatorRange",
-            "mcg_mc_hircen",
-            "mcg_mc_hirclpen",
-            "/SMC/smc_pmctrl_runm",
+            "mcg_mc_hircen[]",
+            "mcg_mc_hirclpen[]",
+            "/SMC/smc_pmctrl_runm[]",
       };
       addSpecificWatchedVariables(watchedVariables0);
 

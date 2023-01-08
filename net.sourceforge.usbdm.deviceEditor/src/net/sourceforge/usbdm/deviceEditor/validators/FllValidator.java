@@ -43,12 +43,12 @@ public class FllValidator extends IndexedValidator {
    @Override
    protected void validate(Variable variable, int index) throws Exception {
 
-      boolean fll_enabled  = getBooleanVariable("fll_enabled").getValueAsBoolean();
+      boolean fll_enabled  = getBooleanVariable("fll_enabled[]").getValueAsBoolean();
       
-      LongVariable system_mcgffclk_clockVar  = getLongVariable("system_mcgffclk_clock");
+      LongVariable system_mcgffclk_clockVar  = getLongVariable("system_mcgffclk_clock[]");
 
-      LongVariable fllInputFrequencyVar      = getLongVariable("fllInputFrequency");
-      LongVariable system_mcgfllclk_clockVar = getLongVariable("system_mcgfllclk_clock");
+      LongVariable fllInputFrequencyVar      = getLongVariable("fllInputFrequency[]");
+      LongVariable system_mcgfllclk_clockVar = getLongVariable("system_mcgfllclk_clock[]");
       
       String fllInputFrequencyOrigin = system_mcgffclk_clockVar.getOrigin();
       long   fllInputFrequency       = system_mcgffclk_clockVar.getValueAsLong();
@@ -77,7 +77,7 @@ public class FllValidator extends IndexedValidator {
          return;
       }
 
-      BooleanVariable mcg_c4_dmx32Var = getBooleanVariable("mcg_c4_dmx32");
+      BooleanVariable mcg_c4_dmx32Var = getBooleanVariable("mcg_c4_dmx32[]");
       boolean mcg_c4_dmx32 = mcg_c4_dmx32Var.getValueAsBoolean();
       
       fllInputFrequencyVar.setValue(fllInputFrequency);
@@ -142,7 +142,7 @@ public class FllValidator extends IndexedValidator {
       system_mcgfllclk_clockVar.setStatus(new Status (sb.toString(), severity));
       system_mcgfllclk_clockVar.setOrigin(fllOrigin);
       
-      ChoiceVariable mcg_c4_drst_drsVar = getChoiceVariable("mcg_c4_drst_drs");
+      ChoiceVariable mcg_c4_drst_drsVar = getChoiceVariable("mcg_c4_drst_drs[]");
       mcg_c4_drst_drsVar.setValue(mcg_c4_drst_drs);
    }
 
@@ -153,13 +153,12 @@ public class FllValidator extends IndexedValidator {
       // Variables to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
-      variablesToWatch.add("fll_enabled");
-      variablesToWatch.add("system_mcgffclk_clock");
-      variablesToWatch.add("system_mcgfllclk_clock");
-      variablesToWatch.add("mcg_c4_dmx32");
-      variablesToWatch.add("mcg_c4_dmx32");
-      variablesToWatch.add("/SMC/smc_pmctrl_runm");
-      variablesToWatch.add("mcgClockMode");
+      variablesToWatch.add("fll_enabled[]");
+      variablesToWatch.add("system_mcgffclk_clock[]");
+      variablesToWatch.add("system_mcgfllclk_clock[]");
+      variablesToWatch.add("mcg_c4_dmx32[]");
+      variablesToWatch.add("/SMC/smc_pmctrl_runm[]");
+      variablesToWatch.add("mcgClockMode[]");
 
       addSpecificWatchedVariables(variablesToWatch);
       

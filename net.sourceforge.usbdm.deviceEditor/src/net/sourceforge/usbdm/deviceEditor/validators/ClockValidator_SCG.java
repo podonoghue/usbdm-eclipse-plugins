@@ -24,32 +24,32 @@ public class ClockValidator_SCG extends IndexedValidator {
 
    private boolean initialisationDone = false;
    
-   long pll_mult_min;
-   long pll_mult_max;
-   long pll_prediv_min;
-   long pll_prediv_max;
-   long pll_post_divider;
-   long pll_in_min;
-   long pll_in_max;
-   long pll_after_prediv_min;
-   long pll_after_prediv_max;
-   long pll_output_min;
-   long pll_output_max;
+   private long pll_mult_min;
+   private long pll_mult_max;
+   private long pll_prediv_min;
+   private long pll_prediv_max;
+   private long pll_post_divider;
+   private long pll_in_min;
+   private long pll_in_max;
+   private long pll_after_prediv_min;
+   private long pll_after_prediv_max;
+   private long pll_output_min;
+   private long pll_output_max;
    
-   long osc_Low_min_frequency;
-   long osc_medium_min_frequency;
-   long osc_high_min_frequency;
-   long osc_high_max_frequency;
+   private long osc_Low_min_frequency;
+   private long osc_medium_min_frequency;
+   private long osc_high_min_frequency;
+   private long osc_high_max_frequency;
    
-   long vlpr_mode_max_core_frequency;
-   long vlpr_mode_max_bus_frequency;
-   long vlpr_mode_max_flash_frequency;
-   long run_mode_max_core_frequency;
-   long run_mode_max_bus_frequency;
-   long run_mode_max_flash_frequency;
-   long hsrun_mode_max_core_frequency;
-   long hsrun_mode_max_bus_frequency;
-   long hsrun_mode_max_flash_frequency;
+   private long vlpr_mode_max_core_frequency;
+   private long vlpr_mode_max_bus_frequency;
+   private long vlpr_mode_max_flash_frequency;
+   private long run_mode_max_core_frequency;
+   private long run_mode_max_bus_frequency;
+   private long run_mode_max_flash_frequency;
+   private long hsrun_mode_max_core_frequency;
+   private long hsrun_mode_max_bus_frequency;
+   private long hsrun_mode_max_flash_frequency;
 
    public ClockValidator_SCG(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
@@ -62,7 +62,7 @@ public class ClockValidator_SCG extends IndexedValidator {
     * @param divider          Divider value
     * @return
     */
-   double calculatePeripheralClock(double spll_clock, long divider) {
+   protected double calculatePeripheralClock(double spll_clock, long divider) {
       if (divider <= 0) {
          return 0;
       }
@@ -456,7 +456,7 @@ public class ClockValidator_SCG extends IndexedValidator {
    }
    
    @Override
-   public boolean createDependencies() throws Exception {
+   protected boolean createDependencies() throws Exception {
       return super.createDependencies();
    }
 }

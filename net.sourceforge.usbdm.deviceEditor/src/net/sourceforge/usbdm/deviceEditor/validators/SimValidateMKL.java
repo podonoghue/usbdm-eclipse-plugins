@@ -58,15 +58,15 @@ public class SimValidateMKL extends IndexedValidator {
       }
    };
 
-   void validateUsbfsClock(LongVariable system_peripheral_clockVar) throws Exception {
+   private void validateUsbfsClock(LongVariable system_peripheral_clockVar) throws Exception {
 
       // USB FS Clock source select
       //============================
-      ChoiceVariable sim_sopt2_usbsrcVar = safeGetChoiceVariable("sim_sopt2_usbsrc");
+      ChoiceVariable sim_sopt2_usbsrcVar = safeGetChoiceVariable("sim_sopt2_usbsrc[]");
       if (sim_sopt2_usbsrcVar == null) {
          return;
       }
-      ChoiceVariable sim_clkdiv2_usbVar = safeGetChoiceVariable("sim_clkdiv2_usb");
+      ChoiceVariable sim_clkdiv2_usbVar = safeGetChoiceVariable("sim_clkdiv2_usb[]");
 
       if (sim_clkdiv2_usbVar != null) {
          // USB divider CLKDIV2 exists
@@ -139,19 +139,19 @@ public class SimValidateMKL extends IndexedValidator {
    public void validate(Variable variable, int index) throws Exception {
 
       // Determine peripheralClock
-      LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock");
+      LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock[]");
 
       // Validate USB clock
       validateUsbfsClock(peripheralClockVar);
 
       //======================================
-      final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock");
-      final LongVariable   system_bus_clockVar          = getLongVariable("system_bus_clock");
+      final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock[]");
+      final LongVariable   system_bus_clockVar          = getLongVariable("system_bus_clock[]");
 
-      final ChoiceVariable   sim_clkdiv1_outdiv1Var     = getChoiceVariable("sim_clkdiv1_outdiv1");
-      final ChoiceVariable   sim_clkdiv1_outdiv4Var     = getChoiceVariable("sim_clkdiv1_outdiv4");
+      final ChoiceVariable   sim_clkdiv1_outdiv1Var     = getChoiceVariable("sim_clkdiv1_outdiv1[]");
+      final ChoiceVariable   sim_clkdiv1_outdiv4Var     = getChoiceVariable("sim_clkdiv1_outdiv4[]");
 
-      final ChoiceVariable smc_pmctrl_runmVar           = getChoiceVariable("/SMC/smc_pmctrl_runm");
+      final ChoiceVariable smc_pmctrl_runmVar           = getChoiceVariable("/SMC/smc_pmctrl_runm[]");
 
       long maxCoreClockFreq      = 0;
       long maxBusClockFreq       = 0;
@@ -180,7 +180,7 @@ public class SimValidateMKL extends IndexedValidator {
       // Core & System Clock
       //===========================================
       // Attempt to find acceptable divisor
-      final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock");
+      final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock[]");
 //      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
       
       final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clockVar, system_core_clockVar.getValueAsLong()) {
@@ -326,19 +326,19 @@ public class SimValidateMKL extends IndexedValidator {
 
       addToWatchedVariables(variablesToWatch);
       final String[] externalVariables = {
-            "/MCG/system_mcgirclk_clock",
-            "/MCG/system_mcgfllclk_clock",
-            "/MCG/system_mcgpllclk_clock",
-            "/MCG/system_mcgoutclk_clock",
-            "/MCG/usb1pfdclk_Clock",
-            "/SMC/smc_pmctrl_runm",
-            "system_peripheral_clock",
-            "system_core_clock",
-            "system_bus_clock",
-            "system_flexbus_clock",
-            "system_flash_clock",
-            "sim_sopt2_usbsrc",
-            "sim_clkdiv2_usb",
+            "/MCG/system_mcgirclk_clock[]",
+            "/MCG/system_mcgfllclk_clock[]",
+            "/MCG/system_mcgpllclk_clock[]",
+            "/MCG/system_mcgoutclk_clock[]",
+            "/MCG/usb1pfdclk_Clock[]",
+            "/SMC/smc_pmctrl_runm[]",
+            "system_peripheral_clock[]",
+            "system_core_clock[]",
+            "system_bus_clock[]",
+            "system_flexbus_clock[]",
+            "system_flash_clock[]",
+            "sim_sopt2_usbsrc[]",
+            "sim_clkdiv2_usb[]",
       };
       addToWatchedVariables(externalVariables);
       

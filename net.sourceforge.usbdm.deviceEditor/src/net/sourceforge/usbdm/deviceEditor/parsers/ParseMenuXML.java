@@ -3600,7 +3600,7 @@ public class ParseMenuXML extends XML_BaseParser {
       Variable variable = provider.safeGetVariable(provider.makeKey(key));
       if (variable == null) {
          if (!isOptional) {
-            throw new Exception("Alias not found for '" + key + "' within '"+parent.getName() + "', provider = '"+provider+"'");
+            throw new Exception("Alias not found for '" + key + "' within '"+parent + "', provider = '"+provider+"'");
          }
          return null;
       }
