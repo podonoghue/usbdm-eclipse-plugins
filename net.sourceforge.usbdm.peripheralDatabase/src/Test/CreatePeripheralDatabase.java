@@ -901,8 +901,8 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) throws IOException {
       
-//    firstFileToProcess = ("^MK28.*");
-//    firstFileToReject  = ("^MK70.*");
+    firstFileToProcess = ("^MK22F51212.*");
+    firstFileToReject  = ("^MK22FA.*");
 
       System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 

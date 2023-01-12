@@ -45,13 +45,13 @@ public class FllValidator extends IndexedValidator {
 
       boolean fll_enabled  = getBooleanVariable("fll_enabled[]").getValueAsBoolean();
       
-      LongVariable system_mcgffclk_clockVar  = getLongVariable("system_mcgffclk_clock[]");
+      LongVariable irefs_clockVar  = getLongVariable("irefs_clock[]");
 
       LongVariable fllInputFrequencyVar      = getLongVariable("fllInputFrequency[]");
       LongVariable system_mcgfllclk_clockVar = getLongVariable("system_mcgfllclk_clock[]");
       
-      String fllInputFrequencyOrigin = system_mcgffclk_clockVar.getOrigin();
-      long   fllInputFrequency       = system_mcgffclk_clockVar.getValueAsLong();
+      String fllInputFrequencyOrigin = irefs_clockVar.getOrigin();
+      long   fllInputFrequency       = irefs_clockVar.getValueAsLong();
       
       fllInputFrequencyVar.setOrigin(fllInputFrequencyOrigin);
       fllInputFrequencyVar.setValue(fllInputFrequency);
@@ -68,7 +68,7 @@ public class FllValidator extends IndexedValidator {
       String fllOrigin = fllInputFrequencyOrigin+"\n via FLL";
 
       // Initially assume PLL_INPUT status same as MCGFFCLK
-      Status mcgffclkStatus = system_mcgffclk_clockVar.getStatus();
+      Status mcgffclkStatus = irefs_clockVar.getStatus();
       
       if ((mcgffclkStatus != null) && (mcgffclkStatus.getSeverity().greaterThan(Severity.INFO))) {
          // Invalid FLL input
@@ -153,11 +153,11 @@ public class FllValidator extends IndexedValidator {
       // Variables to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
+      variablesToWatch.add("/SMC/smc_pmctrl_runm[]");
       variablesToWatch.add("fll_enabled[]");
-      variablesToWatch.add("system_mcgffclk_clock[]");
+      variablesToWatch.add("irefs_clock[]");
       variablesToWatch.add("system_mcgfllclk_clock[]");
       variablesToWatch.add("mcg_c4_dmx32[]");
-      variablesToWatch.add("/SMC/smc_pmctrl_runm[]");
       variablesToWatch.add("mcgClockMode[]");
 
       addSpecificWatchedVariables(variablesToWatch);

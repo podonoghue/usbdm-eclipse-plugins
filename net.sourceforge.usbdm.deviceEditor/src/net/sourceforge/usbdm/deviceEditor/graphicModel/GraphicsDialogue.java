@@ -92,9 +92,9 @@ public class GraphicsDialogue {
          if (obj.contains(x,y)) {
             return obj;
          }
-         if (index == 0) {
-            System.err.println("Found top = "+obj.getName());
-         }
+//         if (index == 0) {
+//            System.err.println("Found top = "+obj.getName());
+//         }
       }
       return null;
    }
@@ -259,7 +259,7 @@ public class GraphicsDialogue {
 
             }
          }
-         System.err.println("Clicked " + obj.toString()+"@("+evt.x+", "+evt.y+")");
+//         System.err.println("Clicked " + obj.toString()+"@("+evt.x+", "+evt.y+")");
       }
    }
 

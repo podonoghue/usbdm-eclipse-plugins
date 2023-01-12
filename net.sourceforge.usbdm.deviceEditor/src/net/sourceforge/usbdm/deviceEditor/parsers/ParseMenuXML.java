@@ -1438,8 +1438,8 @@ public class ParseMenuXML extends XML_BaseParser {
    
    /**
     * Get element text and apply usual substitutions
-    *  <li>"$(_name)"     => fProvider.getName()
-    *  <li>"$(_instance)" => fPeripheral.getInstance()
+    *  <li>"$(_name)"     => fProvider.getName()       => e.g. FTM2
+    *  <li>"$(_instance)" => fPeripheral.getInstance() => e.g. FTM0 => 0, PTA => A
     *  <li>For loop substitution
     * 
     * @param node    Element to obtain attribute from
@@ -3129,9 +3129,19 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Create and add template<br>
     * 
-    * @param templateKey   Key used to index template
-    * @param namespace     Namespace for template (info, usbdm, class, all)
+    * @param key        Key used to index template
+    * @param namespace  Namespace for template (info, usbdm, all)
     * @param string
+    * 
+    * @throws Exception
+    */
+   /**
+    * 
+    * @param key                       Key used to index template
+    * @param namespace                 Namespace for template (info, usbdm, all)
+    * @param codeGenerationCondition   Condition controlling code generation
+    * 
+    * @return
     * 
     * @throws Exception
     */
