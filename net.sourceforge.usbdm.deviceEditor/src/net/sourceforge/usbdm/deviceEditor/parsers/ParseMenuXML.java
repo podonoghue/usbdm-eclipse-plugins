@@ -1820,10 +1820,7 @@ public class ParseMenuXML extends XML_BaseParser {
             }
          }
          else {
-            if ("Int".equalsIgnoreCase(type)) {
-               var = new LongVariable(name, indexedKey);
-            }
-            else if ("Integer".equalsIgnoreCase(type)) {
+            if ("Integer".equalsIgnoreCase(type)) {
                var = new LongVariable(name, indexedKey);
             }
             else if ("Float".equalsIgnoreCase(type)) {
@@ -1834,18 +1831,16 @@ public class ParseMenuXML extends XML_BaseParser {
                ((BooleanVariable)var).setFalseValue("false");
                ((BooleanVariable)var).setTrueValue("true");
             }
+            else if ("String".equalsIgnoreCase(type)) {
+               var = new StringVariable(name, indexedKey);
+            }
             else {
+               System.err.println("Default to String for "+indexedKey);
                var = new StringVariable(name, indexedKey);
             }
             Object exprValue = null;
-//            try {
                SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.CheckIdentifierExistance);
                exprValue = parser.evaluate(values[index]);
-//            } catch (Exception e) {
-//               SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.CheckIdentifierExistance);
-//               exprValue = parser.evaluate(values[index]);
-//               System.err.println("Warning: Failed to fully evaluate constant expression '"+values[index] +"'");
-//            }
             var.setValue(exprValue);
             var.setDescription(description);
             var.setDerived(isDerived);
@@ -1855,146 +1850,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    
-   /**
-    * Parse template condition<br><br>
-    * This consists of a string containing the names of variables.<br>
-    * If a variable is present it is consider true, otherwise false.<br>
-    * An empty expression is considered true.<br><br>
-    * 
-    * Only simple boolean expressions are accepted e.g. var1 || var2 && !var3
-    */
-//   static class TemplateConditionParser {
-//
-//      private final VariableProvider fProvider;
-//
-//      /** Index into current expression being parsed */
-//      private int    index;
-//
-//      /** Current condition being evaluated */
-//      private String condition;
-//
-//      /**
-//       * Constructor
-//       *
-//       * @param provider Where to look for variables
-//       */
-//      public TemplateConditionParser(VariableProvider provider) {
-//         fProvider = provider;
-//      }
-//
-//      void skipSpace() {
-//         while ((index<condition.length()) && Character.isWhitespace(condition.charAt(index))) {
-//            index++;
-//         }
-//      }
-//
-//      private boolean getId() throws Exception {
-//
-//         skipSpace();
-//
-//         boolean inverted = false;
-//         if (condition.charAt(index) == '!') {
-//            inverted = true;
-//            index++;
-//         }
-//
-//         skipSpace();
-//
-//         StringBuilder sb = new StringBuilder();
-//         boolean idFound = false;
-//
-//         while(index<condition.length()) {
-//            char ch = condition.charAt(index);
-//            if (Character.isJavaIdentifierPart(ch) || (ch == '/')) {
-//               sb.append(condition.charAt(index++));
-//               idFound = (ch!='/');
-//               continue;
-//            }
-//            break;
-//         };
-//         if (!idFound) {
-//            throw new Exception("Invalid identifier in template condition '"+condition+"'");
-//         }
-//         if ((index<condition.length()) && (condition.charAt(index) == '.')) {
-//            index++;
-//         }
-//         if (((index+1)<condition.length()) && (condition.substring(index,index+2).equals("[]"))) {
-//            index+=2;
-//         }
-//
-//         boolean found = fProvider.safeGetVariable(fProvider.makeKey(sb.toString())) != null;
-//         return inverted?!found:found;
-//      }
-//
-//      private String getOperator() throws Exception {
-//
-//         skipSpace();
-//
-//         // No operator is acceptable
-//         if (index == condition.length()) {
-//            return null;
-//         }
-//         // Must have an operator now
-//         String operator = null;
-//         if ((index+1)<condition.length()) {
-//            operator = condition.substring(index, index+2);
-//            index += 2;
-//            if (!operator.equals("||") && !operator.equals("&&")) {
-//               operator = null;
-//            }
-//         }
-//         if (operator == null) {
-//            throw new Exception("Invalid operator in template condition '"+condition+"'");
-//         }
-//         return operator;
-//      }
-//
-//      /**
-//       * Evaluate a variable present condition. <br>
-//       * If a variable is present is it considered true otherwise false. <br>
-//       * The variable is not evaluated. <br>
-//       * This is used before variable have a valid value.
-//       *
-//       * @param condition Boolean expression used to indicate condition
-//       *
-//       * @return true if condition is empty, null or evaluates as true
-//       *
-//       * @return false otherwise
-//       *
-//       * @throws Exception
-//       */
-//      public boolean evaluateVariablePresentCondition(String condition) throws Exception {
-//         if ((condition == null) || condition.isBlank()) {
-//            return true;
-//         }
-//         index = 0;
-//         this.condition = condition;
-//         boolean result;
-//         do {
-//            // Get identifier
-//            result = getId();
-//            do {
-//               String operator = getOperator();
-//               if (operator == null) {
-//                  return result;
-//               }
-//               if (operator.equals("||")) {
-//                  if (result) {
-//                     return true;
-//                  }
-//               }
-//               else if (operator.equals("&&")) {
-//                  if (!result) {
-//                     return false;
-//                  }
-//               }
-//               // Get next identifier
-//               result = getId();
-//            } while (true);
-//         } while (true);
-//      }
-//   }
-      
    /**
     * Apply a set of template substitutions of form <b>%name</b> in template text
     * 
@@ -2526,19 +2381,19 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param namespace
     * @param key
-    * @param title
+    * @param tag
     * @throws Exception
     */
-   void templateBasicCheck(String namespace, String key, String title) throws Exception {
-      title = "<"+title+">";
+   void templateBasicCheck(String namespace, String key, String tag) throws Exception {
+      tag = "<"+tag+">";
       if (namespace.isBlank()) {
-         throw new Exception(title+" is missing namespace, key='" + key + "'");
+         throw new Exception(tag+" is missing namespace, key='" + key + "'");
       }
       if ((key != null) && !namespace.equals("all")) {
-         throw new Exception("Named "+title+" must have 'all' namespace, key='" + key + "'");
+         throw new Exception("Named "+tag+" must have 'all' namespace, key='" + key + "'");
       }
       if ((key == null) && namespace.equals("all")) {
-         throw new Exception(title+" must have 'key' attribute in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
+         throw new Exception(tag+" must have 'key' attribute in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
       }
    }
    
@@ -2594,14 +2449,16 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseTemplate(Element element) throws Exception {
 
-      String key           = getKeyAttribute(element);
-      String namespace     = getAttribute(element, "namespace", "info"); // info|usbdm|class|all
-
       if (!checkTemplateConditions(element)) {
          return;
       }
 
-      templateBasicCheck(namespace, key, "templates");
+      String key           = getKeyAttribute(element);
+      String namespace     = getAttribute(element, "namespace", "info"); // info|usbdm|class|all
+      if (key != null) {
+         namespace = "all";
+      }
+      templateBasicCheck(namespace, key, element.getTagName());
       
       if (key != null) {
          // Text after '.' is used to give templates a
@@ -2729,8 +2586,11 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String key          = getKeyAttribute(element);
       String namespace    = getAttribute(element, "namespace", "info");
+      if (key != null) {
+         namespace = "all";
+      }
 
-      templateBasicCheck(namespace, key, "clockCodeTemplate");
+      templateBasicCheck(namespace, key, element.getTagName());
       
       String variable     = getAttribute(element, "variable");
       Variable var = safeGetVariable(variable);
@@ -3658,6 +3518,10 @@ public class ParseMenuXML extends XML_BaseParser {
          BaseModel model = children.get(index);
          if (model instanceof AliasPlaceholderModel) {
             AliasPlaceholderModel aliasModel = (AliasPlaceholderModel) model;
+            if (aliasModel.getKey().contains("NumChannels")) {
+               System.err.println("Found "+aliasModel.getKey());
+            }
+
             BaseModel newModel = createModelFromAlias(provider, parent, aliasModel);
             // Note: createModelFromAlias() handles missing model errors
             if (newModel == null) {

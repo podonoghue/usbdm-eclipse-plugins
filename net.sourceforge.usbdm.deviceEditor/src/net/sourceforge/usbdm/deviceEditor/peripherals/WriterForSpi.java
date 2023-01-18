@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of SPI
@@ -18,7 +19,7 @@ public class WriterForSpi extends PeripheralWithState {
    public WriterForSpi(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       
-      // Can (usually do) create instances of this class 
+      // Can (usually do) create instances of this class
       fCanCreateInstance = true;
       
       // Can create type declarations for signals belonging to this peripheral
@@ -64,11 +65,11 @@ public class WriterForSpi extends PeripheralWithState {
     *   // In tsi.h
     *   Input_Ptc6                = 6,       ///< Mapped pin PTC6 (p51)
     *   Input_MyComparatorInput   = 6,       ///< Mapped pin PTC6 (p51)
-    *   
+    * 
     *   // In hardware.h
     *   /// User comment
     *   typedef const Cmp0::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
-    * </pre> 
+    * </pre>
     * 
     * @param documentUtilities
     * @throws IOException
@@ -121,13 +122,13 @@ public class WriterForSpi extends PeripheralWithState {
             boolean inUse = !usedIdentifiers.add(pcsPinName);
             String format = PIN_FORMAT;
             if (inUse) {
-               format = "// "+format; 
+               format = "// "+format;
             }
             inputsStringBuilder.append(String.format(format, pcsPinName, mapName+";", trailingComment));
             if (!pcsUserName.isBlank()) {
                inUse = !usedIdentifiers.add(pcsUserName);
                if (inUse) {
-                  pcsUserName = "// "+pcsUserName; 
+                  pcsUserName = "// "+pcsUserName;
                }
                inputsStringBuilder.append(String.format(format, pcsUserName, mapName+";", trailingComment));
             }
@@ -135,5 +136,10 @@ public class WriterForSpi extends PeripheralWithState {
          // Create or replace Input Mapping variable as needed
          fDeviceInfo.addOrUpdateStringVariable("Input Mapping", makeKey("InputMapping"), inputsStringBuilder.toString(), true);
       }
+   }
+
+   @Override
+   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      extractAllRegisterFields(dbPortPeripheral);
    }
 }
