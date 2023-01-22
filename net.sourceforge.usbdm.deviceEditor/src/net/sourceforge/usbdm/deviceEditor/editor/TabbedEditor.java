@@ -92,6 +92,8 @@ public class TabbedEditor implements IEditor {
                         new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer),
                               "C Identifier for code generation\n"+
                               "If not blank code will be generated for the signal or peripheral"),
+                        new TreeColumnInformation("Modifier",        100, new ModifierColumnLabelProvider(),       new ModifierEditingSupport(viewer),
+                              ModifierColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer),
                               InstanceColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),

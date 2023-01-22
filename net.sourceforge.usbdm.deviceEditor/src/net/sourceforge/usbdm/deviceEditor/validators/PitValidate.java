@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -35,8 +34,8 @@ public class PitValidate extends PeripheralValidator {
       
       // Clocks
       //=================================
-      LongVariable     pitInputClockVar           = getLongVariable("pitInputClock");
-      StringVariable   numChannelsVar             = getStringVariable("numChannels");
+      LongVariable   pitInputClockVar           = getLongVariable("pitInputClock");
+      LongVariable   numChannelsVar             = getLongVariable("numChannels");
 
       double inputClockFrequency = pitInputClockVar.getValueAsDouble();
       int numberOfChannels       = (int) numChannelsVar.getValueAsLong();
