@@ -1367,6 +1367,51 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
+    * Do simple name substitutions:
+    *  <li>"$(_name)"         => e.g FTM2                    (fProvider.getName())
+    *  <li>"$(_base_class)"   => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
+    *  <li>"$(_instance)"     => e.g FTM0 => 0, PTA => A     (fPeripheral.getInstance())
+    *  <li>"$(_class)"        => e.g FTM2 => Ftm2            (fPeripheral.getClassName())
+    *  <li>"$(_basename)"     => e.g FTM0 => FTM, PTA => PT  (fPeripheral.getBaseName())
+    *  <li>For loop substitution
+    * 
+    * @param text  Test to process
+    * 
+    * @return  modified attribute or null if attribute doesn't exist
+    */
+   String replaceCommonNames(String text) {
+
+      text = text.replace("$(_name)", fProvider.getName());
+      if (fPeripheral != null) {
+         text = text.replace("$(_base_class)", fPeripheral.getClassBaseName());
+         text = text.replace("$(_instance)",   fPeripheral.getInstance());
+         text = text.replace("$(_class)",      fPeripheral.getClassName());
+         text = text.replace("$(_basename)",   fPeripheral.getBaseName());
+      }
+      return text;
+   }
+   
+   /**
+    * Get element text and apply usual substitutions
+    *  <li>"$(_name)"         => e.g FTM2                    (fProvider.getName())
+    *  <li>"$(_base_class)"   => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
+    *  <li>"$(_instance)"     => e.g FTM0 => 0, PTA => A     (fPeripheral.getInstance())
+    *  <li>"$(_class)"        => e.g FTM2 => Ftm2            (fPeripheral.getClassName())
+    *  <li>"$(_basename)"     => e.g FTM0 => FTM, PTA => PT  (fPeripheral.getBaseName())
+    *  <li>For loop substitution
+    * 
+    * @param node    Element to obtain attribute from
+    * 
+    * @return  modified element text
+    * 
+    * @throws Exception If for-loop completed
+    */
+   String getText(Node node) throws Exception {
+      String bodyText = fForStack.doForSubstitutions(node.getTextContent());
+      return replaceCommonNames(bodyText);
+   }
+   
+   /**
     * Get an attribute and apply usual substitutions
     *  <li>"$(_name)"         => e.g FTM2                    (fProvider.getName())
     *  <li>"$(_base_class)"   => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
@@ -1388,14 +1433,7 @@ public class ParseMenuXML extends XML_BaseParser {
          return null;
       }
       String res = fForStack.doForSubstitutions(element.getAttribute(attrName));
-      res = res.replace("$(_name)", fProvider.getName());
-      if (fPeripheral != null) {
-         res = res.replace("$(_base_class)", fPeripheral.getClassBaseName());
-         res = res.replace("$(_instance)",   fPeripheral.getInstance());
-         res = res.replace("$(_class)",      fPeripheral.getClassName());
-         res = res.replace("$(_basename)",   fPeripheral.getBaseName());
-      }
-      return res.trim();
+      return replaceCommonNames(res).trim();
    }
    
    /**
@@ -1434,28 +1472,6 @@ public class ParseMenuXML extends XML_BaseParser {
          return defaultValue;
       }
       return Boolean.valueOf(getAttribute(element, attrName));
-   }
-   
-   /**
-    * Get element text and apply usual substitutions
-    *  <li>"$(_name)"     => fProvider.getName()       => e.g. FTM2
-    *  <li>"$(_instance)" => fPeripheral.getInstance() => e.g. FTM0 => 0, PTA => A
-    *  <li>For loop substitution
-    * 
-    * @param node    Element to obtain attribute from
-    * 
-    * @return  modified element text
-    * 
-    * @throws Exception If for-loop completed
-    */
-   String getText(Node node) throws Exception {
-
-      String bodyText = fForStack.doForSubstitutions(node.getTextContent());
-      bodyText = bodyText.replace("$(_name)", fProvider.getName());
-      if (fPeripheral != null) {
-         bodyText = bodyText.replace("$(_instance)", fPeripheral.getInstance());
-      }
-      return bodyText;
    }
    
    /**
