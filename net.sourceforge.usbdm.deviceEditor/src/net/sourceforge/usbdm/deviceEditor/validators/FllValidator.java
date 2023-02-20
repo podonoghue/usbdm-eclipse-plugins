@@ -148,7 +148,6 @@ public class FllValidator extends IndexedValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
       
       // Variables to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
@@ -162,6 +161,7 @@ public class FllValidator extends IndexedValidator {
 
       addSpecificWatchedVariables(variablesToWatch);
       
+      // Don't add default dependencies
       return false;
    }
 }

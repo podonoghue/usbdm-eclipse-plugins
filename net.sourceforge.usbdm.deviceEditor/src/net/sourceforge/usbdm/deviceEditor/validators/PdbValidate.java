@@ -219,7 +219,6 @@ public class PdbValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
 
       NumChannels             = (int)getLongVariable("NumChannels").getValueAsLong();
       NumPreTriggers          = (int)getLongVariable("NumPreTriggers").getValueAsLong();
@@ -231,6 +230,7 @@ public class PdbValidate extends PeripheralValidator {
       };
       addToWatchedVariables(externalVariables);
       
+      // Don't add default dependencies
       return false;
    }
 }

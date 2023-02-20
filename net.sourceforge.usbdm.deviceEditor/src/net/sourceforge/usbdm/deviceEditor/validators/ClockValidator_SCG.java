@@ -457,6 +457,7 @@ public class ClockValidator_SCG extends IndexedValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      return super.createDependencies();
+      // Don't add default dependencies
+      return false;
    }
 }

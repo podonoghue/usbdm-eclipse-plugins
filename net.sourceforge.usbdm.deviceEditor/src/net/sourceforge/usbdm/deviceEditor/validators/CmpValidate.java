@@ -32,7 +32,6 @@ public class CmpValidate extends PeripheralValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
       
 //      // Variable to watch
 //      ArrayList<String> variablesToWatch = new ArrayList<String>();
@@ -41,6 +40,7 @@ public class CmpValidate extends PeripheralValidator {
 //
 //      addToWatchedVariables(variablesToWatch);
       
+      // Don't add default dependencies
       return false;
    }
 

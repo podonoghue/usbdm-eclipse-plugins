@@ -137,7 +137,6 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
     
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
 
       //  MCG OSC0 input always exists
       String osc0_peripheralName;
@@ -158,6 +157,7 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
       enableClockConfigurationVar.setHidden(true);
       
+      // Don't add default dependencies
       return false;
    }
 }

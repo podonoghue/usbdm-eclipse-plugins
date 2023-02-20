@@ -189,8 +189,7 @@ public class OscValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
-      
+     
       ArrayList<String> externalVariablesList = new ArrayList<String>();
       
       // Some device only support low range XTAL
@@ -211,7 +210,7 @@ public class OscValidate extends PeripheralValidator {
 
       addToWatchedVariables(externalVariablesList);
       
-      // Use explicit dependencies
+      // Don't add default dependencies
       return false;
    }
 }

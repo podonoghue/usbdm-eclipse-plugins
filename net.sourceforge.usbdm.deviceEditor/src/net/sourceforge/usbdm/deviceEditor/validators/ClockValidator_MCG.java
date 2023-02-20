@@ -155,7 +155,6 @@ public class ClockValidator_MCG extends IndexedValidator {
     
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
  
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
@@ -176,6 +175,7 @@ public class ClockValidator_MCG extends IndexedValidator {
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
       enableClockConfigurationVar.setHidden(true);
       
+      // Don't add default dependencies
       return false;
    }
 }

@@ -91,7 +91,6 @@ public class PitValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
  
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
@@ -104,6 +103,7 @@ public class PitValidate extends PeripheralValidator {
 
       addSpecificWatchedVariables(variablesToWatch);
 
+      // Don't add default dependencies
       return false;
    }
 }

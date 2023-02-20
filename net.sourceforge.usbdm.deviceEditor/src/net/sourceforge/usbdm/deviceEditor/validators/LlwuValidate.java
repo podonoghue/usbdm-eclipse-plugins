@@ -104,7 +104,7 @@ public class LlwuValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      return super.createDependencies();
-      // No external dependencies
+      // Don't add default dependencies
+      return false;
    }
 }

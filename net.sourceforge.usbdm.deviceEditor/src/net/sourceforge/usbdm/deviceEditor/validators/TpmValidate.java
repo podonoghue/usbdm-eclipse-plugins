@@ -75,13 +75,16 @@ public class TpmValidate extends PeripheralValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
 
       final String[] externalVariables = {
-            "/SIM/system_tpm_clock[]"
+            "clockFrequency",
+            "tpm_mod",
+            "tpm_modPeriod",
+            "tpm_sc_mode",
       };
       addToWatchedVariables(externalVariables);
       
+      // Don't add default dependencies
       return false;
    }
 

@@ -419,7 +419,6 @@ public class SimValidate extends IndexedValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
 
       // Variable to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
@@ -442,6 +441,7 @@ public class SimValidate extends IndexedValidator {
       };
       addToWatchedVariables(externalVariables);
       
+      // Don't add default dependencies
       return false;
    }
 }

@@ -197,13 +197,16 @@ public class WriterForSpi extends PeripheralWithState {
             }
          }
       }
-      String pcsPolarity = "SpiPeripheralSelectPolarity_All_ActiveHigh";
-      if (!pcsSb.isEmpty()) {
-         pcsPolarity = pcsSb.toString();
-      }
       String key = "/"+getName()+"/spi_mcr_pcsisValue";
       Variable spi_mcr_pcsisValueVar = safeGetVariable(key);
-      spi_mcr_pcsisValueVar.setValueQuietly(pcsPolarity);
+      if (spi_mcr_pcsisValueVar != null) {
+         String pcsPolarity = "SpiPeripheralSelectPolarity_All_ActiveHigh";
+         if (!pcsSb.isEmpty()) {
+            pcsPolarity = pcsSb.toString();
+         }
+         spi_mcr_pcsisValueVar.setValueQuietly(pcsPolarity);
+      }
+      
       // Create or replace Input Mapping variable as needed
       fDeviceInfo.addOrUpdateStringVariable("Input Mapping", makeKey("InputMapping"), enumStringBuilder.toString(), true);
    }

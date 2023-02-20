@@ -230,7 +230,6 @@ public class FrdivValidator extends IndexedValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
       
       // Variables to watch
       ArrayList<String> variablesToWatch = new ArrayList<String>();
@@ -248,6 +247,7 @@ public class FrdivValidator extends IndexedValidator {
 
       addSpecificWatchedVariables(variablesToWatch);
       
+      // Don't add default dependencies
       return false;
    }
 }

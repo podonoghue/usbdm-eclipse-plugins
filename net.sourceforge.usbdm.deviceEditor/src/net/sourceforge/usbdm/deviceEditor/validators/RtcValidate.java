@@ -36,7 +36,7 @@ public class RtcValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
+      // Don't add default dependencies
       return false;
    }
 }

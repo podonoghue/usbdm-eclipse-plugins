@@ -83,14 +83,17 @@ public class FtmValidate extends PeripheralValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      super.createDependencies();
 
       final String[] externalVariables = {
-            "/MCG/system_mcgffclk_clock[]",
-            "/SIM/system_bus_clock[]",
+            "clockFrequency",
+            "ftm_mod",
+            "ftm_cntin",
+            "ftm_modPeriod",
+            "ftm_sc_mode",
       };
       addToWatchedVariables(externalVariables);
       
+      // Don't add default dependencies
       return false;
    }
 
