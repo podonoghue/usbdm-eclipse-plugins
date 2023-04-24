@@ -70,10 +70,10 @@ public class WriteFamilyCpp {
 
 //   /**
 //    * Records aliases used
-//    * 
+//    *
 //    * @param aliasName
 //    *           Alias to record
-//    * 
+//    *
 //    * @return true=> new (acceptable) alias
 //    */
 //   private boolean recordAlias(String aliasName) {
@@ -198,7 +198,7 @@ public class WriteFamilyCpp {
       writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.write("\n");
-      writer.flush();     
+      writer.flush();
    }
 
    /**
@@ -305,14 +305,14 @@ public class WriteFamilyCpp {
    /**
     * Create variables for peripheral declarations e.g.
     * <pre>
-    * extern const USBDM::Adc<b><i>0</b></i>::Channel&lt;<b><i>3</b></i>&gt;    myAdcChannel; // p9   
-    * extern const USBDM::Gpio<b><i>B</b></i>&lt;<b><i>16</b></i>&gt;           myGpio;       // p39   
-    * extern const USBDM::Gpio<b><i>D</b></i>Field&lt;<b><i>14</b></i>,<b><i>12</b></i>&gt;   myGpioField;  // p39   
+    * extern const USBDM::Adc<b><i>0</b></i>::Channel&lt;<b><i>3</b></i>&gt;    myAdcChannel; // p9
+    * extern const USBDM::Gpio<b><i>B</b></i>&lt;<b><i>16</b></i>&gt;           myGpio;       // p39
+    * extern const USBDM::Gpio<b><i>D</b></i>Field&lt;<b><i>14</b></i>,<b><i>12</b></i>&gt;   myGpioField;  // p39
     * extern const USBDM::Ftm<b><i>1</b></i>::Channel&lt;<b><i>3</b></i>&gt    myFtmChannel; // p34
-    * extern const 
+    * extern const
     * </pre>
     * These are included in the peripheral files.
-    *  
+    * 
     * @param writer
     *           Where to write
     * 
@@ -351,7 +351,7 @@ public class WriteFamilyCpp {
          }
          // Create or replace variable
          fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", HARDWARE_FILE_INCLUDES_FILE_KEY, sb.toString(), true);
-      }         
+      }
 
       // Save declarations for any user objects needed by peripherals in hardware.h
       if (hardwareDeclarations.toString().isBlank()) {
@@ -380,7 +380,7 @@ public class WriteFamilyCpp {
     * Adds two variables for code substitution:<br>
     *   <li>HARDWARE_FILE_PORT_INIT_KEY          Contains PCR initialisation statements
     *   <li>HARDWARE_FILE_PORT_INIT_ERRORS_KEY   Contains PCR initialisation statement errors or warnings
-    *   
+    * 
     * <pre>
     *    enablePortClocks(PORTA_CLOCK_MASK|...);
     * 
@@ -397,14 +397,14 @@ public class WriteFamilyCpp {
 
       PcrInitialiser pcrInitialiser = new PcrInitialiser();
 
-      // Accumulate mappings in pcrInitialiser 
+      // Accumulate mappings in pcrInitialiser
       for (String pinName : fDeviceInfo.getPins().keySet()) {
          Pin pin = fDeviceInfo.getPins().get(pinName);
-         pcrInitialiser.addPin(pin); 
+         pcrInitialiser.addPin(pin);
       }
       sb.append(pcrInitialiser.getEnablePortClocksStatement("   "));
       sb.append(pcrInitialiser.getGlobalPcrInitStatements("   "));
-      sb.append("\n" + 
+      sb.append("\n" +
                 "   if constexpr (ForceLockoutUnbondedPins) {\n");
       sb.append(pcrInitialiser.getGlobalPcrLockoutStatements("      "));
       sb.append("   }\n");
@@ -418,10 +418,10 @@ public class WriteFamilyCpp {
 
    private final String DOCUMENTATION_OPEN = "///\n" + "/// @page PinSummary Pin Mapping\n";
 
-   private final String TABLE_OPEN = 
-         "///\n" + 
-         "/// @section %s %s\n" + "///\n" + 
-         "///   Pin Name      | C Identifier                  |  Functions                                         |  Location                 |  Description\n" + 
+   private final String TABLE_OPEN =
+         "///\n" +
+         "/// @section %s %s\n" + "///\n" +
+         "///   Pin Name      | C Identifier                  |  Functions                                         |  Location                 |  Description\n" +
          "///  -------------- | ------------------------------|--------------------------------------------------- | ------------------------- | ----------------------------------------------------\n";
 
    private final String DOCUMENTATION_TEMPLATE = "///  %-14s | %-30s| %-50s | %-25s | %s\n";
@@ -432,11 +432,11 @@ public class WriteFamilyCpp {
 
    /**
     * Write documentation as previously sorted
-    *  
+    * 
     * @param writer           Where to write
     * @param allMappingInfo   Sorted data
     * 
-    * @throws IOException     
+    * @throws IOException
     */
    private void writeDocumentation(DocumentUtilities writer, ArrayList<MappingInfo> allMappingInfo) throws IOException {
       
@@ -538,7 +538,7 @@ public class WriteFamilyCpp {
        */
       // Sort by pin number or grid location
       Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
-         final Pattern pattern = Pattern.compile("^(\\D+)(\\d+)(.*)$"); 
+         final Pattern pattern = Pattern.compile("^(\\D+)(\\d+)(.*)$");
          
          @Override
          public int compare(MappingInfo o1, MappingInfo o2) {
@@ -574,7 +574,7 @@ public class WriteFamilyCpp {
        */
       // Sort by function
       Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
-         final Pattern pattern = Pattern.compile("^(\\D+)(\\d+)(.*)$"); 
+         final Pattern pattern = Pattern.compile("^(\\D+)(\\d+)(.*)$");
          
          @Override
          public int compare(MappingInfo o1, MappingInfo o2) {
@@ -622,13 +622,14 @@ public class WriteFamilyCpp {
       DocumentUtilities writer = new DocumentUtilities(headerFile);
 
       writer.writeHeaderFilePreamble(
-            PIN_MAPPING_BASEFILENAME + ".h", 
-            fDeviceInfo.getSourceFilename(), 
-            DeviceInfo.VERSION, 
+            PIN_MAPPING_BASEFILENAME + ".h",
+            fDeviceInfo.getSourceFilename(),
+            DeviceInfo.VERSION,
             "Peripheral declarations for " + fDeviceInfo.getVariantName());
 
       writer.writeSystemHeaderFileInclude("stdint.h");
       writer.writeSystemHeaderFileInclude("stddef.h");
+      writer.writeSystemHeaderFileInclude("array");
       headerFile.write("\n");
       writer.writeHeaderFileInclude("derivative.h");
       writer.writeHeaderFileInclude("pcr.h");
@@ -687,14 +688,14 @@ public class WriteFamilyCpp {
    /**
     * Generate CPP files (pin_mapping.h) within an Eclipse C++ project
     * 
-    * @param  project      Destination project 
-    * @param  deviceInfo   Device information to print to CPP files  
-    * @throws Exception 
+    * @param  project      Destination project
+    * @param  deviceInfo   Device information to print to CPP files
+    * @throws Exception
     */
    public void writeCppFiles(IProject project, DeviceInfo deviceInfo, IProgressMonitor monitor) throws Exception {
       final String pinMappingFile = INCLUDE_DIRECTORY+"/"+PIN_MAPPING_BASEFILENAME+".h";
       
-      SubMonitor subMonitor = SubMonitor.convert(monitor, 100); 
+      SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
       subMonitor.subTask("Generating device header file");
 
       fDeviceInfo = deviceInfo;

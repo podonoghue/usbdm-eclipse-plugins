@@ -1778,6 +1778,30 @@
                </enablement>
             </option>
             <option
+                  name="Disable RWX segment warnings"
+                  id="net.sourceforge.usbdm.cdt.toolchain.c.linker.warningDisableRWX"
+                  category="gnu.c.link.category.general"
+                  command="-Wl,--no-warn-rwx-segments"
+                  defaultValue="true"
+                  valueType="boolean">
+               <enablement
+                  type="UI_ENABLEMENT|CMD_USAGE">
+                  <and>
+                     <checkOption
+                           holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                           optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                           isRegex="false"
+                           value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                     </checkOption>
+                     <checkOption
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.c.linker.nanoNewlib"
+                        value="true">
+                     </checkOption>
+                  </and>
+               </enablement>
+            </option>
+            <option
                name="Linker File (-T option):"
                id="net.sourceforge.usbdm.cdt.toolchain.c.linker.linkerFile"
                browseFilterExtensions="*.ld"
@@ -1881,6 +1905,30 @@
                   category="gnu.cpp.link.category.options"
                   command="-u _scanf_float"
                   defaultValue="false"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <and>
+                     <checkOption
+                           holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                           optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                           isRegex="false"
+                           value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                     </checkOption>
+                     <checkOption
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.nanoNewlib"
+                        value="true">
+                     </checkOption>
+                  </and>
+               </enablement>
+            </option>
+            <option
+                  name="Disable RWX segment warnings"
+                  id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.warningDisableRWX"
+                  category="gnu.cpp.link.category.options"
+                  command="-Wl,--no-warn-rwx-segments"
+                  defaultValue="true"
                   valueType="boolean">
                <enablement
                   type="ALL">
