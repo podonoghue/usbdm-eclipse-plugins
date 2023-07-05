@@ -391,6 +391,9 @@ public class DynamicVariableProcessing {
                            "expression = '" + expression + "'" );
             }
             for (int index=0; index<expressions.length; index++) {
+               if (targets[index].trim().equalsIgnoreCase("Disabled")) {
+                  continue;
+               }
                updateTarget(fChoiceVariable, safeGetVariable(targets[index].trim()), expressions[index].trim());
             }
 

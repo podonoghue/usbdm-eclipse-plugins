@@ -24,6 +24,7 @@ public class ClockSelectionFigure {
    
    private class InitialInformation {
       private String  fId;
+      private String  fName;
       private String  fVarKey;
       private Type    fType;
       private String  fParams;
@@ -37,8 +38,9 @@ public class ClockSelectionFigure {
          return "fId="+fId+", fVarKey="+fVarKey+", fType="+fType+", fParams="+fParams;
       }
       
-      InitialInformation(int x, int y, String id, String varKey, Type type, Boolean edit, String params) {
+      InitialInformation(int x, int y, String id, String name, String varKey, Type type, Boolean edit, String params) {
          fId     = id;
+         fName   = name;
          fVarKey = varKey;
          fType   = type;
          fParams = params;
@@ -61,7 +63,7 @@ public class ClockSelectionFigure {
             return GraphicAnnotation.create(originX, originY, fId, fParams, canEdit, var);
             
          case label:
-            return GraphicLabel.create(originX, originY, fId, fParams, canEdit, var);
+            return GraphicLabel.create(originX, originY, fId, fName, fParams, canEdit, var);
             
          case box:
             return GraphicBox.create(originX, originY, fId, fParams);
@@ -134,8 +136,8 @@ public class ClockSelectionFigure {
     * @param params  Parameters used to construct graphic
     * @param params2`
     */
-   public void add(int x, int y, String id, String varKey, String type, String edit, String params) {
-      initialInformation.add(new InitialInformation(x, y, id, varKey, Graphic.Type.valueOf(type), Boolean.valueOf(edit), params));
+   public void add(int x, int y, String id, String name, String varKey, String type, String edit, String params) {
+      initialInformation.add(new InitialInformation(x, y, id, name, varKey, Graphic.Type.valueOf(type), Boolean.valueOf(edit), params));
    }
    
    /**
@@ -265,7 +267,7 @@ public class ClockSelectionFigure {
     * 
     * @return Clock configuration index for this figure
     */
-   public int getfClockSelection() {
+   public int getClockSelection() {
       return fClockSelection;
    }
    

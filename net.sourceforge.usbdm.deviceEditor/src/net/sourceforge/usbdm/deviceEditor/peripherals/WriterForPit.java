@@ -76,7 +76,6 @@ public class WriterForPit extends PeripheralWithState {
    @Override
    public void extractHardwareInformation(Peripheral dbPeripheral) {
       extractAllRegisterFields(dbPeripheral);
-//      extractRegisterFields(dbPeripheral, "mcr");
    }
 
 }

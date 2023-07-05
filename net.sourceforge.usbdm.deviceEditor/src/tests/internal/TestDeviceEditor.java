@@ -48,7 +48,7 @@ public class TestDeviceEditor {
 //         testEditor(Paths.get("projectFiles_Tests/MK22D5.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F1M0.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/MK22F12810.usbdmProject"));
-         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F.usbdmProject"));
+//         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K28F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K64F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K66F.usbdmProject"));
@@ -60,7 +60,8 @@ public class TestDeviceEditor {
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL43Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL46Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KW41Z.usbdmProject"));
-//         testEditor(Paths.get("projectFiles_Tests/S32K144_FRDM.usbdmProject"));
+//       testEditor(Paths.get("projectFiles_Tests/S32K144_FRDM.usbdmProject"));
+       testEditor(Paths.get("projectFiles_Tests/FRDM_KE06Z.usbdmProject"));
 
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KE06Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KV31F.usbdmProject"));

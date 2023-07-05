@@ -68,6 +68,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtmShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForIcs;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForInterrupt;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForKbi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
@@ -82,6 +85,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwt;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForQspi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
@@ -175,8 +179,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /** Name of default USBDM project file in Eclipse project */
    public static final String USBDM_PROJECT_FILENAME = "Configure";
    
+   /** Relative location of ARM peripheral files in USBDM installation */
+   public static final String USBDM_ARM_STATIONERY_LOCATION  = "Stationery/Packages/180.ARM_Peripherals";
+   
    /** Relative location of hardware files in USBDM installation */
-   public static final String USBDM_HARDWARE_LOCATION  = "Stationery/Packages/180.ARM_Peripherals/Hardware";
+   public static final String USBDM_HARDWARE_LOCATION  = USBDM_ARM_STATIONERY_LOCATION + "/Hardware";
+   
+   /** Relative location of hardware files in USBDM installation */
+   public static final String USBDM_ARM_PERIPHERALS_LOCATION  = USBDM_HARDWARE_LOCATION + "/peripherals";
    
    /** Key for device variant persistence */
    public static final String USBDMPROJECT_VARIANT_SETTING_KEY       = "$$DeviceInfo_Device_Variant";
@@ -1067,6 +1077,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 //            WriterForPort.class);
       
       createPeripheralTemplateInformation(
+            "IRQ", "", "INT",
+            "IRQ",
+            getDeviceFamily(),
+            WriterForInterrupt.class);
+      
+      createPeripheralTemplateInformation(
+            "PWT", "", "$1",
+            "PWT_(IN\\d+)",
+            getDeviceFamily(),
+            WriterForPwt.class);
+      
+      createPeripheralTemplateInformation(
             "POWER", "", "$0",
             "(DCDC.*|USB1_VSS|PSWITCH|VDCDC_IN)|(VOUT33|VBAT|VREFL|VREFH|VSS(A|B|_.*)?|VDD(IO_E|A|B|_.*)?|VREG(IN|_IN|_IN0|_IN1|_OUT|_OUT0))(\\d*(a|b|c)?)",
             getDeviceFamily(),
@@ -1197,6 +1219,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "(MCG)",
                getDeviceFamily(),
                WriterForMcg.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(ICS)",
+               getDeviceFamily(),
+               WriterForIcs.class);
          createPeripheralTemplateInformation(
                "OSC", "0", "$1",
                "(E?XTAL)(0)?",
@@ -1401,7 +1428,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "$1", "$2", "$3",
                "(KBI)(\\d)?_(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForKbi.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
                "(FMC)",

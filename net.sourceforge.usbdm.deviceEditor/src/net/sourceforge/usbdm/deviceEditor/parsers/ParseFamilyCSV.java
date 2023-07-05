@@ -44,7 +44,7 @@ public class ParseFamilyCSV {
 	 * 
 	 * @param deviceInfomation  Where to place information
 	 * 
-	 * @throws IOException     
+	 * @throws IOException
 	 * @throws UsbdmException
 	 */
 	public ParseFamilyCSV(DeviceInfo deviceInfomation) throws IOException, UsbdmException {
@@ -53,7 +53,7 @@ public class ParseFamilyCSV {
 
 	private HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> createPeripheralsMap(DevicePeripherals devicePeripherals) {
 
-		HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> map = 
+		HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> map =
 				new HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>();
 		for (net.sourceforge.usbdm.peripheralDatabase.Peripheral peripheral:devicePeripherals.getPeripherals()) {
 			map.put(peripheral.getName(), peripheral);
@@ -173,7 +173,7 @@ public class ParseFamilyCSV {
 	}
 	/**
 	 * Parse line containing Key information
-	 *  
+	 * 
 	 * @param line
 	 * 
 	 * @return true - line is valid
@@ -247,7 +247,7 @@ public class ParseFamilyCSV {
 
 	/**
 	 * Parse line containing Pin information
-	 *  
+	 * 
 	 * @param line
 	 * @throws Exception
 	 */
@@ -274,8 +274,8 @@ public class ParseFamilyCSV {
 
 		sb.append(String.format("%-10s => ", pin.getName()));
 
-      int numberOfPinMappings = 0; 
-      int firstMapping        = -1; 
+      int numberOfPinMappings = 0;
+      int firstMapping        = -1;
       for (int col=fAltStartIndex; col<=fAltEndIndex; col++) {
          if (col>=line.length) {
             break;
@@ -354,7 +354,7 @@ public class ParseFamilyCSV {
 	 * Parse line containing Peripheral information
 	 * 
 	 * @param line
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	private void parsePeripheralInfoLine(String[] line) throws Exception {
 	   if (!line[0].equals("Peripheral")) {
@@ -490,7 +490,7 @@ public class ParseFamilyCSV {
 	}
 
 	/**
-	 * Parse peripheral line 
+	 * Parse peripheral line
 	 * 
 	 * @param line
 	 */
@@ -546,8 +546,8 @@ public class ParseFamilyCSV {
 	 * Parse preliminary information from file
 	 * 
 	 * @param reader
-	 * @throws IOException 
-	 * @throws UsbdmException 
+	 * @throws IOException
+	 * @throws UsbdmException
 	 * 
 	 * @throws Exception
 	 */
@@ -610,7 +610,7 @@ public class ParseFamilyCSV {
 	 * 
 	 * @return Class containing information from file
 	 * 
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void parseFile(Path filePath, HashMap<String, HashSet<String>> peripheralVersions) throws Exception {
       System.out.println("ParseFamilyCsv.parseFile(" + filePath.getFileName().toString() + ")");
@@ -637,7 +637,7 @@ public class ParseFamilyCSV {
 		System.out.println("SVD File = "+fDevicePeripherals.getSvdFilename());
 		
 		// Create map to allow peripheral lookup
-		final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> 
+		final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>
 		fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);
 
 		// Attach information from device database
@@ -673,7 +673,20 @@ public class ParseFamilyCSV {
    			peripheral.setPeripheralVersion(dbVersion);
 			}
          if (peripheral instanceof PeripheralWithState) {
-            net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral = fPeripheralMap.get(peripheral.getName().replace("GPIO", "PORT"));
+            net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral = null;
+            
+            String peripheralName = peripheral.getName();
+            if (peripheralName.matches("GPIO[A-F]")) {
+               if (fDeviceInfo.getDeviceFamily() == DeviceFamily.mke) {
+                  dbPortPeripheral = fPeripheralMap.get("PORT");
+               }
+               else {
+                  dbPortPeripheral = fPeripheralMap.get(peripheralName.replace("GPIO", "PORT"));
+               }
+            }
+            else {
+               dbPortPeripheral = fPeripheralMap.get(peripheral.getName());
+            }
             if ((dbPortPeripheral == null)) {
                throw new UsbdmException("Unable to get PORT DB Peripheral for "+entry.getKey());
             }

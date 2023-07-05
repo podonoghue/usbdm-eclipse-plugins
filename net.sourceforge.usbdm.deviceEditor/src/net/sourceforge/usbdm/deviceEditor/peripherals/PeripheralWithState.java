@@ -678,6 +678,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (!reg.isHidden()) {
             for (Field field:reg.getFields()) {
                String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
+               key = key.replace("%s", "");
                addOrIgnoreStringConstant(key);
             }
          }

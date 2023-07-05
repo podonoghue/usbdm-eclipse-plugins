@@ -186,7 +186,7 @@ public class CreatePeripheralDatabase {
                continue;
             }
             if (fileName.endsWith(".svd.xml") || (fileName.endsWith(".svd"))) {
-               System.err.println("Merging SVD file : "+filePath.getFileName());
+               System.out.println("Merging SVD file : "+filePath.getFileName());
 
                // Read device peripheral database
                DevicePeripherals devicePeripherals = new DevicePeripherals(filePath);
@@ -901,8 +901,8 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) throws IOException {
       
-    firstFileToProcess = ("^MK22F51212.*");
-    firstFileToReject  = ("^MK22FA.*");
+//    firstFileToProcess = ("^MK22F51212.*");
+//    firstFileToReject  = ("^MK22FA.*");
 
       System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 

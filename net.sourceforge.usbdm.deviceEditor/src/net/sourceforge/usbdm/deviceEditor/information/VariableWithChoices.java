@@ -69,7 +69,9 @@ public abstract class VariableWithChoices extends Variable {
    }
 
    /**
-    * @return the choices
+    * @return the choices currently available.
+    *         This is affected by enabled choices
+    * 
     * @throws Exception
     */
    public String[] getChoices() {

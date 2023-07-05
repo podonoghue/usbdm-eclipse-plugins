@@ -469,6 +469,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(CRC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DAC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMA)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(KBI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(GPIO_.*)(?:AN|AS|DD|GP|LD|NQ|QS|TA|TC|TD|TE|TF|TG|TH|TI|TJ|UA|UB|UC)(_.*)$"),  "$1$2")); // GPIO_PORTNQ_PORT_MASK => GPIO_PORT_PORT_MASK
          mappedMacros.add(new Pair(Pattern.compile("^F?(GPIO)[A-Z](_.*)$"),                    null));    // Delete useless pin macros

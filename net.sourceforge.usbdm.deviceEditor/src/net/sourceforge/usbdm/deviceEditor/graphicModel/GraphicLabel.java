@@ -11,22 +11,25 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
 public class GraphicLabel extends GraphicBaseVariable {
    
-   public GraphicLabel(int x, int y, int w, Height h, String text, Boolean canEdit, Variable variable) {
+   public GraphicLabel(int x, int y, int w, Height h, String text, String name, Boolean canEdit, Variable variable) {
       super(x, y, w, vScale*(h.ordinal()+1), text, canEdit, variable);
+      if (name != null) {
+         setName(name);
+      }
       inputs     = new Point[1];
       inputs[0]  = new Point(-w/2, 0);
       outputs    = new Point[1];
       outputs[0] = new Point(+w/2, 0);
    }
 
-   static public GraphicLabel create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) throws Exception {
+   static public GraphicLabel create(int originX, int originY, String id, String name, String params, Boolean canEdit, Variable var) throws Exception {
 
       String paramsArray[] = params.split(",");
       int    x = originX+Integer.parseInt(paramsArray[0].trim());
       int    y = originY+Integer.parseInt(paramsArray[1].trim());
       int    w = Integer.parseInt(paramsArray[2].trim());
       Height ht = Height.valueOf(paramsArray[3].trim());
-      GraphicLabel t = new GraphicLabel(x, y, w, ht, id, canEdit, var);
+      GraphicLabel t = new GraphicLabel(x, y, w, ht, id, name, canEdit, var);
       int h = vScale;
       if (ht == Height.large) {
          h = 2*vScale;

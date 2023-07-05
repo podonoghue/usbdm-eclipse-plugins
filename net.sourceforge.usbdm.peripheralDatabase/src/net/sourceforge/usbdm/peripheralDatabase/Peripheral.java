@@ -747,7 +747,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    /**
     * Add interrupt entry for this peripheral
     * 
-    * @param entry
+    * @param entry List of entries (may be empty)
     */
    void addInterruptEntry(InterruptEntry entry) {
       if (fInterrupts  == null) {
@@ -858,7 +858,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    /**
-    * Sort peripheral registers by address offset
+    * Sort interrupts by index
     * 
     */
    @SuppressWarnings("unused")
@@ -1620,7 +1620,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 
    private static final String DEVICE_LIST_PREAMBLE =
            "<!--\n"
-         + "Devices using this peripheral: \n";
+         + "Devices using this peripheral:\n";
    
    private static final String DEVICE_LIST_POSTAMBLE =
            "-->\n";

@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
@@ -1001,7 +1002,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (signalTable.table.size() == 0) {
          return;
       }
-      
+      if (getDeviceInfo().getDeviceFamily() == DeviceFamily.mke) {
+         return;
+      }
       String indent = "";
       if (signalTable.getName() != INFO_TABLE_NAME) {
          // Write MACRO indicated extra Pin Table information

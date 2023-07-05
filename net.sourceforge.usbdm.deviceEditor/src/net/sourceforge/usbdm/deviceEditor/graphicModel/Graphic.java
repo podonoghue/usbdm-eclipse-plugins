@@ -42,6 +42,10 @@ public abstract class Graphic {
    int nameY=0;
    private int style;
    
+   public void setName(String name) {
+      this.name = name;
+   }
+   
    public Graphic(int x, int y, int w, int h, String id, Orientation orientation) {
       this.x = x;
       this.y = y;
@@ -447,7 +451,7 @@ from global to graphic relative
    /**
     * Returns XML describing the graphic
     * 
-    * @param sb
+    * @param resultSb
     */
    final public String report() {
       StringBuilder sb = new StringBuilder();

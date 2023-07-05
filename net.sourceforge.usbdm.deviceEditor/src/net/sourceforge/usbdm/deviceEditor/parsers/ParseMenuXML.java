@@ -813,6 +813,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (name == null) {
          name = Variable.getNameFromKey(key);
       }
+//      System.err.println("Creating var " + name);
       
       boolean replace = Boolean.valueOf(getAttribute(varElement, "replace"));
       boolean modify  = Boolean.valueOf(getAttribute(varElement, "modify"));
@@ -1300,8 +1301,8 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       namespace = getAttribute(varElement, "namespace", namespace);
       
-      String description     = variable.getDescriptionAsCode();
-      String tooltip         = variable.getToolTipAsCode();
+      String description     = escapeString(variable.getDescriptionAsCode());
+      String tooltip         = escapeString(variable.getToolTipAsCode());
       
       String valueFormat     = getAttribute(varElement, "valueFormat");
       if (valueFormat == null) {
@@ -1351,10 +1352,12 @@ public class ParseMenuXML extends XML_BaseParser {
             sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
          }
          String completeValue = sb.toString()+",";
+//         valuesList.add(escapeString(completeValue));
          valuesList.add(completeValue);
          valueMax        = Math.max(valueMax, completeValue.length());
          
          commentsList.add(choiceData[index].getName());
+//         commentsList.add(escapeString(choiceData[index].getName()));
       }
       // Create enums body
       for (int index=0; index<enumNamesList.size(); index++) {
@@ -2219,7 +2222,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
 
          // Tool-tip from variable
-         String tooltip                    = "'%tooltip' not available in this template";
+         String tooltip = "'%tooltip' not available in this template";
          temp = variable.getToolTipAsCode(linePadding+" *        ");
          if (temp != null) {
             tooltip = temp;
@@ -2914,7 +2917,7 @@ public class ParseMenuXML extends XML_BaseParser {
       int y = boxY;
       
       if (boxElement.getTagName().equals("graphicBox")) {
-         figure.add(x,y, boxId, null, "box", null, boxParams);
+         figure.add(x,y, boxId, null, null, "box", null, boxParams);
       }
       
       for (Node node = boxElement.getFirstChild();
@@ -2930,12 +2933,33 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          String tagName = graphic.getTagName();
          if (tagName == "graphicItem") {
-            String id     = getAttribute(graphic, "id");
+            String id     = getAttribute(graphic,  "id");
             String varKey = getKeyAttribute(graphic, "var");
             String type   = getAttribute(graphic, "type");
             String edit   = getAttribute(graphic, "edit");
             String params = getAttribute(graphic, "params");
-            figure.add(x, y, id, varKey, type, edit, params);
+            String name   = getAttribute(graphic, "name");
+            if ((name != null) && name.startsWith("@")) {
+               String varName = name.substring(1);
+               int index = varName.indexOf('.');
+               int choiceIndex = -1;
+               if (index >= 0) {
+                  choiceIndex = Integer.valueOf(varName.substring(index+1));
+                  varName = varName.substring(0,index);
+               }
+               ChoiceVariable var = safeGetChoiceVariable(varName);
+               if (var == null) {
+                  throw new Exception("Unable to find var " + varName);
+               }
+               if (choiceIndex >= 0) {
+                  name = var.getChoiceData()[choiceIndex].getName();
+               }
+               else {
+                  name = var.getValueAsString();
+               }
+            }
+            
+            figure.add(x, y, id, name, varKey, type, edit, params);
             continue;
          }
          if (tagName == "offset") {

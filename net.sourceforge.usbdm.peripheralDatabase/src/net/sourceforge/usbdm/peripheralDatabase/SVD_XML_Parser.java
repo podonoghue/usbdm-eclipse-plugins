@@ -884,14 +884,17 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == PERIPHERAL_TAG) {
             String name = getFixedVectorPeripheralName(element.getTextContent().trim());
-            peripheral = fDevicePeripherals.findPeripheral(name);
-            if (peripheral == null) {
-               throw new Exception("Failed to find peripheral "+name+" for vector");
-            }
-            interruptEntry.addPeripheral(peripheral);
-            peripheral.addInterruptEntry(interruptEntry);
-            if (interruptEntry.getDescription().isEmpty()) {
-               interruptEntry.setDescription(peripheral.getDescription());
+            if ("Internal".compareToIgnoreCase(name) != 0) {
+               // Ignores 'internal' IRQs
+               peripheral = fDevicePeripherals.findPeripheral(name);
+               if (peripheral == null) {
+                  throw new Exception("Failed to find peripheral "+name+" for vector");
+               }
+               interruptEntry.addPeripheral(peripheral);
+               peripheral.addInterruptEntry(interruptEntry);
+               if (interruptEntry.getDescription().isEmpty()) {
+                  interruptEntry.setDescription(peripheral.getDescription());
+               }
             }
          }
          else {
@@ -1222,7 +1225,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    /**
     * Parse a <interrupts> element
     * 
-    * @param  devicePeripherals Device to add peripherals to
+    * @param  devicePeripherals Device to add interrupts to
     * 
     * @param  interruptElement <interrupts> element
     * 
@@ -1259,6 +1262,10 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                continue;
             }
             vectorTable.addEntry(entry);
+            if (((entry.getPeripheral() == null) || (entry.getPeripheral().size() == 0)) &&
+                  !entry.getName().equals("SWI")) {
+               System.err.println("Vector Entry " + entry.getName() + ", Per = none!!");
+            }
          }
          else {
             System.err.println("Unexpected field in <interrupts>', value = \'"+element.getTagName()+"\'");

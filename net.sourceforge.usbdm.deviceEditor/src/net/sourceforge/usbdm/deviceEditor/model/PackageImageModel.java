@@ -67,7 +67,7 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
          IPath path = Usbdm.getResourcePath().append("Stationery/Packages/Images/"+deviceVariant.getPackage().getName()+".png");
          return new Image(Display.getCurrent(), path.toString());
       } catch (Exception e) {
-         System.err.println("Failed to load device image, reason: )"+e.getMessage());
+         System.err.println("Failed to load device image, reason: "+e.getMessage());
          return null;
       }
    }

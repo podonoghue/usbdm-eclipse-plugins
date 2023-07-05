@@ -7,17 +7,22 @@ import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
- * Class encapsulating the code for writing an instance of WDOG
+ * Class encapsulating the code for writing an instance of MCG
  */
-public class WriterForWdog extends PeripheralWithState {
+public class WriterForIcs extends PeripheralWithState {
 
-   public WriterForWdog(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
+   public WriterForIcs(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 
    @Override
    public String getTitle() {
-      return "Watchdog Timer";
+      return "Multipurpose Clock Generator";
+   }
+   
+   @Override
+   public int getPriority() {
+      return 850;
    }
 
    @Override
@@ -25,4 +30,5 @@ public class WriterForWdog extends PeripheralWithState {
       extractAllRegisterFields(dbPeripheral);
    }
 
+   
 }

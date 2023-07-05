@@ -131,6 +131,9 @@ public class ChoiceVariable extends VariableWithChoices {
          System.err.println("getValueAsString() illegal index, "+index);
          index = 0;
       }
+      if (index>=choices.length) {
+         return "Illegal choice value";
+      }
       return choices[index];
    }
    
@@ -233,13 +236,13 @@ public class ChoiceVariable extends VariableWithChoices {
          }
          index++;
       }
-      index = 0;
-      for (ChoiceData choice:choiceData) {
-         if (choice.getName().equalsIgnoreCase(value)) {
-            return index;
-         }
-         index++;
-      }
+//      index = 0;
+//      for (ChoiceData choice:choiceData) {
+//         if (choice.getName().equalsIgnoreCase(value)) {
+//            return index;
+//         }
+//         index++;
+//      }
       String[] choices = getChoices();
       if (choices == null) {
          return -1;

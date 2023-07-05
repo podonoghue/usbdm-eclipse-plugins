@@ -359,10 +359,11 @@ public class GraphicsDialogue {
       });
 
       try {
-         runModeVar = fFigure.getProvider().getVariable("/SMC/smc_pmctrl_runm["+fFigure.getfClockSelection()+"]");
+         runModeVar = fFigure.getProvider().getVariable("/SMC/smc_pmctrl_runm["+fFigure.getClockSelection()+"]");
          runModeVar.addListener(runModeChangeListener);
       } catch (Exception e) {
-         e.printStackTrace();
+         System.err.println("Figure does not have clock selection");
+//         e.printStackTrace();
       }
       
       shell.open();

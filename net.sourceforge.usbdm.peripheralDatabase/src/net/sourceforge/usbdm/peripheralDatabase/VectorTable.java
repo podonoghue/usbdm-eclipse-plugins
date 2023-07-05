@@ -19,7 +19,7 @@ public abstract class VectorTable extends ModeControl {
    protected String             name              = null;
    protected String             description       = "";
    
-   /** List of files to #include at top of file */ 
+   /** List of files to #include at top of file */
    protected HashSet<String>  fIncludeFiles      = new HashSet<String>();
 
    protected static final String DEFAULT_HANDLER_NAME       = "Default_Handler";
@@ -75,10 +75,29 @@ public abstract class VectorTable extends ModeControl {
    }
 
    /**
+    * Search vector table for entry for given peripheral.
+    * 
+    * @param peripheral Peripheral to look for
+    * 
+    * @return  Interrupt found or null if peripheral not found in vector table
+    */
+   public InterruptEntry findHandlerForPeripheral(Peripheral peripheral) {
+      for (InterruptEntry interruptEntry:interrupts) {
+         if (interruptEntry == null) {
+            continue;
+         }
+         if (interruptEntry.getPeripheral().contains(peripheral)) {
+            return interruptEntry;
+         }
+      }
+      return null;
+   }
+   
+   /**
     * Add interrupt entry
     * 
     * @param entry
-    * @throws Exception 
+    * @throws Exception
     */
    public void addEntry(InterruptEntry entry) throws Exception {
       InterruptEntry currentEntry = interrupts[entry.getIndexNumber()+vectorOffset];
@@ -256,7 +275,7 @@ public abstract class VectorTable extends ModeControl {
    
    /**
     * Add default vector table entries
-    * @throws Exception 
+    * @throws Exception
     * 
     */
    protected abstract void addDefaultInterruptEntries() throws Exception;
@@ -264,11 +283,11 @@ public abstract class VectorTable extends ModeControl {
    /*
     * ====================================================================================================
     */
-   private static final String deviceListPreamble = 
+   private static final String deviceListPreamble =
          "<!--\n"
        + "Devices using this vector table: \n";
  
-   private static final String deviceListPostamble = 
+   private static final String deviceListPostamble =
          "-->\n";
  
    /**
@@ -327,7 +346,7 @@ public abstract class VectorTable extends ModeControl {
    }
 
    static final String INTERRUPT_BANNER            = "/* -------------------------  Interrupt Number Definitions  ------------------------ */\n\n";
-   static final String INTERRUPT_PREAMBLE          = 
+   static final String INTERRUPT_PREAMBLE          =
            "/**\n" +
             " * Interrupt vector numbers\n" +
             " */\n" +
@@ -340,7 +359,7 @@ public abstract class VectorTable extends ModeControl {
    static final String EXTERNAL_HANDLER_BANNER     = "/* -------------------------  Exception Handlers  ------------------------ */\n";
    static final String EXTERNAL_HANDLER_TEMPLATE   = "extern void %-38s   /**< %-80s */\n";
 
-   /** 
+   /**
     * Writes a C-code fragment that is suitable for inclusion in a C header file<br>
     * It defines the vectors numbers as an enum and provides prototypes<br>
     * for the interrupt handlers matching the vector table created by writeCVectorTable().
@@ -348,7 +367,7 @@ public abstract class VectorTable extends ModeControl {
     * @param writer  Where to write the fragment
     * 
     * @throws IOException
-    * @throws Exception 
+    * @throws Exception
     */
    public abstract void writeCInterruptHeader(Writer writer) throws Exception;
    
@@ -358,7 +377,7 @@ public abstract class VectorTable extends ModeControl {
     * @param writer  Where to write the fragment
     * 
     * @throws IOException
-    * @throws Exception 
+    * @throws Exception
     */
    public abstract void writeCVectorTable(Writer writer) throws IOException, Exception;
 
@@ -378,7 +397,7 @@ public abstract class VectorTable extends ModeControl {
    }
 
    /**
-    * Add to set of files to #include at top of vector file 
+    * Add to set of files to #include at top of vector file
     *
     * @param headerFileName
     */
@@ -387,7 +406,7 @@ public abstract class VectorTable extends ModeControl {
    }
    
    /**
-    * Get set of files to #include at top of vector file 
+    * Get set of files to #include at top of vector file
     * 
     * @return Set of include files
     */

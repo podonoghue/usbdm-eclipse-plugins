@@ -38,7 +38,7 @@ public class WriterForGpio extends PeripheralWithState {
    public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
 
-      // Can't create instances of this peripheral 
+      // Can't create instances of this peripheral
       fCanCreateInstance = false;
 
       // Can create type declarations for signals belonging to this peripheral
@@ -97,9 +97,9 @@ public class WriterForGpio extends PeripheralWithState {
          fLastBitAdded  = bitNum;
          // Only create instance for field if ALL bits marked
          fCreateInstance = fCreateInstance && signal.getCreateInstance();
-         fIsMixedPolarity = 
-               fIsMixedPolarity || 
-               (((fPolarity == 0) && isActiveLow(signal)) || 
+         fIsMixedPolarity =
+               fIsMixedPolarity ||
+               (((fPolarity == 0) && isActiveLow(signal)) ||
                      ((fPolarity != 0) && !isActiveLow(signal)));
          fPolarity     |= isActiveLow(signal)?(1<<bitNum):0;
       }
@@ -196,7 +196,7 @@ public class WriterForGpio extends PeripheralWithState {
       // Information about each unique identifier in GPIO
       HashMap<String, GpioPinInformation> variablesToCreate = new HashMap<String, GpioPinInformation>();
 
-      // Collect the pins into fields and individual bits based on code identifier 
+      // Collect the pins into fields and individual bits based on code identifier
       for (int infoTableIndex=0; infoTableIndex<fInfoTable.table.size(); infoTableIndex++) {
          Signal signal = fInfoTable.table.get(infoTableIndex);
          if (signal == null) {
@@ -279,7 +279,7 @@ public class WriterForGpio extends PeripheralWithState {
                trailingComment += pin.getNameWithLocation();
             }
             trailingComment = trailingComment + comment;
-            final int fieldPolarity = gpioPinInformation.getFieldPolarity(); 
+            final int fieldPolarity = gpioPinInformation.getFieldPolarity();
             String polarity= "";
             if (fieldPolarity != 0) {
                if (gpioPinInformation.isMixedPolarity()) {
@@ -378,7 +378,7 @@ public class WriterForGpio extends PeripheralWithState {
    }
 
    /**
-    * Editor support for GPIO polarity 
+    * Editor support for GPIO polarity
     */
    public class ModifierEditingSupport implements ModifierEditorInterface {
 
@@ -440,12 +440,14 @@ public class WriterForGpio extends PeripheralWithState {
    
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      boolean pcrFound = false;
       for(Cluster cl:dbPortPeripheral.getRegisters()) {
          if (!(cl instanceof Register)) {
             continue;
          }
          Register reg = (Register) cl;
          if (reg.getName().startsWith("PCR")) {
+            pcrFound = true;
             for (Field field:reg.getFields()) {
                String key = "/PCR/"+field.getName().toLowerCase()+"_present";
                addOrIgnoreStringConstant(key);
@@ -456,6 +458,10 @@ public class WriterForGpio extends PeripheralWithState {
             addOrIgnoreStringConstant(key);
             break;
          }
+      }
+      if (pcrFound) {
+         String key = "/PCR/$present";
+         addOrIgnoreStringConstant(key);
       }
    }
    

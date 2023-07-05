@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
+import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
@@ -936,13 +937,15 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * Get tool-tip as multi-line comment
     * 
     * @param padding  This is the padding string to apply to start of additional comment lines e.g. " * "
-    * @return
+    * 
+    * @return tooltip modified or empty string if none
     */
    public String getToolTipAsCode(String padding) {
-      String tooltip = getToolTip();
-      if (tooltip != null) {
-         tooltip = tooltip.replace("\n", "\n\\t"+padding);
+      String tooltip = XML_BaseParser.escapeString(getToolTip());
+      if (tooltip == null) {
+         return "";
       }
+      tooltip = tooltip.replace("\n", "\n\\t"+padding);
       return tooltip;
    }
    
@@ -956,7 +959,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
    
    public String getDescriptionAsCode() {
-      String description = getDescription();
+      String description = XML_BaseParser.escapeString(getDescription());
       if (description != null) {
          description = description.replace("\n", "\n\\t * ");
       }
@@ -964,7 +967,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
    
    public String getShortDescription() {
-      String description = getDescription();
+      String description = XML_BaseParser.escapeString(getDescription());
       if (description != null) {
          int eol = description.indexOf("\n");
          if (eol>=0) {
@@ -1209,7 +1212,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          return null;
       }
       String parts[] = fEnabledBy.split(",");
-      return parts[0];
+      return parts[0].trim();
    }
 
    /**
@@ -1225,7 +1228,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       }
       String parts[] = fEnabledBy.split(",");
       if (parts.length>1) {
-         return parts[1];
+         return parts[1].trim();
       }
       StringBuilder sb = new StringBuilder();
       sb.append("Disabled by ");

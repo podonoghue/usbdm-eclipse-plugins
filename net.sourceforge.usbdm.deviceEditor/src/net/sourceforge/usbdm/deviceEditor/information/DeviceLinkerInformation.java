@@ -13,17 +13,17 @@ import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 public class DeviceLinkerInformation {
 
-   private final static String MAP_PREFIX = 
+   private final static String MAP_PREFIX =
          "MEMORY\n" + //$NON-NLS-1$
                "{\n";         //$NON-NLS-1$
 
-   private final static String MAP_SUFFIX = 
+   private final static String MAP_SUFFIX =
          "}\n\n";         //$NON-NLS-1$
 
    private final static String MEM_FORMAT       = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
    private final static String MEM_FORMAT_FLASH = "  %-14s %-5s : ORIGIN = 0x%08X + BOOT_LOADER_SIZE, LENGTH = 0x%08X - BOOT_LOADER_SIZE\n";
 
-   private final static String MEM_DOCUMENTATION = 
+   private final static String MEM_DOCUMENTATION =
          "/*\n"                             +
                "    <o>  %-6s address <constant>\n" +
                "    <o1> %-6s size    <constant>\n"  +
@@ -31,22 +31,22 @@ public class DeviceLinkerInformation {
 
    private final static String LINKER_FLEXNVM_REGION =
          "   /* flexNVM flash region */\n"+
-               "   .flexNVM (NOLOAD) :\n" + 
-               "   {\n" + 
-               "      . = ALIGN(4);\n" + 
+               "   .flexNVM (NOLOAD) :\n" +
+               "   {\n" +
+               "      . = ALIGN(4);\n" +
                "      PROVIDE(__FlexNvmStart = .);\n"+
-               "      KEEP(*(.flexNVM))\n" + 
-               "      PROVIDE(__FlexNvmEnd = .);\n" + 
+               "      KEEP(*(.flexNVM))\n" +
+               "      PROVIDE(__FlexNvmEnd = .);\n" +
                "   } > flexNVM\n\n"; //$NON-NLS-1$
 
    private final static String LINKER_FLEXRAM_REGION =
          "   /* FlexRAM region for non-volatile variables */\n"+
-               "   .flexRAM (NOLOAD) :\n" + 
-               "   {\n" + 
-               "      . = ALIGN(4);\n" + 
+               "   .flexRAM (NOLOAD) :\n" +
+               "   {\n" +
+               "      . = ALIGN(4);\n" +
                "      PROVIDE(__FlexRamStart = .);\n"+
                "      KEEP(*(.flexRAM))\n" +
-               "      PROVIDE(__FlexRamEnd = .);\n" + 
+               "      PROVIDE(__FlexRamEnd = .);\n" +
                "   } > flexRAM\n\n"; //$NON-NLS-1$
 
    private final static String DEFAULT_RAM_REGION        = "ram";
@@ -131,8 +131,8 @@ public class DeviceLinkerInformation {
             memoryMap.append(String.format(MEM_FORMAT, currentLinkerName, "("+attributes+")", region.start, region.end-region.start+1));
          }
          suffix++;
-         userName   = userNameBase   + suffix; 
-         linkerName = linkerNameBase + suffix; 
+         userName   = userNameBase   + suffix;
+         linkerName = linkerNameBase + suffix;
       }
       return memoryMap.toString();
    }
@@ -140,9 +140,9 @@ public class DeviceLinkerInformation {
    /**
     * Updates or creates (if necessary) a variable
     * 
-    * @param paramMap      Map to add variable to 
+    * @param paramMap      Map to add variable to
     * @param newVariable   New variable
-    * @param derived       Whether the variable is derived i.e. calculated rather than user controlled 
+    * @param derived       Whether the variable is derived i.e. calculated rather than user controlled
     */
    private static void updateVariable(VariableMap paramMap, Variable newVariable, boolean derived) {
       Variable variable = paramMap.safeGet(newVariable.getKey());
@@ -172,15 +172,15 @@ public class DeviceLinkerInformation {
     * 
     * @param deviceName  Name of device to get memory map for
     * @param paramMap    Map to add information to
-    * @throws Exception 
+    * @throws Exception
     */
    public static void addLinkerMemoryMap(String deviceName, VariableMap paramMap) throws Exception {
 
       DeviceDatabase deviceDatabase = DeviceDatabase.getDeviceDatabase(TargetType.T_ARM);
-      Device device = deviceDatabase.getDevice(deviceName);    
+      Device device = deviceDatabase.getDevice(deviceName);
       
       if (device == null) {
-         throw new Exception("Unable to find device data for '"+deviceName+"'");
+         throw new Exception("Unable to find device data for '"+deviceName+"'\n");
       }
       int ioRangeCount    = 0;
       int romCount        = 0;
@@ -215,16 +215,16 @@ public class DeviceLinkerInformation {
             case MemRAM   :
                ramRegions.add(memoryRange);
                continue;
-            case MemFLASH : 
+            case MemFLASH :
                flashRegions.add(memoryRange);
                continue;
-            case MemFlexRAM : 
+            case MemFlexRAM :
                flexRamRegions.add(memoryRange);
                continue;
-            case MemFlexNVM : 
+            case MemFlexNVM :
                flexNvmRegions.add(memoryRange);
                continue;
-            case MemIO    : 
+            case MemIO    :
                name   = String.format("io%s", getRangeSuffix(ioRangeCount++));
                access = "(rw)";
                break;
