@@ -49,6 +49,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ErrorModel;
 import net.sourceforge.usbdm.deviceEditor.model.OpenGraphicModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
+import net.sourceforge.usbdm.deviceEditor.model.TitleModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
@@ -818,6 +819,14 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean replace = Boolean.valueOf(getAttribute(varElement, "replace"));
       boolean modify  = Boolean.valueOf(getAttribute(varElement, "modify"));
       
+      if (key.contains("[")) {
+         String baseKey = key.substring(0,key.length()-3);
+         
+         // XXX Eventually remove
+         if (safeGetVariable(baseKey) != null) {
+            throw new RuntimeException("Use of index with scalar variable '"+baseKey);
+         }
+      }
       Variable newVariable      = null;
       Variable existingVariable = safeGetVariable(key);
       
@@ -1566,6 +1575,30 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       ChoiceInformation info = parseChoiceData(varElement);
       variable.addChoices(info.entries, info.defaultEntry);
+   }
+
+   /**
+    * Parse &lt;StringOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception
+    */
+   private void parseTitle(BaseModel parent, Element varElement) throws Exception {
+      
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      
+      String name = getAttribute(varElement, "name");
+      TitleModel model = new TitleModel(parent, name);
+      
+      if (varElement.hasAttribute("toolTip")) {
+         model.setToolTip(getAttribute(varElement, "toolTip"));
+      }
+      if (varElement.hasAttribute("description")) {
+         model.setSimpleDescription(getAttribute(varElement, "description"));
+      }
+      
    }
 
    /**
@@ -2779,6 +2812,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (tagName == "stringOption") {
          parseStringOption(parentModel, element);
+      }
+      else if (tagName == "title") {
+         parseTitle(parentModel, element);
       }
       else if (tagName == "numericListOption") {
          parseNumericListOption(parentModel, element);

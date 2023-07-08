@@ -2270,12 +2270,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          // Use 0 index
          return fVariables.safeGet(key);
       }
-      else {
-         // XXX Eventually remove
-         if (fVariables.safeGet(key+"[0]") != null) {
-            throw new RuntimeException("Use of indexed variable '"+key+"' without index");
-         }
-      }
       Variable var = fVariables.safeGet(key);
 //      if (var == null) {
 //         // Try active clock selection as well

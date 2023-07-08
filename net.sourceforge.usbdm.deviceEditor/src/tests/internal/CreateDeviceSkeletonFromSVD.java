@@ -491,9 +491,9 @@ public class CreateDeviceSkeletonFromSVD {
             "\n" +
             "<!--   Configure methods -->\n" +
             "\n" +
-            "   <template discardRepeats=\"true\" key=\"/%s/InitMethod\" namespace=\"all\" ><![CDATA[\n" +
+            "   <template discardRepeats=\"true\" key=\"/$(_basename)/InitMethod\" namespace=\"all\" ><![CDATA[\n" +
             "      \\t/**\n" +
-            "      \\t * Configure %s from values specified in init\n" +
+            "      \\t * Configure $(_base_class) from values specified in init\n" +
             "      \\t *\n" +
             "      \\t * @param init Class containing initialisation values\n" +
             "      \\t */\n" +
@@ -535,13 +535,13 @@ public class CreateDeviceSkeletonFromSVD {
       if (irqsUsed) {
          resultSb.append(
                String.format(configureMethodTemplate,
-                     peripheralBasename.toUpperCase(), peripheralBasename.toUpperCase(),
+                     peripheralBasename.toUpperCase(),
                      configureMethodIrq, sb.toString()));
       }
       else {
          resultSb.append(
                String.format(configureMethodTemplate,
-                     peripheralBasename.toUpperCase(), peripheralBasename.toUpperCase(),
+                     peripheralBasename.toUpperCase(),
                      "", sb.toString()));
       }
       String constructorTitle =
@@ -866,7 +866,7 @@ public class CreateDeviceSkeletonFromSVD {
       String common =
             "   <!-- ************* Common ****************** -->\n" +
             "\n" +
-            "   <template key=\"/%s/declarations\" namespace=\"all\"  ><![CDATA[\n" +
+            "   <template key=\"/$(_basename)/declarations\" namespace=\"all\"  ><![CDATA[\n" +
             "   \\t/**\n" +
             "   \\t * Class representing $(_name)\n" +
             "   \\t */\n" +
@@ -877,7 +877,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      class=\"net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator\">\n" +
             "   </validate>\n" +
             "\n";
-      resultSb.append(String.format(common,peripheralBasename));
+      resultSb.append(String.format(common));
       
       if (doThisPeripheralHeaderFile(peripheralName)) {
          String fileInclude =
