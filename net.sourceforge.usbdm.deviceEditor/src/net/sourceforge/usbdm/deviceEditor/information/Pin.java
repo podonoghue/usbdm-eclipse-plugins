@@ -132,6 +132,15 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
+    * Get Port instance e.g. PTA3 => A (only if has PCR)
+    * 
+    * @return
+    */
+   public String getPortInstance() {
+      return fPortInstance;
+   }
+   
+   /**
     * Get Gpio class declaration e.g. GpioA<3>
     * 
     * @return
@@ -194,9 +203,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return String or null if no associated port
     */
    public String getGpioBitNum() {
-      if (fPortInstance == null) {
-         return null;
-      }
       return fPortPin;
    }
 

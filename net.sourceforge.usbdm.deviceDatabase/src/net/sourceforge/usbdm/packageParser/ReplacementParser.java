@@ -72,7 +72,7 @@ public class ReplacementParser {
     * @param keyMaker     Key-maker to translate a symbol before lookup
     */
    private ReplacementParser(
-         ISubstitutionMap     symbolMap, 
+         ISubstitutionMap     symbolMap,
          IKeyMaker            keyMaker,
          boolean              ignoreUnknowns,
          boolean              expandEscapes) {
@@ -99,18 +99,18 @@ public class ReplacementParser {
    /**
     * Parses Key field of replacement pattern e.g.
     * <pre>
-    *   $(keeeey:default:modifier)     
+    *   $(keeeey:default:modifier)
     *     ^....^
     * </pre>
     * Key may contain a replacement pattern!
     * 
-    * @param inputText String containing entire input String 
+    * @param inputText String containing entire input String
     * @param index     Position of current character (just past open parenthesis)
     * @param sb        Builder to accumulate key in
     * 
     * @return  Updated position (at colon or closing parenthesis)
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private int parseKey(String inputText, int index, StringBuilder sb) throws Exception {
       
@@ -184,20 +184,20 @@ public class ReplacementParser {
    /**
     * Parses Default field of replacement pattern e.g.
     * <pre>
-    *   $(key:default:modifier)     
+    *   $(key:default:modifier)
     *         ^.....^
     * </pre>
     * Default may contain a replacement pattern!
     * This is designed to process C code so it also watches levels of parenthesis, strings
     * and character constants, and does not terminate the replacement pattern prematurely.
     * 
-    * @param inputText     String containing entire input String 
+    * @param inputText     String containing entire input String
     * @param index         Position of current character (just past second colon)
     * @param defaultValue  Builder to accumulate default value in
     * 
     * @return  Updated position (at colon or closing parenthesis)
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private int parseDefault(String inputText, int index, StringBuilder defaultValue) throws Exception {
       boolean  complete = false;
@@ -261,7 +261,7 @@ public class ReplacementParser {
                if (c == '$') {
                   state = ReplaceState.DOLLAR;
                   pendingChar = c;
-               } 
+               }
                else {
                   defaultValue.append(c);
                   if(c=='\\') {
@@ -279,7 +279,7 @@ public class ReplacementParser {
                if (c == '$') {
                   state = ReplaceState.DOLLAR;
                   pendingChar = c;
-               } 
+               }
                else {
                   defaultValue.append(c);
                   if(c=='\\') {
@@ -306,14 +306,14 @@ public class ReplacementParser {
                   }
                   else if (c == 'r') {
                      c = '\r';
-                  } 
+                  }
                   else if (c == 't') {
                      c = '\t';
-                  }     
+                  }
                   else if (c == '\n') {
                      // Keep escape char as C line continuation
                      defaultValue.append('\\');
-                  }     
+                  }
                }
                else {
                   // Keep escape char
@@ -338,19 +338,19 @@ public class ReplacementParser {
    }
 
 /**
-    * Parses replacement pattern e.g. 
+    * Parses replacement pattern e.g.
     * <pre>
-    *   $(key:default:modifier)     
+    *   $(key:default:modifier)
     *     ^...................^
     * </pre>
     * 
-    * @param inputText String containing entire input String 
+    * @param inputText String containing entire input String
     * @param index     Position of current character (just past open parenthesis)
     * @param sb        Builder to accumulate key in
     * 
     * @return  Updated position (just past closing parenthesis)
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private int parseSubstitution(String inputText, int index, StringBuilder sb) throws Exception {
 
@@ -462,16 +462,16 @@ public class ReplacementParser {
                }
                else {
                   // force error expansion for unknown modifier
-                  replaceWith = null; 
+                  replaceWith = null;
                }
             }
          }
       }
       if (replaceWith == null) {
-         replaceWith = 
+         replaceWith =
                "---Symbol not found or format incorrect for substitution "+
                " => key=" + key +
-               ", def=" + arg1 + 
+               ", def=" + arg1 +
                ", mod=" + arg2;
       }
       sb.append(replaceWith);
@@ -510,7 +510,7 @@ public class ReplacementParser {
     * @param inputText  Text to process
     * 
     * @return Replaced text or original if unchanged
-    * @throws Exception 
+    * @throws Exception
     */
    private String replaceAll(String inputText) throws Exception {
       ReplaceState state     = ReplaceState.CODE;
@@ -554,7 +554,7 @@ public class ReplacementParser {
             if (c == '$') {
                state = ReplaceState.DOLLAR;
                pendingChar = c;
-            } 
+            }
             else {
                sb.append(c);
                if(c=='\\') {
@@ -572,7 +572,7 @@ public class ReplacementParser {
             if (c == '$') {
                state = ReplaceState.DOLLAR;
                pendingChar = c;
-            } 
+            }
             else {
                sb.append(c);
                if(c=='\\') {
@@ -616,7 +616,7 @@ public class ReplacementParser {
             if (c == '$') {
                state = ReplaceState.DOLLAR;
                pendingChar = c;
-            } 
+            }
             else {
                sb.append(c);
                if (c == '\n') {
@@ -632,8 +632,8 @@ public class ReplacementParser {
             if (c == '$') {
                pendingChar = c;
                state = ReplaceState.DOLLAR;
-            } 
-            else { 
+            }
+            else {
                sb.append(c);
                if (c == '*') {
                   state = ReplaceState.BLOCK_COM_STAR;
@@ -663,14 +663,14 @@ public class ReplacementParser {
                }
                else if (c == 'r') {
                   c = '\r';
-               } 
+               }
                else if (c == 't') {
                   c = '\t';
-               }     
+               }
                else if (c == '\n') {
                   // Keep escape char as C line continuation
                   sb.append('\\');
-               }     
+               }
             }
             else {
                // Keep escape char
@@ -703,8 +703,8 @@ public class ReplacementParser {
     * @return      String with substitutions (or original if none)
     */
    private static String substitute(
-         String               inputText, 
-         ISubstitutionMap     symbolMap, 
+         String               inputText,
+         ISubstitutionMap     symbolMap,
          IKeyMaker            keyMaker,
          boolean              ignoreUnknowns,
          boolean              expandEscapes) {
@@ -734,8 +734,8 @@ public class ReplacementParser {
     * @return  String with substitutions (or original if none)
     */
    public static String substitute(
-         String               inputText, 
-         ISubstitutionMap     symbolMap, 
+         String               inputText,
+         ISubstitutionMap     symbolMap,
          IKeyMaker            keyMaker) {
       
       if (symbolMap == null) {
@@ -843,15 +843,15 @@ public class ReplacementParser {
     Pattern px = Pattern.compile("^PIT(\\d+)");
     Matcher mx = px.matcher("PIT0");
     System.err.println("px='" + px + "', mx='"+mx.groupCount()+"' m=" + mx.matches());
-//    
+//
 //    exampleSymbols.put("aaa",    "a-a");
 //    exampleSymbols.put("bbb",    "b-b");
 //    exampleSymbols.put("ccc",    "ccc");
 //    exampleSymbols.put("dd",     "Dd");
 //    exampleSymbols.put("bcccbb", "bcccBB");
-//    
+//
 //    ReplacementParser parser = new ReplacementParser(exampleSymbols, keyMaker);
-//    
+//
 //    System.err.println("'" + TestPattern + "' => '" + parser.replaceAll(TestPattern) + "'");
  }
 

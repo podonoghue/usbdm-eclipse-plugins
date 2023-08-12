@@ -90,13 +90,29 @@ public class IrqVariable extends BooleanVariable {
       return super.getValueAsBoolean()?"$"+Mode.ClassMethod.name():"$"+Mode.NotInstalled.name();
    }
 
-   @Override
-   public boolean isDefault() {
-      return getValueAsBoolean() == false;
-   }
+//   @Override
+//   public boolean isDefault() {
+//      return getValueAsBoolean() == false;
+//   }
 
    @Override
    public void setDisabledValue(Object value) {
    }
+
+   @Override
+   public int getChoiceIndex() {
+      return getValueAsBoolean()?0:1;
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
    
+   @Override
+   public String getEnumValue() {
+      return Boolean.toString(getValueAsBoolean());
+   }
+
 }

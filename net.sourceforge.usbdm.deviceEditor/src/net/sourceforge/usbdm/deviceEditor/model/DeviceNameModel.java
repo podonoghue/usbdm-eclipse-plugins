@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 
 public class DeviceNameModel extends StringModel implements IModelChangeListener {
 
@@ -11,7 +12,7 @@ public class DeviceNameModel extends StringModel implements IModelChangeListener
     * @param deviceInfo Device info used to construct the node
     */
    public DeviceNameModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Generic device Name", "Device name for this variant", deviceInfo.getVariant().getDeviceName());
+      super(parent, "Generic Device Name", "Device name for this variant", deviceInfo.getVariant().getDeviceName());
       deviceInfo.addListener(this);
    }
 
@@ -19,9 +20,10 @@ public class DeviceNameModel extends StringModel implements IModelChangeListener
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
-         String packageName = deviceInfo.getVariant().getPackage().getName();
-         if (getValueAsString() != packageName) {
-            setValue(packageName);
+         DeviceVariantInformation deviceVarianrInfo = deviceInfo.getDeviceVariants().get(deviceInfo.getPreciseName());
+         String deviceName = deviceVarianrInfo.getDeviceName();
+         if (getValueAsString() != deviceName) {
+            setValue(deviceName);
          }
       }
    }

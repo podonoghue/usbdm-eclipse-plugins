@@ -625,7 +625,7 @@ public class WriteFamilyCpp {
             PIN_MAPPING_BASEFILENAME + ".h",
             fDeviceInfo.getSourceFilename(),
             DeviceInfo.VERSION,
-            "Peripheral declarations for " + fDeviceInfo.getVariantName());
+            "Peripheral declarations for " + fDeviceInfo.getPreciseName());
 
       writer.writeSystemHeaderFileInclude("stdint.h");
       writer.writeSystemHeaderFileInclude("stddef.h");
@@ -681,7 +681,7 @@ public class WriteFamilyCpp {
    public void writeCppFiles(Path directory, DeviceInfo deviceInfo) throws Exception {
       for (String key : deviceInfo.getDeviceVariants().keySet()) {
          deviceInfo.setVariantName(key);
-         writeCppFiles(directory, deviceInfo.getVariantName(), deviceInfo);
+         writeCppFiles(directory, deviceInfo.getPreciseName(), deviceInfo);
       }
    }
 

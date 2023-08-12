@@ -33,7 +33,7 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public String toString() {
-      return String.format("Variable(key=%s, value=%s=>(%s))", getKey(), getSubstitutionValue(), getValueAsString());
+      return String.format("ChoiceVariable(key=%s, value=%s=>(%s))", getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    @Override
@@ -48,7 +48,7 @@ public class ChoiceVariable extends VariableWithChoices {
     * 
     * @return Converted object
     */
-   private int translate(Object value) {
+   protected int translate(Object value) {
       int index = -1;
       // Treat as one of the available values
       if (value instanceof String) {
@@ -79,6 +79,11 @@ public class ChoiceVariable extends VariableWithChoices {
       return index;
    }
 
+   @Override
+   public boolean setValue(Object value) {
+      return setValue(translate(value));
+   }
+   
    /**
     * Sets variable value.<br>
     * Listeners are informed if the variable changes.<br>
@@ -181,17 +186,13 @@ public class ChoiceVariable extends VariableWithChoices {
    }
    
    @Override
-   public boolean setValue(Object value) {
-      // XX Delete me
-//      if (getName().contains("mcg_c1_frdiv")) {
-//         System.err.println("setValue(obj="+value+")");
-//      }
-      return setValue(translate(value));
-   }
-   
-   @Override
    public void setValueQuietly(Object value) {
       fValue = translate(value);
+   }
+
+   @Override
+   public String getSubstitutionValue() {
+      return fData[fValue].getValue();
    }
 
    @Override
@@ -212,11 +213,7 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       throw new Exception("Value '"+value+"' Not suitable for choice variable "+getName());
    }
-   @Override
-   public String getSubstitutionValue() {
-      return fData[fValue].getValue();
-   }
-
+   
    @Override
    public String getPersistentValue() {
       return getSubstitutionValue();
@@ -287,7 +284,7 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public void setDefault(Object value) {
-      if (fDefaultValue != null) {
+      if ((fDefaultValue != null) && (fDefaultValue != value)) {
          throw new RuntimeException("Default already set for " + getName() + ", " + value.toString());
       }
       fDefaultValue = translate(value);

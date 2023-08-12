@@ -30,7 +30,7 @@ public class DynamicVariableProcessing {
 
       if (peripheral instanceof PeripheralWithState) {
          PeripheralWithState pws = (PeripheralWithState) peripheral;
-         ArrayList<Variable> monitoredVariables = pws.getMonitoredVariables();
+         ArrayList<Object> monitoredVariables = pws.getMonitoredVariables();
          if (monitoredVariables == null) {
             return;
          }
@@ -67,64 +67,64 @@ public class DynamicVariableProcessing {
     * 
     * @throws Exception
     */
-   public void addMonitoredVariableListeners(ArrayList<Variable> monitoredVariables) throws Exception {
+   public void addMonitoredVariableListeners(ArrayList<Object> monitoredVariables) throws Exception {
 
-      for (Variable monitoredVariable:monitoredVariables) {
+      for (Object monitoredObject:monitoredVariables) {
          boolean actionFound = false;
-         if (monitoredVariable.getTarget() != null) {
-            // This variable controls other variables
-            // Has attribute target="variable"
-            actionFound = true;
-            if (monitoredVariable instanceof StringVariable) {
-               // String value specifies relationship (expression)
-               addStringListener((StringVariable) monitoredVariable);
+         if (monitoredObject instanceof Variable) {
+            Variable monitoredVariable = (Variable) monitoredObject;
+            if (monitoredVariable.getTarget() != null) {
+               // This variable controls other variables
+               // Has attribute target="variable"
+               actionFound = true;
+               if (monitoredVariable instanceof StringVariable) {
+                  // String value specifies relationship (expression)
+                  addStringListener((StringVariable) monitoredVariable);
+               }
+               else if (monitoredVariable instanceof VariableWithChoices) {
+                  // ChoiceVariable
+                  // Target="variable" specifier controlled variable
+                  // Each choice has ref="expression" specifying relationship
+                  addChoiceVariableSelectionListener((VariableWithChoices) monitoredVariable);
+               }
+               else {
+                  throw new Exception("Monitored var '"+monitoredVariable+"' is of unsupported type");
+               }
             }
-            else if (monitoredVariable instanceof VariableWithChoices) {
-               // ChoiceVariable
-               // Target="variable" specifier controlled variable
-               // Each choice has ref="expression" specifying relationship
-               addChoiceVariableSelectionListener((VariableWithChoices) monitoredVariable);
-            }
-            else {
-               throw new Exception("Monitored var '"+monitoredVariable+"' is of unsupported type");
-            }
-         }
-         if (monitoredVariable.getReference() != null) {
-            // This variable depends on other variables
-            // Has attribute ref="expression"
-            addDependentVariableListener(monitoredVariable);
-            actionFound = true;
-         }
-         if (addErrorIfListener(monitoredVariable)) {
-            actionFound = true;
-         }
-         if (addEnabledByListener(monitoredVariable)) {
-            actionFound = true;
-         }
-         if (addUnlockedByListener(monitoredVariable)) {
-            actionFound = true;
-         }
-         if (monitoredVariable instanceof LongVariable) {
-            LongVariable lv = (LongVariable) monitoredVariable;
-            if (addMinMaxChangeListener(lv)) {
+            if (addDependentVariableListener(monitoredVariable)) {
                actionFound = true;
             }
-         }
-         if (monitoredVariable instanceof ChoiceVariable ) {
-            ChoiceVariable cv = (ChoiceVariable) monitoredVariable;
-            if (addDynamicChangeListener(cv)) {
+            if (addErrorIfListener(monitoredVariable)) {
                actionFound = true;
+            }
+            if (addEnabledByListener(monitoredVariable)) {
+               actionFound = true;
+            }
+            if (addUnlockedByListener(monitoredVariable)) {
+               actionFound = true;
+            }
+            if (monitoredVariable instanceof LongVariable) {
+               LongVariable lv = (LongVariable) monitoredVariable;
+               if (addMinMaxChangeListener(lv)) {
+                  actionFound = true;
+               }
+            }
+            if (monitoredVariable instanceof ChoiceVariable ) {
+               ChoiceVariable cv = (ChoiceVariable) monitoredVariable;
+               if (addDynamicChangeListener(cv)) {
+                  actionFound = true;
+               }
             }
          }
          if (!actionFound) {
-            throw new Exception("Monitored var '"+monitoredVariable+"' doesn't have dynamic parameters or references");
+            throw new Exception("Monitored var '"+monitoredObject+"' doesn't have dynamic parameters or references");
          }
       }
    }
 
    /**
     * Check for existing listener with the same key.
-    * If found it is returned.
+    * If found, it is returned.
     * If not found then the listener provided is recorded.
     * 
     * @param key        Key uniquely identifying listener
@@ -229,7 +229,10 @@ public class DynamicVariableProcessing {
       }
       else {
          if (identifiers.size()>1) {
-            String t = String.join(", ", identifiers).replace(primaryVariableInExpressionName, "");
+            String t = String.join(", ", identifiers);
+            t = t.replace(primaryVariableInExpressionName+",", "");
+            t = t.replace(", "+primaryVariableInExpressionName, "");
+            t = t.replace(primaryVariableInExpressionName, "");
             info.origin = info.origin + "\n[modified by " + t +"]";
          }
       }
@@ -404,6 +407,13 @@ public class DynamicVariableProcessing {
       }
    };
 
+   /**
+    * Gets an existing or creates a new ControlledByListener for the variable
+    * 
+    * @param var  Controlled variable i.e. the variable updated by ControlledByListener
+    * 
+    * @return ControlledByListener found or created
+    */
    private ControlledByListener getOrCreateControlledByListener(Variable var) {
 
       ControlledByListener listener = new ControlledByListener(var);
@@ -412,6 +422,16 @@ public class DynamicVariableProcessing {
       return listener;
    }
 
+   /**
+    *  Variable listener used to update a dependent variable
+    * 
+    * On variable change, the dependent variable's expressions are re-evaluated:
+    *  <li>ref expression
+    *  <li>enabledBy expression
+    *  <li>errorIf expression
+    *  <li>unlockedBy expression
+    *  <li>min and max expressions
+    */
    private class ControlledByListener extends ModelChangeAdapter {
 
       /** Variable being re-evaluated */
@@ -437,6 +457,10 @@ public class DynamicVariableProcessing {
 //         System.err.println(String.format("#%10d: %-70s", hashCode(), "ControlledByListener("+fControlledVar.getKey()+")")+"observableModel="+observableModel);
          try {
 
+//            if (fControlledVar.getName().contains("cnv")) {
+//               System.err.println("Found "+fControlledVar.getName());
+//            }
+
             VariableUpdateInfo info;
 
             //            if (fControlledVar.getName().contains("osc_clock")) {
@@ -451,7 +475,6 @@ public class DynamicVariableProcessing {
             else {
                info = new VariableUpdateInfo();
             }
-
             // Reference of form "[varName];expression"
             String enabledByExpression = fControlledVar.getEnabledBy();
             if (enabledByExpression != null) {
@@ -490,6 +513,7 @@ public class DynamicVariableProcessing {
                LongVariable lv = (LongVariable) fControlledVar;
                lv.updateMin();
                lv.updateMax();
+               lv.notifyListeners();
             }
          } catch (Exception e) {
             System.err.println("Failed to validate "+fControlledVar);
@@ -697,7 +721,7 @@ public class DynamicVariableProcessing {
 
    /**
     * This handles a variable that depends on other variables
-    * This variable will have a reference="expression"
+    * This variable will have a ref="expression"
     *
     * @param controlledVariable Variable that is dependent (has reference)
     * 
@@ -809,6 +833,9 @@ public class DynamicVariableProcessing {
     */
    private boolean addMinMaxChangeListener(LongVariable dynamicMinMaxVariable) throws Exception {
 
+//      if (dynamicMinMaxVariable.getName().contains("cnv")) {
+//         System.err.println("Found "+dynamicMinMaxVariable.getKey());
+//      }
       String dynamicExpression = dynamicMinMaxVariable.getMaxExpression();
       if (dynamicExpression == null) {
          dynamicExpression = dynamicMinMaxVariable.getMinExpression();

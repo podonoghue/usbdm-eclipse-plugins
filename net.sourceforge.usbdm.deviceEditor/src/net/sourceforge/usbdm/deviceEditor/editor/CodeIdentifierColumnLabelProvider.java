@@ -30,7 +30,9 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public String getToolTipText(Object element) {
-      final String tooltip = "List of C identifiers separated by '/'";
+      final String tooltip =
+            "List of C identifiers separated by '/'\n" +
+            "These will be used to create named C objects representing the peripheral or signal";
       if (element instanceof PeripheralSignalsModel) {
          return tooltip;
       }

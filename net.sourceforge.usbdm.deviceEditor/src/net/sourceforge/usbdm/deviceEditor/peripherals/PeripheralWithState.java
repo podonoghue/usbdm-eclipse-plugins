@@ -17,6 +17,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralSignalsVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
@@ -51,6 +52,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /** Status of the peripheral */
    protected Status fStatus = null;
 
+   /** Variable associated with signals */
+   protected PeripheralSignalsVariable fPeripheralSignalsVar;
+
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
 //      System.err.println("Creating "+basename+instance+" "+this.getClass());
@@ -84,7 +88,54 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /** Owning model for signal models belonging to this peripheral */
    PeripheralSignalsModel fSignalsModel = null;
-   
+
+   /**
+    * Add peripheral as source for signals for this peripheral.
+    * Actual signal models are created later.
+    * 
+    * @param parentModel   Model to contain signal category
+    * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
+    * @param enabledBy
+    */
+   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter, String enabledBy) {
+      fHasSignal = true;
+      if (fPeripheralSignalsVar == null) {
+         // Create dummy variable associated with Signals list
+         fPeripheralSignalsVar = new PeripheralSignalsVariable(getName(), makeKey("_signals"));
+         fPeripheralSignalsVar.setProvider(this);
+         addVariable(fPeripheralSignalsVar);
+      }
+      if (peripheral == this) {
+         if (enabledBy != null) {
+            // Add enabled-by handling for signals
+            fPeripheralSignalsVar.setEnabledBy(enabledBy);
+            // Add as monitored variable
+            addDynamicVariable(fPeripheralSignalsVar);
+         }
+         // Don't add signals to self!
+         return;
+      }
+      if (fSignalPeripherals == null) {
+         fSignalPeripherals = new ArrayList<PeripheralSignals>();
+      }
+      fSignalPeripherals.add(new PeripheralSignals(peripheral, filter));
+   }
+
+   /**
+    * Create models representing the signals for this peripheral.<br>
+    * <i><b>May add related pins e.g. RTC may contains OSC pins</b></i>
+    * 
+    * @param parent Model to attach PeripheralSignalsModel to
+    * 
+    * @return PeripheralSignalsModel containing signals or null if no signals are associated with this peripheral
+    */
+   public PeripheralSignalsModel createPeripheralSignalsModel(BaseModel parent) {
+      if (!fHasSignal) {
+         return null;
+      }
+      return new PeripheralSignalsModel(parent, fPeripheralSignalsVar);
+   }
+
    @Override
    public void getModels(BaseModel parent) {
       if (fMenuData == null) {
@@ -100,31 +151,90 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          rootModel.removeChild(fSignalsModel);
       }
       fSignalsModel = createPeripheralSignalsModel(rootModel);
-   }
+}
 
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       writeInfoTemplate(pinMappingHeaderFile);
    }
 
+   /**
+    * Patterns available <br>
+    *  <li> "%i" => pin.getPortInstance());     => port instance e.g."A"
+    *  <li> "%n" => pin.getGpioBitNum());       => bit number within associated GPIO
+    *  <li> "%p" => polarity);                  => polarity of GPIO
+    *  <li> "%c" => getClassName());            => class name e.g.  FTM2 => Ftm2
+    *  <li> "%b" => getClassBaseName());        => base class name e.g. FTM2 => Ftm
+    *  <li> "%t" => infoTableIndex.toString()); => index in infotable
+    * 
+    * @param pattern          Path to do substitutions in
+    * @param pin              bit number within associated GPIO
+    * @param infoTableIndex   index in infotable
+    * @param polarity         polarity of GPIO
+    * 
+    * @return Expanded pattern
+    */
+   public String expandTypePattern(String pattern, String defaultPattern, Pin pin, Integer infoTableIndex, String polarity) {
+      String type;
+      if (pattern == null) {
+         pattern = defaultPattern;
+      }
+      // Pattern explicitly given
+      type = pattern;
+      type = type.replace("%i", pin.getPortInstance());     // port instance e.g."A"
+      type = type.replace("%n", pin.getGpioBitNum());       // bit number within associated GPIO
+      type = type.replace("%p", polarity);                  // polarity polarity
+      type = type.replace("%c", getClassName());            // class name e.g.  FTM2 => Ftm2
+      type = type.replace("%b", getClassBaseName());        // base class name e.g. FTM2 => Ftm
+      type = type.replace("%t", infoTableIndex.toString()); // index in infotable
+      
+      return type;
+   }
+   
+   /**
+    * Write pin instances for peripheral pins.
+    * This is useful for some devices such as I2C or SPI as it allows the pin levels or mapping to be
+    * manually changed. (MK, MKL devices only)
+    * 
+    * @param pinMappingHeaderFile
+    * @throws IOException
+    */
    public void writeDefaultPinInstances(final DocumentUtilities pinMappingHeaderFile) throws IOException {
-      for (int index=0; index<fInfoTable.table.size(); index++) {
-         Signal signal = fInfoTable.table.get(index);
 
-         MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
-         if (!mappingInfo.getPin().isAvailableInPackage()) {
+      String pattern = null;
+
+      // Check for explicit pattern form peripheral XML
+      StringVariable patternVar = (StringVariable) safeGetVariable("/SYSTEM/$pcrPattern");
+      if (patternVar != null) {
+         pattern = patternVar.getValueAsString();
+         // Suppressed output
+         if (pattern.isBlank()) {
+            return;
+         }
+      }
+      for (int infoTableIndex=0; infoTableIndex<fInfoTable.table.size(); infoTableIndex++) {
+         
+         Signal signal = fInfoTable.table.get(infoTableIndex);
+         if (signal == null) {
+            continue;
+         }
+         MappingInfo pinMapping = signal.getFirstMappedPinInformation();
+         if (!pinMapping.getPin().isAvailableInPackage()) {
             // Discard unmapped signals on this package
             continue;
          }
-         if (mappingInfo.getMux() == MuxSelection.unassigned) {
+         if (pinMapping.getMux() == MuxSelection.unassigned) {
             // Reset selection - ignore
             continue;
          }
-         if (mappingInfo.getMux() == MuxSelection.fixed) {
+         if (pinMapping.getMux() == MuxSelection.fixed) {
             // Fixed pin mapping
             continue;
          }
-         pinMappingHeaderFile.write(String.format("using %-20s = PcrTable_T<"+getClassName()+"Info,"+index+">;\n", signal.getName()+"_pin", index));
+         Pin pin = pinMapping.getPin();
+         String type = expandTypePattern(pattern, "PcrTable_T<%cInfo,%t>", pin, infoTableIndex, "ActiveHigh");
+         pinMappingHeaderFile.write(String.format("using %-20s = %s;\n", signal.getName()+"_pin", type));
+//         pinMappingHeaderFile.write(String.format("using %-20s = PcrTable_T<"+getClassName()+"Info,"+infoTableIndex+">;\n", signal.getName()+"_pin", infoTableIndex));
       }
       pinMappingHeaderFile.write("\n");
    }
@@ -320,11 +430,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /**
     * Does variable substitution in a string using the device variable map<br>
     * The following names are automatically added:
-    *    <li> _instance       Name/number of the peripheral instance e.g. FTM0 => 0, PTA => A
-    *    <li> _name           Name used to identify this provider e.g. FTM2
-    *    <li> _class          Name of C peripheral class e.g. Ftm2
-    *    <li> _base_class     Base name of C peripheral class e.g. Ftm
-    *    <li> _base_name      Base name of C peripheral class e.g. Ftm
+    *  <li>"$(_NAME)"         => e.g FTM2 => FTM2            (fPeripheral.getName())
+    *  <li>"$(_name)"         => e.g FTM2 => ftm2            (fPeripheral.getName().tolowercase())
+    *  <li>"$(_BASENAME)"     => e.g FTM0 => FTM, PTA => PT  (fPeripheral.getBaseName())
+    *  <li>"$(_basename)"     => e.g FTM0 => ftm, PTA => pt  (fPeripheral.getBaseName().tolowercase())
+    *  <li>"$(_Class)"        => e.g FTM2 => Ftm2            (fPeripheral.getClassName())
+    *  <li>"$(_Baseclass)"    => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
+    *  <li>"$(_instance)"     => e.g FTM0 => 0, PTA => A     (fPeripheral.getInstance())
     * 
     * @param input  String to process
     * 
@@ -333,11 +445,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public String substitute(String input) {
       ISubstitutionMap map = fDeviceInfo.getVariablesSymbolMap();
+      map.addValue(makeKey("_NAME"),       getName());
+      map.addValue(makeKey("_name"),       getName().toLowerCase());
+      map.addValue(makeKey("_BASENAME"),   getBaseName());
+      map.addValue(makeKey("_basename"),   getBaseName().toLowerCase());
+      map.addValue(makeKey("_Class"),      getClassName());
+      map.addValue(makeKey("_Baseclass"),  getClassBaseName());
       map.addValue(makeKey("_instance"),   getInstance());
-      map.addValue(makeKey("_name"),       getName());
-      map.addValue(makeKey("_class"),      getClassName());
-      map.addValue(makeKey("_base_class"), getClassBaseName());
-      map.addValue(makeKey("_base_name"),  getBaseName());
 //      map.substitute(input, fKeyMaker);
       return substitute(input, map);
    }
@@ -594,7 +708,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 //   }
 
    // List of clock selectors to update on validation
-   private ArrayList<Variable> fMonitoredVariables = null;
+   private ArrayList<Object> fMonitoredVariables = null;
 
 //   private ClockSelectionFigure fFigure;
    
@@ -606,7 +720,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void addDynamicVariable(Variable monitoredVariable) {
       if (fMonitoredVariables == null) {
-         fMonitoredVariables = new ArrayList<Variable>();
+         fMonitoredVariables = new ArrayList<Object>();
       }
       if (!fMonitoredVariables.contains(monitoredVariable)) {
          fMonitoredVariables.add(monitoredVariable);
@@ -631,7 +745,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @return list of clock selectors
     */
-   public ArrayList<Variable> getMonitoredVariables() {
+   public ArrayList<Object> getMonitoredVariables() {
       return fMonitoredVariables;
    }
 

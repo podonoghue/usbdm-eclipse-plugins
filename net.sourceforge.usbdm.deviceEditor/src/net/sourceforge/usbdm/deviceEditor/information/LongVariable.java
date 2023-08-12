@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
@@ -167,6 +170,8 @@ public class LongVariable extends Variable {
             return "0x"+Long.toString(value, fRadix) + " (" + Long.toString(value) + ')';
          }
          return Long.toString(value);
+      case ticks:
+         return Long.toString(value)+"_ticks";
       case s:
       case Hz:
          if (value <= 1) {
@@ -213,6 +218,48 @@ public class LongVariable extends Variable {
       return Long.toString(getValueAsLong()+fOffset);
    }
 
+   @Override
+   public String getUsageValue() {
+      String value = getSubstitutionValue();
+      Units units = getUnits();
+      if (units != Units.None) {
+         return units.append(value);
+      }
+      String typeName = getTypeName();
+      if (typeName != null) {
+         // Don't provides cast to (signed) int
+         Pattern pSpecial = Pattern.compile("(signed(\\sint)?)|(int)");
+         Matcher mSpecial = pSpecial.matcher(typeName);
+         if (!mSpecial.matches()) {
+            return typeName+"("+value+")";
+         }
+      }
+      return value;
+   }
+   
+   @Override
+   public String getDefaultParameterValue() {
+      if (fDefaultValue == null) {
+         return "no_default";
+      }
+      Units units = getUnits();
+      if (units != Units.None) {
+         return units.append(Long.toString(fDefaultValue+fOffset));
+      }
+      String rv;
+      if (fRadix == 16) {
+         rv = "0x"+Long.toString(getValueAsLong()+fOffset, fRadix);
+      }
+      else {
+         rv = Long.toString(getValueAsLong()+fOffset);
+      }
+      String typeName = getTypeName();
+      if (typeName != null) {
+         return typeName+"("+rv+")";
+      }
+      return rv;
+   }
+   
    @Override
    public String getPersistentValue() {
       return Long.toString(fValue);
@@ -274,12 +321,12 @@ public class LongVariable extends Variable {
    public String isValid(Long value) {
       try {
          getUnits();
-         getFormattedValue();
+         getUsageValue();
          if (value<getMin()) {
-            return "Value too small [<"+formatValueAsString(getMin())+"]";
+            return "Value too small ["+getName()+"<"+formatValueAsString(getMin())+"]";
          }
          if (value>getMax()) {
-            return "Value too large [>"+formatValueAsString(getMax())+"]";
+            return "Value too large ["+getName()+">"+formatValueAsString(getMax())+"]";
          }
       } catch (Exception e) {
          return "ERROR: " + e.getMessage();

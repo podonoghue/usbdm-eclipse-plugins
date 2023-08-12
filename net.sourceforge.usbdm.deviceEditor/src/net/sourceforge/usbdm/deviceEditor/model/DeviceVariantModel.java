@@ -24,10 +24,10 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
 
       for (String deviceName:fDeviceInfo.getDeviceVariants().keySet()) {
          DeviceVariantInformation deviceInformation = fDeviceInfo.getDeviceVariants().get(deviceName);
-         fDeviceNames.add(deviceInformation.getName());
+         fDeviceNames.add(deviceInformation.getPreciseName());
       }
       fChoices    = fDeviceNames.toArray(new String[fDeviceNames.size()]);
-      fSelection  = fDeviceNames.indexOf(fDeviceInfo.getVariantName());
+      fSelection  = fDeviceNames.indexOf(fDeviceInfo.getPreciseName());
       if (fSelection<0) {
          fSelection = 0;
          try {
@@ -56,7 +56,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
-         String variantName = deviceInfo.getVariantName();
+         String variantName = deviceInfo.getPreciseName();
          setValueAsString(variantName);
       }
    }

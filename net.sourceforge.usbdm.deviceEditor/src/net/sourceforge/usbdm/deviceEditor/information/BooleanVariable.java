@@ -11,7 +11,7 @@ public class BooleanVariable extends VariableWithChoices {
    private ChoiceData fTrue  = null;
    private ChoiceData fFalse = null;
    
-   /** Current value (user format i.e name) */
+   /** Current value */
    private Boolean fValue = null;
    
    /** Default value of variable */
@@ -32,7 +32,7 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String toString() {
-      return String.format("Variable(Name=%s, value=%s (%s))", getName(), getSubstitutionValue(), getValueAsString());
+      return String.format("BooleanVariable(Name=%s, value=%s (%s))", getName(), getSubstitutionValue(), getValueAsString());
    }
 
    @Override
@@ -40,17 +40,7 @@ public class BooleanVariable extends VariableWithChoices {
       return new BooleanVariableModel(parent, this);
    }
    
-   /**
-    * Convert object to suitable type for this variable
-    * 
-    * @param value
-    * 
-    * @return Converted object
-    */
    public boolean translate(Object value) {
-//      if (getName().contains("enableClockConfiguration[0]")) {
-//         System.err.println("Name = "+getName());
-//      }
       if (value instanceof Boolean) {
          return (Boolean)value;
       }
@@ -94,25 +84,6 @@ public class BooleanVariable extends VariableWithChoices {
    }
    
    /**
-    * Get current value or null if not yet set
-    * 
-    * @return
-    */
-   public Object getValue() {
-      return isEnabled()?fValue:fDisabledValue;
-   }
-   
-   @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
-   }
-
-   @Override
-   public void setPersistentValue(String value) {
-      fValue = translate(value);
-   }
-   
-   /**
     * Set variable value as Boolean<br>
     * Listeners are informed if the variable changes
     * 
@@ -124,10 +95,23 @@ public class BooleanVariable extends VariableWithChoices {
       if ((fValue!= null) && (fValue == (boolean)value)) {
          return false;
       }
-//      super.debugPrint("BooleanVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;
+   }
+   
+   /**
+    * Get current value or null if not yet set
+    * 
+    * @return
+    */
+   public Object getValue() {
+      return isEnabled()?fValue:fDisabledValue;
+   }
+   
+   @Override
+   public long getValueAsLong() {
+      return getValueAsBoolean()?1:0;
    }
    
    @Override
@@ -139,26 +123,46 @@ public class BooleanVariable extends VariableWithChoices {
    }
    
    @Override
+   public String getSubstitutionValue() {
+      if (getValueAsBoolean()) {
+         return (fTrue==null)?"TTTT":fTrue.getValue();
+      }
+      return (fFalse==null)?"FFFF":fFalse.getValue();
+   }
+
+   @Override
+   public void setValueQuietly(Object value) {
+      fValue = translate(value);
+   }
+
+   @Override
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
+   }
+   
+   @Override
+   public String getPersistentValue() {
+      return Boolean.toString(fValue);
+   }
+
+   @Override
    public boolean getValueAsBoolean() {
       return isEnabled()?fValue:fDisabledValue;
    }
 
    @Override
-   public long getValueAsLong() {
-      return getValueAsBoolean()?1:0;
-   }
-   
-   @Override
-   public String getSubstitutionValue() {
+   public String getEnumValue() {
       if (getValueAsBoolean()) {
-         return (fTrue==null)?"T not set":fTrue.getValue();
+         if (fTrue == null) {
+            throw new RuntimeException("T not set");
+         }
+         return makeEnum(fTrue.getEnumName());
       }
-      return (fFalse==null)?"F not set":fFalse.getValue();
-   }
+      if (fFalse == null) {
+         throw new RuntimeException("F not set");
+      }
+      return makeEnum(fFalse.getEnumName());
 
-   @Override
-   public String getPersistentValue() {
-      return Boolean.toString(fValue);
    }
 
    @Override

@@ -24,6 +24,7 @@ import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
  * Model representing all peripherals along with their associated signals
@@ -53,8 +54,10 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
 
       for (String pName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
-         if (peripheral.hasMappableSignals()) {
-            peripheral.createPeripheralSignalsModel(this);
+         if (peripheral instanceof PeripheralWithState) {
+            if (peripheral.hasMappableSignals()) {
+               ((PeripheralWithState)peripheral).createPeripheralSignalsModel(this);
+            }
          }
       }
    }
@@ -77,16 +80,16 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Peripherals and Signals", 160, new NameColumnLabelProvider(),              null, 
+                           new TreeColumnInformation("Peripherals and Signals", 160, new NameColumnLabelProvider(),              null,
                                  "Signals grouped by peripheral"),
-                           new TreeColumnInformation("Mux:Pin",                 120, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer), 
+                           new TreeColumnInformation("Mux:Pin",                 120, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer),
                                  "Mapping of peripheral signal\n"+
                                  "Blue bold text is used if multiple incompatible signals are mapped to a pin"),
-                           new TreeColumnInformation("Code Identifier",         120, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer), 
+                           new TreeColumnInformation("Code Identifier",         120, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer),
                                  CodeIdentifierColumnLabelProvider.getColumnToolTipText()),
-                           new TreeColumnInformation("Modifier",                100, new ModifierColumnLabelProvider(),          new ModifierEditingSupport(viewer), 
+                           new TreeColumnInformation("Modifier",                100, new ModifierColumnLabelProvider(),          new ModifierEditingSupport(viewer),
                                  ModifierColumnLabelProvider.getColumnToolTipText()),
-                           new TreeColumnInformation("Instance",                 80, new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer), 
+                           new TreeColumnInformation("Instance",                 80, new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer),
                                  InstanceColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Interrupt/DMA",           115, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),
                                  PinInterruptDmaColumnLabelProvider.getColumnToolTipText()),

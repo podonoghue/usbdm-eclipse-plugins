@@ -41,7 +41,6 @@ public class WriterForPit extends PeripheralWithState {
    protected void writeDeclarations() {
       
       super.writeDeclarations();
-      
       for (int index=0; index<fInfoTable.table.size(); index++) {
          Signal signal = fInfoTable.table.get(index);
          if (signal == null) {

@@ -42,7 +42,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Units for physical quantities
     */
-   public enum Units {None, Hz, s};
+   public enum Units {
+      None, Hz, s, ticks;
+      
+      public String append(String value) {
+         if (this == None) {
+            return value;
+         };
+         return value+"_"+this.toString();
+      }
+   };
 
    /**
     * Class to hold the data for choices
@@ -311,7 +320,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    private String fUnlockedBy;
 
    /** Condition for forcing error on this variable */
-   private String ferrorIf;
+   private String fErrorIf;
 
    /**
     * Constructor
@@ -358,13 +367,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 //   public void setKey(String key) {
 //      this.fKey = key;
 //   }
-
-   /**
-    * Get the variable value as a string for use in substitutions
-    * 
-    * @return String for text substitutions (in C code)
-    */
-   public abstract String getSubstitutionValue();
 
    /**
     * Get variable value as a string suitable for user display
@@ -981,34 +983,91 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          return description;
    }
       
-   public String getFormattedValue() {
+   /**
+    * Get the variable value as a string for use in substitutions in C code<br>
+    * This is a fundamental value not requiring any generated code support e.g. '123' or 'true'
+    * 
+    * @return String for text substitutions (in C code)
+    */
+   public abstract String getSubstitutionValue();
+
+   /**
+    * Get value for use in C code<br>
+    * This value is in the format required for defining a value e.g. OSC_CR_OSCEN(0) for use in declaring an ENUM
+    * 
+    * @return String for text substitutions (in C code)
+    */
+   public String getDefinitionValue() {
+
+      String format = getValueFormat();
+      String value  = getSubstitutionValue();
+      if (format == null) {
+         return value;
+      }
+      return String.format(format, value);
+   }
+   
+   /**
+    * Get value for use in C code<br>
+    * This value is in the final usage format e.g. I2cSmbAddress_Enabled or 1234_ticks<br>
+    * This value <b>may need</b> manipulation for use with hardware e.g. integer value wrapped in a macro.
+    * 
+    * @return String for text substitutions (in C code)
+    */
+   public String getUsageValue() {
       String format = getValueFormat();
       if (format == null) {
          return getSubstitutionValue();
       }
-      return String.format(format, getSubstitutionValue());
+      try {
+         return String.format(format, getSubstitutionValue());
+      } catch (Exception e) {
+         return "Illegal_format";
+      }
    }
    
+   /**
+    * Get value associated with field from variable
+    * 
+    * @param field Field used to select type of value to return e.g. 'tooltip', 'code' ...
+    * 
+    * @return Nominated value as string
+    */
    public String getField(String field) {
+      String rv = "field '"+field+"' not found in variable '"+getKey()+"'";
       if (field.equals("tooltip")) {
-         return getToolTipAsCode();
+         rv = getToolTipAsCode();
       }
       if (field.equals("description")) {
-         return getDescriptionAsCode();
+         rv = getDescriptionAsCode();
       }
       if (field.equals("shortDescription")) {
-         return getShortDescription();
+         rv = getShortDescription();
       }
       if (field.equals("value")) {
-         return getSubstitutionValue();
+         rv = getSubstitutionValue();
       }
       if (field.equals("data")) {
-         return fDataValue;
+         rv = getDataValue();
+      }
+      if (field.equals("definition")) {
+         rv = getDefinitionValue();
       }
       if (field.equals("formattedValue")) {
-         return getFormattedValue();
+         // deprecated
+         System.err.println("Deprecated use of field "+getKey()+".formattedValue");
+         rv = getUsageValue();
       }
-      return "field '"+field+"' not found in variable '"+getKey()+"'";
+      if (field.equals("usageValue")) {
+         if (this.getName().contains("uartClass")) {
+            System.err.println("Found it "+getName());
+         }
+         rv = getUsageValue();
+      }
+      if ((rv==null)||rv.isBlank()) {
+         rv = "Opps";
+      }
+      return rv;
    }
 
    /**
@@ -1303,7 +1362,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param errorIf
     */
    public void setErrorIf(String errorIf) {
-      ferrorIf = errorIf;
+      fErrorIf = errorIf;
    }
 
    /**
@@ -1312,10 +1371,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param enabledBy
     */
    public String getErrorIf() {
-      if (ferrorIf == null) {
+      if (fErrorIf == null) {
          return null;
       }
-      String parts[] = ferrorIf.split(",");
+      String parts[] = fErrorIf.split(",");
       return parts[0];
    }
 
@@ -1325,10 +1384,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param enabledBy
     */
    public String getErrorIfMessage() {
-      if (ferrorIf == null) {
+      if (fErrorIf == null) {
          return null;
       }
-      String parts[] = ferrorIf.split(",");
+      String parts[] = fErrorIf.split(",");
       if (parts.length>1) {
          return parts[1];
       }

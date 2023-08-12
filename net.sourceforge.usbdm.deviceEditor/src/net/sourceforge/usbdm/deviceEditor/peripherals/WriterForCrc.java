@@ -19,6 +19,7 @@ public class WriterForCrc extends PeripheralWithState {
    public String getTitle() {
       return "Cyclic Redundancy Check";
    }
+   
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
       extractAllRegisterFields(dbPortPeripheral);

@@ -26,7 +26,6 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
-import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
@@ -767,11 +766,25 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     */
    protected void writeSignalPcrDeclarations() {
+      String pattern = null;
 
+      // Check for explicit pattern from peripheral XML
+      StringVariable patternVar = (StringVariable) safeGetVariable(makeKey("$pcrPattern"));
+      if (patternVar == null) {
+         // Check for general pattern from peripheral XML
+         patternVar = (StringVariable) safeGetVariable("/SYSTEM/$pcrPattern");
+      }
+      if (patternVar != null) {
+         pattern = patternVar.getValueAsString();
+         // Suppressed output
+         if (pattern.isBlank()) {
+            return;
+         }
+      }
       ArrayList<InfoTable> InfoTables = getSignalTables();
       for (InfoTable infoTable:InfoTables) {
          for (int infoTableIndex=0; infoTableIndex<infoTable.table.size(); infoTableIndex++) {
-            
+
             Signal signal = infoTable.table.get(infoTableIndex);
             if (signal == null) {
                continue;
@@ -784,7 +797,17 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             String trailingComment  = pin.getNameWithLocation();
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             if (!cIdentifier.isBlank()) {
-               String type = String.format("PcrTable_T<%sInfo,%d>", getClassName(), infoTableIndex);
+               String type;
+               if (pattern != null) {
+                  // Pattern explicitly given
+                  type = pattern.replace("%i", pin.getPortInstance());  // port instance e.g."A"
+                  type = type.replace("%n", pin.getGpioBitNum()); // bit number
+                  type = type.replace("%p", "ActiveHigh");  // polarity
+               }
+               else {
+                  // Default (MK,MKL devices)
+                  type = String.format("PcrTable_T<%sInfo,%d>", getClassName(), infoTableIndex);
+               }
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
          }
@@ -825,7 +848,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    boolean fCreatedUserDeclarations = false;
    
    /**
-    * Creat declarations for variables and types associated with this peripheral e.g.
+    * Create declarations for variables and types associated with this peripheral e.g.
     * <pre>
     * // An example peripheral
     * using MyAdc = const <i><b>Adc1</b></i>;
@@ -854,6 +877,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       fHardwareDefinitions       = hardwareDefinitions;
       fCreatedUserDeclarations   = false;
       
+      Variable signalVar = safeGetVariable(makeKey("_signals"));
+      if ((signalVar != null) &&  !signalVar.isEnabled()) {
+         return;
+      }
       writeDeclarations();
       
       if (fCreatedUserDeclarations) {
@@ -1136,13 +1163,19 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
       writeNamespaceInfo(pinMappingHeaderFile);
       
+      String classDecl = getClassName()+"Info";
+      
+      Variable classDeclaration = safeGetVariable(makeKey("_class_declaration"));
+      if (classDeclaration != null) {
+         // Custom Open class
+         classDecl = classDeclaration.getValueAsString();
+      }
       // Open class
       pinMappingHeaderFile.write(String.format(
-            "class %s {\n"+
-                  "public:\n",
-                  getClassName()+"Info"
+            "class %s {\n" +
+            "public:\n",
+               classDecl
             ));
-      
       // Additional, peripheral specific, information
       writeInfoConstants(pinMappingHeaderFile);
       
@@ -1271,8 +1304,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       private final String     fSignalFilter;
       
       public PeripheralSignals(Peripheral peripheral, String signalFilter) {
-         this.fPeripheral   = peripheral;
-         this.fSignalFilter = signalFilter;
+         fPeripheral   = peripheral;
+         fSignalFilter = signalFilter;
       }
 
       /**
@@ -1348,40 +1381,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             signalPeripheral.getPeripheral().createMySignalModels(parent, signalPeripheral.getSignalFilter());
          }
       }
-   }
-
-   /**
-    * Create models representing the signals for this peripheral.<br>
-    * <i><b>May add related pins e.g. RTC may contains OSC pins</b></i>
-    * 
-    * @param parent Model to attach PeripheralSignalsModel to
-    * 
-    * @return PeripheralSignalsModel containing signals or null if no signals are associated with this peripheral
-    */
-   public PeripheralSignalsModel createPeripheralSignalsModel(BaseModel parent) {
-      if (!fHasSignal) {
-         return null;
-      }
-      return new PeripheralSignalsModel(parent, this);
-   }
-
-   /**
-    * Add peripheral as source for signals for this peripheral.
-    * Actual signal models are created later.
-    * 
-    * @param parentModel   Model to contain signal category
-    * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
-    */
-   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter) {
-      fHasSignal = true;
-      if (peripheral == this) {
-         // Don't add to self!
-         return;
-      }
-      if (fSignalPeripherals == null) {
-         fSignalPeripherals = new ArrayList<PeripheralSignals>();
-      }
-      fSignalPeripherals.add(new PeripheralSignals(peripheral, filter));
    }
 
    /**

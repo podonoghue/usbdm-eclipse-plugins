@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Image;
 import net.sourceforge.usbdm.deviceEditor.editor.BaseLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
@@ -141,7 +142,7 @@ public class WriterForSpi extends PeripheralWithState {
    
    }
    /**
-    * Generate set of enum symbols and Types for CMP inputs that are mapped to pins.
+    * Generate set of enum symbols and Types for SPI inputs that are mapped to pins.
     * 
     * <pre>
     *   // In spi.h
@@ -150,7 +151,7 @@ public class WriterForSpi extends PeripheralWithState {
     * 
     *   // In hardware.h
     *   /// User comment
-    *   typedef const Cmp0::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
+    *   typedef const Spi::Pin<Cmp0::Input_Ptc6>  MyComparatorInput;    // PTC6 (p51)
     * </pre>
     * 
     * @param documentUtilities
@@ -161,10 +162,13 @@ public class WriterForSpi extends PeripheralWithState {
 
       super.writeDeclarations();
 
+      if (fDeviceInfo.getDeviceFamily() != DeviceFamily.mk) {
+         return;
+      }
       ArrayList<InfoTable> signalTables = getSignalTables();
       HashSet<String> usedIdentifiers = new HashSet<String>();
 
-      StringBuilder enumStringBuilder       = new StringBuilder();
+      StringBuilder enumStringBuilder = new StringBuilder();
       
       for (InfoTable signalTable:signalTables) {
          int index = -1;

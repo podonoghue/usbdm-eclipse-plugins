@@ -128,7 +128,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /** Name space for C files */
    public static final String NAME_SPACE_USBDM_LIBRARY        = "USBDM";
 
-   /** Name space withing USBDM namespace for C variables representing peripheral signals mapped to pins*/
+   /** Name space within USBDM namespace for C variables representing peripheral signals mapped to pins*/
    public static final String NAME_SPACE_SIGNALS  = "SIGNALS";
 
    /** How to handle existing files etc */
@@ -1070,12 +1070,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             getDeviceFamily(),
             WriterForGpio.class);
       
+      createPeripheralTemplateInformation(
+            "PORT", "", "",
+            "^(PORT)$",
+            getDeviceFamily(),
+            WriterForPort.class);
+
 //      createPeripheralTemplateInformation(
 //            "PORT", "$2", "$4",
 //            "^(PORT)([A-I])(_(\\d+))?$",
 //            getDeviceFamily(),
 //            WriterForPort.class);
-      
+//
       createPeripheralTemplateInformation(
             "IRQ", "", "INT",
             "IRQ",
@@ -1462,7 +1468,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
 
    /** Name of device e.g. MK20DN32VLH5, FRDM_K20D50M */
-   private String fVariantName = null;
+   private String fPreciseName = null;
 
    /**
     * 
@@ -1480,36 +1486,36 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Set device variant name (and variant information)
     * 
-    * @param variantName Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M
+    * @param preciseName Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M, MKE04Z8VTG4
     * @throws Exception
     */
-   public void setVariantName(String variantName) throws Exception {
-      if ((fVariantName != null) && (fVariantName.compareTo(variantName) == 0)) {
+   public void setVariantName(String preciseName) throws Exception {
+      if ((fPreciseName != null) && (fPreciseName.compareTo(preciseName) == 0)) {
          return;
       }
-      fVariantName = variantName;
+      fPreciseName = preciseName;
       if (fVariantInformationTable != null) {
-         fVariantInformation = fVariantInformationTable.get(fVariantName);
+         fVariantInformation = fVariantInformationTable.get(fPreciseName);
          if (fVariantInformation == null) {
-            throw new UsbdmException("Illegal device variant name "+ variantName);
+            throw new UsbdmException("Illegal device variant name "+ preciseName);
          }
       }
       String deviceName = fVariantInformation.getDeviceName();
       if ((deviceName == null) || deviceName.isBlank()) {
-         // Use legacy method
-         deviceName = getDeviceName(fVariantName);
+         // Use legacy method to obtain device name from variant name
+         deviceName = getDeviceName(fPreciseName);
       }
       DeviceLinkerInformation.addLinkerMemoryMap(deviceName, fVariables);
       setDirty(true);
    }
    
    /**
-    * Get device variant name
+    * Get precise name of device variant
     * 
-    * @return Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M
+    * @return Name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M, MKE04Z8VTG4
     */
-   public String getVariantName() {
-      return fVariantName;
+   public String getPreciseName() {
+      return fPreciseName;
    }
    
    /**
@@ -1524,7 +1530,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Create device variant information
     * 
-    * @param variantName      Device variant name e.g. MK20DN32VLH5, FRDM_K20D50M, MK28FN2M0CAU15R - Key
+    * @param preciseName      Precise name of device variant e.g. MK20DN32VLH5, FRDM_K20D50M, MK28FN2M0CAU15R - Key
     * @param manual           Manual reference e.g. K20P64M50SF0RM
     * @param packageName      Package e.g. LQFP_64, QFN_32  - Identifies package pin information internally
     * @param deviceName       Device name e.g. MK28FN2M0M15 - Used to obtain device information (linker etc)
@@ -1532,10 +1538,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return class containing given information
     * @throws UsbdmException
     */
-   public DeviceVariantInformation createDeviceInformation(String variantName, String manual, String packageName, String deviceName) throws UsbdmException {
+   public DeviceVariantInformation createDeviceInformation(String preciseName, String manual, String packageName, String deviceName) throws UsbdmException {
       DeviceVariantInformation deviceInformation =
-            new DeviceVariantInformation(variantName, manual, findOrCreateDevicePackage(packageName), deviceName);
-      fVariantInformationTable.put(variantName, deviceInformation);
+            new DeviceVariantInformation(preciseName, manual, findOrCreateDevicePackage(packageName), deviceName);
+      fVariantInformationTable.put(preciseName, deviceInformation);
       return deviceInformation;
    };
 
@@ -1745,10 +1751,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          String variantName = settings.get(USBDMPROJECT_VARIANT_SETTING_KEY);
          if ((variantName == null) && (device != null)) {
             for (String variant:getDeviceVariants().keySet()) {
-               String deviceName = getDeviceName(variant);
+               DeviceVariantInformation deviceVarInfo = getDeviceVariants().get(variant);
+               String deviceName = deviceVarInfo.getDeviceName();
                if (deviceName.equalsIgnoreCase(device.getName())) {
                   // Found compatible variant
                   variantName = variant;
+                  break;
+               }
+               deviceName = getDeviceName(variant);
+               if (deviceName.equalsIgnoreCase(device.getName())) {
+                  // Found compatible variant
+                  variantName = variant;
+                  break;
                }
             }
          }
@@ -1897,7 +1911,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                Variable var = fVariables.get(entry.getKey());
                if (!var.isDerived()) {
                   if (!var.getPersistentValue().equals(value)) {
-                     System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getName());
+                     System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getKey());
                      System.err.println("Loaded value     = " + value);
                      System.err.println("Persistent value = " + var.getPersistentValue());
                   }
@@ -1935,7 +1949,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       fProjectSettingsPath = path;
       Settings settings = new Settings("USBDM");
       settings.put(USBDMPROJECT_SUBFAMILY_SETTING_KEY,    fDeviceSubFamily);
-      settings.put(USBDMPROJECT_VARIANT_SETTING_KEY,      fVariantName);
+      settings.put(USBDMPROJECT_VARIANT_SETTING_KEY,      fPreciseName);
       settings.put(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY, fHardwarePath.getFileName().toString());
       
       // Save settings from pins e.g. pin mapping and descriptions
@@ -2188,7 +2202,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public BaseModel[] getModels(DeviceInfo deviceInfo, BaseModel parent) {
       BaseModel[] models = {
-            new ConstantModel(parent, "Device", "", deviceInfo.getVariantName()),
+            new ConstantModel(parent, "Device", "", deviceInfo.getPreciseName()),
             new ConstantModel(parent, "Hardware File", "", deviceInfo.getSourceFilename()),
             new DeviceVariantModel(parent, deviceInfo),
             new DevicePackageModel(parent, deviceInfo),
@@ -2261,12 +2275,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          return fVariables.safeGet(baseKey+"[0]");
       }
       else if (key.endsWith("[0]")) {
-         String baseKey = key.substring(0,key.length()-3);
+//         String baseKey = key.substring(0,key.length()-3);
          
          // XXX Eventually remove
-         if (fVariables.safeGet(baseKey) != null) {
-            throw new RuntimeException("Use of non-indexed variable '"+baseKey+"' with [0]");
-         }
+//         if (fVariables.safeGet(baseKey) != null) {
+//            throw new RuntimeException("Use of non-indexed variable '"+baseKey+"' with [0]");
+//         }
          // Use 0 index
          return fVariables.safeGet(key);
       }
@@ -2417,9 +2431,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return Device name
     */
    public static String getDeviceName(String variantName) {
-      final String packageSuffixes = "(VLF|VFT|VDC|VLH|VLL|VMP|VMP|VMC|VFK|VLC|VFM|VLQ|VMD|VFG|CAF)";
+      final String packageSuffixes = "(CAF|VDC|VFG|VFK|VFT|VFM|VLC|VLF|VLH|VLL|VLQ|VMC|VMD|VMP|VTG|VWJ)";
       DeviceNamePattern patterns[] = {
-            new DeviceNamePattern("^(MK(L)?\\d+(Z|DN|DX|FN|FX)\\d+(M\\d+)?)"+packageSuffixes+"(\\d+)$", "$1M$6"), // MK20DN32VLF5 -> MK20D5
+            new DeviceNamePattern("^(MK(L|E)?\\d+(Z|DN|DX|FN|FX)\\d+(M\\d+)?)"+packageSuffixes+"(\\d+)$", "$1M$6"), // MK20DN32VLF5 -> MK20D5
       };
       
       for (DeviceNamePattern pattern:patterns) {

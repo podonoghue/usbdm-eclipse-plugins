@@ -17,6 +17,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Cluster;
@@ -232,7 +233,10 @@ public class WriterForGpio extends PeripheralWithState {
             }
          }
       }
-
+      
+      StringVariable gpioPatternVar      = (StringVariable) safeGetVariable("/SYSTEM/$gpioPattern");
+      StringVariable gpioFieldPatternVar = (StringVariable) safeGetVariable("/SYSTEM/$gpioFieldPattern");
+      
       // Process the identifiers
       for (String mainIdentifier:variablesToCreate.keySet()) {
 
@@ -242,13 +246,25 @@ public class WriterForGpio extends PeripheralWithState {
          final ArrayList<Signal>  signals = gpioPinInformation.getSignals();
          if (bitNums.size()==1) {
             // Do simple Gpio
-            int bitNum = bitNums.get(0);
             Pin    pin    = pins.get(0);
             Signal signal = signals.get(0);
             String trailingComment  = pin.getNameWithLocation();
             String polarity         = isActiveLow(signal)?"ActiveLow":"ActiveHigh";
             String pinDescription   = gpioPinInformation.getDescription();
-            String type = String.format("GpioTable_T<%sInfo, %d, %s>", getClassName(), bitNum, polarity);
+
+            String type;
+            if (gpioPatternVar != null) {
+               // Gpio%i<%n,%p>;
+               String gpioPattern = gpioPatternVar.getValueAsString();
+               type = gpioPattern.replace("%i", pin.getPortInstance());  // port instance e.g."A"
+               type = type.replace("%n", pin.getGpioBitNum()); // bit number
+               type = type.replace("%p", polarity);  // polarity
+            }
+            else {
+               type = String.format("Gpio%s<%s, %s>", pin.getPortInstance(), pin.getGpioBitNum(), polarity);
+            }
+//            String type = String.format("Gpio%s<%s, %s>", pin.getPortInstance(), pin.getGpioBitNum(), polarity);
+//            String type = String.format("GpioTable_T<%sInfo, %d, %s>", getClassName(), bitNum, polarity);
             String constType = "const "+ type;
             if (signal.getCreateInstance()) {
                writeVariableDeclaration("", pinDescription, mainIdentifier, constType, trailingComment);
@@ -284,17 +300,28 @@ public class WriterForGpio extends PeripheralWithState {
             if (fieldPolarity != 0) {
                if (gpioPinInformation.isMixedPolarity()) {
                   // Use explicit bit-mask
-                  polarity = ", 0b" + Integer.toBinaryString(fieldPolarity);
+                  polarity = "0b" + Integer.toBinaryString(fieldPolarity);
                }
                else {
-                  polarity = ", ActiveLow";
+                  polarity = "ActiveLow";
                }
             }
             else {
-               polarity = ", ActiveHigh";
+               polarity = "ActiveHigh";
             }
+            String type;
+            if (gpioFieldPatternVar != null) {
+               // GpioField%i<%l,%r,%p>;
+               String gpioPattern = gpioFieldPatternVar.getValueAsString();
+               type = gpioPattern.replace("%i", getInstance());  // port instance e.g."A"
+               type = type.replace("%l", bitNums.get(bitNums.size()-1).toString()); // bit number
+               type = type.replace("%r", bitNums.get(0).toString()); // bit number
+               type = type.replace("%p", polarity);  // polarity
+            }
+            else {
             // GpioFieldTable_T<GpioEInfo, 7, 0, ActiveHigh>
-            String type = String.format("GpioFieldTable_T<%s, %d, %d%s>", getClassName()+"Info", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
+               type = String.format("GpioFieldTable_T<%s, %d, %d,%s>", getClassName()+"Info", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
+            }
             String constType = "const "+ type;
             if (gpioPinInformation.getCreateInstance()) {
                writeVariableDeclaration(error, fieldDescription, mainIdentifier, constType, trailingComment);
@@ -459,6 +486,7 @@ public class WriterForGpio extends PeripheralWithState {
             break;
          }
       }
+      addOrIgnoreStringConstant("/"+getName()+"/$present");
       if (pcrFound) {
          String key = "/PCR/$present";
          addOrIgnoreStringConstant(key);

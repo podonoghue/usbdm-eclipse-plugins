@@ -42,7 +42,11 @@ public class FtmValidate extends PeripheralValidator {
          long   ftm_mod       = ftm_modVar.getValueAsLong();
          long   ftm_cntin     = ftm_cntinVar.getValueAsLong();
          double ftm_modPeriod = ftm_modPeriodVar.getValueAsDouble();
-
+         
+         if (!Double.isFinite(ftm_modPeriod)) {
+            // Don't propagate if invalid calculation of period
+            return;
+         }
          double clockPeriod = 1.0/clockFrequency;
          
          long ftm_sc_mode = ftm_sc_modeVar.getValueAsLong();
@@ -74,9 +78,9 @@ public class FtmValidate extends PeripheralValidator {
          }
 //         ftm_modPeriod = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
 //         System.err.println("ftm_modPeriod = " + ftm_modPeriod);
-         
+//
 //         double ftm_modPeriodMax = clockPeriod * (ftm_sc_cpwms?(2*(65535-ftm_cntin)):((65535-ftm_cntin+1)));
-////         ftm_modPeriodVar.setValue(ftm_modPeriod);
+//         ftm_modPeriodVar.setValue(ftm_modPeriod);
 //         ftm_modPeriodVar.setMax(ftm_modPeriodMax);
       }
    }

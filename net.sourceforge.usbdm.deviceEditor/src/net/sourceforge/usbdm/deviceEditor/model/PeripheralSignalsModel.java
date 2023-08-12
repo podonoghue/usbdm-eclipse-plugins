@@ -1,5 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.swt.widgets.Tree;
+
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralSignalsVariable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
@@ -11,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
  *        +-----Signal Model
  * </pre>
  */
-public final class PeripheralSignalsModel extends EditableModel implements IModelChangeListener {
+public final class PeripheralSignalsModel extends VariableModel implements IModelChangeListener {
 
    private Peripheral fPeripheral;
    
@@ -27,10 +31,10 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
     * @param parent        Parent
     * @param peripheral    Peripheral used to locate signals model
     */
-   public PeripheralSignalsModel(BaseModel parent, Peripheral peripheral) {
-      super(parent, peripheral.getName());
+   public PeripheralSignalsModel(BaseModel parent, PeripheralSignalsVariable var) {
+      super(parent, var);
       
-      fPeripheral = peripheral;
+      fPeripheral = (Peripheral) var.getProvider();
       fPeripheral.createSignalModels(this);
       watchChildren();
    }
@@ -85,5 +89,11 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
    @Override
    public void setValueAsString(String value) {
       // No data
+   }
+
+   @Override
+   public CellEditor createCellEditor(Tree tree) {
+      // TODO Auto-generated method stub
+      return null;
    }
 }

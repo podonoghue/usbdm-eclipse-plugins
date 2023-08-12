@@ -2,6 +2,9 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -14,7 +17,8 @@ import org.eclipse.swt.widgets.Shell;
 public class BitmaskDialogue extends Dialog {
    private final Button  fButtons[];
    private       long    fValue;
-   private       long    fBitmask;
+   private final long    fDefaultValue;
+   private final long    fBitmask;
    
    // Set name pattern for elements e.g. pin%d
    private String   fElementName = "%d";
@@ -30,7 +34,7 @@ public class BitmaskDialogue extends Dialog {
     * @param bitmask        Bit mask for available bits
     * @param initialValue   Initial bit mask
     */
-   public BitmaskDialogue(Shell parentShell, long bitmask, long initialValue) {
+   public BitmaskDialogue(Shell parentShell, long bitmask, long initialValue, long defaultValue) {
      super(parentShell);
      fBitmask  = bitmask;
      long highestOne = Long.highestOneBit(bitmask);
@@ -40,7 +44,8 @@ public class BitmaskDialogue extends Dialog {
      else {
         fButtons = null;
      }
-     fValue    = initialValue & fBitmask;
+     fValue        = initialValue & fBitmask;
+     fDefaultValue = defaultValue & fBitmask;
    }
 
    /**
@@ -55,6 +60,7 @@ public class BitmaskDialogue extends Dialog {
    @Override
    protected Control createDialogArea(Composite parent) {
       Composite container = (Composite) super.createDialogArea(parent);
+      container.setToolTipText("Bits unchanged from default are in grey");
       int width = 8;
       if (fBitNames != null) {
          if (fBitNames.length<width) {
@@ -80,7 +86,7 @@ public class BitmaskDialogue extends Dialog {
       else {
          int bitNameIndex = 0;
          for (int i=0; i<32; i++) {
-            long mask = (1<<i);
+            long mask = (1L<<i);
             if (mask > fBitmask) {
                break;
             }
@@ -94,6 +100,7 @@ public class BitmaskDialogue extends Dialog {
                   }
                   btn.setText(fBitNames[bitNameIndex++]);
                   btn.setSelection((fValue & mask) != 0);
+                  btn.setData(i);
                   fButtons[i] = btn;
                }
             }
@@ -103,7 +110,29 @@ public class BitmaskDialogue extends Dialog {
                btn.setText(fElementName.replaceAll("%d", Integer.toString(i)));
                btn.setSelection((fValue & mask) != 0);
                btn.setEnabled((fBitmask & mask) != 0);
+               boolean changedFromDefault = (((fValue^fDefaultValue) & mask) != 0);
+               Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_GRAY);
+               btn.setForeground(c);
+               btn.setData(i);
                fButtons[i] = btn;
+            }
+            if (fButtons[i] != null) {
+               fButtons[i].setToolTipText("Bits unchanged from default are in grey");
+               fButtons[i].addSelectionListener(new SelectionListener() {
+                  @Override
+                  public void widgetSelected(SelectionEvent e) {
+                     Button b = (Button) e.widget;
+                     long mask  = 1<<((int) b.getData());
+                     long value = (b.getSelection()?mask:0);
+                     boolean changedFromDefault = (((value^fDefaultValue) & mask) != 0);
+                     Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_TITLE_INACTIVE_BACKGROUND);
+                     b.setForeground(c);
+                  }
+
+                  @Override
+                  public void widgetDefaultSelected(SelectionEvent e) {
+                  }
+               });
             }
          }
       }
@@ -174,7 +203,7 @@ public class BitmaskDialogue extends Dialog {
       
       long selection = 0xC2;
       while(true) {
-         BitmaskDialogue editor = new BitmaskDialogue(shell, 0xCC2, selection);
+         BitmaskDialogue editor = new BitmaskDialogue(shell, 0xCC2, selection, 0x14);
 //         editor.setElementName("pin%d");
          editor.setBitNameList("This is #1,This is #6,This is #7");
          if  (editor.open() != OK) {

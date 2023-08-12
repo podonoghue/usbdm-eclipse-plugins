@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
@@ -168,6 +169,20 @@ public class SimpleExpressionParser {
       }
       key = makeClockSpecificVarKey(key);
       
+      // Check for modifier
+      String modifier = null;
+      ch = skipSpace();
+      if ((ch != null) && (ch == '.')) {
+         // Discard '.'
+         ch = getNextCh();
+         StringBuilder modifierSb = new StringBuilder();
+         while ((ch != null) && Character.isJavaIdentifierPart(ch)) {
+            modifierSb.append(ch);
+            ch = getNextCh();
+         }
+         modifier = modifierSb.toString();
+      }
+      
       if (!fCollectedIdentifiers.contains(key)) {
          fCollectedIdentifiers.add(key);
       }
@@ -189,6 +204,33 @@ public class SimpleExpressionParser {
       case EvaluateFully:
          if (var == null) {
             throw new Exception("Failed to find variable '" + key + "'");
+         }
+         if (modifier != null) {
+            if (!(var instanceof ChoiceVariable)) {
+               throw new Exception("Expected choice variable for modifier'" + key + "'");
+            }
+            ChoiceVariable cv = (ChoiceVariable)var;
+            ChoiceData choiceData = cv.getCurrentChoice();
+            if (choiceData == null) {
+               return "Nothing selected in choice";
+            }
+            if ("value".equalsIgnoreCase(modifier)) {
+               // .value => Value from choice
+               return choiceData.getValue();
+            }
+            else if ("name".equalsIgnoreCase(modifier)) {
+               // .name  => Name from choice
+               return choiceData.getName();
+            }
+            else if ("code".equalsIgnoreCase(modifier)) {
+               // .code  => Code from choice
+               return choiceData.getCodeValue();
+            }
+            else if ("enum".equalsIgnoreCase(modifier)) {
+               // .code  => Code from choice
+               return choiceData.getEnumName();
+            }
+            throw new Exception("Illegal .modifier");
          }
          if (var instanceof BooleanVariable) {
             return var.getValueAsBoolean();
@@ -802,14 +844,16 @@ public class SimpleExpressionParser {
             throw new Exception("Expected '&'");
          }
          fIndex++;
-         Object rightOperand = evaluateBitOr();
 
-         if ((leftOperand instanceof Boolean) && (rightOperand instanceof Boolean)) {
-            leftOperand = (Boolean)leftOperand && (Boolean)rightOperand;
-         }
-         else {
+         if (!(leftOperand instanceof Boolean)) {
             throw new Exception("Unexpected data type for operand");
          }
+         
+         Object rightOperand = evaluateBitOr();
+         if (!(rightOperand instanceof Boolean)) {
+            throw new Exception("Unexpected data type for operand");
+         }
+         leftOperand = (Boolean)leftOperand && (Boolean)rightOperand;
       } while (true);
    }
    
@@ -835,14 +879,17 @@ public class SimpleExpressionParser {
             throw new Exception("Expected '|'");
          }
          fIndex++;
-         Object rightOperand = evaluateLogicalAnd();
-
-         if ((leftOperand instanceof Boolean) && (rightOperand instanceof Boolean)) {
-            leftOperand = (Boolean)leftOperand || (Boolean)rightOperand;
-         }
-         else {
+         
+         if (!(leftOperand instanceof Boolean)) {
             throw new Exception("Unexpected data type for operand");
          }
+
+         Object rightOperand = evaluateLogicalAnd();
+         if (!(rightOperand instanceof Boolean)) {
+            throw new Exception("Unexpected data type for operand");
+         }
+         
+         leftOperand = (Boolean)leftOperand || (Boolean)rightOperand;
       } while (true);
    }
    
@@ -958,6 +1005,9 @@ public class SimpleExpressionParser {
       if (expression == null) {
          return true;
       }
+//      if (expression.contains("rtc_inputclock")) {
+//         System.err.println("Expression =\""+expression+"\"");
+//      }
       fCollectedIdentifiers = new ArrayList<String>();
       fExpression = expression;
       fIndex = 0;

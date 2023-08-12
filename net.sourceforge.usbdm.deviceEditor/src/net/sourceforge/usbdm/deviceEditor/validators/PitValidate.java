@@ -96,10 +96,12 @@ public class PitValidate extends PeripheralValidator {
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
       variablesToWatch.add("pitInputClock");
-      variablesToWatch.add("numChannels");
-      variablesToWatch.add("pit_ldval_tsv[]");
-      variablesToWatch.add("pit_period[]");
-      variablesToWatch.add("pit_frequency[]");
+      LongVariable   numChannelsVar = getLongVariable("numChannels");
+      for (int num=(int)numChannelsVar.getValueAsLong(); num>=0; num--) {
+         variablesToWatch.add("pit_ldval_tsv["+num+"]");
+         variablesToWatch.add("pit_period["+num+"]");
+         variablesToWatch.add("pit_frequency["+num+"]");
+      }
 
       addSpecificWatchedVariables(variablesToWatch);
 

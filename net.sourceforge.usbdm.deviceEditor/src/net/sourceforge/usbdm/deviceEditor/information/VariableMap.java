@@ -67,7 +67,7 @@ public class VariableMap {
       String field = null;
       int hashIndex = key.indexOf('.');
       if ((hashIndex>=0)&&(hashIndex<key.length()-1)) {
-         // '.' not at end of name 
+         // '.' not at end of name
          field = key.substring(hashIndex+1);
          key   = key.substring(0, hashIndex);
       }
@@ -94,13 +94,14 @@ public class VariableMap {
     */
    public String getSubstitutionValue(String key) {
       String field = null;
-      int hashIndex = key.indexOf('.');
-      if ((hashIndex>=0)&&(hashIndex<key.length()-1)) {
-         // '.' not at end of name 
-         field = key.substring(hashIndex+1);
-         key   = key.substring(0, hashIndex);
+      int fieldSeparatorIndex = key.indexOf('.');
+      if ((fieldSeparatorIndex>=0)&&(fieldSeparatorIndex<key.length()-1)) {
+         // '.' not at end of name
+         field = key.substring(fieldSeparatorIndex+1);
+         key   = key.substring(0, fieldSeparatorIndex);
       }
       if (key.endsWith(".")) {
+         System.err.println("Warning deprecated use of '.' at end of variable key '"+key+"'");
          key = key.substring(0, key.length()-1)+"[0]";
       }
       if (key.endsWith("[]")) {
@@ -144,7 +145,7 @@ public class VariableMap {
     * Adds or updates a Variable<br>
     * If there is already a variable with the same key then it is preserved and its value modified,
     *  otherwise a new StringVariable is created.
-    *  
+    * 
     * @param name    Name for a new variable if created.
     * @param key     Key for variable
     * @param value   Value for variable
@@ -168,7 +169,7 @@ public class VariableMap {
     * If there is already a variable with the same key then it is preserved and its value modified,
     *  otherwise a new StringVariable is created.<br>
     * The name for a new variable is created from the key.
-    *  
+    * 
     * @param key     Key for variable. Also used to create name.
     * @param value   Value for variable
     * 
@@ -179,7 +180,7 @@ public class VariableMap {
    }
 
    /**
-    * Performs the given action for each entry in this map until all entries 
+    * Performs the given action for each entry in this map until all entries
     * have been processed or the action throws an exception.
     * 
     * @param action
@@ -190,8 +191,8 @@ public class VariableMap {
 
    /**
     * Get simple map of variable->substitution values<br>
-    * The map is backed by the VariableMap but allows addition of 
-    * substitution values without affecting the VariableMap. 
+    * The map is backed by the VariableMap but allows addition of
+    * substitution values without affecting the VariableMap.
     * 
     * @return Map
     */

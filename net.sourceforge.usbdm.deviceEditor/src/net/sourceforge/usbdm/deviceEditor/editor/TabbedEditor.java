@@ -85,7 +85,7 @@ public class TabbedEditor implements IEditor {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                   final TreeColumnInformation[] fColumnInformation = {
-                        new TreeColumnInformation("Property",        200, new NameColumnLabelProvider(),           null,
+                        new TreeColumnInformation("Property",        250, new NameColumnLabelProvider(),           null,
                               "Name of property"),
                         new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer),
                               "Value of property"),

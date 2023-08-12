@@ -22,7 +22,7 @@ public abstract class VariableWithChoices extends Variable {
    public abstract ChoiceData[] getChoiceData();
 
    /**
-    * COnvert an enum value into a complete enum for code use
+    * Convert an enum value into a complete enum for code use
     * 
     * @param enumValue
     * 
@@ -59,7 +59,11 @@ public abstract class VariableWithChoices extends Variable {
       if (fDynamicChoices) {
          return true;
       }
-      for (ChoiceData choice:getChoiceData()) {
+      ChoiceData[] data = getChoiceData();
+      if (data == null) {
+         return false;
+      }
+      for (ChoiceData choice:data) {
          if (choice.isDynamic()) {
             fDynamicChoices = true;
             return true;
@@ -77,11 +81,6 @@ public abstract class VariableWithChoices extends Variable {
    public String[] getChoices() {
       
       if (fDynamicChoices || (fChoices == null)) {
-//         // XX Delete me
-//         if (getName().contains("mcg_c1_frdiv[1]")) {
-//            System.err.println("getChoices() - regenerating");
-//         }
-
          // Construct new list
          ArrayList<String> choices = new ArrayList<String>();
          
@@ -100,10 +99,6 @@ public abstract class VariableWithChoices extends Variable {
             choices.add(choiceData[index].getDynamicName(getProvider()));
          }
          fChoices = choices.toArray(new String[choices.size()]);
-//         // XX delete me
-//         if (getName().contains("mcg_c1_frdiv[1]")) {
-//            System.err.println("getChoices() - choices = " + choices);
-//         }
       }
       return fChoices;
    }
@@ -133,7 +128,7 @@ public abstract class VariableWithChoices extends Variable {
    }
 
    /**
-    * Get index of current value in choice entries
+    * Get index of value in choice entries
     * 
     * @return index or -1 if not found
     */
@@ -155,7 +150,6 @@ public abstract class VariableWithChoices extends Variable {
             }
          }
       }
-      
       return -1;
    }
    
@@ -169,6 +163,29 @@ public abstract class VariableWithChoices extends Variable {
    
    final Pattern fFieldPattern = Pattern.compile("^(\\w+)(\\[(\\d+)?\\])?$");
 
+   public int getChoiceIndex() {
+      // Use index of current selected item
+      return getIndex(getValueAsString());
+   }
+   
+   /**
+    * Get data for currently selected choice
+    * 
+    * @return Choice data
+    */
+   public ChoiceData getCurrentChoice() {
+      int index = getChoiceIndex();
+      if (index<0) {
+         return null;
+      }
+      return getChoiceData()[index];
+   }
+   
+   /**
+    * {@inheritDoc}<br>
+    * 
+    * Modified by allowing an index e.g. code[3] to select the code information associated with the 3rd choice.
+    */
    @Override
    public String getField(String field) {
       Matcher m = fFieldPattern.matcher(field);
@@ -177,7 +194,7 @@ public abstract class VariableWithChoices extends Variable {
       }
 
       if (m.group(2) == null) {
-         // No index - get field from variable
+         // No index - get field directly from variable
          return super.getField(field);
       }
       
@@ -193,9 +210,10 @@ public abstract class VariableWithChoices extends Variable {
       }
       else {
          // Use index of current selected item
-         index = getIndex(getValueAsString());
+         index = getChoiceIndex();
          if (index<0) {
-            return "No current choice value to retrieve data "+getValueAsString()+" not found for field ="+field;
+            index = getChoiceIndex();
+            return "No current choice value to retrieve data, -"+getValueAsString()+"- not found for field "+field;
          }
       }
       ChoiceData fData = getChoiceData()[index];
@@ -206,7 +224,7 @@ public abstract class VariableWithChoices extends Variable {
          if (enumname != null) {
             return enumname;
          }
-         return getFormattedValue();
+         return getUsageValue();
       } else if ("name".equals(fieldName)) {
          return fData.getName();
       } else if ("value".equals(fieldName)) {
@@ -215,6 +233,11 @@ public abstract class VariableWithChoices extends Variable {
       return "Field "+field+" not matched in choice";
    }
 
+   /**
+    * Get value as enum e.g. PmcLowVoltageDetect_Disabled
+    * 
+    * @return String for text substitutions (in C code)
+    */
    public String getEnumValue() {
       // Use index of current selected item
       int index = getIndex(getValueAsString());
@@ -225,4 +248,14 @@ public abstract class VariableWithChoices extends Variable {
       return makeEnum(fData.getEnumName());
    }
 
+   @Override
+   public String getUsageValue() {
+      String rv = getEnumValue();
+      if (rv == null) {
+         rv = getSubstitutionValue();
+      }
+      return rv;
+   }
+
+   
 }

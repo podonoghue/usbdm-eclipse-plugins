@@ -18,6 +18,16 @@ public class WriterForInterrupt extends PeripheralWithState {
 
    public WriterForInterrupt(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+
+      // Can't create instances of this peripheral
+      fCanCreateInstance = false;
+
+      // Can create type declarations for signals belonging to this peripheral
+      fcanCreateSignalType = true;
+
+      // Can create instances for signals belonging to this peripheral
+      fCanCreateSignalInstance = true;
+   
    }
 
    @Override

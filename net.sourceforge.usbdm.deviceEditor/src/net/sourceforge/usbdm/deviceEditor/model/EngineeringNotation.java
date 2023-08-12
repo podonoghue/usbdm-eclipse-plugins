@@ -63,7 +63,7 @@ public class EngineeringNotation {
    private static final String  HEX_PATTERN        = /* hex     = +1 */ "(0x([0-9|a-f|A-F]+))";
    private static final String  DEC_PATTERN        = /* decimal = +0 */ "([0-9]*\\.?[0-9]*(E-?[0-9]*)?)";
    private static final String  MULT_PATTERN       = /* +0           */ "(f|p|n|u|m|k|M|G|T|kiB|MiB|ki|Mi)?";
-   private static final String  UNIT_PATTERN       = /* +0           */ "(Hz|hz|s)?";
+   private static final String  UNIT_PATTERN       = /* +0           */ "(Hz|ticks|s)?";
    private static final Pattern NUMBER_PATTERN     = Pattern.compile(
       /*                                  */ "^" +
       /* (#1)                             */ "(-)?" +

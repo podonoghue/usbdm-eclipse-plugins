@@ -16,10 +16,13 @@ public class CategoryVariable extends StringVariable {
       return new CategoryVariableModel(parent, this);
    }
 
-   @Override
-   public String getValueAsString() {
-      // Show value even if disabled
-      return super.getPersistentValue();
-   }
+//   @Override
+//   public String getValueAsString() {
+////      if (!isEnabled()) {
+////         return fDisabledValue;
+////      }
+//      // Show value even if disabled
+//      return super.getValueAsString();
+//   }
    
 }
