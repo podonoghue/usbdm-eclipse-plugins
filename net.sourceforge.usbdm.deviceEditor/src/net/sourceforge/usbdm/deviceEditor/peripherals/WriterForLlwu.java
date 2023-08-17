@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import net.sourceforge.usbdm.deviceEditor.editor.BaseLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -24,7 +25,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.jni.UsbdmException;
 

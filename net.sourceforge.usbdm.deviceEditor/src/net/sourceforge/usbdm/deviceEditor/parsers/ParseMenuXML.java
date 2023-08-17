@@ -26,6 +26,7 @@ import net.sourceforge.usbdm.deviceEditor.graphicModel.ClockSelectionFigure;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ClockMultiplexorVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ClockSelectionVariable;
@@ -38,7 +39,6 @@ import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.RtcTimeVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.model.AliasPlaceholderModel;
@@ -958,11 +958,11 @@ public class ParseMenuXML extends XML_BaseParser {
             // Copy from other variable only if not default generated one
             variable.setValueFormat(otherVariable.getValueFormat());
          }
-         String enabledBy = otherVariable.getEnabledBy();
+         Expression enabledBy = otherVariable.getEnabledBy();
          if (enabledBy != null) {
             variable.setEnabledBy(enabledBy);
             // Add as monitored variable
-            fPeripheral.addDynamicVariable(variable);
+//            fPeripheral.addDynamicVariable(variable);
          }
 //         String errorIf = otherVariable.getErrorIf();
 //         if (errorIf != null) {
@@ -1000,22 +1000,22 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("ref")) {
          variable.setReference(getAttribute(varElement, "ref"));
          // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
+//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
          // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
+//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("errorIf")) {
          variable.setErrorIf(getAttribute(varElement, "errorIf"));
          // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
+//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("unlockedBy")) {
          variable.setUnlockedBy(getAttribute(varElement, "unlockedBy"));
          // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
+//         fPeripheral.addDynamicVariable(variable);
       }
       variable.setRegister(getAttribute(varElement, "register"));
 //    variable.setDataValue(getAttribute(varElement, "data"));
@@ -1040,7 +1040,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("target")) {
          variable.setTarget(getAttribute(varElement, "target"));
          // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
+//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("isNamedClock")) {
          variable.setIsNamedClock(Boolean.valueOf(getAttribute(varElement, "isNamedClock")));
@@ -1115,22 +1115,21 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setOffset(otherVariable.getOffset());
          variable.setDefault(otherVariable.getDefault());
          variable.setValue(otherVariable.getValueAsLong());
-         variable.setMin(otherVariable.getMin());
-         variable.setMax(otherVariable.getMax());
+         variable.setMinExpression(otherVariable.getMinExpression());
+         variable.setMaxExpression(otherVariable.getMaxExpression());
          variable.setUnits(otherVariable.getUnits());
       }
       parseCommonAttributes(parent, varElement, variable);
       if (variable.getValueFormat() == null) {
 //         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
       }
-      boolean dynamic = false;
       try {
          if (varElement.hasAttribute("min")) {
-            dynamic = variable.setMin(getAttribute(varElement, "min"));
+            variable.setMin(getAttribute(varElement, "min"));
 //            variable.setMin(getRequiredLongExpressionAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            dynamic = variable.setMax(getAttribute(varElement, "max")) || dynamic;
+            variable.setMax(getAttribute(varElement, "max"));
 //            variable.setMax(getRequiredLongExpressionAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("disabledValue")) {
@@ -1138,10 +1137,6 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       } catch(NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
-      }
-      if (dynamic) {
-         // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("units")) {
          variable.setUnits(Units.valueOf(getAttribute(varElement, "units")));
@@ -1234,7 +1229,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
-    * Parse &lt;choiceOption&gt; element<br>
+    * Parse &lt;clockSelectionOption&gt; element<br>
     * 
     * @param varElement
     * @throws Exception
@@ -1245,6 +1240,9 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ClockSelectionVariable.class);
+//      if (variable.getName().contains("currentClockConfig")) {
+//         System.err.println("Found it x"+variable.getName());
+//      }
 
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
@@ -1269,14 +1267,14 @@ public class ParseMenuXML extends XML_BaseParser {
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
       
-      if (variable.hasDynamicChoices()) {
+//      if (variable.hasDynamicChoices()) {
          // Add as monitored variable
-         fPeripheral.addDynamicVariable(variable);
-      }
+//         fPeripheral.addDynamicVariable(variable);
+//      }
 
-      if (variable.getName().contains("port_pin")) {
-         System.err.println("Found it "+variable.getName());
-      }
+//      if (variable.getName().contains("port_pin")) {
+//         System.err.println("Found it y"+variable.getName());
+//      }
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
       }
@@ -1351,7 +1349,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       TemplateInformation templateInfo = addTemplate(templateKey, namespace, null);
-      ChoiceData[] choiceData = variable.getChoiceData();
       
       StringBuilder body = new StringBuilder();
       
@@ -1367,38 +1364,47 @@ public class ParseMenuXML extends XML_BaseParser {
       int enumNameMax    = 0;
       int valueMax       = 0;
 
-      for (int index=0; index<choiceData.length; index++) {
-
-         String enumName = choiceData[index].getEnumName();
-         if ((enumName == null) || enumName.isBlank()) {
-            throw new Exception("enumTemplate - enum data is incomplete in choice '" + choiceData[index].getName() + "' ='"+variable+"'");
-         }
-         if (enumName.equals("-deleted-")) {
+      ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
+      lists.add(variable.getChoiceData());
+      lists.add(variable.getHiddenChoiceData());
+      for (ChoiceData[] choiceData:lists) {
+         if (choiceData == null) {
             continue;
          }
-         String completeEnumName = enumClass+"_"+enumName;
-         enumNamesList.add(completeEnumName);
-         enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
-         
-         String[] valueFormats = valueFormat.split(",");
-         String[] vals         = choiceData[index].getValue().split(",");
-         if (valueFormats.length != vals.length) {
-            throw new Exception("valueFormat '"+valueFormat+"' does not match value '"+vals[index]+"'" );
-         }
-         StringBuilder sb = new StringBuilder();
-         for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
-            if (valIndex>0) {
-               sb.append('|');
+         for (int index=0; index<choiceData.length; index++) {
+
+            String enumName = choiceData[index].getEnumName();
+            if ((enumName == null) || enumName.isBlank()) {
+               throw new Exception("enumTemplate - enum data is incomplete in choice '" + choiceData[index].getName() + "' ='"+variable+"'");
             }
-            sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
+            if (enumName.equals("-deleted-")) {
+               continue;
+            }
+            String completeEnumName = enumClass+"_"+enumName;
+            enumNamesList.add(completeEnumName);
+            enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
+            
+            String[] valueFormats = valueFormat.split(",");
+            String[] vals         = choiceData[index].getValue().split(",");
+            if (valueFormats.length != vals.length) {
+               throw new Exception("valueFormat '"+valueFormat+"' does not match value '"+vals[index]+"'" );
+            }
+            StringBuilder sb = new StringBuilder();
+            for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
+               if (valIndex>0) {
+                  sb.append('|');
+               }
+               sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
+            }
+            String completeValue = sb.toString()+",";
+//            valuesList.add(escapeString(completeValue));
+            valuesList.add(completeValue);
+            valueMax        = Math.max(valueMax, completeValue.length());
+            
+            commentsList.add(choiceData[index].getName());
+//            commentsList.add(escapeString(choiceData[index].getName()));
          }
-         String completeValue = sb.toString()+",";
-//         valuesList.add(escapeString(completeValue));
-         valuesList.add(completeValue);
-         valueMax        = Math.max(valueMax, completeValue.length());
-         
-         commentsList.add(choiceData[index].getName());
-//         commentsList.add(escapeString(choiceData[index].getName()));
+
       }
       // Create enums body
       for (int index=0; index<enumNamesList.size(); index++) {
@@ -2023,6 +2029,7 @@ public class ParseMenuXML extends XML_BaseParser {
             var.setDescription(description);
             var.setDerived(isDerived);
             var.setHidden(isHidden);
+            var.setConstant();
             fProvider.addVariable(var);
          }
       }
@@ -3276,11 +3283,13 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private static class ChoiceInformation {
       final ArrayList<ChoiceData> entries;
+      final ArrayList<ChoiceData> hiddenEntries;
       final Integer               defaultEntry;
       
-      public ChoiceInformation(ArrayList<ChoiceData> entries, Integer defaultEntry) {
-         this.entries      = entries;
-         this.defaultEntry = defaultEntry;
+      public ChoiceInformation(ArrayList<ChoiceData> entries, ArrayList<ChoiceData> hiddenEntries, Integer defaultEntry) {
+         this.entries         = entries;
+         this.hiddenEntries   = hiddenEntries;
+         this.defaultEntry    = defaultEntry;
       }
    }
    
@@ -3295,7 +3304,8 @@ public class ParseMenuXML extends XML_BaseParser {
    private ChoiceInformation parseChoiceData(Element menuElement) throws Exception {
       
       boolean defaultExplicitlySet = false;
-      ArrayList<ChoiceData> entries = new ArrayList<ChoiceData>();
+      ArrayList<ChoiceData> entries       = new ArrayList<ChoiceData>();
+      ArrayList<ChoiceData> hiddenEntries = new ArrayList<ChoiceData>();
       Integer defaultValue = null;
       NodeList choiceNodes = menuElement.getElementsByTagName("choice");
       for(int index=0; index<choiceNodes.getLength(); index++) {
@@ -3310,6 +3320,7 @@ public class ParseMenuXML extends XML_BaseParser {
          // Check if entry has condition to be available for choice to be present
          Boolean keepChoice = (Boolean) fExpressionParser.evaluate(getAttribute(element, "condition"));
          if (!keepChoice) {
+            // Discard choice
             continue;
          }
          boolean hidden = false;
@@ -3323,9 +3334,14 @@ public class ParseMenuXML extends XML_BaseParser {
                getAttribute(element, "code"),
                getAttribute(element, "ref"),
                getAttribute(element, "enabledBy"),
-               hidden
+               fProvider
                );
-         entries.add(entry);
+         if (hidden) {
+            hiddenEntries.add(entry);
+         }
+         else {
+            entries.add(entry);
+         }
          if (defaultValue == null) {
             // Assume 1st entry is default
             defaultValue = 0;
@@ -3341,7 +3357,7 @@ public class ParseMenuXML extends XML_BaseParser {
             }
          }
       }
-      return new ChoiceInformation(entries, defaultValue);
+      return new ChoiceInformation(entries, hiddenEntries, defaultValue);
    }
    
    /**
@@ -3414,15 +3430,22 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (variable instanceof ChoiceVariable) {
             ChoiceVariable choiceVar = (ChoiceVariable)variable;
-            choiceVar.setChoiceData(choiceInfo.entries);
+            choiceVar.setChoiceData(choiceInfo.entries, choiceInfo.hiddenEntries);
             if (choiceInfo.defaultEntry != null) {
                Object tmp;
                tmp = choiceVar.getDefault();
                if (tmp == null) {
+                  // Set default if not set
                   choiceVar.setDefault(choiceInfo.defaultEntry);
+               }
+               tmp = choiceVar.getDisabledValue();
+               if (tmp == null) {
+                  // Set default if not set
+                  choiceVar.setDisabledValue(choiceInfo.defaultEntry);
                }
                tmp = choiceVar.getValue();
                if (tmp == null) {
+                  // Set current value if not set
                   choiceVar.setValue(choiceInfo.defaultEntry);
                }
             }

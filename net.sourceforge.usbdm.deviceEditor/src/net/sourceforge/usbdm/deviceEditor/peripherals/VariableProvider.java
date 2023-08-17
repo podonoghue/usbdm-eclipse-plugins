@@ -79,18 +79,21 @@ public class VariableProvider {
    }
 
    /**
-    * Get variable with given key
+    * Get variable with given key<br>
+    * If the key is not absolute then it is made relative to the VariableProvider (this)
     * 
     * @param key     Key to lookup variable
     * 
     * @return variable or null if not found
     */
    public Variable safeGetVariable(String key) {
-         return fDeviceInfo.safeGetVariable(key);
+      key = makeKey(key);
+      return fDeviceInfo.safeGetVariable(key);
    }
 
    /**
-    * Get variable with given key
+    * Get variable with given key<br>
+    * If the key is not absolute then it is made relative to the VariableProvider (this)
     * 
     * @param key     Key to lookup variable
     * 
@@ -98,6 +101,7 @@ public class VariableProvider {
     * @throws Exception
     */
    public Variable getVariable(String key) throws Exception {
+      key = makeKey(key);
       return fDeviceInfo.getVariable(key);
    }
 
@@ -131,7 +135,7 @@ public class VariableProvider {
     * @return true if variable existed and removed, false otherwise
     */
    public boolean removeVariableByName(String variableName) {
-      boolean present = fDeviceInfo.safeGetVariable(variableName) != null;
+      boolean present = safeGetVariable(variableName) != null;
       if (!present) {
          return false;
       }

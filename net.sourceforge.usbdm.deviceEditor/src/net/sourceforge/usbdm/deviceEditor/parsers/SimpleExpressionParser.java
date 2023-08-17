@@ -3,11 +3,11 @@ package net.sourceforge.usbdm.deviceEditor.parsers;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
@@ -825,7 +825,7 @@ public class SimpleExpressionParser {
    /**
     * Accepts bitOr ['&&' bitOr]*
     * 
-    * @return value of bitOr
+    * @return value of logicalAnd
     *
     * @throws Exception
     */
@@ -860,7 +860,7 @@ public class SimpleExpressionParser {
    /**
     * Accepts logicalOr : logicalAnd ['||' logicalAnd]*
     * 
-    * @return value of bitOr
+    * @return value of logicalOr
     *
     * @throws Exception
     */

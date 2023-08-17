@@ -9,16 +9,18 @@ public class ObservableModel implements ObservableModelInterface {
  
    private boolean fRefreshPending  = false;
    
-   private ArrayList<IModelChangeListener> fListeners = new ArrayList<IModelChangeListener>();
+   protected ArrayList<IModelChangeListener> fListeners = new ArrayList<IModelChangeListener>();
 
    @Override
-   public void addListener(IModelChangeListener listener) {
+   public boolean addListener(IModelChangeListener listener) {
       if (listener == this) {
-         return;
+         return false;
       }
       if (!fListeners.contains(listener)) {
          fListeners.add(listener);
+         return true;
       }
+      return false;
    }
 
    @Override

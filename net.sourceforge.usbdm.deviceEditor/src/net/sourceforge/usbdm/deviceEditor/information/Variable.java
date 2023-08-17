@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,14 +8,16 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.parsers.IExpressionChangeListener;
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
-public abstract class Variable extends ObservableModel implements Cloneable {
+public abstract class Variable extends ObservableModel implements Cloneable, IExpressionChangeListener {
    
    static DeviceInfo fDeviceInfo=null;
    
@@ -53,212 +54,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       }
    };
 
-   /**
-    * Class to hold the data for choices
-    */
-   public static class ChoiceData {
-      
-      /** Name used by GUI/model */
-      private final String fName;
-      
-      /** Value used by substitution */
-      private final String fValue;
-
-      /** Whether this choice is hidden in display */
-      private boolean fHidden = false;
-
-      /** Suffix for code enum generation e.g. yyy => ENUM_yyy */
-      private final String fEnumName;
-      
-      /** Code fragment for this enum e.g. getPeripheralClock() */
-      private final String fCodeValue;
-      
-      /** Reference to another variable associated with this choice e.g. clock source selection */
-      private final String fReference;
-      
-      private final String fEnabledBy;
-      
-      /**
-       * 
-       * @param name       Name used by GUI/model
-       * @param value      Value used by data
-       * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
-       * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
-       * @param reference  Reference to another variable associated with this choice e.g. clock source selection
-       */
-      public ChoiceData(
-            String name,
-            String value,
-            String enumName,
-            String codeValue,
-            String reference,
-            String enabledBy,
-            boolean hidden) {
-         fName        = name;
-         fValue       = value;
-         if ((enumName != null) && enumName.equals("*")) {
-            enumName = name;
-         }
-         fEnumName    = enumName;
-         fCodeValue   = codeValue;
-         fReference   = reference;
-         fEnabledBy   = enabledBy;
-         fHidden      = hidden;
-      }
-      
-      /**
-       * 
-       * @param name       Name used by GUI/model
-       * @param value      Value used by data
-       * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
-       * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
-       * @param reference  Reference to another variable associated with this choice e.g. clock source selection
-       */
-      public ChoiceData(String name, String value, String enumName) {
-         fName        = name;
-         fValue       = value;
-         if ((enumName != null) && enumName.equals("*")) {
-            enumName = name;
-         }
-         fEnumName    = enumName;
-         fCodeValue   = null;
-         fReference   = null;
-         fEnabledBy   = null;
-      }
-      
-      /**
-       * 
-       * @param name       Name used by GUI/model
-       * @param value      Value used by data
-       * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
-       * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
-       * @param reference  Reference to another variable associated with this choice e.g. clock source selection
-       */
-      public ChoiceData(String name, String value) {
-         fName        = name;
-         fValue       = value;
-         fEnumName    = null;
-         fCodeValue   = null;
-         fReference   = null;
-         fEnabledBy   = null;
-      }
-      
-      /**
-       * Get name of this choice
-       * 
-       * @return data value or null if none
-       */
-      public String getName() {
-         return fName;
-      }
-      
-      /**
-       * Get value associated with this choice
-       * 
-       * @return value
-       */
-      public String getValue() {
-         return fValue;
-      }
-      
-      /**
-       * Whether this choice is hidden in display
-       * 
-       * @return True if hidden
-       */
-      public boolean isHidden() {
-         return fHidden;
-      }
-      
-      /**
-       * Set whether this choice is hidden in display
-       * 
-       * 
-       * @param hidden True to hide choice
-       */
-      public void setHidden(boolean hidden) {
-         this.fHidden = hidden;
-      }
-
-      /**
-       * Get suffix for code enum generation e.g. yyy => ENUM_yyy
-       * 
-       * @return suffix
-       */
-      public String getEnumName() {
-         return fEnumName;
-      }
-
-      /**
-       * Get code fragment for this enum e.g. getPeripheralClock()
-       * 
-       * @return code fragment
-       */
-      public String getCodeValue() {
-         return fCodeValue;
-      }
-
-      /**
-       * Get reference to another variable associated with this choice e.g. clock source selection
-       * 
-       * @return Variable name or null if no reference
-       */
-      public String getReference() {
-         return fReference;
-      }
-
-      @Override
-      public String toString() {
-         return "ChoiceData("+fName+", "+fValue+", "+fEnumName+", "+fCodeValue+", "+fReference+")";
-      }
-      
-      public boolean isEnabled(VariableProvider varProvider) {
-         if (fEnabledBy == null) {
-            return true;
-         }
-         SimpleExpressionParser parser = new SimpleExpressionParser(varProvider, Mode.EvaluateFully);
-         try {
-            return (Boolean) parser.evaluate(fEnabledBy);
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
-         return true;
-      }
-
-      /**
-       * Indicates if choice needs to be recreated on each use as dependent on external information
-       * 
-       * @return
-       */
-      public boolean isDynamic() {
-         return (fEnabledBy != null) || fName.startsWith("@");
-      }
-
-      /**
-       * Calculates current name of choice if dynamic, or returns static name.
-       * 
-       * @param provider Provider for evaluating name expression
-       * 
-       * @return
-       */
-      public String getDynamicName(VariableProvider provider) {
-         String name = fName;
-         if (name.startsWith("@")) {
-            SimpleExpressionParser parser = new SimpleExpressionParser(provider, SimpleExpressionParser.Mode.EvaluateFully);
-            try {
-               name = parser.evaluate(name.substring(1)).toString();
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
-         return name;
-      }
-      
-      public String getEnabledBy() {
-         return fEnabledBy;
-      }
-   }
-
    /** Name of variable visible to user */
    private  String  fName;
    
@@ -286,7 +81,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** Indicates this variable is derived (calculated) from other variables */
    private boolean fDerived = false;
 
-   protected boolean fDebug = false;
+   protected boolean fConstant = false;
 
    private boolean fHidden;
 
@@ -307,20 +102,21 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** Register name if known */
    private String fRegister = null;
 
-   /** Reference for variable that is dependent or another */
-   private String fReference = null;
+   /** Variable is dependent on expression i.e. ref="..." */
+   private Expression fReference = null;
 
-   /** Condition for enabling this variable */
-   private String fEnabledBy = null;
+   /** Condition for enabling this variable i.e. enabledBy="..." */
+   private Expression fEnabledBy = null;
+
+   /** Condition for forcing error on this variable i.e. errorIf="..." */
+   private Expression fErrorIf = null;
+
+   /** Condition for unlocking this variable i.e. unlockIf="..." */
+   private Expression fUnlockedBy;
 
    private VariableProvider fProvider;
 
    private Boolean fIsNamedClock = false;
-
-   private String fUnlockedBy;
-
-   /** Condition for forcing error on this variable */
-   private String fErrorIf;
 
    /**
     * Constructor
@@ -443,7 +239,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
             "(Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))",
             getKey(), getSubstitutionValue(), getValueAsString());
    }
-
+   
    /**
     * Set error status of variable
     * 
@@ -582,6 +378,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       return true;
    }
 
+   /**
+    * Mark variable as a constant
+    */
+   public void setConstant() {
+      fConstant = true;
+   }
+   
+   /**
+    * Check if variable is actually a constant!
+    * 
+    * @return
+    */
+   public boolean isConstant() {
+      return fConstant;
+   }
+   
    /**
     * Get value as a boolean
     * 
@@ -793,17 +605,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
    
    /**
-    * Print string if debugging on
-    * 
-    * @param string
-    */
-   public void debugPrint(String string) {
-      if (fDebug) {
-         System.err.println(string);
-      }
-   }
-   
-   /**
     * Set if this variable is derived (calculated) from other variables
     * 
     * @param derived
@@ -904,10 +705,6 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       setValue(getDefault());
    }
    
-   public void setDebug(boolean value) {
-      fDebug = value;
-   }
-
    public void setHidden(boolean b) {
       fHidden = b;
       notifyStructureChangeListeners();
@@ -1059,13 +856,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
          rv = getUsageValue();
       }
       if (field.equals("usageValue")) {
-         if (this.getName().contains("uartClass")) {
-            System.err.println("Found it "+getName());
-         }
          rv = getUsageValue();
       }
       if ((rv==null)||rv.isBlank()) {
-         rv = "Opps";
+         rv = "Unknown field";
       }
       return rv;
    }
@@ -1080,7 +874,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * Get target for clock selector
+    * Get target for updates
     * 
     * @return
     */
@@ -1090,21 +884,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    /**
     * Set reference for dependent variable
-    * This is the key for the variable this variable depends on
+    * This is the expression the variable depends on
     * 
     * @param reference
+    * @throws Exception
     */
-   public void setReference(String reference) {
-      fReference = reference;
+   public void setReference(String reference) throws Exception {
+      fReference = new Expression(reference, fProvider);
    }
   
    /**
     * Get reference for dependent variable
-    * This is the key for the variable this variable depends on
+    * This is the expression the variable depends on
     * 
     * @return reference or null if none
     */
-   public String getReference() {
+   public Expression getReference() {
       return fReference;
    }
   
@@ -1256,8 +1051,18 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * Set condition for enabling this variable
     * 
     * @param enabledBy
+    * @throws Exception
     */
-   public void setEnabledBy(String enabledBy) {
+   public void setEnabledBy(String enabledBy) throws Exception {
+      fEnabledBy = new Expression(enabledBy, fProvider);
+   }
+
+   /**
+    * Set condition for enabling this variable
+    * 
+    * @param enabledBy
+    */
+   public void setEnabledBy(Expression enabledBy) {
       fEnabledBy = enabledBy;
    }
 
@@ -1266,18 +1071,14 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @param enabledBy
     */
-   public String getEnabledBy() {
-      if (fEnabledBy == null) {
-         return null;
-      }
-      String parts[] = fEnabledBy.split(",");
-      return parts[0].trim();
+   public Expression getEnabledBy() {
+      return fEnabledBy;
    }
 
    /**
     * Get description of enableBy on this variable
     * 
-    * @param parser Used to construct description
+    * @param parser Parser that has determined enabledBy condition has failed
     * 
     * @param enabledBy
     */
@@ -1285,21 +1086,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       if (fEnabledBy == null) {
          return null;
       }
-      String parts[] = fEnabledBy.split(",");
-      if (parts.length>1) {
-         return parts[1].trim();
-      }
-      StringBuilder sb = new StringBuilder();
-      sb.append("Disabled by ");
-      ArrayList<String> vars = parser.getCollectedIdentifiers();
-      if (vars.size() == 1) {
-         sb.append(vars.get(0));
-      }
-      else {
-         sb.append(" expression ");
-         sb.append(parts[0]);
-      }
-      return sb.toString();
+      return fEnabledBy.getMessage("Disabled by");
    }
 
    /**
@@ -1312,19 +1099,17 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @throws Exception
     */
    public boolean evaluateEnable(Peripheral peripheral) throws Exception {
-      String enableExpression = getEnabledBy();
-      if (enableExpression == null) {
+      if (fEnabledBy == null) {
          return true;
       }
-      return (Boolean)SimpleExpressionParser.evaluate(enableExpression, peripheral, Mode.EvaluateFully);
+      return fEnabledBy.getValueAsBoolean();
    }
 
    public boolean evaluateError(Peripheral peripheral) throws Exception {
-      String errroExpression = getErrorIf();
-      if (errroExpression == null) {
+      if (fErrorIf == null) {
          return true;
       }
-      return (Boolean)SimpleExpressionParser.evaluate(errroExpression, peripheral, Mode.EvaluateFully);
+      return fErrorIf.getValueAsBoolean();
    }
 
    public void setProvider(VariableProvider provider) {
@@ -1344,15 +1129,15 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       fIsNamedClock = isNamedClock;
    }
 
-   public boolean getIsNamedClock() {
+   public boolean isNamedClock() {
       return fIsNamedClock;
    }
 
-   public void setUnlockedBy(String attribute) {
-      fUnlockedBy = attribute;
+   public void setUnlockedBy(String unlockedBy) throws Exception {
+      fUnlockedBy = new Expression(unlockedBy, fProvider);
    }
 
-   public String getUnlockedBy() {
+   public Expression getUnlockedBy() {
       return fUnlockedBy;
    }
 
@@ -1360,9 +1145,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * Set condition for forcing error on this variable
     * 
     * @param errorIf
+    * @throws Exception
     */
-   public void setErrorIf(String errorIf) {
-      fErrorIf = errorIf;
+   public void setErrorIf(String errorIf) throws Exception {
+      fErrorIf = new Expression(errorIf, fProvider);
    }
 
    /**
@@ -1370,12 +1156,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * 
     * @param enabledBy
     */
-   public String getErrorIf() {
+   public Expression getErrorIf() {
       if (fErrorIf == null) {
          return null;
       }
-      String parts[] = fErrorIf.split(",");
-      return parts[0];
+      return fErrorIf;
    }
 
    /**
@@ -1387,11 +1172,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       if (fErrorIf == null) {
          return null;
       }
-      String parts[] = fErrorIf.split(",");
-      if (parts.length>1) {
-         return parts[1];
-      }
-      return "Error due to failed expression " + parts[0];
+      return fErrorIf.getMessage("Error due to failed expression");
    }
 
    /**
@@ -1405,11 +1186,99 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       Matcher m = p.matcher(name);
       if (!m.matches()) {
          if (name.contains("[")) {
-            System.err.println("Opps");
+            System.err.println("Fix me!");
          }
          return -1;
       }
       return Integer.parseInt(m.group(1));
+   }
+
+   public void addInternalListeners() throws Exception {
+      if (fReference != null) {
+         fReference.addListener(this);
+      }
+      if (fEnabledBy != null) {
+         fEnabledBy.addListener(this);
+      }
+      if (fErrorIf != null) {
+         fErrorIf.addListener(this);
+      }
+      if (fUnlockedBy != null) {
+         fUnlockedBy.addListener(this);
+      }
+   }
+
+   @Override
+   public void expressionChanged(Expression expression) {
+//      if (getName().contains("system_bus_clock[0]")) {
+//         System.err.println("Found it "+ getName());
+//      }
+      try {
+         VariableUpdateInfo info = new VariableUpdateInfo();
+
+         // Assume enabled (may be later disabled by enabledBy etc.)
+         info.enable = true;
+
+         determineReferenceUpdate(info, getReference());
+
+         if (fUnlockedBy != null) {
+            setLocked(fUnlockedBy.getValueAsBoolean());
+         }
+         if (fEnabledBy != null) {
+            // Cumulative enable
+            info.enable = info.enable && fEnabledBy.getValueAsBoolean();
+            if (!info.enable) {
+               info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
+            }
+         }
+         if (fErrorIf != null) {
+            if  (fErrorIf.getValueAsBoolean()) {
+               // Forced error status
+               info.status = new Status(fErrorIf.getMessage("Error "));
+            }
+         }
+         enable(info.enable);
+         
+         if (info.value != null) {
+            setValue(info.value);
+         }
+         if (info.origin != null) {
+            setOrigin(info.origin);
+         }
+         setStatus(info.status);
+         
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+
+   /**
+    * Determine updates to the target from the reference
+    * 
+    * @param info Cumulative variable update information from evaluating expression etc.
+    *        <li>Always updated if reference present: .value, .origin
+    *        <li>May be updated if reference present: .status, .enable
+    * @param expression
+    * 
+    * @throws Exception
+    */
+   protected void determineReferenceUpdate(VariableUpdateInfo info, Expression expression) throws Exception {
+//      if (getName().contains("system_bus_clock")) {
+//         System.err.println("Found it "+getName());
+//      }
+
+      if (expression != null) {
+         info.value = expression.getValue();
+
+         Variable primaryVariableInExpression = expression.getPrimaryVar();
+
+         if (primaryVariableInExpression != null) {
+            // Get status and enable from primary variable
+            info.status   = primaryVariableInExpression.getStatus();
+            info.enable   = primaryVariableInExpression.isEnabled();
+         }
+         info.origin   = expression.getOriginMessage();
+      }
    }
 
 }

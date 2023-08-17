@@ -96,8 +96,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param parentModel   Model to contain signal category
     * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
     * @param enabledBy
+    * @throws Exception
     */
-   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter, String enabledBy) {
+   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter, String enabledBy) throws Exception {
       fHasSignal = true;
       if (fPeripheralSignalsVar == null) {
          // Create dummy variable associated with Signals list
@@ -719,12 +720,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param monitoredVariable Variable to add
     */
    public void addDynamicVariable(Variable monitoredVariable) {
-      if (fMonitoredVariables == null) {
-         fMonitoredVariables = new ArrayList<Object>();
-      }
-      if (!fMonitoredVariables.contains(monitoredVariable)) {
-         fMonitoredVariables.add(monitoredVariable);
-      }
+      return;
+//      if (fMonitoredVariables == null) {
+//         fMonitoredVariables = new ArrayList<Object>();
+//      }
+//      if (!fMonitoredVariables.contains(monitoredVariable)) {
+//         fMonitoredVariables.add(monitoredVariable);
+//      }
    }
    
    /**

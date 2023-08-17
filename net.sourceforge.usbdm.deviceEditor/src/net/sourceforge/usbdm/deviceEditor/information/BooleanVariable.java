@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
  
 public class BooleanVariable extends VariableWithChoices {
    
@@ -40,6 +41,13 @@ public class BooleanVariable extends VariableWithChoices {
       return new BooleanVariableModel(parent, this);
    }
    
+   /**
+    * Convert object to suitable type for this variable
+    * 
+    * @param value
+    * 
+    * @return Converted object
+    */
    public boolean translate(Object value) {
       if (value instanceof Boolean) {
          return (Boolean)value;
@@ -83,6 +91,11 @@ public class BooleanVariable extends VariableWithChoices {
       return setValue(translate(value));
    }
    
+   @Override
+   void setIndex(int index) {
+      setValue(index != 0);
+   }
+   
    /**
     * Set variable value as Boolean<br>
     * Listeners are informed if the variable changes
@@ -96,6 +109,7 @@ public class BooleanVariable extends VariableWithChoices {
          return false;
       }
       fValue = value;
+      updateTargets(value?fTrue:fFalse);
       notifyListeners();
       return true;
    }
@@ -210,17 +224,6 @@ public class BooleanVariable extends VariableWithChoices {
       return !defaultHasChanged && fValue.equals(fDefaultValue);
    }
    
-   /*
-    * Special operations
-    */
-//   /**
-//    * @return the choices
-//    */
-//   @Override
-//   public String[] getChoices() {
-//      return getChoiceData();
-//   }
-
    /**
     * Get the name/value representing the TRUE value
     * 
@@ -286,7 +289,16 @@ public class BooleanVariable extends VariableWithChoices {
       }
       return data.toArray(new ChoiceData[data.size()]);
    }
-   
+
+   /**
+    * {@inheritDoc}<br>
+    * No hidden data for BooleanVariables
+    */
+   @Override
+   public ChoiceData[] getHiddenChoiceData() {
+      return null;
+   }
+
    @Override
    public String getDefaultParameterValue() throws Exception {
       Object t = getDefault();
@@ -307,6 +319,16 @@ public class BooleanVariable extends VariableWithChoices {
    @Override
    public Object getNativeValue() {
       return getValueAsBoolean();
+   }
+
+   @Override
+   public void expressionChanged(Expression expression) {
+      super.expressionChanged(expression);
+      ChoiceData choice = getCurrentChoice();
+      if (choice == null) {
+         return;
+      }
+      updateTargets(getCurrentChoice());
    }
 
 }

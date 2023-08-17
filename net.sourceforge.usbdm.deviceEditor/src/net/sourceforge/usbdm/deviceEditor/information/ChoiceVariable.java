@@ -5,12 +5,16 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class ChoiceVariable extends VariableWithChoices {
 
    /** Name/choice pairs */
    private ChoiceData[] fData = null;
+   
+   /** Name/choice pairs (hidden in GUI, used for code generation only) */
+   private ChoiceData[] fHiddenData = null;
    
    /** Current value - index into choices */
    private Integer fValue = null;
@@ -53,7 +57,9 @@ public class ChoiceVariable extends VariableWithChoices {
       // Treat as one of the available values
       if (value instanceof String) {
          String sValue = (String)value;
-         if (sValue.equalsIgnoreCase("Reserved") || sValue.equalsIgnoreCase("Default")) {
+         if (  ("Reserved".equalsIgnoreCase(sValue)) ||
+               ("Default".equalsIgnoreCase(sValue)) ||
+               ("Disabled".equalsIgnoreCase(sValue))) {
             // Quietly translate reserved values
             index = fDefaultValue;
          }
@@ -84,25 +90,34 @@ public class ChoiceVariable extends VariableWithChoices {
       return setValue(translate(value));
    }
    
+   @Override
+   void setIndex(int index) {
+      setValue(index);
+   }
+   
    /**
     * Sets variable value.<br>
-    * Listeners are informed if the variable changes.<br>
-    * Special strings "Reserved" and "Default" are translated to the {@link #fDefaultValue} value
+    * Listeners are informed if the variable changes.
     * 
-    * @param value The index of the choice to select
+    * @param index The index of the choice to select
     * 
     * @return True if variable actually changed value
     */
-   public boolean setValue(int value) {
-      if ((fValue != null) && fValue.equals(value)) {
+   public boolean setValue(int index) {
+//      if (getName().contains("oscel_fixed")) {
+//         System.err.println("Found it "+ getName());
+//      }
+      if ((fValue != null) && fValue.equals(index)) {
          return false;
       }
-      String[] choices = getChoices();
-      if ((value<0) || (value>choices.length)) {
-         System.err.println("setValue("+value+") - Illegal value for choice");
-         value = 0;
+      ArrayList<ChoiceData> choices = getVisibleChoiceData();
+      if ((index<0) || (index>choices.size())) {
+         System.err.println("setValue("+index+") - Illegal value for choice");
+         index = 0;
       }
-      fValue = value;
+      fValue = index;
+
+      updateTargets(choices.get(index));
       notifyListeners();
       return true;
    }
@@ -130,13 +145,13 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public String getValueAsString() {
-      String[] choices = getChoices();
+      String[] choices = getVisibleChoiceNames();
       int index = (int) getValueAsLong();
+//      if ((index<0) || (index>=choices.length)) {
+//         System.err.println("getValueAsString() illegal index, "+getName()+" ind = "+index);
+//         index = 0;
+//      }
       if ((index<0) || (index>=choices.length)) {
-         System.err.println("getValueAsString() illegal index, "+index);
-         index = 0;
-      }
-      if (index>=choices.length) {
          return "Illegal choice value";
       }
       return choices[index];
@@ -186,13 +201,16 @@ public class ChoiceVariable extends VariableWithChoices {
    }
    
    @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
+   public String getSubstitutionValue() {
+      return fData[fValue].getValue();
    }
 
    @Override
-   public String getSubstitutionValue() {
-      return fData[fValue].getValue();
+   public void setValueQuietly(Object value) {
+//      if (getName().contains("oscel_fixed")) {
+//         System.err.println("Found it 2"+ getName());
+//      }
+      fValue = translate(value);
    }
 
    @Override
@@ -219,7 +237,8 @@ public class ChoiceVariable extends VariableWithChoices {
       return getSubstitutionValue();
    }
 
-   int getChoiceIndex(String value) {
+   @Override
+   protected int getChoiceIndex(String value) {
       
       ChoiceData[] choiceData = getChoiceData();
       if (choiceData == null) {
@@ -240,7 +259,7 @@ public class ChoiceVariable extends VariableWithChoices {
 //         }
 //         index++;
 //      }
-      String[] choices = getChoices();
+      String[] choices = getVisibleChoiceNames();
       if (choices == null) {
          return -1;
       }
@@ -300,61 +319,32 @@ public class ChoiceVariable extends VariableWithChoices {
       return !defaultHasChanged && (fValue == fDefaultValue);
    }
    
-   /*
-    * Special operations
-    */
-   /**
-    * Hide or show a choice
-    * 
-    * @param value   Value to change
-    * 
-    * @param hide True to hide
-    */
-   public void hideByValue(String value, boolean hide) {
-      for (ChoiceData choice:fData) {
-         if (choice.getValue().equalsIgnoreCase(value)) {
-            choice.setHidden(hide);
-            clearChoices();
-         }
-      }
-   }
-   
-   /**
-    * Hide or show a choice
-    * 
-    * @param index   Index of item to change
-    * 
-    * @param hide True to hide
-    */
-   public void hideByIndex(int index, boolean hide) {
-      fData[index].setHidden(hide);
-      clearChoices();
-   }
-   
    @Override
-   public String[] getChoices() {
-      String[] choices = super.getChoices();
+   public String[] getVisibleChoiceNames() {
+      String[] choices = super.getVisibleChoiceNames();
       if (fValue == null) {
          // Value not set yet - set value
          fValue   = 0;
       }
       if (fDefaultValue == null) {
-         // Default not set yet - set default
+         // Default value not set yet - set default
          fDefaultValue = 0;
       }
       if (fDisabledValue == null) {
-         // Default not set yet - set disabled value
+         // Disabled value not set yet - set disabled value
          fDisabledValue = fDefaultValue;
       }
       return choices;
    }
    
-   /**
-    * @return the choices
-    */
    @Override
    public ChoiceData[] getChoiceData() {
       return fData;
+   }
+
+   @Override
+   public ChoiceData[] getHiddenChoiceData() {
+      return fHiddenData;
    }
 
    /**
@@ -362,15 +352,15 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    public void setData(ChoiceData[] entries) {
       this.fData = entries;
-      clearChoices();
+      clearCachedChoiceInformation();
    }
    
    /**
-    * Set choice data
+    * Set choice data (both visible and hidden)
     * 
     * @param entries The name/value entries to set
     */
-   public void setChoiceData(ArrayList<ChoiceData> entries) {
+   public void setChoiceData(ArrayList<ChoiceData> entries, ArrayList<ChoiceData> hiddenEntries) {
       
       fData = entries.toArray(new ChoiceData[entries.size()]);
       if (fDefaultValue != null) {
@@ -378,9 +368,21 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       fDefaultValue  = null;
       fValue         = null;
-      clearChoices();
+      if ((hiddenEntries != null) && (hiddenEntries.size()>0)) {
+         fHiddenData = hiddenEntries.toArray(new ChoiceData[hiddenEntries.size()]);;
+      }
+      clearCachedChoiceInformation();
    }
 
+   /**
+    * Set visible choice data
+    * 
+    * @param entries The name/value entries to set
+    */
+   public void setChoiceData(ArrayList<ChoiceData> entries) {
+      setChoiceData(entries, null);
+   }
+   
    /**
     * Adds choice data to existing data
     * 
@@ -403,6 +405,16 @@ public class ChoiceVariable extends VariableWithChoices {
       fDefaultValue = defaultValue;
       fValue        = defaultValue;
    }
+   
+   @Override
+   public void expressionChanged(Expression expression) {
+      super.expressionChanged(expression);
+      ChoiceData choice = getCurrentChoice();
+      if (choice == null) {
+         return;
+      }
+      updateTargets(choice);
+   }
 
    @Override
    public Variable clone(String name, ISubstitutionMap symbols) throws Exception {
@@ -413,7 +425,7 @@ public class ChoiceVariable extends VariableWithChoices {
 
    @Override
    public boolean isLocked() {
-      return super.isLocked() || (getChoices().length <= 1);
+      return super.isLocked() || (getVisibleChoiceNames().length <= 1);
    }
 
    @Override

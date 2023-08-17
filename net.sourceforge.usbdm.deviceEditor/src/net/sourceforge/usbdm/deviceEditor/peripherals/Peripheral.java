@@ -1441,8 +1441,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    @Override
-   public void addListener(IModelChangeListener listener) {
-      fProxy.addListener(listener);
+   public boolean addListener(IModelChangeListener listener) {
+      return fProxy.addListener(listener);
    }
 
    @Override

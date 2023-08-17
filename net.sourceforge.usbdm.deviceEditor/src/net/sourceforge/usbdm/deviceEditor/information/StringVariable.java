@@ -89,7 +89,6 @@ public class StringVariable extends Variable {
       if (getPersistentValue() == value) {
          return false;
       }
-      super.debugPrint("StringVariable["+this+"].setValue("+value+"), old "+value);
       setValueQuietly(value);
       notifyListeners();
       return true;

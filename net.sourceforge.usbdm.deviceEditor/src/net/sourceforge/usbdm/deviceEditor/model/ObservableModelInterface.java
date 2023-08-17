@@ -10,8 +10,9 @@ public interface ObservableModelInterface {
     * Duplicate listeners are discarded
     * 
     * @param listener Listener to add
+    * @return true if listener actually added
     */
-   public void addListener(IModelChangeListener listener);
+   public boolean addListener(IModelChangeListener listener);
 
    /**
     * Remove the model change listener (if present)

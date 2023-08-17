@@ -126,7 +126,6 @@ public class DoubleVariable extends Variable {
       if (fValue == value) {
          return false;
       }
-      super.debugPrint("DoubleVariable["+this+"].setValue("+String.format("%s", value)+"), old "+ String.format("%s", fValue));
       fValue = value;
       notifyListeners();
       return true;
@@ -358,4 +357,12 @@ public class DoubleVariable extends Variable {
    public Object getNativeValue() {
       return getValueAsDouble();
    }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
+   
+   
 }

@@ -41,7 +41,6 @@ import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Customiser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
-import net.sourceforge.usbdm.deviceEditor.peripherals.DynamicVariableProcessing;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ProcessProjectActions;
@@ -1784,7 +1783,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             for (Validator validator:validators) {
                validator.addDependencies();
             }
-            DynamicVariableProcessing.addMonitoredVariableListeners(peripheral);
+//            DynamicVariableProcessing.addMonitoredVariableListeners(peripheral);
          }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
@@ -1873,6 +1872,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
          
+         /**
+          * Add Variable internal listeners (expressions)
+          */
+         for (Entry<String, Variable> entry:fVariables.entrySet()) {
+            Variable var = fVariables.get(entry.getKey());
+//            if (var.getName().contains("osc_cr_range")) {
+//               System.err.println("Found it "+var.getName());
+//            }
+            var.addInternalListeners();
+         }
          //       System.err.println("Notify changes of persistent variables");
          
          /*
@@ -1882,6 +1891,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
           */
          for (Entry<String, Variable> entry:fVariables.entrySet()) {
             Variable var = entry.getValue();
+//            if (var.getName().contains("osc_input_freq")) {
+//               System.err.println("Found it "+var.getName());
+//            }
             if (!var.isDerived()) {
                var.notifyListeners();
             }
@@ -2213,7 +2225,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Adds a variable
     * 
-    * @param key       Key used to identify variable
     * @param variable  Variable to add
     * 
     * @throws Exception if variable is already present

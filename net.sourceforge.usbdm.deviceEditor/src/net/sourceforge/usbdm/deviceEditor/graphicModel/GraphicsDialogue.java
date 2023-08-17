@@ -171,7 +171,7 @@ public class GraphicsDialogue {
          super(var);
 
          combo = new Combo(canvas, SWT.ON_TOP|SWT.READ_ONLY|SWT.DROP_DOWN);
-         combo.setItems(var.getChoices());
+         combo.setItems(var.getVisibleChoiceNames());
          combo.setText(var.getValueAsString());
          combo.setFocus();
          combo.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));

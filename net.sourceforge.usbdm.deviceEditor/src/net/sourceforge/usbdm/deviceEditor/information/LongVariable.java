@@ -7,8 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 
 public class LongVariable extends Variable {
    
@@ -19,10 +18,10 @@ public class LongVariable extends Variable {
    private Long fMax    = Long.MAX_VALUE;
 
    /** Maximum permitted value as expression */
-   private String fMinExpression = null;
+   private Expression fMinExpression = null;
 
    /** Minimum permitted value as expression */
-   private String fMaxExpression = null;
+   private Expression fMaxExpression = null;
    
    /** Step size value */
    private long fStep   = 1;
@@ -141,14 +140,9 @@ public class LongVariable extends Variable {
     * @return True if variable actually changed value and listeners notified
     */
    public boolean setValue(Long value) {
-      
-      if (fDebug) {
-         System.err.println("LongVariable["+this+"].setValue("+value+"), old "+value);
-      }
       if (fValue == value) {
          return false;
       }
-      super.debugPrint("LongVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;
@@ -415,7 +409,6 @@ public class LongVariable extends Variable {
       fMin = min;
       if ((fDefaultValue == null) || (fDefaultValue<fMin)) {
          setDefault(fMin);
-         fDefaultValue = fMin;
       }
       if (fDisabledValue<fMin) {
          fDisabledValue = fMin;
@@ -454,64 +447,33 @@ public class LongVariable extends Variable {
    }
 
    /**
-    * Set maximum value as expression.<br>
-    * Status listeners are informed of any change.
+    * Set maximum value as expression.
     * 
     * @param max Maximum value as expression
     * 
-    * @return true => Dynamic expression
-    * 
     * @throws Exception
     */
-   public boolean setMin(String attribute) throws Exception {
-      // Assume dynamic evaluation
-      fMin = null;
+   public void setMin(String attribute) throws Exception {
       
-      try {
-         // Try as simply expression
-         SimpleExpressionParser parser = new SimpleExpressionParser(null, Mode.EvaluateFully);
-         fMin = (Long) parser.evaluate(attribute);
-         // Remove dynamic expression
-         fMaxExpression = null;
-         notifyListeners();
-         return false;
-         
-      } catch (Exception e) {
-         // Assume evaluated dynamically - save for later
-         fMinExpression = attribute;
-      }
-      // Dynamic expression
-      return true;
+      fMinExpression = new Expression(attribute, getProvider());
+      
+      // Initially assume dynamic evaluation
+      fMin = null;
    }
 
    /**
-    * Set maximum value as expression.<br>
-    * Status listeners are informed of any change.
+    * Set maximum value as expression.
     * 
     * @param max Maximum value as expression
     * 
-    * @return true => Dynamic expression
-    * 
     * @throws Exception
     */
-   public boolean setMax(String attribute) throws Exception {
-      // Assume dynamic evaluation
-      fMax = null;
+   public void setMax(String attribute) throws Exception {
       
-      // Try as simply expression
-      SimpleExpressionParser parser = new SimpleExpressionParser(null, Mode.EvaluateFully);
-      try {
-         fMax = (Long) parser.evaluate(attribute);
-         // Remove dynamic expression
-         fMaxExpression = null;
-         notifyListeners();
-         return false;
-      } catch (Exception e) {
-         // Assume evaluated dynamically - save for later
-         fMaxExpression = attribute;
-      }
-      // Dynamic expression
-      return true;
+      fMaxExpression = new Expression(attribute, getProvider());
+      
+      // Initially assume dynamic evaluation
+      fMax = null;
    }
    
    /**
@@ -522,11 +484,22 @@ public class LongVariable extends Variable {
     */
    public long getMin() throws Exception {
       if (fMin == null) {
-         SimpleExpressionParser parser = new SimpleExpressionParser(getProvider(), Mode.EvaluateFully);
-         fMin = (Long) parser.evaluate(fMinExpression);
-         notifyStatusListeners();
+         fMin = fMinExpression.getValueAsLong();
       }
       return fMin;
+   }
+
+   /**
+    * Get maximum value
+    * 
+    * @return Maximum value in user format
+    * @throws Exception
+    */
+   public long getMax() throws Exception {
+      if (fMax == null) {
+         fMax = fMaxExpression.getValueAsLong();
+      }
+      return fMax;
    }
 
    /**
@@ -543,37 +516,34 @@ public class LongVariable extends Variable {
     */
    public void updateMax() {
       if (fMaxExpression != null) {
-//         if (getName().contains("system_lpuart_clock")) {
-//            System.err.println("updateMax() Found "+getName());
-//         }
          fMax = null;
       }
    }
 
    /**
-    * Get maximum value
+    * Sets expression for dynamic min value
     * 
-    * @return Maximum value in user format
-    * @throws Exception
+    * @param expression
     */
-   public long getMax() throws Exception {
-      if (fMax == null) {
-//         if (getName().contains("system_lpuart_clock")) {
-//            System.err.println("getMax() Found "+getName());
-//         }
-         SimpleExpressionParser parser = new SimpleExpressionParser(getProvider(), Mode.EvaluateFully);
-         fMax = (Long) parser.evaluate(fMaxExpression);
-         notifyStatusListeners();
-      }
-      return fMax;
+   public void setMinExpression(Expression expression) {
+      fMinExpression = expression;
    }
-
+   
+   /**
+    * Sets expression for dynamic max value
+    * 
+    * @param expression
+    */
+   public void setMaxExpression(Expression expression) {
+      fMaxExpression = expression;
+   }
+   
    /**
     * Gets expression for dynamic min value
     * 
     * @return Expression or null if not dynamic
     */
-   public String getMinExpression() {
+   public Expression getMinExpression() {
       return fMinExpression;
    }
    
@@ -582,7 +552,7 @@ public class LongVariable extends Variable {
     * 
     * @return Expression or null if not dynamic
     */
-   public String getMaxExpression() {
+   public Expression getMaxExpression() {
       return fMaxExpression;
    }
    
@@ -647,6 +617,38 @@ public class LongVariable extends Variable {
    @Override
    public Object getNativeValue() {
       return getValueAsLong();
+   }
+   @Override
+   public void expressionChanged(Expression expression) {
+      super.expressionChanged(expression);
+      try {
+         if (fMinExpression != null) {
+            fMin = null;
+            if (getValueAsLong() < getMin()) {
+               setStatus("Value too low");
+            }
+         }
+         if (fMaxExpression != null) {
+            fMax = null;
+            if (getValueAsLong() > getMax()) {
+               setStatus("Value too high");
+            }
+         }
+      } catch (Exception e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+   }
+
+   @Override
+   public void addInternalListeners() throws Exception {
+      super.addInternalListeners();
+      if (fMinExpression != null) {
+         fMinExpression.addListener(this);
+      }
+      if (fMaxExpression != null) {
+         fMaxExpression.addListener(this);
+      }
    }
 
 }

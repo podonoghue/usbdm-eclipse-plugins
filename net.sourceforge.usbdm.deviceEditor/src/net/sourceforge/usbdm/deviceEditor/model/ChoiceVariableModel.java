@@ -32,7 +32,7 @@ public class ChoiceVariableModel extends VariableModel {
     * @return The array of choices displayed to user
     */
    public String[] getChoices() {
-      return getVariable().getChoices();
+      return getVariable().getVisibleChoiceNames();
    }
 
    @Override
@@ -89,5 +89,10 @@ public class ChoiceVariableModel extends VariableModel {
       return super.getValueAsString();
    }
 
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
 
 }
