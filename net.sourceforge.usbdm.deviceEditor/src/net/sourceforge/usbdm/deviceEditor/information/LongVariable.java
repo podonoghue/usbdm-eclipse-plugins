@@ -618,17 +618,18 @@ public class LongVariable extends Variable {
    public Object getNativeValue() {
       return getValueAsLong();
    }
+   
    @Override
    public void expressionChanged(Expression expression) {
       super.expressionChanged(expression);
       try {
-         if (fMinExpression != null) {
+         if (expression == fMinExpression) {
             fMin = null;
             if (getValueAsLong() < getMin()) {
                setStatus("Value too low");
             }
          }
-         if (fMaxExpression != null) {
+         if (expression == fMaxExpression) {
             fMax = null;
             if (getValueAsLong() > getMax()) {
                setStatus("Value too high");

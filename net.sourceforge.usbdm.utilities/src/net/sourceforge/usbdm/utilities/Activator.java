@@ -12,15 +12,17 @@ public class Activator extends AbstractUIPlugin  {
    // The shared instance
    private static Activator plugin = null;
 
-	public void start(BundleContext bundleContext) throws Exception {
+	@Override
+   public void start(BundleContext bundleContext) throws Exception {
       super.start(bundleContext);
       plugin = this;
-      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
+//      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
    	}
 
-	public void stop(BundleContext bundleContext) throws Exception {
+	@Override
+   public void stop(BundleContext bundleContext) throws Exception {
       plugin = null;
-      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
+//      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
       super.stop(bundleContext);
 	}
 	

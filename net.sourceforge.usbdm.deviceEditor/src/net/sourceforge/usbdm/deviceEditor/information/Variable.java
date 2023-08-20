@@ -11,9 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 import net.sourceforge.usbdm.deviceEditor.parsers.IExpressionChangeListener;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
 import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
-import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
@@ -117,6 +115,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    private VariableProvider fProvider;
 
    private Boolean fIsNamedClock = false;
+
+   private String fDisabledPinMap = null;
 
    /**
     * Constructor
@@ -493,6 +493,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          return false;
       }
       fEnabled = enabled;
+      if (fDisabledPinMap != null) {
+         
+      }
       notifyListeners();
       notifyStatusListeners();
       return true;
@@ -737,14 +740,14 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @param padding  This is the padding string to apply to start of additional comment lines e.g. " * "
     * 
-    * @return tooltip modified or empty string if none
+    * @return tool-tip modified or empty string if none
     */
    public String getToolTipAsCode(String padding) {
       String tooltip = XML_BaseParser.escapeString(getToolTip());
       if (tooltip == null) {
          return "";
       }
-      tooltip = tooltip.replace("\n", "\n\\t"+padding);
+      tooltip = tooltip.replace("\n", "\n"+padding);
       return tooltip;
    }
    
@@ -754,7 +757,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return
     */
    public String getToolTipAsCode() {
-      return getToolTipAsCode(" * ");
+      return getToolTipAsCode("\\t * ");
    }
    
    public String getDescriptionAsCode() {
@@ -1076,42 +1079,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Get description of enableBy on this variable
+    * Set provider associated with this variable
     * 
-    * @param parser Parser that has determined enabledBy condition has failed
-    * 
-    * @param enabledBy
+    * @param provider
     */
-   public String getEnabledByMessage(SimpleExpressionParser parser) {
-      if (fEnabledBy == null) {
-         return null;
-      }
-      return fEnabledBy.getMessage("Disabled by");
-   }
-
-   /**
-    * Evaluate this variable's enableBy expression
-    * 
-    * @param peripheral
-    * 
-    * @return
-    * 
-    * @throws Exception
-    */
-   public boolean evaluateEnable(Peripheral peripheral) throws Exception {
-      if (fEnabledBy == null) {
-         return true;
-      }
-      return fEnabledBy.getValueAsBoolean();
-   }
-
-   public boolean evaluateError(Peripheral peripheral) throws Exception {
-      if (fErrorIf == null) {
-         return true;
-      }
-      return fErrorIf.getValueAsBoolean();
-   }
-
    public void setProvider(VariableProvider provider) {
       fProvider = provider;
    }
@@ -1164,18 +1135,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Get description of forcing error on this variable
-    * 
-    * @param enabledBy
-    */
-   public String getErrorIfMessage() {
-      if (fErrorIf == null) {
-         return null;
-      }
-      return fErrorIf.getMessage("Error due to failed expression");
-   }
-
-   /**
     * Get index from variable
     * 
     * @return Index or -1 if not indexed
@@ -1210,9 +1169,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
    @Override
    public void expressionChanged(Expression expression) {
-//      if (getName().contains("system_bus_clock[0]")) {
-//         System.err.println("Found it "+ getName());
-//      }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();
 
@@ -1263,9 +1219,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    protected void determineReferenceUpdate(VariableUpdateInfo info, Expression expression) throws Exception {
-//      if (getName().contains("system_bus_clock")) {
-//         System.err.println("Found it "+getName());
-//      }
 
       if (expression != null) {
          info.value = expression.getValue();
@@ -1280,5 +1233,67 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          info.origin   = expression.getOriginMessage();
       }
    }
+
+   /**
+    * Set the an active pin mapping Signal => Pin
+    * 
+    * @param signalName Name of signal
+    * @param pinName    Name of pin
+    */
+   protected void setActivePinMapping(String signalName, String pinName) {
+      try {
+         Signal signal = getProvider().getDeviceInfo().findSignal(signalName);
+         if ((pinName==null)||(pinName.isBlank())) {
+            signal.setMappedPin(MappingInfo.UNASSIGNED_MAPPING);
+         }
+         else {
+            signal.mapPin(getProvider().getDeviceInfo().findPin(pinName));
+         }
+      } catch (Exception e) {
+         System.err.println("Signal mapping change failed for " + signalName + " => " +pinName);
+      }
+   }
+
+   /**
+    * Set active pin mappings
+    * 
+    * @param activePinMap list of pin mappings e.g. 'SWD_DIO,PTA4;SWD_CLK,PTC4'
+    */
+   protected void setActivePinMappings(String activePinMap) {
+      if (activePinMap == null) {
+         return;
+      }
+      String[] pinMaps = activePinMap.split(";");
+      for (String pinMapEntry:pinMaps) {
+
+         // Signal => pin
+         String[] map = pinMapEntry.split(",");
+         if (map.length<2) {
+            setActivePinMapping(map[0], null);
+         }
+         else {
+            setActivePinMapping(map[0], map[1]);
+         }
+      }
+   }
+   
+   /**
+    * Set disabled pin-map
+    * 
+    * @param pinMap
+    */
+   public void setDisabledPinMap(String pinMap) {
+      fDisabledPinMap = pinMap;
+   }
+   
+   /**
+    * Get disabled pin-map
+    * 
+    * @return Pin-map to use when disabled.  null if none.
+    */
+   public String getDisabledPinMap() {
+      return fDisabledPinMap;
+   }
+   
 
 }

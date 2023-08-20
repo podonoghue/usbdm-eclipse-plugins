@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
@@ -322,11 +323,18 @@ public abstract class VariableWithChoices extends Variable {
       if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
-//      if (getName().contains("ics_c2_bdiv")) {
-//         System.err.println("Found it "+getName());
-//      }
-      String target = getTarget();
 
+      String disabledPinMap = getDisabledPinMap();
+      if (!isEnabled() && (disabledPinMap != null)) {
+         // Disabled and special mapping provided
+         setActivePinMappings(disabledPinMap);
+      }
+      else {
+         // Use mapping form choice
+         setActivePinMappings(choiceData.getPinMap());
+      }
+
+      String target = getTarget();
       if (target == null) {
          return;
       }
@@ -373,4 +381,31 @@ public abstract class VariableWithChoices extends Variable {
          e.printStackTrace();
       }
    }
+   
+   @Override
+   public void expressionChanged(Expression expression) {
+      if (this.getName().contains("sim_sopt0_swde")) {
+         System.err.println("Found it ");
+      }
+      super.expressionChanged(expression);
+      ChoiceData choice = getCurrentChoice();
+      if (choice == null) {
+         return;
+      }
+      updateTargets(getCurrentChoice());
+   }
+
+   @Override
+   public boolean enable(boolean enabled) {
+      if (this.getName().contains("sim_sopt0_swde")) {
+         System.err.println("Found it ");
+      }
+      boolean changed = super.enable(enabled);
+      if (changed) {
+         updateChoices();
+      }
+      return changed;
+   }
+   
+   
 }

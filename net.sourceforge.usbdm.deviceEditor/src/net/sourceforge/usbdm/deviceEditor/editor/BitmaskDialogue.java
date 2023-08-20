@@ -2,9 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -14,11 +11,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+
 public class BitmaskDialogue extends Dialog {
-   private final Button  fButtons[];
-   private       long    fValue;
-   private final long    fDefaultValue;
-   private final long    fBitmask;
+   private final Button    fButtons[];
+   private       long      fValue;
+//   private final long      fDefaultValue;
+   private final long      fBitmask;
+   private final BitmaskVariable fVariable;
    
    // Set name pattern for elements e.g. pin%d
    private String   fElementName = "%d";
@@ -29,13 +30,15 @@ public class BitmaskDialogue extends Dialog {
    
    /**
     * Create dialogue displaying a set of check boxes
+    * @param bitmaskVariable
     * 
     * @param parentShell
     * @param bitmask        Bit mask for available bits
     * @param initialValue   Initial bit mask
     */
-   public BitmaskDialogue(Shell parentShell, long bitmask, long initialValue, long defaultValue) {
+   public BitmaskDialogue(BitmaskVariable bitmaskVariable, Shell parentShell, long bitmask, long initialValue, long defaultValue) {
      super(parentShell);
+     fVariable = bitmaskVariable;
      fBitmask  = bitmask;
      long highestOne = Long.highestOneBit(bitmask);
      if (highestOne != 0) {
@@ -45,7 +48,7 @@ public class BitmaskDialogue extends Dialog {
         fButtons = null;
      }
      fValue        = initialValue & fBitmask;
-     fDefaultValue = defaultValue & fBitmask;
+//     fDefaultValue = defaultValue & fBitmask;
    }
 
    /**
@@ -60,7 +63,7 @@ public class BitmaskDialogue extends Dialog {
    @Override
    protected Control createDialogArea(Composite parent) {
       Composite container = (Composite) super.createDialogArea(parent);
-      container.setToolTipText("Bits unchanged from default are in grey");
+      container.setToolTipText(fVariable.getToolTip());
       int width = 8;
       if (fBitNames != null) {
          if (fBitNames.length<width) {
@@ -110,29 +113,28 @@ public class BitmaskDialogue extends Dialog {
                btn.setText(fElementName.replaceAll("%d", Integer.toString(i)));
                btn.setSelection((fValue & mask) != 0);
                btn.setEnabled((fBitmask & mask) != 0);
-               boolean changedFromDefault = (((fValue^fDefaultValue) & mask) != 0);
-               Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_GRAY);
-               btn.setForeground(c);
+//               Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_GRAY);
+//               btn.setForeground(c);
                btn.setData(i);
                fButtons[i] = btn;
             }
             if (fButtons[i] != null) {
-               fButtons[i].setToolTipText("Bits unchanged from default are in grey");
-               fButtons[i].addSelectionListener(new SelectionListener() {
-                  @Override
-                  public void widgetSelected(SelectionEvent e) {
-                     Button b = (Button) e.widget;
-                     long mask  = 1<<((int) b.getData());
-                     long value = (b.getSelection()?mask:0);
-                     boolean changedFromDefault = (((value^fDefaultValue) & mask) != 0);
-                     Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_TITLE_INACTIVE_BACKGROUND);
-                     b.setForeground(c);
-                  }
-
-                  @Override
-                  public void widgetDefaultSelected(SelectionEvent e) {
-                  }
-               });
+               fButtons[i].setToolTipText(fVariable.getToolTip());
+//               fButtons[i].addSelectionListener(new SelectionListener() {
+//                  @Override
+//                  public void widgetSelected(SelectionEvent e) {
+//                     Button b = (Button) e.widget;
+//                     long mask  = 1<<((int) b.getData());
+//                     long value = (b.getSelection()?mask:0);
+//                     boolean changedFromDefault = (((value^fDefaultValue) & mask) != 0);
+//                     Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_TITLE_INACTIVE_BACKGROUND);
+//                     b.setForeground(c);
+//                  }
+//
+//                  @Override
+//                  public void widgetDefaultSelected(SelectionEvent e) {
+//                  }
+//               });
             }
          }
       }
@@ -180,7 +182,7 @@ public class BitmaskDialogue extends Dialog {
             Control b = fButtons[index];
             Button btn = (Button)b;
             if (btn != null) {
-               fValue |= btn.getSelection()?(1<<index):0;
+               fValue |= btn.getSelection()?(1L<<index):0;
             }
          }
       }
@@ -202,8 +204,9 @@ public class BitmaskDialogue extends Dialog {
       shell.setSize(600, 200);
       
       long selection = 0xC2;
+      BitmaskVariable var = new BitmaskVariable("Name", "Key");
       while(true) {
-         BitmaskDialogue editor = new BitmaskDialogue(shell, 0xCC2, selection, 0x14);
+         BitmaskDialogue editor = new BitmaskDialogue(var, shell, 0xCC2, selection, 0x14);
 //         editor.setElementName("pin%d");
          editor.setBitNameList("This is #1,This is #6,This is #7");
          if  (editor.open() != OK) {
@@ -227,7 +230,7 @@ public class BitmaskDialogue extends Dialog {
 
    public void setBitNameList(String bitList) {
       if ((bitList != null) && !bitList.isEmpty()) {
-         fBitNames = bitList.split(",");
+         fBitNames = VariableModel.expandNameList(bitList);
       }
    }
 

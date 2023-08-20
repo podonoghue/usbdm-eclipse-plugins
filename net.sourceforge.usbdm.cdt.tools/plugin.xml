@@ -326,7 +326,7 @@
                <enablement
                   type="CONTAINER_ATTRIBUTE"
                   attribute="defaultValue"
-                  value="net.sourceforge.usbdm.gnu.c.optimization.level.none"
+                  value="net.sourceforge.usbdm.gnu.c.optimization.level.debug"
                   extensionAdjustment="false">
                   <checkBuildProperty
                      property="org.eclipse.cdt.build.core.buildType"

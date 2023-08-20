@@ -1,7 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
-import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
  * Used to represent a template for code in a project
@@ -125,14 +125,14 @@ public class TemplateInformation {
     * 
     * @throws Exception
     */
-   public String getExpandedText(Peripheral peripheral) {
+   public String getExpandedText(VariableProvider varProvider) {
       if (fText == null) {
          // Convert to string on first use
          fText = fBuilder.toString();
       }
       if (fCodeGenerationCondition != null) {
          try {
-            Object result = SimpleExpressionParser.evaluate(fCodeGenerationCondition, peripheral, Mode.EvaluateFully);
+            Object result = SimpleExpressionParser.evaluate(fCodeGenerationCondition, varProvider, Mode.EvaluateFully);
             if (!(result instanceof Boolean)) {
                throw new Exception("Expected boolean expression " + fCodeGenerationCondition);
             }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
  
 public class BooleanVariable extends VariableWithChoices {
    
@@ -319,16 +318,6 @@ public class BooleanVariable extends VariableWithChoices {
    @Override
    public Object getNativeValue() {
       return getValueAsBoolean();
-   }
-
-   @Override
-   public void expressionChanged(Expression expression) {
-      super.expressionChanged(expression);
-      ChoiceData choice = getCurrentChoice();
-      if (choice == null) {
-         return;
-      }
-      updateTargets(getCurrentChoice());
    }
 
 }

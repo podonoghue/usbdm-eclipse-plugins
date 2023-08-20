@@ -93,7 +93,7 @@ public class VariableProvider {
 
    /**
     * Get variable with given key<br>
-    * If the key is not absolute then it is made relative to the VariableProvider (this)
+    * If the key is not absolute then it is made relative to this
     * 
     * @param key     Key to lookup variable
     * 

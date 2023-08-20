@@ -59,7 +59,7 @@ public class PeripheralSignalsVariable extends Variable {
 
    @Override
    protected VariableModel privateCreateModel(BaseModel parent) {
-      PeripheralWithState p = (PeripheralWithState) getProvider();
+      PeripheralWithState    p = (PeripheralWithState) getProvider();
       PeripheralSignalsModel m = p.createPeripheralSignalsModel(parent);
       return m;
    }
@@ -72,6 +72,12 @@ public class PeripheralSignalsVariable extends Variable {
    @Override
    public Object getNativeValue() {
       throw new RuntimeException("This method should never be called");
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
    }
 
 }

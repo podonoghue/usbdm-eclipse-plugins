@@ -11,7 +11,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
-import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class Expression implements IModelChangeListener {
@@ -853,9 +852,6 @@ public class Expression implements IModelChangeListener {
 
    private void prelim() throws Exception {
       
-//      if (fExpressionStr.contains("sim_clkdiv_outdiv1")) {
-//         System.err.println("Found it "+fExpressionStr);
-//      }
       String expression = fExpressionStr;
       String parts[] = expression.split("#");
       if (parts.length>1) {
@@ -864,10 +860,6 @@ public class Expression implements IModelChangeListener {
          expression  = parts[1];
       }
       parts = expression.split(",");
-      
-//      if (fExpressionStr.equalsIgnoreCase("/OSC0/osc_clock")) {
-//         System.err.println("Fount it, Exp = "+fExpressionStr);
-//      }
       if (parts.length>1) {
          fMessage = parts[1].trim();
       }
@@ -877,11 +869,7 @@ public class Expression implements IModelChangeListener {
       
       ExpressionParser ep = new ExpressionParser(this, fVarProvider, ExpressionParser.Mode.Construct);
       fExpression = ep.parseExpression(parts[0].trim());
-      ExpressionNode t = fExpression;
       fExpression = fExpression.prune();
-      if (t != fExpression) {
-         System.err.println("Pruned " + fExpressionStr + " => "+fExpression.toString());
-      }
       fVariables = ep.getCollectedVariables();
       if ((fPrimaryVar == null) && (fVariables.size() == 1)) {
          fPrimaryVar = fVariables.get(0);
@@ -920,10 +908,7 @@ public class Expression implements IModelChangeListener {
     * @return
     */
    public String getOriginMessage() {
-      if (fExpressionStr.contains("system_icsirclk_ungated")) {
-         System.err.println("Found it "+fExpressionStr);
-      }
-
+      
       if (fMessage != null) {
          return fMessage;
       }
@@ -971,14 +956,11 @@ public class Expression implements IModelChangeListener {
     * Get message associated with expression
     * If no explicit message available then a message is constructed from the expression.
     * 
-    * @param parser
+    * @param defaultLeader
+    * 
     * @return
     */
    public String getMessage(String defaultLeader) {
-//      if (fExpressionStr.contains("sim_clkdiv_outdiv1")) {
-//         System.err.println("Found it "+fExpressionStr);
-//      }
-      
       if (fMessage != null) {
          return fMessage;
       }
@@ -1005,23 +987,6 @@ public class Expression implements IModelChangeListener {
    }
 
    /**
-    * Evaluate expression as variable enabledBy condition
-    * 
-    * @param varProvider Used to obtain variables in expression
-    * @param info       Updated with result (.enable and optionally .status)
-    * 
-    * @return  Result of expression
-    * 
-    * @throws Exception
-    */
-   public void evaluateAsEnabledBy(VariableUpdateInfo info) throws Exception {
-      info.enable = (boolean)evaluate();
-      if (!info.enable) {
-         info.status = new Status(getMessage("Disabled by"), Severity.INFO);
-      }
-   }
-
-   /**
     * Check if expression is constant e.g. "Disabled"
     * 
     * @return true if constant
@@ -1041,9 +1006,6 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public Object getValue() throws Exception {
-      if (fExpressionStr.contains("((irefs_clock[1]>=31.25_kHz)")) {
-         System.err.println("Found it "+fExpressionStr);
-      }
       if (fCurrentValue == null) {
          fCurrentValue = evaluate();
       }
@@ -1082,9 +1044,6 @@ public class Expression implements IModelChangeListener {
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-//      if (fExpressionStr.contains("osc_input_freq>=4")) {
-//         System.err.println("Found it "+fExpressionStr);
-//      }
       try {
          Object newValue = evaluate();
          if (newValue == fCurrentValue) {
@@ -1105,7 +1064,6 @@ public class Expression implements IModelChangeListener {
                Double change = ((Double)newValue-(Double)fCurrentValue)/(Double)fCurrentValue;
                changed =  (Math.abs(change)>0.000000001);
             }
-//            System.err.println(fExpressionStr + ": Changed, old="+fCurrentValue+", new="+newValue);
          }
          if (changed) {
             fCurrentValue = newValue;

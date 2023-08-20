@@ -33,10 +33,11 @@ public class Activator extends AbstractUIPlugin {
     * @see
     * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
     */
+   @Override
    public void start(BundleContext context) throws Exception {
       super.start(context);
       plugin = this;
-      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
+//      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
    }
 
    /*
@@ -45,9 +46,10 @@ public class Activator extends AbstractUIPlugin {
     * @see
     * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
     */
+   @Override
    public void stop(BundleContext context) throws Exception {
       plugin = null;
-      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
+//      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
       super.stop(context);
    }
 
@@ -120,7 +122,7 @@ public class Activator extends AbstractUIPlugin {
    /**
     * Returns an image descriptor based on an key
     *
-    * @param key Key to lookup image 
+    * @param key Key to lookup image
     * 
     * @return The image descriptor
     */

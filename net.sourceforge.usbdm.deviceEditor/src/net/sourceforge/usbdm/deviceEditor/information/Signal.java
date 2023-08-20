@@ -57,7 +57,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Name of signal e.g. FTM0_CH3 */
    private final String fName;
 
-   /** Indicates the signal is a power signal e.g. VDD, VSS */ 
+   /** Indicates the signal is a power signal e.g. VDD, VSS */
    private final boolean fIsPowerSignal;
    
    /** Set of pin mappings available for this signal */
@@ -66,10 +66,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Reset mapping for this signal */
    private MappingInfo fResetMapping = MappingInfo.UNASSIGNED_MAPPING;
 
-   /** Status indicating if this signal is mapped to multiple pins (Error) */ 
+   /** Status indicating if this signal is mapped to multiple pins (Error) */
    private Status fStatus = null;
 
-   /** Status of associated signals i.e. if the mapped pin is also mapped to another signal (Error) */ 
+   /** Status of associated signals i.e. if the mapped pin is also mapped to another signal (Error) */
    private Status fAssociatedStatus = null;
 
    /** User description of pin use */
@@ -78,7 +78,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** User identifier to use in code generation */
    private String fCodeIdentifier = "";
    
-   /** Indicates that code for a user instance of the signal class should be created */ 
+   /** Indicates that code for a user instance of the signal class should be created */
    private boolean fCreateInstance;
 
    private static final String getCreateInstanceKey(String name) {
@@ -99,9 +99,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
   /**
     * 
-    * @param name          Name of signal e.g. FTM0_CH3 
-    * @param peripheral    Peripheral that signal belongs to 
-    * @param signal        Signal name or number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK 
+    * @param name          Name of signal e.g. FTM0_CH3
+    * @param peripheral    Peripheral that signal belongs to
+    * @param signal        Signal name or number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK
     */
    Signal(String name, Peripheral peripheral, String signal) {
       fName       = name;
@@ -121,7 +121,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
    }
    
-   /** 
+   /**
     * Set identifier to use in code generation
     */
    public void setCodeIdentifier(String codeIdentifier) {
@@ -137,7 +137,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       modelElementChanged(this);
    }
 
-   /** 
+   /**
     * Get identifier to use in code generation
     * 
     * @return Code identifier (which may be blank) or null if code identifier not applicable to this signal
@@ -153,8 +153,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       return fCodeIdentifier;
    }
    
-   /** 
-    * Set description of pin use 
+   /**
+    * Set description of pin use
     */
    public void setUserDescription(String userDescription) {
       if (this == DISABLED_SIGNAL) {
@@ -252,7 +252,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get signal name or number without prefix e.g. GPIOA_4 = 4, FTM0_CH6 = CH6, SPI0_SCK = SCK 
+    * Get signal name or number without prefix e.g. GPIOA_4 = 4, FTM0_CH6 = CH6, SPI0_SCK = SCK
     * 
     * @return Name
     */
@@ -306,7 +306,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get ordered set of available pin mappings for this signal 
+    * Get ordered set of available pin mappings for this signal
     * 
     * @return
     */
@@ -374,7 +374,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
    /**
     * Get current pin mapping information for this signal.
-    * If more than one pin is mapped it returns the mapping for the first pin found. 
+    * If more than one pin is mapped it returns the mapping for the first pin found.
     * 
     * @return Pin mapping information for pin found or MappingInfo.UNASSIGNED_MAPPING
     */
@@ -405,7 +405,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /**
     * Get current pin mapped for this signal<br>
     * 
-    * If more than one pin is mapped for this signal then the first found is returned. 
+    * If more than one pin is mapped for this signal then the first found is returned.
     * 
     * @return Mapped pin (may be Pin.UNASSIGNED_PIN)
     */
@@ -417,7 +417,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /**
     * Checks if this signal is mapped to more than one pin.
     * 
-    * @return Status indicating if this signal is mapped to multiple pins (Warning) 
+    * @return Status indicating if this signal is mapped to multiple pins (Warning)
     */
    public Status checkMappingConflicted() {
       
@@ -468,7 +468,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /**
     * Get status of this signal and mapped pin
     * 
-    * @return Status 
+    * @return Status
     */
    public Status getStatus() {
       if (fStatus != null) {
@@ -480,6 +480,33 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          return fAssociatedStatus;
       }
       return null;
+   }
+   
+   /**
+    * Map the function to a pin<br>
+    * Other mappings are removed.
+    * 
+    * @param pin Pin to map signal to
+    */
+   public void mapPin(Pin pin) {
+      boolean changed = false;
+      MappingInfo mappingInfo = null;
+      for (MappingInfo mapping:fPinMappings) {
+         if (mapping.getPin() == pin) {
+            mappingInfo = mapping;
+            continue;
+         }
+         changed = mapping.select(this, false) || changed;
+      }
+      if (mappingInfo != null) {
+         changed = mappingInfo.select(this, true) || changed;
+      }
+      setDirty(changed);
+      notifyListeners();
+   
+//      for(MappingInfo mapping:fPinMappings) {
+//         mapping.select(this, mapping.getPin() == pin);
+//      }
    }
    
    /**
@@ -609,5 +636,5 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public ModifierEditorInterface getModifierEditor() {
       return fPeripheral.getModifierEditor();
    }
-   
+
  }

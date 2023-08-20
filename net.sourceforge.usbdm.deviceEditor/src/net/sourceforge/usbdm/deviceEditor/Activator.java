@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -33,6 +32,7 @@ public class Activator extends AbstractUIPlugin {
     * @see
     * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
     */
+   @Override
    public void start(BundleContext context) throws Exception {
       super.start(context);
       plugin = this;
@@ -45,6 +45,7 @@ public class Activator extends AbstractUIPlugin {
     * @see
     * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
     */
+   @Override
    public void stop(BundleContext context) throws Exception {
       plugin = null;
       log(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
@@ -71,7 +72,7 @@ public class Activator extends AbstractUIPlugin {
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/generateFiles.png"), null));
       registry.put(ID_GEN_FILES_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/generateFiles-disabled.png"), null));
-      registry.put(ID_GEN_FILES_DISABLED_IMAGE, imageDescriptor);   
+      registry.put(ID_GEN_FILES_DISABLED_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/disabled.png"), null));
       registry.put(ID_DISABLED_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
@@ -119,7 +120,7 @@ public class Activator extends AbstractUIPlugin {
    /**
     * Returns an image descriptor based on an key
     *
-    * @param key Key to lookup image 
+    * @param key Key to lookup image
     * 
     * @return The image descriptor
     */
@@ -155,10 +156,10 @@ public class Activator extends AbstractUIPlugin {
          if (e != null) {
             e.printStackTrace();
          }
-         System.out.println(msg + ((e!=null)?e.getMessage():""));
+         getDefault().getLog().error(msg, e);
          return;
       }
-      getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
+      getDefault().getLog().info(msg);
    }
 
    static public void logError(String msg, Exception e) {
@@ -166,10 +167,10 @@ public class Activator extends AbstractUIPlugin {
          if (e != null) {
             e.printStackTrace();
          }
-         System.err.println(msg + ((e!=null)?e.getMessage():""));
+         getDefault().getLog().error(msg, e);
          return;
       }
-      getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
+      getDefault().getLog().error(msg);
    }
 
 }

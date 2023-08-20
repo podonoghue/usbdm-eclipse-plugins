@@ -173,6 +173,7 @@ public class WriteFamilyCpp {
       priorityClasses.add(Pattern.compile("PCC"));
       priorityClasses.add(Pattern.compile("RTC"));
       priorityClasses.add(Pattern.compile("MCG.*"));
+      priorityClasses.add(Pattern.compile("ICS.*"));
       priorityClasses.add(Pattern.compile("SIM"));
       
       for (Pattern pattern : priorityClasses) {

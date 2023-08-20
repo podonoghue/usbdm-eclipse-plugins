@@ -110,8 +110,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (enabledBy != null) {
             // Add enabled-by handling for signals
             fPeripheralSignalsVar.setEnabledBy(enabledBy);
-            // Add as monitored variable
-            addDynamicVariable(fPeripheralSignalsVar);
          }
          // Don't add signals to self!
          return;
@@ -695,40 +693,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
 
-//   ArrayList<String> fDepenedencies;
-//
-//   public void addDependency(String dependencyVarName) {
-//      if (fDepenedencies == null) {
-//         fDepenedencies = new ArrayList<String>();
-//      }
-//      fDepenedencies.add(dependencyVarName);
-//   }
-//
-//   public ArrayList<String> getDependencies() {
-//      return fDepenedencies;
-//   }
-
    // List of clock selectors to update on validation
    private ArrayList<Object> fMonitoredVariables = null;
 
-//   private ClockSelectionFigure fFigure;
-   
-   /**
-    * Add variable as dynamic variable i.e. a variable that is affected by other variables
-    * through ref="", enabledBy="" or having dynamic choices.
-    * 
-    * @param monitoredVariable Variable to add
-    */
-   public void addDynamicVariable(Variable monitoredVariable) {
-      return;
-//      if (fMonitoredVariables == null) {
-//         fMonitoredVariables = new ArrayList<Object>();
-//      }
-//      if (!fMonitoredVariables.contains(monitoredVariable)) {
-//         fMonitoredVariables.add(monitoredVariable);
-//      }
-   }
-   
    /**
     * Add variable as clock selector
     * 

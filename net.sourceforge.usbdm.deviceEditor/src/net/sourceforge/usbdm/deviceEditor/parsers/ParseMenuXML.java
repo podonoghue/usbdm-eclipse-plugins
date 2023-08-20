@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.graphicModel.ClockSelectionFigure;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
@@ -168,7 +169,7 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @return template value or empty string
        */
-      public String getTemplate(String namespace, String key, Peripheral peripheral) {
+      public String getTemplate(String namespace, String key, VariableProvider varProvider) {
          key = makeKey(key, namespace);
          ArrayList<TemplateInformation> templateList = fTemplatesList.get(key);
          if (templateList == null) {
@@ -176,7 +177,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          StringBuilder sb = new StringBuilder();
          for(TemplateInformation template:templateList) {
-            sb.append(template.getExpandedText(peripheral));
+            sb.append(template.getExpandedText(varProvider));
          }
          return sb.toString();
       }
@@ -316,14 +317,6 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          if (fValues == null) {
             fValues = splitValues(fValueList[iter]);
-//            fValues = fValueList[iter].split(":");
-//            for (int index=0; index<fKeys.length; index++) {
-//               String s = fValues[index].trim();
-//               if (s.startsWith("'") && s.endsWith("'")) {
-//                  s = s.substring(1,s.length()-1);
-//               }
-//               fValues[index] = s;
-//            }
          }
          if (fValues.length != fKeys.length) {
             throw new ForloopException(
@@ -581,8 +574,6 @@ public class ParseMenuXML extends XML_BaseParser {
                e = expressionParser.evaluate((String) e);
             }
             end = (long) e;
-//            start = getLongWithVariableSubstitution(dims[0]).intValue();
-//            end   = getLongWithVariableSubstitution(dims[1]).intValue();
          }
          else {
             throw new Exception("Illegal dim value '"+dim+"' for <for> '"+keys+"'");
@@ -826,10 +817,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (name == null) {
          name = Variable.getNameFromKey(key);
       }
-//      System.err.println("Creating var " + name);
-//      if (key.contains("enablePeripheralSupport")) {
-//         System.err.println("key = " + key);
-//      }
       boolean replace = Boolean.valueOf(getAttribute(varElement, "replace"));
       boolean modify  = Boolean.valueOf(getAttribute(varElement, "modify"));
       
@@ -961,17 +948,8 @@ public class ParseMenuXML extends XML_BaseParser {
          Expression enabledBy = otherVariable.getEnabledBy();
          if (enabledBy != null) {
             variable.setEnabledBy(enabledBy);
-            // Add as monitored variable
-//            fPeripheral.addDynamicVariable(variable);
          }
-//         String errorIf = otherVariable.getErrorIf();
-//         if (errorIf != null) {
-//            variable.setErrorIf(errorIf);
-//            // Add as monitored variable
-//            fPeripheral.addMonitoredVariable(variable);
-//         }
          variable.setRegister(otherVariable.getRegister());
-//         variable.setDataValue(otherVariable.getDataValue());
       }
       if (varElement.hasAttribute("constant")) {
          variable.setLocked(Boolean.valueOf(getAttribute(varElement, "constant")));
@@ -999,27 +977,20 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("ref")) {
          variable.setReference(getAttribute(varElement, "ref"));
-         // Add as monitored variable
-//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttribute(varElement, "enabledBy"));
-         // Add as monitored variable
-//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("errorIf")) {
          variable.setErrorIf(getAttribute(varElement, "errorIf"));
-         // Add as monitored variable
-//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("unlockedBy")) {
          variable.setUnlockedBy(getAttribute(varElement, "unlockedBy"));
-         // Add as monitored variable
-//         fPeripheral.addDynamicVariable(variable);
+      }
+      if (varElement.hasAttribute("disabledPinMap")) {
+         variable.setDisabledPinMap(getAttribute(varElement, "disabledPinMap"));
       }
       variable.setRegister(getAttribute(varElement, "register"));
-//    variable.setDataValue(getAttribute(varElement, "data"));
-
 
       if (varElement.hasAttribute("value")) {
          // Value is used as default and initial value
@@ -1039,8 +1010,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("target")) {
          variable.setTarget(getAttribute(varElement, "target"));
-         // Add as monitored variable
-//         fPeripheral.addDynamicVariable(variable);
       }
       if (varElement.hasAttribute("isNamedClock")) {
          variable.setIsNamedClock(Boolean.valueOf(getAttribute(varElement, "isNamedClock")));
@@ -1120,17 +1089,15 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setUnits(otherVariable.getUnits());
       }
       parseCommonAttributes(parent, varElement, variable);
-      if (variable.getValueFormat() == null) {
+//      if (variable.getValueFormat() == null) {
 //         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
-      }
+//      }
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getAttribute(varElement, "min"));
-//            variable.setMin(getRequiredLongExpressionAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
             variable.setMax(getAttribute(varElement, "max"));
-//            variable.setMax(getRequiredLongExpressionAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("disabledValue")) {
             variable.setDisabledValue(getRequiredLongExpressionAttribute(varElement, "disabledValue"));
@@ -1205,6 +1172,7 @@ public class ParseMenuXML extends XML_BaseParser {
          bitmask = getLongExpressionAttribute(varElement, "bitmask");
          variable.setPermittedBits(bitmask);
          variable.setBitList(getAttribute(varElement, "bitList"));
+         variable.setPinMap(getAttribute(varElement, "pinMap"));
       } catch( NumberFormatException e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
       }
@@ -1240,9 +1208,6 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ClockSelectionVariable.class);
-//      if (variable.getName().contains("currentClockConfig")) {
-//         System.err.println("Found it x"+variable.getName());
-//      }
 
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
@@ -1266,15 +1231,6 @@ public class ParseMenuXML extends XML_BaseParser {
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
-      
-//      if (variable.hasDynamicChoices()) {
-         // Add as monitored variable
-//         fPeripheral.addDynamicVariable(variable);
-//      }
-
-//      if (variable.getName().contains("port_pin")) {
-//         System.err.println("Found it y"+variable.getName());
-//      }
       if (variable.getTypeName() != null) {
          generateEnum(varElement, variable);
       }
@@ -1402,7 +1358,6 @@ public class ParseMenuXML extends XML_BaseParser {
             valueMax        = Math.max(valueMax, completeValue.length());
             
             commentsList.add(choiceData[index].getName());
-//            commentsList.add(escapeString(choiceData[index].getName()));
          }
 
       }
@@ -1812,9 +1767,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (variable == null) {
          return;
       }
-//      if (variable.getName().equalsIgnoreCase("cmp_cr1_en")) {
-//         System.err.println("Found " + variable.getName());
-//      }
       parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
       if (variable.getTypeName() != null) {
@@ -2082,9 +2034,6 @@ public class ParseMenuXML extends XML_BaseParser {
       String registerName = controlVar.getRegister();
       
       if (registerName != null) {
-//         if (registerName.equalsIgnoreCase("control")) {
-//            System.err.println("Found "+registerName);
-//         }
          Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
          Matcher m = p.matcher(variableKey);
          if (m.matches()) {
@@ -2212,7 +2161,8 @@ public class ParseMenuXML extends XML_BaseParser {
       StringBuilder paramDescriptionSb        = new StringBuilder();  // @param style comments for parameters
 
       // Padding applied to comments (before * @param)
-      String linePadding = getAttribute(element, "linePadding", "").replace("x", " ");
+      String linePadding    = getAttribute(element, "linePadding",    "").replace("x", " ");
+      String tooltipPadding = getAttribute(element, "tooltipPadding", " *        ").replace("x", " ");
       
       // Terminator for initExpression
       String terminator     = getAttribute(element, "terminator"    , ";");
@@ -2396,7 +2346,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
          // Tool-tip from variable
          String tooltip = "'%tooltip' not available in this template";
-         temp = variable.getToolTipAsCode(linePadding+" *        ");
+         temp = variable.getToolTipAsCode("\\t"+linePadding+tooltipPadding);
          if (temp != null) {
             tooltip = temp;
          }
@@ -2422,22 +2372,13 @@ public class ParseMenuXML extends XML_BaseParser {
             initExpressionSb.append(" - $("+variableKey+".name[])");
          }
          
-//         String fieldParam = String.format(valueFormat, param);
-         
-         String toolTip = "toolTip in %paramDescription is not valid here";
-         temp = variable.getToolTipAsCode(linePadding+" *        ");
-         if (temp != null) {
-            toolTip = temp;
-         }
-//         comment = comment.replace("", "");
-         
          String defaultParamV = variable.getDefaultParameterValue();
          if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
             defaultParamV = defaultValueOverride.get(index);
          }
          paramExprSb.append(paramName);
 
-         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, toolTip);
+         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, tooltip);
          paramDescriptionSb.append(paramDescriptionN);
 
          // Padding applied to parameters
@@ -2666,9 +2607,6 @@ public class ParseMenuXML extends XML_BaseParser {
          if (dotIndex > 0) {
             key = key.substring(0, dotIndex);
          }
-//         if (key.contains("DefaultInitValue")) {
-//            System.err.println("Found " + key);
-//         }
       }
       List<StringPair> substitutions = getTemplateSubstitutions(element, "variables");
       
@@ -2735,18 +2673,6 @@ public class ParseMenuXML extends XML_BaseParser {
          returnValues[index]  = String.format(returnFormat+";", codeValue);
          returnValueMax       = Math.max(returnValueMax, returnValues[index].length());
       }
-      //         if (choiceVar instanceof BooleanVariable) {
-      //            final String bFormat =
-      //                  "\n"+
-      //                  "\\t   if (%s) {\n" +
-      //                  "\\t      return %s\n" +
-      //                  "\\t   }\n" +
-      //                  "\\t   else {\n" +
-      //                  "\\t      return %s\n" +
-      //                  "\\t   };\n";
-      //            body.append(String.format(bFormat, "(%defaultMaskingExpression) == "+enumNames[0], returnValues[0], returnValues[1]));
-      //         }
-      //         else {
       final String format = "\\t      case %-"+enumNameMax+"s : return %-"+returnValueMax+"s %s\n";
       for (int index=0; index<choiceData.length; index++) {
          comment  = "///< "+choiceData[index].getName();
@@ -3029,9 +2955,6 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          parseTemplate(element);
       }
-//      else if (tagName == "addDependency") {
-//         fPeripheral.addDependency(getKeyAttribute(element));
-//      }
       else if (tagName == "deleteOption") {
          parseDeleteOption(element);
       }
@@ -3048,7 +2971,6 @@ public class ParseMenuXML extends XML_BaseParser {
                      ProjectConstant constant = (ProjectConstant) action;
                      Variable var = new StringVariable(constant.getId(), constant.getId());
                      var.setValue(constant.getValue());
-//                  System.err.println("Adding " + var);
                      fProvider.addVariable(var);
                   }
                   return Visitor.CONTINUE;
@@ -3184,8 +3106,6 @@ public class ParseMenuXML extends XML_BaseParser {
       
       model.setToolTip(getAttribute(element, "toolTip"));
       model.setSimpleDescription(getAttribute(element, "description"));
-      
-//      fPeripheral.addFigure(figure);
       
       for (Node node = element.getFirstChild();
             node != null;
@@ -3334,6 +3254,7 @@ public class ParseMenuXML extends XML_BaseParser {
                getAttribute(element, "code"),
                getAttribute(element, "ref"),
                getAttribute(element, "enabledBy"),
+               getAttribute(element, "pinMap"),
                fProvider
                );
          if (hidden) {
@@ -3565,7 +3486,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
-//      String description = getAttribute(element, "description");
       String toolTip  = getToolTip(element);
 
       BaseModel model = null;
@@ -3666,8 +3586,6 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((name != null) && name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
-//      System.err.println("parsePage(<" + element.getTagName() + " name="+ name + ">)");
-
       String tooltip = getToolTip(element);
       
       String tagName = element.getTagName();
@@ -3771,11 +3689,8 @@ public class ParseMenuXML extends XML_BaseParser {
       for (int index=0; index<children.size(); index++) {
          BaseModel model = children.get(index);
          if (model instanceof AliasPlaceholderModel) {
+            
             AliasPlaceholderModel aliasModel = (AliasPlaceholderModel) model;
-            if (aliasModel.getKey().contains("NumChannels")) {
-               System.err.println("Found "+aliasModel.getKey());
-            }
-
             BaseModel newModel = createModelFromAlias(provider, parent, aliasModel);
             // Note: createModelFromAlias() handles missing model errors
             if (newModel == null) {
@@ -3826,7 +3741,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private static MenuData parse(Document document, VariableProvider provider, PeripheralWithState peripheral) throws Exception {
       // TODO Trace parsing peripheral files here
-      System.out.println("Loading document (for " + ((peripheral==null)?"null":peripheral.getName()) + ") : " + document.getBaseURI());
+      Activator.log("Loading document (for " + ((peripheral==null)?"null":peripheral.getName()) + ") : " + document.getBaseURI());
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
@@ -3859,7 +3774,6 @@ public class ParseMenuXML extends XML_BaseParser {
       // Add USBDM hardware path
       Path path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name);
 
-//      System.err.println("Looking in " + path);
       // For debug try local directory
       if (Files.isRegularFile(path)) {
          return path;
@@ -3867,7 +3781,6 @@ public class ParseMenuXML extends XML_BaseParser {
       // Look in USBDM installation\
       String p = Usbdm.getUsbdmResourcePath();
       path = Paths.get(p).resolve(path);
-//      System.err.println("Looking in " + path);
       if (!Files.isRegularFile(path)) {
          throw new FileNotFoundException("Failed to find hardware file for '"+ name + "'");
       }

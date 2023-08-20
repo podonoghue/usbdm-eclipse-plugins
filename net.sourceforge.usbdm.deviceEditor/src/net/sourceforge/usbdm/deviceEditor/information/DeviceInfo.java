@@ -540,9 +540,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       peripheral = template.createPeripheral(baseName, instance);
       fPeripheralsMap.put(name, peripheral);
-//      if (peripheral.getName().equals("SPI_b0_b")) {
-//         System.err.println("Creating peripheral "+ peripheral.getName());
-//      }
       return peripheral;
    }
 
@@ -608,7 +605,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       Peripheral peripheral = fPeripheralsMap.get(name);
       if (peripheral != null) {
-//         System.err.println("findOrCreatePeripheral() found '"+ name + "'");
          return peripheral;
       }
       for(SignalTemplate template:getSignalTemplateList()) {
@@ -617,12 +613,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             break;
          }
       }
-//      if (peripheral instanceof WriterForNull) {
-//         System.err.println("Warning: Failed to match peripheral: \'" + name + "\'");
-//         return peripheral;
-//      }
       if (peripheral != null) {
-//         System.err.println("findOrCreatePeripheral() added '"+ peripheral.getName() + "' for '" + name + "'");
          return peripheral;
       }
       throw new RuntimeException("Failed to find pattern that matched peripheral: \'" + name + "\'");
@@ -1783,7 +1774,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             for (Validator validator:validators) {
                validator.addDependencies();
             }
-//            DynamicVariableProcessing.addMonitoredVariableListeners(peripheral);
          }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
@@ -1855,6 +1845,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "OSC0",
                "OSC_RF0",
                "MCG",
+               "ICS",
                "SIM",
          };
          for (String name:criticalPeripherals) {
@@ -2002,8 +1993,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public boolean isDirty() {
       return fIsDirty;
    }
-
-//   boolean dirtyIsLive = false;
    
    /**
     * Indicates if the data has changed since being loaded
@@ -2011,13 +2000,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return true if changed
     */
    public void setDirty(boolean dirty) {
-//      if (!dirty) {
-//         System.err.println("setDirty("+dirty+")");
-//         dirtyIsLive = true;
-//      }
-//      if (dirty && dirtyIsLive) {
-//         System.err.println("setDirty("+dirty+")");
-//      }
       fIsDirty = dirty;
       notifyListeners();
    }
@@ -2365,7 +2347,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (fMenuData == null) {
          return;
       }
-      String template = fMenuData.getTemplate("usbdm", "", null);
+      VariableProvider vp = new VariableProvider("$DeviceInfo", this);
+      String template = fMenuData.getTemplate("usbdm", "", vp);
       if ((template != null) && (!template.isEmpty())) {
          documentUtilities.write(substitute(template));
       }

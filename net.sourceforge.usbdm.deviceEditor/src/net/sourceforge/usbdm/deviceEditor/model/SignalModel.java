@@ -240,4 +240,15 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       updateAncestors();
    }
 
+   @Override
+   public boolean isEnabled() {
+      return fParent.isEnabled();
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
+
 }

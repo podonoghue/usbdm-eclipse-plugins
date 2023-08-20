@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class ChoiceVariable extends VariableWithChoices {
@@ -118,6 +117,7 @@ public class ChoiceVariable extends VariableWithChoices {
       fValue = index;
 
       updateTargets(choices.get(index));
+      
       notifyListeners();
       return true;
    }
@@ -406,16 +406,6 @@ public class ChoiceVariable extends VariableWithChoices {
       fValue        = defaultValue;
    }
    
-   @Override
-   public void expressionChanged(Expression expression) {
-      super.expressionChanged(expression);
-      ChoiceData choice = getCurrentChoice();
-      if (choice == null) {
-         return;
-      }
-      updateTargets(choice);
-   }
-
    @Override
    public Variable clone(String name, ISubstitutionMap symbols) throws Exception {
       ChoiceVariable var = (ChoiceVariable) super.clone(name, symbols);

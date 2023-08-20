@@ -1045,7 +1045,9 @@ public class CreateDeviceSkeletonFromSVD {
       resultSb.append(
             "\n" +
             "   <!-- ************* Signal mapping ****************** -->\n" +
-            "   <category name=\"SIM\" description=\"Pin mapping\">\n" +
+            "   <category name=\"SIM\" description=\"Pin mapping and clock enables\">\n" +
+            "      <aliasOption key=\"/SIM/sim_scgc_$(_name)\"      constant=\"false\" optional=\"true\" />\n" +
+            "      <aliasOption key=\"/SIM/sim_scgc_$(_basename)\"  constant=\"false\" optional=\"true\" />\n" +
             "      <aliasOption key=\"/SIM/sim_pinsel_$(_name)ps\"  constant=\"false\" optional=\"true\" />\n" +
             "      <aliasOption key=\"/SIM/sim_pinsel0_$(_name)ps\" constant=\"false\" optional=\"true\" />\n" +
             "      <aliasOption key=\"/SIM/sim_pinsel1_$(_name)ps\" constant=\"false\" optional=\"true\" />\n" +

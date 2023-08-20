@@ -188,6 +188,7 @@ public class SimpleExpressionParser {
       }
       
       if (fProvider == null) {
+         
          throw new Exception("Provider used but not provided");
       }
       key = fProvider.makeKey(key);
@@ -980,6 +981,9 @@ public class SimpleExpressionParser {
     */
    public SimpleExpressionParser(VariableProvider varProvider, Mode mode) {
       fMode        = mode;
+      if (varProvider == null) {
+         System.err.println("No provider");
+      }
       fProvider    = varProvider;
       fExpression  = null;
    }

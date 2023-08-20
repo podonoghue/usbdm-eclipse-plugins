@@ -32,6 +32,9 @@ public class ChoiceData {
    
    /** Reference to expression enabling this choice */
    private final Expression fEnabledBy;
+
+   /** Pin mapping associated with this choice */
+   private String fPinMap;
    
    /**
     * 
@@ -50,6 +53,7 @@ public class ChoiceData {
          String codeValue,
          String reference,
          String enabledBy,
+         String pinMap,
          VariableProvider provider) throws Exception {
       
       if (name.startsWith("@")) {
@@ -89,6 +93,9 @@ public class ChoiceData {
       }
       else {
          fEnabledBy = null;
+      }
+      if (pinMap != null) {
+         fPinMap = pinMap;
       }
    }
    
@@ -252,7 +259,6 @@ public class ChoiceData {
          try {
             fNameExpression.getValue();
          } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
          }
       }
@@ -261,8 +267,21 @@ public class ChoiceData {
       }
    }
    
+   /**
+    * Get enabledBy expression associated with this choice
+    * 
+    * @return Expression or null if none
+    */
    public Expression getEnabledBy() {
       return fEnabledBy;
    }
 
+   /**
+    * Get pin mapping associated with this choice
+    * 
+    * @return Pin mapping or null if none
+    */
+   public String getPinMap() {
+      return fPinMap;
+   }
 }
