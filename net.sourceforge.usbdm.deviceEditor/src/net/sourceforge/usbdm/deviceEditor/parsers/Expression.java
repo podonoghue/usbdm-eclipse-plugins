@@ -121,13 +121,15 @@ public class Expression implements IModelChangeListener {
          Value, Name, Code, Enum
       };
 
-      final Variable fVar;
-      final Modifier fModifier;
+      private final Variable       fVar;
+      private final Modifier       fModifier;
+      private final ExpressionNode fIndex;
 
-      VariableNode(Variable var, Modifier modifier, Type type) {
+      VariableNode(Variable var, Modifier modifier, Type type, ExpressionNode index) {
          super(type);
          fVar = var;
          fModifier = modifier;
+         fIndex = index;
       }
 
       @Override

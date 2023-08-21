@@ -392,6 +392,11 @@ public class ParseMenuXML extends XML_BaseParser {
          continueFound = false;
       }
 
+      /**
+       * Advance to next iteration
+       * 
+       * @return true if not completed or break encountered
+       */
       public boolean next() {
          continueFound = false;
          boolean res = forStack.lastElement().next();
@@ -537,7 +542,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element
     * @throws Exception
     */
-   private void parseForLoop(BaseModel parentModel, Element element) throws Exception {
+   private void parseForLoop(BaseModel parentModel, Element element, GraphicWrapper graphicWrapper) throws Exception {
 
       if (!checkCondition(element)) {
          return;
@@ -590,7 +595,12 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       fForStack.createLevel(fProvider, keys, values);
       do {
-         parseSectionsOrOtherContents(parentModel, element);
+         if (graphicWrapper != null) {
+            graphicWrapper.parseGraphicBoxOrGroup(parentModel, element);
+         }
+         else {
+            parseSectionsOrOtherContents(parentModel, element);
+         }
       } while (fForStack.next());
       fForStack.dropLevel();
    }
@@ -1030,10 +1040,10 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("clockSources")) {
          throw new Exception("clockSources attribute no longer supported in "+varElement+", '"+variable.getName()+"'");
       }
-      NodeList forNodes = varElement.getElementsByTagName("for");
-      if (forNodes.getLength() > 0) {
-         throw new Exception ("<for> no longer supported here "+varElement);
-      }
+//      NodeList forNodes = varElement.getElementsByTagName("for");
+//      if (forNodes.getLength() > 0) {
+//         throw new Exception ("<for> no longer supported here "+varElement);
+//      }
       
       VariableModel model = variable.createModel(parent);
       model.setConstant(Boolean.valueOf(getAttribute(varElement, "constant")));
@@ -2903,7 +2913,7 @@ public class ParseMenuXML extends XML_BaseParser {
          parseConstant(parentModel, element);
       }
       else if (tagName == "for") {
-         parseForLoop(parentModel, element);
+         parseForLoop(parentModel, element, null);
       }
       else if (tagName == "break") {
          parseBreak(parentModel, element);
@@ -3014,7 +3024,39 @@ public class ParseMenuXML extends XML_BaseParser {
       var.setDerived(true);
    }
 
-   private void parseGraphicBoxOrGroup(int boxX, int boxY, ClockSelectionFigure figure, Element boxElement) throws Exception {
+   static class GraphicWrapper {
+      final int                  fBoxX, fBoxY;
+      final ClockSelectionFigure fClockSelectionFigure;
+      final ParseMenuXML         fParser;
+      /**
+       * 
+       * @param boxX     Current X coordinate
+       * @param boxY     Current Y coordinate
+       * @param figure   Current figure
+       */
+      public GraphicWrapper(ParseMenuXML parser, int boxX, int boxY, ClockSelectionFigure figure) {
+         fBoxX                   = boxX;
+         fBoxY                   = boxY;
+         fClockSelectionFigure   = figure;
+         fParser                 = parser;
+      }
+
+      void parseGraphicBoxOrGroup(BaseModel parentModel, Element graphicElement) throws Exception {
+         fParser.parseGraphicBoxOrGroup(parentModel, fBoxX, fBoxY, fClockSelectionFigure, graphicElement);
+      }
+   }
+   
+   /**
+    * 
+    * @param parentModel   Model to attache figure to
+    * @param boxX          Current X coordinate
+    * @param boxY          Current Y coordinate
+    * @param figure        Current figure
+    * @param boxElement    XML to parse
+    * 
+    * @throws Exception
+    */
+   private void parseGraphicBoxOrGroup(BaseModel parentModel, int boxX, int boxY, ClockSelectionFigure figure, Element boxElement) throws Exception {
       
       String boxId     = getAttribute(boxElement, "id", "");
       String boxParams = getAttribute(boxElement, "params", "");
@@ -3044,12 +3086,13 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          String tagName = graphic.getTagName();
          if (tagName == "graphicItem") {
-            String id     = getAttribute(graphic,  "id");
-            String varKey = getKeyAttribute(graphic, "var");
-            String type   = getAttribute(graphic, "type");
-            String edit   = getAttribute(graphic, "edit");
-            String params = getAttribute(graphic, "params");
-            String name   = getAttribute(graphic, "name");
+            String id     = getAttribute(graphic,     "id");
+            String varKey = getKeyAttribute(graphic,  "var");
+            String type   = getAttribute(graphic,     "type");
+            String edit   = getAttribute(graphic,     "edit");
+            String params = getAttribute(graphic,     "params");
+            String name   = getAttribute(graphic,     "name");
+            
             if ((name != null) && name.startsWith("@")) {
                String varName = name.substring(1);
                int index = varName.indexOf('.');
@@ -3069,7 +3112,6 @@ public class ParseMenuXML extends XML_BaseParser {
                   name = var.getValueAsString();
                }
             }
-            
             figure.add(x, y, id, name, varKey, type, edit, params);
             continue;
          }
@@ -3079,11 +3121,16 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          if (tagName == "graphicBox") {
-            parseGraphicBoxOrGroup(x, y, figure, graphic);
+            parseGraphicBoxOrGroup(parentModel, x, y, figure, graphic);
             continue;
          }
-         if (graphic.getTagName() == "graphicGroup") {
-            parseGraphicBoxOrGroup(x, y, figure, graphic);
+         if (tagName == "graphicGroup") {
+            parseGraphicBoxOrGroup(parentModel, x, y, figure, graphic);
+            continue;
+         }
+         if (tagName == "for") {
+            GraphicWrapper dummy = new GraphicWrapper(this, x, y, figure);
+            parseForLoop(parentModel, graphic, dummy);
             continue;
          }
          if (tagName == "equation") {
@@ -3120,15 +3167,20 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          String tagName = boxElement.getTagName();
          if (tagName == "graphicBox") {
-            parseGraphicBoxOrGroup(0, 0, figure, boxElement);
+            parseGraphicBoxOrGroup(parentModel, 0, 0, figure, boxElement);
             continue;
          }
          if (tagName == "graphicGroup") {
-            parseGraphicBoxOrGroup(0, 0, figure, boxElement);
+            parseGraphicBoxOrGroup(parentModel, 0, 0, figure, boxElement);
             continue;
          }
          if (tagName == "equation") {
             parseEquation(boxElement);
+            continue;
+         }
+         if (tagName == "for") {
+            GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, figure);
+            parseForLoop(parentModel, boxElement, graphicWrapper);
             continue;
          }
          throw new Exception("Expected tag = <graphicBox>, found = <"+tagName+">");

@@ -106,7 +106,7 @@ class GraphicConnector extends GraphicBaseVariable {
                switch (element.charAt(0)) {
                   default:
                      break;
-                  case 'o':
+                  case 'o': // Drawing on/off
                      if ("on".equalsIgnoreCase(element)) {
                         drawingOn = true;
                      }
@@ -114,20 +114,22 @@ class GraphicConnector extends GraphicBaseVariable {
                         drawingOn = false;
                      }
                      break;
-                  case 'd':
+                  case 'd': // Draw dot at current location
                      gc.fillOval(currentX-dotSize/2, currentY-dotSize/2, dotSize, dotSize);
                      break;
-                  case '(':
+                  case '(': // Move X or Y relative to current location
                      if (element.charAt(1) == 'y') {
+                        // Move Y relative to current location
                         int newY = endY + Integer.parseInt(element.substring(2, element.length()-1));
                         if (drawingOn) {
                            lineTo(gc, currentX, newY);
                         }
                         else {
-                           moveTo(currentX, newY);
+                              moveTo(currentX, newY);
                         }
                      }
                      else if (element.charAt(1) == 'x') {
+                        // Move Y relative to current location
                         int newX = endX + Integer.parseInt(element.substring(2, element.length()-1));
                         if (drawingOn) {
                            lineTo(gc, newX, currentY);
@@ -137,7 +139,7 @@ class GraphicConnector extends GraphicBaseVariable {
                         }
                      }
                      break;
-                  case 'y':
+                  case 'y': // Move on Y towards destination Y (fraction may be specified)
                      int newY = endY;
                      if (element.length()>1) {
                         element = element.substring(1);
@@ -156,7 +158,7 @@ class GraphicConnector extends GraphicBaseVariable {
                         moveTo(currentX, newY);
                      }
                      break;
-                  case 'x':
+                  case 'x': // Move on X towards destination X (fraction may be specified)
                      int newX = endX;
                      if (element.length()>1) {
                         if (element.length()>1) {

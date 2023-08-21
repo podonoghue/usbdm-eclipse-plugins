@@ -362,7 +362,7 @@ public class GraphicsDialogue {
          runModeVar = fFigure.getProvider().getVariable("/SMC/smc_pmctrl_runm["+fFigure.getClockSelection()+"]");
          runModeVar.addListener(runModeChangeListener);
       } catch (Exception e) {
-         System.err.println("Figure does not have clock selection");
+         System.err.println("Figure does not have power mode selection");
 //         e.printStackTrace();
       }
       
@@ -371,8 +371,9 @@ public class GraphicsDialogue {
          if (!display.readAndDispatch())
             display.sleep();
       }
-      
-      runModeVar.removeListener(runModeChangeListener);
+      if (runModeVar != null) {
+         runModeVar.removeListener(runModeChangeListener);
+      }
       shell.dispose();
       hoverShell.dispose();
    }

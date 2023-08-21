@@ -151,13 +151,15 @@ public class ExpressionParser {
       }
       // Check for index
       ch = skipSpace();
+      ExpressionNode index = null;
       if ((ch != null) && (ch == '[')) {
          ch = getNextNonWhitespaceCh();
          if (ch ==']') {
-            key = key +"[]";
+            key = key +"[0]";
+            System.err.println("Empty index used in '"+fExpressionString+"'");
          }
          else {
-            ExpressionNode index = parseExpression();
+            index = parseExpression();
             if (!isInteger(index)) {
                throw new Exception("Invalid index type");
             }
@@ -168,7 +170,6 @@ public class ExpressionParser {
             if ((ch == null) || (ch != ']')) {
                throw new Exception("] expected at and of index");
             }
-            key = key +"[" + index.eval() + "]";
          }
          ch = getNextNonWhitespaceCh();
       }
@@ -192,7 +193,13 @@ public class ExpressionParser {
       }
       key = fProvider.makeKey(key);
 
-      Variable var = fProvider.safeGetVariable(key);
+      Variable var;
+      if (index != null) {
+         var = fProvider.safeGetVariable(key+"["+index.eval()+"]");
+      }
+      else {
+         var = fProvider.safeGetVariable(key);
+      }
       
       if ((var != null) && !var.isConstant()) {
          if (!fCollectedVariables.contains(var)) {
@@ -223,35 +230,35 @@ public class ExpressionParser {
             }
             if ("name".equalsIgnoreCase(modifier)) {
                // .name  => Name from choice
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Name, Expression.Type.String);
+               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Name, Expression.Type.String, index);
             }
             else if ("code".equalsIgnoreCase(modifier)) {
                // .code  => Code from choice
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Code, Expression.Type.String);
+               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Code, Expression.Type.String, index);
             }
             else if ("enum".equalsIgnoreCase(modifier)) {
                // .code  => Code from choice
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Enum, Expression.Type.String);
+               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Enum, Expression.Type.String, index);
             }
             else {
                // .value => Value from choice. 'value' for a choice is the index
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Value, Expression.Type.Long);
+               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Value, Expression.Type.Long, index);
             }
          }
          else if (var instanceof ChoiceVariable) {
             // 'value' for a choice is the index
-            return new Expression.VariableNode(var, null, Expression.Type.Long);
+            return new Expression.VariableNode(var, null, Expression.Type.Long, index);
          }
          if (var instanceof BooleanVariable) {
-            return new Expression.VariableNode(var, null, Expression.Type.Boolean);
+            return new Expression.VariableNode(var, null, Expression.Type.Boolean, index);
          }
          if (var instanceof LongVariable) {
-            return new Expression.VariableNode(var, null, Expression.Type.Long);
+            return new Expression.VariableNode(var, null, Expression.Type.Long, index);
          }
          if (var instanceof DoubleVariable) {
-            return new Expression.VariableNode(var, null, Expression.Type.Double);
+            return new Expression.VariableNode(var, null, Expression.Type.Double, index);
          }
-         return new Expression.VariableNode(var, null, Expression.Type.String);
+         return new Expression.VariableNode(var, null, Expression.Type.String, index);
       }
    }
    

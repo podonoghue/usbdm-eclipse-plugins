@@ -256,11 +256,6 @@ public class ChoiceData {
       }
       if (fNameExpression != null) {
          fNameExpression.addListener(listener);
-         try {
-            fNameExpression.getValue();
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
       }
       if (fReference != null) {
          fReference.addListener(listener);

@@ -330,7 +330,7 @@ public abstract class VariableWithChoices extends Variable {
          setActivePinMappings(disabledPinMap);
       }
       else {
-         // Use mapping form choice
+         // Use mapping from choice
          setActivePinMappings(choiceData.getPinMap());
       }
 
@@ -380,13 +380,15 @@ public abstract class VariableWithChoices extends Variable {
          // TODO Auto-generated catch block
          e.printStackTrace();
       }
+      
+      updateChoices();
    }
    
    @Override
    public void expressionChanged(Expression expression) {
-      if (this.getName().contains("sim_sopt0_swde")) {
-         System.err.println("Found it ");
-      }
+//      if (this.getName().contains("sim_sopt0_swde")) {
+//         System.err.println("Found it ");
+//      }
       super.expressionChanged(expression);
       ChoiceData choice = getCurrentChoice();
       if (choice == null) {
@@ -397,9 +399,9 @@ public abstract class VariableWithChoices extends Variable {
 
    @Override
    public boolean enable(boolean enabled) {
-      if (this.getName().contains("sim_sopt0_swde")) {
-         System.err.println("Found it ");
-      }
+//      if (this.getName().contains("sim_sopt0_swde")) {
+//         System.err.println("Found it ");
+//      }
       boolean changed = super.enable(enabled);
       if (changed) {
          updateChoices();
