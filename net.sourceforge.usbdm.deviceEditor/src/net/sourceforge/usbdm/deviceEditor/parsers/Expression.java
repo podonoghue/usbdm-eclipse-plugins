@@ -8,9 +8,11 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.parsers.ExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class Expression implements IModelChangeListener {
@@ -115,28 +117,171 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   static class VariableNode extends ExpressionNode {
-
+   static class VariableNode extends ExpressionNode implements IExpressionChangeListener {
+      static final int MAX_DIMENSION = 4;
+      
       static enum Modifier {
-         Value, Name, Code, Enum
+         Value, Name, Code, Enum, Size,
       };
 
-      private final Variable       fVar;
-      private final Modifier       fModifier;
-      private final ExpressionNode fIndex;
+      /** Cached variable */
+      protected Variable fVar;
+      
+      /** Modified for variable access */
+      private final Modifier fModifier;
+      
+      /** Owner of the expression for change notification */
+      private final Expression fOwner;
+      
+      /** Name of variable without index */
+      private final String fVarName;
+      
+      /** Expression for index */
+      private final Expression fIndex;
 
-      VariableNode(Variable var, Modifier modifier, Type type, ExpressionNode index) {
+//    private final Variable[]       fVars = new Variable[MAX_DIMENSION];
+
+//      private       Object           fValue = null;
+      
+
+      VariableNode(Expression owner, String varName, Type type, Modifier modifier, Expression index) {
          super(type);
-         fVar = var;
-         fModifier = modifier;
-         fIndex = index;
+         
+         fOwner      = owner;
+         fVarName    = varName;
+         fIndex      = index;
+         fModifier   = modifier;
+         if (index != null) {
+            index.addListener(this);
+         }
+      }
+
+      /**
+       * Create a node to represent a simple variable
+       * 
+       * @param var        Variable to wrap
+       * @param modifier   Access modifier for variable
+       * 
+       * @return           Wrapped variable
+       * 
+       * @throws Exception
+       */
+      public static VariableNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
+         
+         String name = varName;
+         if (index != null) {
+            name = name+"["+index.getValueAsLong()+"]";
+         }
+         Variable var = owner.fVarProvider.getVariable(name);
+               
+         if (modifier != null) {
+            if ("name".equalsIgnoreCase(modifier)) {
+               // .name  => Name from choice
+               return new VariableNode(owner, varName, Type.String, Modifier.Name, index);
+            }
+            else if ("code".equalsIgnoreCase(modifier)) {
+               // .code  => Code from choice
+               return new VariableNode(owner, varName, Type.String, Modifier.Code, index);
+            }
+            else if ("enum".equalsIgnoreCase(modifier)) {
+               // .code  => Code from choice
+               return new VariableNode(owner, varName, Type.String, Modifier.Enum, index);
+            }
+            else if ("size".equalsIgnoreCase(modifier)) {
+               // .size  => Number of choices
+               return new VariableNode(owner, varName, Type.Long, Modifier.Size, index);
+            }
+            else {
+               throw new Exception("Unexpected field for '" + var + "'");
+            }
+         }
+         if (var instanceof ChoiceVariable) {
+            // 'value' for a choice is the index
+            return new VariableNode(owner, varName, Type.Long, null, index);
+         }
+         if (var instanceof BooleanVariable) {
+            return new VariableNode(owner, varName, Type.Boolean, null, index);
+         }
+         if (var instanceof LongVariable) {
+            return new VariableNode(owner, varName, Type.Long, null, index);
+         }
+         if (var instanceof DoubleVariable) {
+            return new VariableNode(owner, varName, Type.Double, null, index);
+         }
+         return new VariableNode(owner, varName, Type.String, null, index);
+      }
+      
+      private Variable getVar() throws Exception {
+         Variable var = fVar;
+//         if (var == null) {
+            String name = fVarName;
+            if (fIndex != null) {
+               name = name+"["+fIndex.getValueAsLong()+"]";
+            }
+            var = fOwner.fVarProvider.getVariable(name);
+            
+//            // If index is unchanging then we can cache the variable
+//            if ((fIndex == null)||fIndex.isConstant()) {
+//               fVar = var;
+//            }
+//         }
+         return var;
+      }
+      
+      @Override
+      public void expressionChanged(Expression expression) {
+         // Index changed indicate var is stale
+         fVar = null;
+         fOwner.notifyExpressionChangeListeners();
+      }
+
+      @Override
+      public void collectVars(ArrayList<Variable> variablesFound) {
+         try {
+            variablesFound.add(getVar());
+         } catch (Exception e) {
+         }
+      }
+
+      @Override
+      boolean isConstant() {
+         try {
+            return ((fIndex==null)||fIndex.isConstant()) && getVar().isConstant();
+         } catch (Exception e) {
+         }
+         return false;
+      }
+
+      @Override
+      public ExpressionNode prune() throws Exception {
+         if (isConstant()) {
+            if (fIndex != null) {
+               System.err.println("Pruning with index " + fIndex.getExpressionStr());
+            }
+            return wrapConstant(eval());
+         }
+         return this;
+      }
+      
+
+      @Override
+      public String toString() {
+         return this.getClass().getSimpleName()+"("+fVar.getName()+", "+fType+")";
       }
 
       @Override
       Object eval() throws Exception {
+         Variable var = getVar();
          if (fModifier != null) {
-            ChoiceVariable cv = (ChoiceVariable)fVar;
+            if (!(var instanceof VariableWithChoices)) {
+               throw new Exception("Expected choice variable '" + var + "'");
+            }
+            VariableWithChoices cv = (VariableWithChoices)var;
             ChoiceData choiceData = cv.getCurrentChoice();
+            if (fModifier == Modifier.Size) {
+               Long temp = (long) cv.getChoiceCount();
+               return temp;
+            }
             if (choiceData == null) {
                return "Nothing selected in choice";
             }
@@ -153,47 +298,26 @@ public class Expression implements IModelChangeListener {
             case Value:
                // .value => Value from choice
                return choiceData.getValue();
+            default:
+               return "Impossible";
             }
          }
-         else if (fVar instanceof ChoiceVariable) {
-            return fVar.getValueAsLong();
+         else if (var instanceof ChoiceVariable) {
+            return var.getValueAsLong();
          }
-         if (fVar instanceof BooleanVariable) {
-            return fVar.getValueAsBoolean();
+         if (var instanceof BooleanVariable) {
+            return var.getValueAsBoolean();
          }
-         if (fVar instanceof LongVariable) {
-            return fVar.getValueAsLong();
+         if (var instanceof LongVariable) {
+            return var.getValueAsLong();
          }
-         if (fVar instanceof DoubleVariable) {
-            return fVar.getValueAsDouble();
+         if (var instanceof DoubleVariable) {
+            return var.getValueAsDouble();
          }
          // Default to treating as string
-         return fVar.getValueAsString();
-      }
-
-      @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
-         variablesFound.add(fVar);
-      }
-
-      @Override
-      boolean isConstant() {
-         return fVar.isConstant();
-      }
-
-      @Override
-      public ExpressionNode prune() throws Exception {
-         if (fVar.isConstant()) {
-            return wrapConstant(eval());
-         }
-         return this;
+         return var.getValueAsString();
       }
       
-
-      @Override
-      public String toString() {
-         return this.getClass().getSimpleName()+"("+fVar.getName()+", "+fType+")";
-      }
    }
 
    static class DisabledValueNode extends ExpressionNode {
@@ -813,6 +937,8 @@ public class Expression implements IModelChangeListener {
 
    private ArrayList<Variable> fVariables;
 
+   private Mode fMode;
+
    /**
     * Wraps a constant value in a Expression node
     * 
@@ -850,6 +976,21 @@ public class Expression implements IModelChangeListener {
    public Expression(String expression, VariableProvider provider) throws Exception {
       fExpressionStr = expression;
       fVarProvider   = provider;
+      fMode          = ExpressionParser.Mode.Construct;
+   }
+
+   /**
+    * Create expression with optional message and primary variable from string of form:
+    * "primaryVar#expression,message"
+    * 
+    * @param expression Expression+message as string
+    * @param fVarProvider
+    * @throws Exception
+    */
+   Expression(String expression, VariableProvider provider, Mode mode) throws Exception {
+      fExpressionStr = expression;
+      fVarProvider   = provider;
+      fMode          = mode;
    }
 
    private void prelim() throws Exception {
@@ -869,7 +1010,7 @@ public class Expression implements IModelChangeListener {
          fMessage = null;
       }
       
-      ExpressionParser ep = new ExpressionParser(this, fVarProvider, ExpressionParser.Mode.Construct);
+      ExpressionParser ep = new ExpressionParser(this, fVarProvider, fMode);
       fExpression = ep.parseExpression(parts[0].trim());
       fExpression = fExpression.prune();
       fVariables = ep.getCollectedVariables();
@@ -975,8 +1116,10 @@ public class Expression implements IModelChangeListener {
       }
       
       boolean commaNeeded = false;
-      if (fVariables.size()>1) {
-         sb.append(" modified by ");
+      if ((fVariables!=null) && (fVariables.size()>1)) {
+         if (primaryVariable != null) {
+            sb.append(" modified by ");
+         }
          for(Variable var:fVariables) {
             if (commaNeeded) {
                sb.append(", ");
@@ -1002,7 +1145,7 @@ public class Expression implements IModelChangeListener {
    }
 
    /**
-    * Get current value of expression
+    * Get value of expression
     * 
     * @return Current value
     * @throws Exception
@@ -1013,21 +1156,119 @@ public class Expression implements IModelChangeListener {
       }
       return fCurrentValue;
    }
-   
+
+   /**
+    * Get value of expression as String
+    * 
+    * @return
+    * @throws Exception
+    */
    public String getValueAsString() throws Exception {
       return (String)getValue();
    }
 
+   /**
+    * Get value of expression as Boolean
+    * 
+    * @return
+    * @throws Exception
+    */
    public Boolean getValueAsBoolean() throws Exception {
       return (Boolean)getValue();
    }
 
+   /**
+    * Get value of expression as Long
+    * 
+    * @return
+    * @throws Exception
+    */
    public Long getValueAsLong() throws Exception {
       return (Long)getValue();
    }
 
+   /**
+    * Get value of expression as Double
+    * 
+    * @return
+    * @throws Exception
+    */
    public Double getValueAsDouble() throws Exception {
       return (Double)getValue();
+   }
+
+   /**
+    * Get value of expression
+    * 
+    * @return
+    * @throws Exception
+    */
+   public static Object getValue(String expression, VariableProvider provider) throws Exception {
+      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
+      return exp.getValue();
+   }
+
+   /**
+    * Get value of expression as String
+    * 
+    * @return
+    * @throws Exception
+    */
+   public static String getValueAsString(String expression, VariableProvider provider) throws Exception {
+      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
+      return (String) exp.getValue();
+   }
+
+   /**
+    * Get value of expression as Boolean
+    * 
+    * @return
+    * @throws Exception
+    */
+   public static Boolean getValueAsBoolean(String expression, VariableProvider provider) throws Exception {
+      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
+      return (Boolean) exp.getValue();
+   }
+
+   /**
+    * Get value of expression as Long
+    * 
+    * @return
+    * @throws Exception
+    */
+   public static Long getValueAsLong(String expression, VariableProvider provider) throws Exception {
+      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
+      return (Long) exp.getValue();
+   }
+
+   /**
+    * Get value of expression as Double
+    * 
+    * @return
+    * @throws Exception
+    */
+   public static Double getValueAsDouble(String expression, VariableProvider provider) throws Exception {
+      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
+      return (Double) exp.getValue();
+   }
+
+   /**
+    * Get value of expression as Boolean<br>
+    * Variable values are not used.  If a variable exists then it evaluates as <b>true</b>, otherwise <b>false</b>.<br>
+    * An empty expression evaluates as <b>true</b>;
+    * 
+    * @return
+    * @throws Exception
+    */
+   public static Boolean checkCondition(String expression, VariableProvider provider) throws Exception {
+      if (expression == null) {
+         return true;
+      }
+//      if (expression.contains("mcg_sc_fcrdiv")) {
+//         System.err.println("Found it " + expression);
+//      }
+      Expression exp = new Expression(expression, provider, Mode.CheckIdentifierExistance);
+      return (Boolean) exp.getValue();
    }
 
    public void removeAllListeners() {
@@ -1107,6 +1348,15 @@ public class Expression implements IModelChangeListener {
          e.printStackTrace();
       }
       return false;
+   }
+
+   /**
+    * Get original expression
+    * 
+    * @return
+    */
+   public String getExpressionStr() {
+      return fExpressionStr;
    }
 
 

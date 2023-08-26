@@ -39,6 +39,10 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       int y           = originY+Integer.parseInt(params[1].trim());
       int numInputs   = Integer.parseInt(params[2].trim());
       
+      if (var != null) {
+         numInputs = ((VariableWithChoices)var).getChoiceCount();
+      }
+      
       Orientation orientation = Orientation.normal;
       if (params.length > 3) {
          orientation = Orientation.valueOf(params[3].trim());

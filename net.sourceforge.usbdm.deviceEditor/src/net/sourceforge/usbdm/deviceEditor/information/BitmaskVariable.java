@@ -127,8 +127,8 @@ public class BitmaskVariable extends LongVariable {
    }
    
    @Override
-   public boolean setValue(Long value) {
-      boolean rv = super.setValue(value);
+   public boolean setValueQuietly(Long value) {
+      boolean rv = super.setValueQuietly(value);
       if (rv) {
          updatePinMap(value);
       }

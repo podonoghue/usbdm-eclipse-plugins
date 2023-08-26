@@ -1923,6 +1923,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
       } catch (Exception e) {
          Activator.logError(e.getMessage(), e);
+         e.printStackTrace();
       }
       setDirty(false);
    }

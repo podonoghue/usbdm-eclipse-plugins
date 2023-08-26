@@ -7,29 +7,28 @@ public class ClockSelectionVariable extends ChoiceVariable {
    }
 
    @Override
-   public boolean setValue(int value) {
-
+   public boolean setValueQuietly(int value) {
       fDeviceInfo.setActiveClockSelection(value);
-      return super.setValue(value);
+      return super.setValueQuietly(value);
    }
 
-   private String displayValue = null;
+//   private String displayValue = null;
    
-   @Override
-   public void setDisplayValue(String value) {
-      String t = displayValue;
-      displayValue = value;
-      if (t == displayValue) {
-         return;
-      }
-      if ((t!=null) && !t.equals(displayValue)) {
-         notifyListeners();
-      }
-   }
+//   @Override
+//   public void setDisplayValue(String value) {
+//      String t = displayValue;
+//      displayValue = value;
+//      if (t == displayValue) {
+//         return;
+//      }
+//      if ((t!=null) && !t.equals(displayValue)) {
+//         notifyListeners();
+//      }
+//   }
    
-   @Override
-   public String getDisplayValue() {
-      return displayValue;
-   }
+//   @Override
+//   public String getDisplayValue() {
+//      return displayValue;
+//   }
 
 }

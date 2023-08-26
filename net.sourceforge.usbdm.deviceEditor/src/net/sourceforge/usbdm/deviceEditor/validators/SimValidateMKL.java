@@ -260,7 +260,7 @@ public class SimValidateMKL extends IndexedValidator {
          }
          else if ((status != null) && status.greaterThan(Status.Severity.INFO)) {
             nearestTargetFrequency = 0;
-            sb.append(inputFrequencyVar.getStatus().getSimpleText());
+            sb.append(status.getSimpleText());
             valuesNotFound = true;
          }
          else {

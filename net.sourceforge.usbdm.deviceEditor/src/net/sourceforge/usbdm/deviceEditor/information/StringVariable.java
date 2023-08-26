@@ -78,25 +78,36 @@ public class StringVariable extends Variable {
    public Object getDefault() {
       return fDefault;
    }
+   
    /**
     * Set value as String
     * 
     * @param value Value to set
     * 
-    * @return True if variable actually changed value and listeners notified
+    * @return True if variable actually changed value
     */
-   public boolean setValue(String value) {
+   public boolean setValueQuietly(String value) {
       if (getPersistentValue() == value) {
          return false;
       }
-      setValueQuietly(value);
-      notifyListeners();
+      fValue = null;
+      fCachedValue = value.toString();
       return true;
    }
    
+   /**
+    * If value is a {@link StringBuilder} then it will be used as the internal representation otherwise value.ToString() will be used.
+    * 
+    * @return True if variable actually changed value
+    */
    @Override
-   public boolean setValue(Object value) {
-      return setValue(value.toString());
+   public boolean setValueQuietly(Object value) {
+      if (value instanceof StringBuilder) {
+         fValue = (StringBuilder)value;
+         fCachedValue = null;
+         return true;
+      }
+      return setValueQuietly(value.toString());
    }
 
    @Override
@@ -108,21 +119,6 @@ public class StringVariable extends Variable {
    public void setDefault(Object value) {
       defaultHasChanged = (fDefault != null) && (fDefault != value.toString());
       fDefault = value.toString();
-   }
-
-   /**
-    * If value is a {@link StringBuilder} then it will be used as the internal representation otherwise value.ToString() will be used.
-    */
-   @Override
-   public void setValueQuietly(Object value) {
-      if (value instanceof StringBuilder) {
-         fValue = (StringBuilder)value;
-         fCachedValue = null;
-      }
-      else {
-         fValue = null;
-         fCachedValue = value.toString();
-      }
    }
 
    @Override

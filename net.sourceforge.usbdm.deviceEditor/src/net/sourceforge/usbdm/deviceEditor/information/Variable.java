@@ -179,14 +179,20 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return True if variable actually changed value
     */
-   public abstract boolean setValue(Object value);
+   public final boolean setValue(Object value) {
+      if (!setValueQuietly(value)) {
+         return false;
+      }
+      notifyListeners();
+      return true;
+   }
 
    /**
     * Sets variable value without affecting listeners
     * 
     * @param value The value to set
     */
-   public abstract void setValueQuietly(Object value);
+   public abstract boolean setValueQuietly(Object value);
 
    /**
     * Get the variable value as a string for use in saving state
@@ -243,13 +249,27 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Set error status of variable
     * 
-    * @param message
+    * @param message as String
+    * 
+    * @return true if status changed
+    */
+   public boolean setStatusQuietly(String message) {
+      if (message == null) {
+         return setStatusQuietly((Status)null);
+      }
+      else {
+         return setStatusQuietly(new Status(message));
+      }
+   }
+
+   /**
+    * Set error status of variable
+    * 
+    * @param message as String
+    * 
+    * @return true if status changed and listeners notified
     */
    public boolean setStatus(String message) {
-      if ((fStatus != null) && (message != null) && fStatus.equals(message)) {
-         // No significant change
-         return false;
-      }
       if (message == null) {
          return setStatus((Status)null);
       }
@@ -261,9 +281,11 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Set status of variable
     * 
-    * @param message
+    * @param message as Status
+    * 
+    * @return true if status changed
     */
-   public boolean setStatus(Status message) {
+   public boolean setStatusQuietly(Status message) {
       if ((fStatus == null) && (message == null)) {
          // No change
          return false;
@@ -273,6 +295,21 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          return false;
       }
       fStatus = message;
+      return true;
+   }
+   
+   /**
+    * Set status of variable
+    * 
+    * @param message as Status
+    * 
+    * @return true if status changed and listeners notified
+    */
+   public boolean setStatus(Status message) {
+      if (!setStatusQuietly(message)) {
+         // No change
+         return false;
+      }
       notifyListeners();
       return true;
    }
@@ -324,6 +361,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return The origin
     */
    public String getOrigin() {
+      if (!fEnabled) {
+         return "Disabled";
+      }
       return (fOrigin!=null)?fOrigin:fDescription;
    }
 
@@ -341,17 +381,34 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * Set the origin of variable value
     * 
     * @param origin The origin to set
+    * 
+    * @return true if origin changed
     */
-   public void setOrigin(String origin) {
+   public boolean setOriginQuietly(String origin) {
       if ((fOrigin == null) && (origin == null)) {
          // No change
-         return;
+         return false;
       }
       if ((fOrigin != null) && (fOrigin.equalsIgnoreCase(origin))) {
          // No significant change
-         return;
+         return false;
       }
       fOrigin = origin;
+      return true;
+   }
+
+   /**
+    * Set the origin of variable value
+    * 
+    * @param origin The origin to set
+    * 
+    * @return true if origin changed and listeners notified
+    */
+   public void setOrigin(String origin) {
+      if (!setOriginQuietly(origin)) {
+         // No change
+         return;
+      }
       notifyListeners();
    }
 
@@ -369,11 +426,24 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return True if variable actually changed lock state
     */
-   public boolean setLocked(boolean locked) {
+   public boolean setLockedQuietly(boolean locked) {
       if (fLocked == locked) {
          return false;
       }
       fLocked = locked;
+      return true;
+   }
+
+   /** Indicates if the variable is locked and cannot be edited by user
+    * 
+    * @param locked The locked state to set
+    * 
+    * @return True if variable actually changed lock state and listerenrs notified
+    */
+   public boolean setLocked(boolean locked) {
+      if (!setLockedQuietly(locked)) {
+         return false;
+      }
       notifyListeners();
       return true;
    }
@@ -481,6 +551,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       return null;
    }
 
+   
    /**
     * Set the enabled state of variable
     * 
@@ -488,13 +559,24 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return true if the enabled state changed
     */
-   public boolean enable(boolean enabled) {
+   public boolean enableQuietly(boolean enabled) {
       if (fEnabled == enabled) {
          return false;
       }
       fEnabled = enabled;
-      if (fDisabledPinMap != null) {
-         
+      return true;
+   }
+
+   /**
+    * Set the enabled state of variable
+    * 
+    * @param enabled State to set
+    * 
+    * @return true if the enabled state changed and listenera notified
+    */
+   public boolean enable(boolean enabled) {
+      if (!enableQuietly(enabled)) {
+         return false;
       }
       notifyListeners();
       notifyStatusListeners();
@@ -785,7 +867,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       
    /**
     * Get the variable value as a string for use in substitutions in C code<br>
-    * This is a fundamental value not requiring any generated code support e.g. '123' or 'true'
+    * This is a fundamental value not requiring any generated code support e.g. "123" or "true"
     * 
     * @return String for text substitutions (in C code)
     */
@@ -793,7 +875,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
    /**
     * Get value for use in C code<br>
-    * This value is in the format required for defining a value e.g. OSC_CR_OSCEN(0) for use in declaring an ENUM
+    * This value is in the format required for defining a value e.g. "OSC_CR_OSCEN(0)" for use in declaring an ENUM
     * 
     * @return String for text substitutions (in C code)
     */
@@ -809,7 +891,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    
    /**
     * Get value for use in C code<br>
-    * This value is in the final usage format e.g. I2cSmbAddress_Enabled or 1234_ticks<br>
+    * This value is in the final usage format e.g. "I2cSmbAddress_Enabled" or "1234_ticks"<br>
     * This value <b>may need</b> manipulation for use with hardware e.g. integer value wrapped in a macro.
     * 
     * @return String for text substitutions (in C code)
@@ -829,7 +911,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Get value associated with field from variable
     * 
-    * @param field Field used to select type of value to return e.g. 'tooltip', 'code' ...
+    * @param field Field used to select type of value to return e.g. "tooltip", "code" ...
     * 
     * @return Nominated value as string
     */
@@ -1153,6 +1235,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    public void addInternalListeners() throws Exception {
+      
+//      if (getKey().contains("osc_cr_range")) {
+//         System.err.println("Found it "+getKey());
+//      }
       if (fReference != null) {
          fReference.addListener(this);
       }
@@ -1165,10 +1251,50 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (fUnlockedBy != null) {
          fUnlockedBy.addListener(this);
       }
+      expressionChanged(null);
    }
 
+   /**
+    * Update variable from calculated info + local modifiers (enabledBy, lockedIf, errorIf etc)
+    * 
+    * @param info       Original information for update (will be modified as above)
+    * 
+    * @throws Exception
+    */
+   void update(VariableUpdateInfo info) throws Exception {
+      
+      if (fUnlockedBy != null) {
+         setLocked(fUnlockedBy.getValueAsBoolean());
+      }
+      if (fEnabledBy != null) {
+         // Cumulative enable
+         info.enable = info.enable && fEnabledBy.getValueAsBoolean();
+         if (!info.enable) {
+            info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
+         }
+      }
+      if (fErrorIf != null) {
+         if  (fErrorIf.getValueAsBoolean()) {
+            // Forced error status
+            info.status = new Status(fErrorIf.getMessage("Error "));
+         }
+      }
+      enable(info.enable);
+
+      if (info.value != null) {
+         setValue(info.value);
+      }
+      if (info.origin != null) {
+         setOrigin(info.origin);
+      }
+      setStatus(info.status);
+   }
+   
    @Override
    public void expressionChanged(Expression expression) {
+//      if (this.getName().contains("osc_cr_range")) {
+//         System.err.println("Found it ");
+//      }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();
 
@@ -1176,62 +1302,51 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          info.enable = true;
 
          determineReferenceUpdate(info, getReference());
+         update(info);
 
-         if (fUnlockedBy != null) {
-            setLocked(fUnlockedBy.getValueAsBoolean());
-         }
-         if (fEnabledBy != null) {
-            // Cumulative enable
-            info.enable = info.enable && fEnabledBy.getValueAsBoolean();
-            if (!info.enable) {
-               info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
-            }
-         }
-         if (fErrorIf != null) {
-            if  (fErrorIf.getValueAsBoolean()) {
-               // Forced error status
-               info.status = new Status(fErrorIf.getMessage("Error "));
-            }
-         }
-         enable(info.enable);
-         
-         if (info.value != null) {
-            setValue(info.value);
-         }
-         if (info.origin != null) {
-            setOrigin(info.origin);
-         }
-         setStatus(info.status);
-         
       } catch (Exception e) {
          e.printStackTrace();
       }
    }
 
    /**
-    * Determine updates to the target from the reference
+    * Determine updates from the reference.  This includes:
+    *  <li> .value  = The value of expression
+    *  <li> .status = Status from primary variable in expression
+    *  <li> .enable = Enable from primary variable in expression
+    *  <li> .origin = Origin from expression
     * 
     * @param info Cumulative variable update information from evaluating expression etc.
     *        <li>Always updated if reference present: .value, .origin
     *        <li>May be updated if reference present: .status, .enable
-    * @param expression
+    * 
+    * @param expression Expression controlling updates
+    * 
+    * @return
+    * <li>true  Updates are necessary
+    * <li>false No updates needed
     * 
     * @throws Exception
     */
-   protected void determineReferenceUpdate(VariableUpdateInfo info, Expression expression) throws Exception {
+   protected boolean determineReferenceUpdate(VariableUpdateInfo info, Expression expression) throws Exception {
 
       if (expression != null) {
          info.value = expression.getValue();
 
-         Variable primaryVariableInExpression = expression.getPrimaryVar();
+//         Variable primaryVariableInExpression = expression.getPrimaryVar();
 
-         if (primaryVariableInExpression != null) {
-            // Get status and enable from primary variable
-            info.status   = primaryVariableInExpression.getStatus();
-            info.enable   = primaryVariableInExpression.isEnabled();
-         }
+//         if (primaryVariableInExpression != null) {
+//            // Get status and enable from primary variable
+//            info.status   = primaryVariableInExpression.getStatus();
+//            info.enable   = primaryVariableInExpression.isEnabled();
+//         }
          info.origin   = expression.getOriginMessage();
+         
+         // Update needed
+         return true;
       }
+      // No update needed
+      return false;
    }
 
    /**

@@ -29,7 +29,7 @@ public class PinListVariable extends StringVariable {
    
    /**
     * Creates a numeric list where the order of values is significant
-    * @param fProvider 
+    * @param fProvider
     * 
     * @param name
     * @param key
@@ -122,7 +122,7 @@ public class PinListVariable extends StringVariable {
     * @return True if variable actually changed value and listeners notified
     */
    @Override
-   public boolean setValue(String value) {
+   public boolean setValueQuietly(String value) {
       StringBuilder sb = new StringBuilder();
       boolean isFirst = true;
       for (String s:value.toString().split(fDelimeter)) {
@@ -137,13 +137,13 @@ public class PinListVariable extends StringVariable {
    }
 
    @Override
-   public boolean setValue(Object value) {
+   public boolean setValueQuietly(Object value) {
       return setValue(value.toString());
    }
 
    /**
     * Set minimum value for entry
-    *  
+    * 
     * @param min
     */
    public void setMin(long min) {
@@ -152,7 +152,7 @@ public class PinListVariable extends StringVariable {
 
    /**
     * Set maximum value for entry
-    *  
+    * 
     * @param max
     */
    public void setMax(long max) {

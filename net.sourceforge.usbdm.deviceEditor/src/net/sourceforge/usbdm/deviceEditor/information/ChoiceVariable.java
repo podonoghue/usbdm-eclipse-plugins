@@ -85,40 +85,36 @@ public class ChoiceVariable extends VariableWithChoices {
    }
 
    @Override
-   public boolean setValue(Object value) {
-      return setValue(translate(value));
-   }
-   
-   @Override
    void setIndex(int index) {
       setValue(index);
    }
    
+   @Override
+   public void notifyListeners() {
+      updateTargets(getVisibleChoiceData().get(fValue));
+      super.notifyListeners();
+   }
+   
    /**
-    * Sets variable value.<br>
-    * Listeners are informed if the variable changes.
+    * Sets variable value.
     * 
     * @param index The index of the choice to select
     * 
     * @return True if variable actually changed value
     */
-   public boolean setValue(int index) {
-//      if (getName().contains("oscel_fixed")) {
-//         System.err.println("Found it "+ getName());
-//      }
+   public boolean setValueQuietly(int index) {
       if ((fValue != null) && fValue.equals(index)) {
          return false;
       }
+//      if (getName().contains("oscillatorRange")) {
+//         System.err.println("Found it "+ getName()+".setValue("+index+")");
+//      }
       ArrayList<ChoiceData> choices = getVisibleChoiceData();
       if ((index<0) || (index>choices.size())) {
          System.err.println("setValue("+index+") - Illegal value for choice");
          index = 0;
       }
       fValue = index;
-
-      updateTargets(choices.get(index));
-      
-      notifyListeners();
       return true;
    }
 
@@ -206,13 +202,10 @@ public class ChoiceVariable extends VariableWithChoices {
    }
 
    @Override
-   public void setValueQuietly(Object value) {
-//      if (getName().contains("oscel_fixed")) {
-//         System.err.println("Found it 2"+ getName());
-//      }
-      fValue = translate(value);
+   public boolean setValueQuietly(Object value) {
+      return setValueQuietly(translate(value));
    }
-
+   
    @Override
    public void setPersistentValue(String value) throws Exception {
       int index = getChoiceIndex(value);

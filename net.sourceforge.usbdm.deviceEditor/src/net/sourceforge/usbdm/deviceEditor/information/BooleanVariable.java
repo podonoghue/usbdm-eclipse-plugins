@@ -86,31 +86,8 @@ public class BooleanVariable extends VariableWithChoices {
    }
    
    @Override
-   public boolean setValue(Object value) {
-      return setValue(translate(value));
-   }
-   
-   @Override
    void setIndex(int index) {
       setValue(index != 0);
-   }
-   
-   /**
-    * Set variable value as Boolean<br>
-    * Listeners are informed if the variable changes
-    * 
-    * @param value Value to set
-    * 
-    * @return True if variable actually changed value and listeners notified
-    */
-   public boolean setValue(Boolean value) {
-      if ((fValue!= null) && (fValue == (boolean)value)) {
-         return false;
-      }
-      fValue = value;
-      updateTargets(value?fTrue:fFalse);
-      notifyListeners();
-      return true;
    }
    
    /**
@@ -144,10 +121,34 @@ public class BooleanVariable extends VariableWithChoices {
    }
 
    @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
+   public void notifyListeners() {
+      if (fValue != null) {
+         updateTargets(fValue?fTrue:fFalse);
+      }
+      super.notifyListeners();
    }
-
+   
+   /**
+    * Set variable value as Boolean<br>
+    * Listeners are informed if the variable changes
+    * 
+    * @param value Value to set
+    * 
+    * @return True if variable actually changed value and listeners notified
+    */
+   public boolean setValueQuietly(Boolean value) {
+      if ((fValue!= null) && (fValue == (boolean)value)) {
+         return false;
+      }
+      fValue = value;
+      return true;
+   }
+   
+   @Override
+   public boolean setValueQuietly(Object value) {
+      return setValueQuietly(translate(value));
+   }
+   
    @Override
    public void setPersistentValue(String value) {
       fValue = translate(value);

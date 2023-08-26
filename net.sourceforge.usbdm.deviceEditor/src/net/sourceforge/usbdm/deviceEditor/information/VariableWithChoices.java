@@ -12,7 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 
 public abstract class VariableWithChoices extends Variable {
 
-   /** List of choices to be re-created each time */
+   /** List of choices are to be re-created each time */
    boolean fDynamicChoices = false;
    
    /** List of choice names */
@@ -53,6 +53,14 @@ public abstract class VariableWithChoices extends Variable {
       return getTypeName()+"_"+enumValue;
    }
    
+   /**
+    * Get number of choices available
+    * 
+    * @return
+    */
+   public int getChoiceCount() {
+      return getVisibleChoiceData().size();
+   }
    
    void clearCachedChoiceInformation() {
       fChoices = null;
@@ -66,31 +74,8 @@ public abstract class VariableWithChoices extends Variable {
       if (getValueAsLong()>=choices.length) {
          setValue(0);
       }
-      notifyListeners();
    }
    
-//   /**
-//    * Indicates that at least one choice is dynamic
-//    *
-//    * @return
-//    */
-//   public boolean hasDynamicChoices() {
-//      if (fDynamicChoices) {
-//         return true;
-//      }
-//      ChoiceData[] data = getChoiceData();
-//      if (data == null) {
-//         return false;
-//      }
-//      for (ChoiceData choice:data) {
-//         if (choice.isDynamic()) {
-//            fDynamicChoices = true;
-//            return true;
-//         }
-//      }
-//      return false;
-//   }
-
    /**
     * @return The names of the choices currently available in GUI.<br>
     *         This is affected by enabled choices.
@@ -204,8 +189,6 @@ public abstract class VariableWithChoices extends Variable {
       return getChoiceData()[index];
    }
    
-   final Pattern fFieldPattern = Pattern.compile("^(\\w+)(\\[(\\d+)?\\])?$");
-
    public int getChoiceIndex() {
       // Use index of current selected item
       return getChoiceIndex(getValueAsString());
@@ -231,6 +214,8 @@ public abstract class VariableWithChoices extends Variable {
     */
    @Override
    public String getField(String field) {
+      final Pattern fFieldPattern = Pattern.compile("^(\\w+)(\\[(\\d+)?\\])?$");
+
       Matcher m = fFieldPattern.matcher(field);
       if (!m.matches()) {
          return "Field "+field+" not matched";
@@ -238,6 +223,9 @@ public abstract class VariableWithChoices extends Variable {
 
       if (m.group(2) == null) {
          // No index - get field directly from variable
+         if ("size".equalsIgnoreCase(field)) {
+            return Integer.toString(getChoiceCount());
+         }
          return super.getField(field);
       }
       
@@ -302,15 +290,13 @@ public abstract class VariableWithChoices extends Variable {
 
    @Override
    public void addInternalListeners() throws Exception {
-      super.addInternalListeners();
-//      System.err.println("Processing "+ getName());
-
       // Listen to choice expressions
       ChoiceData[] data = getChoiceData();
       for (ChoiceData choiceData:data) {
          choiceData.addListener(this);
       }
-//      updateTargets(getCurrentChoice());
+      super.addInternalListeners();
+
    }
 
    /**
@@ -323,7 +309,10 @@ public abstract class VariableWithChoices extends Variable {
       if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
-
+      if (choiceData == null) {
+         return;
+      }
+      // Update pin mapping form choice (or disabled)
       String disabledPinMap = getDisabledPinMap();
       if (!isEnabled() && (disabledPinMap != null)) {
          // Disabled and special mapping provided
@@ -334,6 +323,7 @@ public abstract class VariableWithChoices extends Variable {
          setActivePinMappings(choiceData.getPinMap());
       }
 
+      // Target affected?
       String target = getTarget();
       if (target == null) {
          return;
@@ -366,15 +356,8 @@ public abstract class VariableWithChoices extends Variable {
          // Assume enabled (may be later disabled by enabledBy etc.)
          info.enable = true;
          determineReferenceUpdate(info, choiceData.getReference());
-         targetVar.enable(info.enable);
          
-         if (info.value != null) {
-            targetVar.setValue(info.value);
-         }
-         if (info.origin != null) {
-            targetVar.setOrigin(info.origin+"\nSelected by "+getDescription());
-         }
-         targetVar.setStatus(info.status);
+         targetVar.update(info);
          
       } catch (Exception e) {
          // TODO Auto-generated catch block
@@ -386,8 +369,8 @@ public abstract class VariableWithChoices extends Variable {
    
    @Override
    public void expressionChanged(Expression expression) {
-//      if (this.getName().contains("sim_sopt0_swde")) {
-//         System.err.println("Found it ");
+//      if (getKey().contains("osc_cr_range")) {
+//         System.err.println("Found it "+getKey());
 //      }
       super.expressionChanged(expression);
       ChoiceData choice = getCurrentChoice();
@@ -398,13 +381,24 @@ public abstract class VariableWithChoices extends Variable {
    }
 
    @Override
+   public
+   boolean enableQuietly(boolean enabled) {
+      boolean changed = super.enableQuietly(enabled);
+      if (changed) {
+         updateChoices();
+      }
+      return changed;
+   }
+   
+   @Override
    public boolean enable(boolean enabled) {
 //      if (this.getName().contains("sim_sopt0_swde")) {
 //         System.err.println("Found it ");
 //      }
-      boolean changed = super.enable(enabled);
+      boolean changed = enableQuietly(enabled);
       if (changed) {
          updateChoices();
+         notifyListeners();
       }
       return changed;
    }

@@ -124,7 +124,20 @@ public class FrdivValidator extends IndexedValidator {
       final LongVariable   mcg_erc_clockVar       = getLongVariable("mcg_erc_clock[]");
       final long           mcg_erc_clock          = mcg_erc_clockVar.getValueAsLong();
       final Status         mcg_erc_clockStatus    = mcg_erc_clockVar.getStatus();
-      
+
+//      if (variable != null) {
+//         System.err.print("Found it " + variable.getName() + " changed, value = " +variable.getValueAsString() + ", ");
+//      }
+//      System.err.print("mcg_erc_clock = "+mcg_erc_clock);
+//      if (variable != null) {
+//         if (variable.getName().contains("oscillatorRange") && (index==0)) {
+//            System.err.println();
+//         }
+//         else if (variable.getName().contains("mcg_erc_clock") && (index==0)) {
+//            System.err.println();
+//         }
+//      }
+//      System.err.println();
       if ((mcg_erc_clockStatus != null) && (mcg_erc_clockStatus.getSeverity().greaterThan(Severity.INFO))) {
          
          // ERC invalid so FRDIV is invalid as well
@@ -216,10 +229,11 @@ public class FrdivValidator extends IndexedValidator {
       }
       mcg_c1_frdivVar.setOrigin("Determined by FLL input constraints");
       if (acceptableFrdivFound) {
-         mcg_c1_frdivVar.setValue(mcg_c1_frdiv);
+         mcg_c1_frdivVar.setValue(mcg_c1_frdiv+1);
          mcg_c1_frdivVar.clearStatus();
       }
       else {
+         mcg_c1_frdivVar.setValue(0);
          mcg_c1_frdivVar.setStatus("Unable to find suitable value");
       }
       // Record range in use
@@ -235,15 +249,13 @@ public class FrdivValidator extends IndexedValidator {
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
       variablesToWatch.add("/OSC0/oscillatorRange");
+      variablesToWatch.add("mcg_erc_clock[]");
       
       variablesToWatch.add("fll_enabled[]");
       variablesToWatch.add("mcg_c1_irefs[]");
-      variablesToWatch.add("mcg_erc_clock[]");
       variablesToWatch.add("mcg_c7_oscsel[]");
       variablesToWatch.add("mcg_c4_dmx32[]");
       variablesToWatch.add("mcgClockMode[]");
-
-      variablesToWatch.add("mcg_c1_frdiv[]");
 
       addSpecificWatchedVariables(variablesToWatch);
       

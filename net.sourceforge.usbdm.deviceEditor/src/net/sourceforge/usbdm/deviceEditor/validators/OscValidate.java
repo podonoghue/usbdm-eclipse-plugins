@@ -181,10 +181,14 @@ public class OscValidate extends PeripheralValidator {
 
       osc_input_freqVar.setStatus(osc_clockStatus);
       
-      oscillatorRangeVar.enable(oscillatorRangeEnable);
-      oscillatorRangeVar.setStatus(oscillatorRangeStatus);
-      oscillatorRangeVar.setValue(oscillatorRange);
-      oscillatorRangeVar.setOrigin(oscillatorRangeOrigin);
+      boolean changed = false;
+      changed = oscillatorRangeVar.enableQuietly(oscillatorRangeEnable)    || changed;
+      changed = oscillatorRangeVar.setStatusQuietly(oscillatorRangeStatus) || changed;
+      changed = oscillatorRangeVar.setValueQuietly(oscillatorRange)        || changed;
+      changed = oscillatorRangeVar.setOriginQuietly(oscillatorRangeOrigin) || changed;
+      if (changed) {
+         oscillatorRangeVar.notifyListeners();
+      }
    }
    
    @Override
@@ -208,6 +212,8 @@ public class OscValidate extends PeripheralValidator {
       // Output
       oscillatorRangeVar             =  getChoiceVariable("oscillatorRange");
 
+      externalVariablesList.add("oscMode");
+      
       addToWatchedVariables(externalVariablesList);
       
       // Don't add default dependencies

@@ -111,41 +111,35 @@ public class LongVariable extends Variable {
       return fDefaultValue;
    }
    
-   @Override
-   public boolean setValue(Object value) {
-      try {
-         return setValue(translate(value));
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      return false;
-   }
-   
-   @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
-   }
-
-   @Override
-   public void setPersistentValue(String value) {
-      fValue = translate(value);
-   }
-   
    /**
-    * Set variable value as long<br>
-    * Listeners are informed if the variable changes
+    * Set variable value as long
     * 
     * @param value Value to set
     * 
-    * @return True if variable actually changed value and listeners notified
+    * @return True if variable actually changed value
     */
-   public boolean setValue(Long value) {
+   public boolean setValueQuietly(Long value) {
+//      if ((fMax != null) && (value>fMax)) {
+//         value = fMax;
+//      }
+//      if ((fMin != null) && (value<fMin)) {
+//         value = fMin;
+//      }
       if (fValue == value) {
          return false;
       }
       fValue = value;
-      notifyListeners();
       return true;
+   }
+   
+   @Override
+   public boolean setValueQuietly(Object value) {
+      return setValueQuietly(translate(value));
+   }
+   
+   @Override
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
    }
    
    /**
@@ -309,13 +303,12 @@ public class LongVariable extends Variable {
     * 
     * @param value
     * 
-    * @return Error message or null of valid
-    * @throws Exception
+    * @return Error message or null if valid
     */
    public String isValid(Long value) {
       try {
-         getUnits();
-         getUsageValue();
+//         getUnits();
+//         getUsageValue();
          if (value<getMin()) {
             return "Value too small ["+getName()+"<"+formatValueAsString(getMin())+"]";
          }
@@ -415,7 +408,6 @@ public class LongVariable extends Variable {
       }
       if (statusChanged) {
          notifyListeners();
-//         notifyStatusListeners();
       }
    }
 
@@ -482,9 +474,14 @@ public class LongVariable extends Variable {
     * @return Minimum value
     * @throws Exception
     */
-   public long getMin() throws Exception {
+   public Long getMin() throws Exception {
       if (fMin == null) {
-         fMin = fMinExpression.getValueAsLong();
+         if (fMinExpression != null) {
+            fMin = fMinExpression.getValueAsLong();
+         }
+         else {
+            fMin = Long.MIN_VALUE;
+         }
       }
       return fMin;
    }
@@ -497,7 +494,12 @@ public class LongVariable extends Variable {
     */
    public long getMax() throws Exception {
       if (fMax == null) {
-         fMax = fMaxExpression.getValueAsLong();
+         if (fMaxExpression != null) {
+            fMax = fMaxExpression.getValueAsLong();
+         }
+         else {
+            fMax = Long.MAX_VALUE;
+         }
       }
       return fMax;
    }
@@ -623,16 +625,22 @@ public class LongVariable extends Variable {
    public void expressionChanged(Expression expression) {
       super.expressionChanged(expression);
       try {
-         if (expression == fMinExpression) {
+         if ((fMinExpression!=null) && (expression == fMinExpression)) {
             fMin = null;
-            if (getValueAsLong() < getMin()) {
+            if (isEnabled() && (getValueAsLong() < getMin())) {
                setStatus("Value too low");
             }
+            else {
+               setStatus((String)null);
+            }
          }
-         if (expression == fMaxExpression) {
+         if ((fMaxExpression!=null) && (expression == fMaxExpression)) {
             fMax = null;
-            if (getValueAsLong() > getMax()) {
+            if (isEnabled() && (getValueAsLong() > getMax())) {
                setStatus("Value too high");
+            }
+            else {
+               setStatus((String)null);
             }
          }
       } catch (Exception e) {
@@ -643,13 +651,13 @@ public class LongVariable extends Variable {
 
    @Override
    public void addInternalListeners() throws Exception {
-      super.addInternalListeners();
       if (fMinExpression != null) {
          fMinExpression.addListener(this);
       }
       if (fMaxExpression != null) {
          fMaxExpression.addListener(this);
       }
+      super.addInternalListeners();
    }
 
 }

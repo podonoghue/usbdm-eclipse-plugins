@@ -57,7 +57,7 @@ public class PeripheralValidator extends Validator {
       
       Variable var = safeGetVariable(name);
       if (var == null) {
-         System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+//         System.err.println("Failed to watch variable " + name + " in validator " + getClass().getSimpleName());
       }
       else {
          var.addListener(this);

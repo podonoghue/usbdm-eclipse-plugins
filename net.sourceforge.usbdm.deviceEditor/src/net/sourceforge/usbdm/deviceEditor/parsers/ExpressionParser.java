@@ -2,12 +2,9 @@ package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
-import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
-import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.BooleanNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
@@ -66,7 +63,13 @@ public class ExpressionParser {
 
    // Listener for changes in variables
    private Expression fListener;
-   
+
+   /**
+    * Get next character<br>
+    * This first advances the character pointer.
+    * 
+    * @return Character found or null if at end of buffer
+    */
    private Character getNextCh() {
       fIndex++;
       if (fIndex>=fExpressionString.length()) {
@@ -75,15 +78,22 @@ public class ExpressionParser {
       return fExpressionString.charAt(fIndex);
    }
    
+   /**
+    * Get next non-whitespace character<br>
+    * This first advances the character pointer.
+    * 
+    * @return Character found or null if at end of buffer
+    */
    private Character getNextNonWhitespaceCh() {
       fIndex++;
       return skipSpace();
    }
    
    /**
-    * Skip whitespace and return first non-whitespace
+    * Skip whitespace and return first non-whitespace<br>
+    * This does <b>not</b> advance the character point first.
     * 
-    * @return Character found or null if et end of expression
+    * @return Character found or null if at end of expression
     */
    private Character skipSpace() {
       while ((fIndex<fExpressionString.length()) && Character.isWhitespace(fExpressionString.charAt(fIndex))) {
@@ -93,6 +103,40 @@ public class ExpressionParser {
          return null;
       }
       return fExpressionString.charAt(fIndex);
+   }
+   
+   /**
+    * Find end of variable index i.e. closing ']' <br>
+    * Does handle nested indices<br>
+    * Doesn't handle quoting.
+    * 
+    * @return index of closing ']'
+    * 
+    * @throws Exception
+    */
+   int findEndOfIndex() throws Exception {
+      int nesting = 0;
+      Character ch;
+      
+      do {
+         ch = getNextCh();
+         if (ch == null) {
+            throw new Exception("']' expected");
+         }
+         if (ch == '[') {
+            nesting++;
+         }
+         if (ch == ']') {
+            if (nesting > 0) {
+               nesting--;
+               // Make sure we don't exit the loop
+               ch = ' ';
+            }
+         }
+
+      } while ((nesting>0) || (']' != ch));
+      
+      return fIndex;
    }
    
    /**
@@ -122,7 +166,7 @@ public class ExpressionParser {
       if (ch == null) {
          return null;
       }
-      boolean forceEvaluate = false;
+      boolean forceEvaluate = (fMode != Mode.CheckIdentifierExistance);
       if (ch == '@') {
          forceEvaluate = true;
          ch = getNextCh();
@@ -151,24 +195,27 @@ public class ExpressionParser {
       }
       // Check for index
       ch = skipSpace();
-      ExpressionNode index = null;
+      Expression index = null;
       if ((ch != null) && (ch == '[')) {
          ch = getNextNonWhitespaceCh();
          if (ch ==']') {
-            key = key +"[0]";
-            System.err.println("Empty index used in '"+fExpressionString+"'");
+            if (forceEvaluate) {
+               // [] should only be used in existence checks
+               System.err.println("Empty index used in evaluated variable'"+fExpressionString+"'");
+            }
+            index = new Expression("0", fProvider);
          }
          else {
-            index = parseExpression();
-            if (!isInteger(index)) {
+            int startOfIndex = fIndex;
+            int endOfIndex   = findEndOfIndex();
+            
+            // Parse sub-expression
+            index = new Expression(fExpressionString.substring(startOfIndex, endOfIndex), fProvider, fMode);
+            
+            // Check type is correct for index
+            Object ind = index.getValue();
+            if (!(ind instanceof Long)) {
                throw new Exception("Invalid index type");
-            }
-            if (!index.isConstant()) {
-               throw new Exception("Index must be constant");
-            }
-            ch = skipSpace();
-            if ((ch == null) || (ch != ']')) {
-               throw new Exception("] expected at and of index");
             }
          }
          ch = getNextNonWhitespaceCh();
@@ -187,7 +234,6 @@ public class ExpressionParser {
          }
          modifier = modifierSb.toString();
       }
-      
       if (fProvider == null) {
          throw new Exception("Provider used but not provided");
       }
@@ -195,7 +241,7 @@ public class ExpressionParser {
 
       Variable var;
       if (index != null) {
-         var = fProvider.safeGetVariable(key+"["+index.eval()+"]");
+         var = fProvider.safeGetVariable(key+"["+index.getValueAsLong()+"]");
       }
       else {
          var = fProvider.safeGetVariable(key);
@@ -209,7 +255,7 @@ public class ExpressionParser {
       switch(fMode) {
       case CheckIdentifierExistance:
          if (!forceEvaluate) {
-            return new Expression.BooleanNode(var != null);
+            return new BooleanNode(var != null);
          }
       default:
       case Construct:
@@ -224,41 +270,10 @@ public class ExpressionParser {
          if (var == null) {
             throw new Exception("Failed to find variable '" + key + "'");
          }
-         if (modifier != null) {
-            if (!(var instanceof ChoiceVariable)) {
-               throw new Exception("Expected choice variable for modifier'" + key + "'");
-            }
-            if ("name".equalsIgnoreCase(modifier)) {
-               // .name  => Name from choice
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Name, Expression.Type.String, index);
-            }
-            else if ("code".equalsIgnoreCase(modifier)) {
-               // .code  => Code from choice
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Code, Expression.Type.String, index);
-            }
-            else if ("enum".equalsIgnoreCase(modifier)) {
-               // .code  => Code from choice
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Enum, Expression.Type.String, index);
-            }
-            else {
-               // .value => Value from choice. 'value' for a choice is the index
-               return new Expression.VariableNode(var, Expression.VariableNode.Modifier.Value, Expression.Type.Long, index);
-            }
-         }
-         else if (var instanceof ChoiceVariable) {
-            // 'value' for a choice is the index
-            return new Expression.VariableNode(var, null, Expression.Type.Long, index);
-         }
-         if (var instanceof BooleanVariable) {
-            return new Expression.VariableNode(var, null, Expression.Type.Boolean, index);
-         }
-         if (var instanceof LongVariable) {
-            return new Expression.VariableNode(var, null, Expression.Type.Long, index);
-         }
-         if (var instanceof DoubleVariable) {
-            return new Expression.VariableNode(var, null, Expression.Type.Double, index);
-         }
-         return new Expression.VariableNode(var, null, Expression.Type.String, index);
+//         if (index != null) {
+//            System.err.println("Found it" + index);
+//         }
+         return Expression.VariableNode.create(fListener, key, modifier, index);
       }
    }
    
@@ -418,7 +433,7 @@ public class ExpressionParser {
       }
       else if (ch == '(') {
          fIndex++;
-         result = parseExpression();
+         result = parseSubExpression();
          ch = skipSpace();
          if ((ch == null) || (ch != ')')) {
             throw new Exception("Expected ')'");
@@ -831,7 +846,6 @@ public class ExpressionParser {
          if (!(isBoolean(leftOperand))) {
             throw new Exception("Unexpected data type for operand in Logical-AND");
          }
-         
          ExpressionNode rightOperand = parseBitOr();
          if (!(isBoolean(rightOperand))) {
             throw new Exception("Unexpected data type for operand in Logical-AND");
@@ -893,13 +907,13 @@ public class ExpressionParser {
          throw new Exception("Unexpected data type for operand in Ternary");
       }
       fIndex++;
-      ExpressionNode trueExp = parseExpression();
+      ExpressionNode trueExp = parseSubExpression();
       ch = skipSpace();
       if (ch != ':') {
          throw new Exception("':' expected");
       }
       fIndex++;
-      ExpressionNode falseExp = parseExpression();
+      ExpressionNode falseExp = parseSubExpression();
       if (falseExp.fType != trueExp.fType) {
          throw new Exception("Incompatible operands");
       }
@@ -913,9 +927,25 @@ public class ExpressionParser {
     *
     * @throws Exception
     */
-   private ExpressionNode parseExpression() throws Exception {
+   private ExpressionNode parseSubExpression() throws Exception {
       return parseTernary();
    }
+
+//   /**
+//    * Accepts expr : ternary
+//    *
+//    * @return value of expr
+//    *
+//    * @throws Exception
+//    */
+//   private ExpressionNode parseIndexExpression() throws Exception {
+//      // Save current variables found
+//      ArrayList<Variable> currentVariables = fCollectedVariables;
+//      fCollectedVariables = new ArrayList<Variable>();
+//      ExpressionNode index = parseTernary();
+//      fCollectedVariables = currentVariables;
+//      return index;
+//   }
 
    private String getDiagnostic() {
       return String.format("\nInput     '%s" + "'" +
@@ -954,23 +984,24 @@ public class ExpressionParser {
     * 
     * @note A null expression is viewed as 'true'
     */
-   public ExpressionNode parseExpression(String expression) throws Exception {
+   ExpressionNode parseExpression(String expression) throws Exception {
       if (expression == null) {
          return new Expression.BooleanNode(true);
       }
+//      if (expression.contains("mcg_sc_fcrdiv")) {
+//         System.err.println("Found it " + expression);
+//      }
       fCollectedVariables = new ArrayList<Variable>();
       fExpressionString = expression;
       fIndex = 0;
-      Object result=null;
       try {
-         ExpressionNode exp = parseExpression();
+         ExpressionNode exp = parseSubExpression();
          if ((fIndex) != fExpressionString.length()) {
-            throw new Exception("Unexpected characters at end of expression, found='"+result);
+            throw new Exception("Unexpected characters at end of expression, found='");
          }
          return exp;
       } catch (Exception e) {
-         String diagnostic =
-               getDiagnostic()+"....." + e.getMessage()+"\n";
+         String diagnostic = getDiagnostic()+"....." + e.getMessage()+"\n";
          throw new Exception(diagnostic, e);
       }
    }

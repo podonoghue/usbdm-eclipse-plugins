@@ -22,7 +22,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.graphicModel.ClockSelectionFigure;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
@@ -1127,6 +1126,8 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("enumType")) {
          generateEnum(varElement, variable);
       }
+      if (varElement.hasAttribute("radix")) {
+      }
    }
 
    /**
@@ -1202,8 +1203,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    boolean checkCondition(Element element) throws Exception {
-      String  condition     = getAttribute(element, "condition");
-      return (boolean) fExpressionParser.evaluate(condition);
+//      String  condition     = getAttribute(element, "condition");
+//      return (boolean) fExpressionParser.evaluate(condition);
+      
+      return Expression.checkCondition(getAttribute(element, "condition"), fProvider);
    }
    
    /**
@@ -1934,6 +1937,9 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean isDerived = getBooleanAttribute(element, "derived", true);
       boolean isHidden  = getBooleanAttribute(element, "hidden", true);
       
+//      if (key.contains("MCGOUTCLK_max")) {
+//         System.err.println("Found it " + name);
+//      }
       if (value == null) {
          value="true";
       }
@@ -3188,15 +3194,6 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Create and add template<br>
-    * 
-    * @param key        Key used to index template
-    * @param namespace  Namespace for template (info, usbdm, all)
-    * @param string
-    * 
-    * @throws Exception
-    */
-   /**
     * 
     * @param key                       Key used to index template
     * @param namespace                 Namespace for template (info, usbdm, all)
@@ -3792,8 +3789,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private static MenuData parse(Document document, VariableProvider provider, PeripheralWithState peripheral) throws Exception {
+
+      System.out.println("Loading document (for " + ((provider==null)?"null":provider.getName()) + ") : " + document.getBaseURI());
+      
       // TODO Trace parsing peripheral files here
-      Activator.log("Loading document (for " + ((peripheral==null)?"null":peripheral.getName()) + ") : " + document.getBaseURI());
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
@@ -3923,7 +3922,9 @@ public class ParseMenuXML extends XML_BaseParser {
       try {
          // For debug try local directory
          Path path = locateFile(name+".xml");
-         fData = parse(XML_BaseParser.parseXmlFile(path), variableProvider, null);
+         Document document = XML_BaseParser.parseXmlFile(path);
+         fData = parse(document, variableProvider, null);
+
       } catch (Exception e) {
          throw new Exception("Failed to parse "+name+".xml", e);
       }

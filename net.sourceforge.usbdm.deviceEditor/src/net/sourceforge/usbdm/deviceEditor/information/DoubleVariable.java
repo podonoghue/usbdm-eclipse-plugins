@@ -86,35 +86,14 @@ public class DoubleVariable extends Variable {
       return fDefaultValue;
    }
    
-   @Override
-   public boolean setValue(Object value) {
-      try {
-         return setValue(translate(value));
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      return false;
-   }
-   
-   @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
-   }
-
-   @Override
-   public void setPersistentValue(String value) {
-      fValue = translate(value);
-   }
-   
    /**
-    * Set variable value as double<br>
-    * Listeners are informed if the variable changes
+    * Set variable value as double
     * 
     * @param value Value to set
     * 
-    * @return True if variable actually changed value and listeners notified
+    * @return True if variable actually changed value
     */
-   public boolean setValue(double value) {
+   public boolean setValueQuietly(double value) {
       if (!isDerived()) {
          if (value>fMax) {
             value = fMax;
@@ -127,8 +106,17 @@ public class DoubleVariable extends Variable {
          return false;
       }
       fValue = value;
-      notifyListeners();
       return true;
+   }
+   
+   @Override
+   public boolean setValueQuietly(Object value) {
+      return setValueQuietly(translate(value));
+   }
+   
+   @Override
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
    }
    
    /**

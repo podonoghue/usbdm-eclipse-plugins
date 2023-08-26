@@ -95,7 +95,7 @@ public class IcsValidator extends IndexedValidator {
    @Override
    protected void validate(Variable variable, int index) throws Exception {
 
-      final ChoiceVariable  ics_c1_rdivVar    = getChoiceVariable("ics_c1_rdiv[]");
+      final ChoiceVariable  ics_c1_rdivVar = getChoiceVariable("ics_c1_rdiv[]");
       
       // Oscillator range determined from crystal
       final Variable ocs_cr_rangeVar = getVariable("/OSC0/osc_cr_range");
@@ -160,9 +160,9 @@ public class IcsValidator extends IndexedValidator {
       
 //      variablesToWatch.add("fll_enabled[]");
       variablesToWatch.add("icsClockMode[]");
-      variablesToWatch.add("ics_c1_irefs[]");
+//      variablesToWatch.add("ics_c1_irefs[]");
       variablesToWatch.add("ics_erc_clock[]");
-      variablesToWatch.add("ics_c1_rdiv[]");
+//      variablesToWatch.add("ics_c1_rdiv[]");
 
       addSpecificWatchedVariables(variablesToWatch);
       

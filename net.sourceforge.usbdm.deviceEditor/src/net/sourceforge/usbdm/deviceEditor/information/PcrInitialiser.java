@@ -116,7 +116,7 @@ public class PcrInitialiser {
     * Adds information required to set up the PCR associated with the given pin.<br>
     * It obtains information from the associated MappingInfos and hence signals.<br>
     * If more than one signal has been mapped to the pin then no setting is created for that pin.
-    *  
+    * 
     * @param pin  Pin to examine
     * 
     * @return Error description if the pin was not added due to multiple mappings
@@ -346,12 +346,12 @@ public class PcrInitialiser {
          // For each port
          Long unusedPinsInPort = portToUnusedPinsMap.get(port);
          if ((unusedPinsInPort&0xFFFFL) != 0) {
-            sb.append(String.format(indent+"%s = %s|PORT_GPCLR_GPWE(%s); // Lockout unavailable pins\n", 
+            sb.append(String.format(indent+"%s = %s|PORT_GPCLR_GPWE(%s); // Lockout unavailable pins\n",
                   port+"->GPCLR", "PinLock_Locked |0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)));
          }
          unusedPinsInPort = Long.rotateRight(unusedPinsInPort, 16);
          if ((unusedPinsInPort&0xFFFFL) != 0) {
-            sb.append(String.format(indent+"%s = %s|PORT_GPCHR_GPWE(%s); // Lockout unavailable pins\n", 
+            sb.append(String.format(indent+"%s = %s|PORT_GPCHR_GPWE(%s); // Lockout unavailable pins\n",
                   port+"->GPCHR", "PinLock_Locked |0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)));
          }
       }
@@ -401,7 +401,7 @@ public class PcrInitialiser {
          else {
             sb.append("|");
          }
-         sb.append(String.format("%s_CLOCK_MASK", port));
+         sb.append(String.format("USBDM::%s_CLOCK_MASK", port));
       }
       if (!isFirst) {
          sb.append(");\n");

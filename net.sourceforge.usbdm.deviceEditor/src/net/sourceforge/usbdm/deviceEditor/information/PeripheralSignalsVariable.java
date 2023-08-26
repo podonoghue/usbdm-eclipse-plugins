@@ -23,12 +23,7 @@ public class PeripheralSignalsVariable extends Variable {
    }
 
    @Override
-   public boolean setValue(Object value) {
-      throw new RuntimeException("This method should never be called");
-   }
-
-   @Override
-   public void setValueQuietly(Object value) {
+   public boolean setValueQuietly(Object value) {
       throw new RuntimeException("This method should never be called");
    }
 
@@ -76,7 +71,6 @@ public class PeripheralSignalsVariable extends Variable {
 
    @Override
    protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
       return super.clone();
    }
 

@@ -88,7 +88,7 @@ public class NumericListVariable extends StringVariable {
     * @return True if variable actually changed value and listeners notified
     */
    @Override
-   public boolean setValue(String value) {
+   public boolean setValueQuietly(String value) {
       StringBuilder sb = new StringBuilder();
       boolean isFirst = true;
       for (String s:value.toString().split(fDelimeter)) {
@@ -100,11 +100,6 @@ public class NumericListVariable extends StringVariable {
       }
       String s = sb.toString();
       return super.setValue(s);
-   }
-
-   @Override
-   public boolean setValue(Object value) {
-      return setValue(value.toString());
    }
 
    /**

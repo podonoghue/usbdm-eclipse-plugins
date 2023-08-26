@@ -28,11 +28,13 @@ public class FtmValidate extends PeripheralValidator {
       //=================================
       
       LongVariable      clockFrequencyVar          =  getLongVariable("clockFrequency");
-//      DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
       LongVariable      ftm_modVar                 =  getLongVariable("ftm_mod");
       LongVariable      ftm_cntinVar               =  getLongVariable("ftm_cntin");
       DoubleVariable    ftm_modPeriodVar           =  getDoubleVariable("ftm_modPeriod");
       ChoiceVariable    ftm_sc_modeVar             =  getChoiceVariable("ftm_sc_mode");
+      
+      LongVariable      NumChannelsVar    = getLongVariable("NumChannels");
+      int               NumChannels       = (int)NumChannelsVar.getValueAsLong();
       
       long clockFrequency = clockFrequencyVar.getValueAsLong();
       
@@ -62,17 +64,33 @@ public class FtmValidate extends PeripheralValidator {
                   switch ((int)ftm_sc_mode) {
                   default:
                   case 0: // Left-aligned
-                     ftm_mod        = Math.max(0, Math.round((ftm_modPeriod/clockPeriod)-1)) + ftm_cntin;
+                     ftm_mod = Math.max(0, Math.round((ftm_modPeriod/clockPeriod)-1)) + ftm_cntin;
                      ftm_modVar.setValue(ftm_mod);
                      break;
                   case 1: // Centre-aligned
-                     ftm_mod        = Math.max(0, Math.round((ftm_modPeriod/clockPeriod)/2)) + ftm_cntin;
+                     ftm_mod = Math.max(0, Math.round((ftm_modPeriod/clockPeriod)/2)) + ftm_cntin;
                      ftm_modVar.setValue(ftm_mod);
                      break;
                   case 2:  // Free-running
                      ftm_modPeriodVar.setValue(clockPeriod*65535);
                   }
                   return;
+               }
+               for (int channel=0; channel<NumChannels; channel++) {
+                  DoubleVariable ftm_cnvEventTimeVar  = getDoubleVariable("ftm_cnvEventTime["+channel+"]");
+                  if (variable.equals(ftm_cnvEventTimeVar)) {
+                     // Target
+                     LongVariable ftm_cnvVar = getLongVariable("ftm_cnv["+channel+"]");
+
+                     if (!ftm_cnvEventTimeVar.isEnabled()||!ftm_cnvVar.isEnabled()) {
+                        // Ignore if disabled to preserve value
+                        continue;
+                     }
+                     // Calculate rounded value for event time in ticks
+                     double ftm_cnvEventTime = ftm_cnvEventTimeVar.getValueAsDouble();
+                     long ftm_cnv = Math.max(0, Math.round((ftm_cnvEventTime/clockPeriod)));
+                     ftm_cnvVar.setValue(ftm_cnv);
+                  }
                }
             }
          }
@@ -94,6 +112,14 @@ public class FtmValidate extends PeripheralValidator {
             "ftm_cntin",
             "ftm_modPeriod",
             "ftm_sc_mode",
+            "ftm_cnvEventTime[0]",
+            "ftm_cnvEventTime[1]",
+            "ftm_cnvEventTime[2]",
+            "ftm_cnvEventTime[3]",
+            "ftm_cnvEventTime[4]",
+            "ftm_cnvEventTime[5]",
+            "ftm_cnvEventTime[6]",
+            "ftm_cnvEventTime[7]",
       };
       addToWatchedVariables(externalVariables);
       
