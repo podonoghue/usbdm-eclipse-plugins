@@ -61,7 +61,7 @@ public class LongVariable extends Variable {
     * @param key   Key for variable
     * @param value Initial value and default
     */
-   public LongVariable(String name, String key, String value) {
+   public LongVariable(String name, String key, Object value) {
       super(name, key);
       setValue(value);
       setDefault(value);
@@ -107,8 +107,10 @@ public class LongVariable extends Variable {
          throw new Exception("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
       } catch (Exception e) {
 //         Activator.log(e.getMessage());
+         System.err.println("'"+value+"' cannot be converted to long");
+         e.printStackTrace();
+         return 0;
       }
-      return fDefaultValue;
    }
    
    /**

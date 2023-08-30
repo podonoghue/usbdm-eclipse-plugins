@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.lang.reflect.Constructor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1409,6 +1410,33 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    public String getDisabledPinMap() {
       return fDisabledPinMap;
    }
-   
+
+   /**
+    * Used to create arbitrary variable from strings
+    * 
+    * @param name    Name of variable (may be null to use name derived from key)
+    * @param key     Key for variable
+    * @param type    Type of variable must be e.g. "Long" => "LongVariable: etc
+    * @param value   Initial value and default value for variable
+    * 
+    * @return     Variable created
+    * 
+    * @throws Exception
+    */
+   public static Variable createVariableWithNamedType(String name, String key, String type, Object value) throws Exception {
+      
+      Variable var = null;
+      type = "net.sourceforge.usbdm.deviceEditor.information."+type;
+      try {
+         Class<?> varClass = Class.forName(type);
+         Constructor<?> constructor = varClass.getConstructor(String.class, String.class, Object.class);
+         var = (Variable) constructor.newInstance(name, key, value);
+      } catch (Exception e) {
+         // Most likely reason
+         throw new Exception("Failed to create variable with type '" + type + "'", e);
+      }
+      var.setConstant();
+      return var;
+   }
 
 }

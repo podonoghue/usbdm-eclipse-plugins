@@ -23,7 +23,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
@@ -493,13 +493,14 @@ public class ParseFamilyCSV {
 	 * Parse peripheral line
 	 * 
 	 * @param line
+	 * @throws Exception
 	 */
-	private void parseParamInfoLine(String[] line) {
+	private void parseParamInfoLine(String[] line) throws Exception {
 	   
 		if (!line[0].equalsIgnoreCase("Param")) {
 			return;
 		}
-		if (line.length != 4) {
+		if ((line.length < 4)||(line.length > 5)) {
 			throw new RuntimeException("Illegal Param line");
 		}
 
@@ -507,7 +508,8 @@ public class ParseFamilyCSV {
       String paramKey        = null;
 		String peripheralName  = null;
 		String paramName       = null;
-		String paramValue      = null;
+      String paramValue      = null;
+      String paramType       = "String";
 		
       if (line[1].startsWith("/")) {
 		   // An absolute key is given - must be PERIPHERAL/SIMPLE_KEY
@@ -515,7 +517,10 @@ public class ParseFamilyCSV {
          peripheralName = pathElements[1];
          paramKey       = line[1];
          paramName      = line[2];
-		   paramValue     = line[3];
+         paramValue     = line[3];
+         if (line.length>4) {
+            paramType      = line[4];
+         }
 		}
 		else {
 		   // Assume line[1] is the peripheral name alone
@@ -523,14 +528,16 @@ public class ParseFamilyCSV {
          paramName      = line[2];
          paramValue     = line[3];
          paramKey       = "/"+peripheralName+"/"+paramName;
+         if (line.length>4) {
+            paramType      = line[4];
+         }
 		}
 		try {
 			peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(peripheralName, Mode.fail);
 		} catch (ClassCastException e) {
 			e.printStackTrace();
 		}
-		StringVariable var = new StringVariable(paramName, paramKey);
-		var.setValue(paramValue);
+		Variable var = Variable.createVariableWithNamedType(paramName, paramKey, paramType, paramValue);
 		peripheral.addVariable(var);
 		
       if (paramKey.equals(peripheral.makeKey("version"))) {
@@ -640,6 +647,8 @@ public class ParseFamilyCSV {
 		final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>
 		fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);
 
+		final HashMap<String, Integer> instanceCounter = new HashMap<String, Integer>();
+		
 		// Attach information from device database
 		for (Entry<String, Peripheral> entry:fDeviceInfo.getPeripherals().entrySet()) {
 			Peripheral peripheral = entry.getValue();
@@ -714,6 +723,16 @@ public class ParseFamilyCSV {
 					slotNum++;
 				}
 			}
+			
+			// Count instance
+			String baseName = entry.getValue().getBaseName();
+			Integer instanceCtr = instanceCounter.get(baseName);
+			if (instanceCtr == null) {
+			   instanceCtr = Integer.valueOf(0);
+			}
+			instanceCtr = instanceCtr + 1;
+         instanceCounter.put(baseName, instanceCtr);
+			
 			// Attach interrupt information
 			final Pattern p = Pattern.compile("^GPIO([A-Z]).*$");
 			Matcher m = p.matcher(entry.getKey());
@@ -734,6 +753,15 @@ public class ParseFamilyCSV {
 				}
 			}
 		}
+      for (Entry<String, Peripheral> peripheheral:fDeviceInfo.getPeripherals().entrySet()) {
+         String baseName = peripheheral.getValue().getBaseName();
+         Integer instanceCount = instanceCounter.get(baseName);
+         if (instanceCount == null) {
+            instanceCount = Integer.valueOf(1);
+         }
+         peripheheral.getValue().setInstanceCount(instanceCount);
+      }
+		
 		fDeviceInfo.consistencyCheck();
 	}
 

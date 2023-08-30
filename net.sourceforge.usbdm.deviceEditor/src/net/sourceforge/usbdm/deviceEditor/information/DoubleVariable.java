@@ -42,7 +42,7 @@ public class DoubleVariable extends Variable {
     * @param key   Key for variable
     * @param value Initial value and default
     */
-   public DoubleVariable(String name, String key, String value) {
+   public DoubleVariable(String name, String key, Object value) {
       super(name, key);
       setValue(value);
       setDefault(value);

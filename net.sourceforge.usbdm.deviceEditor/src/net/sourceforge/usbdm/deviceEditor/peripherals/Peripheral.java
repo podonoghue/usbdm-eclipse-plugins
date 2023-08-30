@@ -101,6 +101,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Proxy used to support ObservableModel interface */
    private final ObservableModel fProxy;
    
+   /** Instance count for this peripheral class */
+   private int fInstanceCount;
+   
    /**
     * Indicates the class representing this peripheral is const - default true
     * - May be placed in ROM
@@ -384,9 +387,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     */
    void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
       documentUtilities.openTag("peripheral");
-      documentUtilities.writeAttribute("baseName", fBaseName);
-      documentUtilities.writeAttribute("instance", fInstance);
-      documentUtilities.writeAttribute("version",  fVersion);
+      documentUtilities.writeAttribute("baseName",       fBaseName);
+      documentUtilities.writeAttribute("instance",       fInstance);
+      documentUtilities.writeAttribute("instanceCount",  fInstanceCount);
+      documentUtilities.writeAttribute("version",        fVersion);
 
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());
@@ -407,6 +411,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          documentUtilities.writeAttribute("num", XmlDocumentUtilities.escapeXml(irqNum));
          documentUtilities.closeTag();
       }
+      documentUtilities.writeParam(
+            "instanceCount", "/"+getName()+"/_instanceCount", "LongVariable", Integer.toString(fInstanceCount));
+
       writeExtraXMLDefinitions(documentUtilities);
       documentUtilities.closeTag();
    }
@@ -1332,7 +1339,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * Array of peripherals to obtain signals from
     */
    ArrayList<PeripheralSignals> fSignalPeripherals;
-   
+
    /**
     * Create models representing the signals directly associated with this peripheral filtered
     * by regex filter.
@@ -1605,5 +1612,23 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
    public ModifierEditorInterface getModifierEditor() {
       return null;
+   }
+
+   /**
+    * Set instance count for this peripheral class
+    * 
+    * @param instanceCount
+    */
+   public void setInstanceCount(int instanceCount) {
+      fInstanceCount = instanceCount;
+   }
+   
+   /**
+    * Set instance count for this peripheral class
+    * 
+    * @param instanceCount
+    */
+   public int getInstanceCount() {
+      return fInstanceCount;
    }
 }

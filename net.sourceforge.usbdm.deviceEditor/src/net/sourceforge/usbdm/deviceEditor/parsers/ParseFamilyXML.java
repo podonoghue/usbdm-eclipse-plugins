@@ -12,7 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -245,20 +245,12 @@ public class ParseFamilyXML extends XML_BaseParser {
          else if (element.getTagName() == "param") {
             String name  = element.getAttribute("name");
             String key   = element.getAttribute("key");
+            String type  = element.getAttribute("type");
             String value = element.getAttribute("value");
-            if (name.isBlank()) {
-               String[] pathElements = key.split("/");
-               name = pathElements[pathElements.length-1];
-            }
+            Variable var = Variable.createVariableWithNamedType(name, key, type, value);
             PeripheralWithState periph = (PeripheralWithState) peripheral;
-            StringVariable var = new StringVariable(name, periph.makeKey(key), value);
-            var.setDefault(value);
             periph.addVariable(var);
             periph.addParam(key);
-//            if (key.equals(periph.makeKey("version"))) {
-//               // Override peripheral file
-//               version = value;
-//            }
          }
          else {
             throw new Exception("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");

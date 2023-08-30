@@ -30,6 +30,19 @@ public class BooleanVariable extends VariableWithChoices {
       super(name, key);
    }
    
+   /**
+    * Construct a variable representing a boolean value
+    * 
+    * @param name Name to display to user.
+    * @param key  Key for variable
+    * @param value Initial value and default
+    */
+   public BooleanVariable(String name, String key, Object value) {
+      super(name, key);
+      setValue(value);
+      setDefault(value);
+   }
+   
    @Override
    public String toString() {
       return String.format("BooleanVariable(Name=%s, value=%s (%s))", getName(), getSubstitutionValue(), getValueAsString());

@@ -25,7 +25,7 @@ public class InstanceColumnLabelProvider extends BaseLabelProvider {
     */
    static public String getColumnToolTipText() {
       return
-            "Whether to create a variable instance or a type declaration in generated code.\n" + 
+            "Whether to create a variable instance or a type declaration in generated code.\n" +
             "Type declarations allow access to static methods but cannot be passed as parameters.\n" +
             "Some peripherals provides instance methods as well which are more flexible but occupy RAM.";
    }
@@ -34,16 +34,16 @@ public class InstanceColumnLabelProvider extends BaseLabelProvider {
       if (baseModel instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)baseModel).getPeripheral();
          if (peripheral.canCreateInstance() && !peripheral.getCodeIdentifier().isBlank()) {
-            return peripheral.getCreateInstance(); 
+            return peripheral.getCreateInstance();
          }
       }
       if (baseModel instanceof SignalModel) {
-         Signal signal = (Signal)((SignalModel)baseModel).getSignal();
+         Signal signal = ((SignalModel)baseModel).getSignal();
          if (signal.getMappedPin() == Pin.UNASSIGNED_PIN) {
             return null;
          }
          if (signal.canCreateInstance() && !signal.getCodeIdentifier().isBlank()) {
-            return signal.getCreateInstance(); 
+            return signal.getCreateInstance();
          }
       }
       return null;
@@ -77,7 +77,7 @@ public class InstanceColumnLabelProvider extends BaseLabelProvider {
          }
       }
       if (element instanceof SignalModel) {
-         Signal signal = (Signal)((SignalModel)element).getSignal();
+         Signal signal = ((SignalModel)element).getSignal();
          if ((signal.getMappedPin() != Pin.UNASSIGNED_PIN) &&
              signal.canCreateInstance() && !signal.getCodeIdentifier().isBlank()) {
             return fToolTip;

@@ -5,6 +5,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Stack;
 
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
+
 /**
  * Utility routines to aid writing XML
  */
@@ -80,8 +82,8 @@ public class XmlDocumentUtilities {
          return open;
       }
       
-      /** 
-       * Close opening tag 
+      /**
+       * Close opening tag
        */
       void close() {
          open = false;
@@ -96,7 +98,7 @@ public class XmlDocumentUtilities {
     * @return
     */
    private static String getpadding(int length) {
-      final String indentString = 
+      final String indentString =
             "                                                                       " +
             "                                                                       ";
       if (length>indentString.length()) {
@@ -165,6 +167,65 @@ public class XmlDocumentUtilities {
       padding = max(1,fAttrWidth-attr.length());
    }
 
+   /**
+    * Write an attribute within a tag e.g. <b>attribute</b>=<b>value</b><br>
+    * Checks that the tag is still open
+    * 
+    * @param   attribute Attribute name
+    * @param   value     Attribute value
+    * 
+    * @throws  IOException
+    */
+   public void writeAttribute(String attribute, String value, int extraPadding) throws IOException {
+      if (value == null) {
+         return;
+      }
+      XmlEntry current = fXmlStack.peek();
+      if (!current.isOpen()) {
+         throw new RuntimeException("Attempt to add attribute to closed tag");
+      }
+      String attr = attribute+"=\""+value+"\"";
+      fWriter.write(getpadding(padding)+attr);
+      padding = max(1,extraPadding+fAttrWidth-attr.length());
+   }
+
+   /**
+    * Write XML param e.g.  <b>&lt;param name</b>=<b>"name" key</b>=<b>"key" type</b>=<b>"type" value</b>=<b>"value"  &gt;</b><br>
+    * 
+    * @param name    Name of variable (may be null to use name derived from key)
+    * @param key     Key for variable
+    * @param type    Type of variable must be e.g. "Long" => "LongVariable: etc
+    * @param value   Initial value and default value for variable
+    *
+    * @throws IOException
+    */
+   public void writeParam(String name, String key, String type, String value) throws IOException {
+      openTag("param");
+      if (name == null) {
+         name = Variable.getNameFromKey(key);
+      }
+      writeAttribute("type",  type, 10);
+      writeAttribute("value", value);
+      writeAttribute("name",  name, 15);
+      writeAttribute("key",   key);
+      closeTag();
+   }
+   
+   /**
+    * Write variable as param
+    * 
+    * @param var Variable to write
+    * 
+    * @throws IOException
+    */
+   public void writeParam(Variable var) throws IOException {
+      String name  = var.getName();
+      String key   = var.getKey();
+      String type  = var.getClass().getSimpleName();
+      String value = var.getPersistentValue();
+      writeParam(name, key, type, value);
+   }
+   
    /**
     * get larger of two values
     * 
@@ -241,9 +302,9 @@ public class XmlDocumentUtilities {
     *  &lt;?xml version="1.0" encoding="UTF-8"?&gt;
     *  &lt;!DOCTYPE root SYSTEM "<b><i>dtdFilename</i></b>"&gt;
     *  &lt;!-- <b><i>filename</b></i> --&gt;
-    *  &lt;!-- 
+    *  &lt;!--
     *     <b><i>description</b></i>
-    *  --&gt; 
+    *  --&gt;
     * </code></pre>
     *
     * @param filename      Filename of actual file being written
@@ -253,7 +314,7 @@ public class XmlDocumentUtilities {
     * @throws IOException
     */
    public void writeXmlFilePreamble(String filename, String dtdFilename, String description) throws IOException {
-      final String headerfilePreambleTemplate = 
+      final String headerfilePreambleTemplate =
          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
          "%s" +
          "<!-- %s -->\n" +

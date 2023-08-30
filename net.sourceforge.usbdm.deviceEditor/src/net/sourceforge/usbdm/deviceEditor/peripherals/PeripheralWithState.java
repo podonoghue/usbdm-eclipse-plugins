@@ -579,11 +579,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       Collections.sort(fParamList);
       for (String key:fParamList) {
          Variable var = safeGetVariable(key);
-         documentUtilities.openTag("param");
-         documentUtilities.writeAttribute("name",  var.getName());
-         documentUtilities.writeAttribute("key",   var.getKey());
-         documentUtilities.writeAttribute("value", var.getPersistentValue());
-         documentUtilities.closeTag();
+         documentUtilities.writeParam(var);
+//         documentUtilities.writeParam(var.getName(), var.getKey(), "String", var.getPersistentValue());
       }
    }
    
@@ -720,6 +717,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /**
     * Create string variable with "true" value<br>
+    * It is also added as a param>br>
     * If the constant already exists no action if taken
     * 
     * @param key Key for new variable

@@ -200,6 +200,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          fFactory = ModelFactory.createModels(fPath, true);
       } catch (Exception e) {
          failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
+         e.printStackTrace();
          Activator.logError(failureReason, e);
       }
       
