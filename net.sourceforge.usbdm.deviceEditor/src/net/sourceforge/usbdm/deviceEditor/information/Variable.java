@@ -189,6 +189,25 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
+    * Sets variable value and origin<br>
+    * Listeners are informed if the variable changes
+    * 
+    * @param value  Value to set
+    * @param origin Origin of change
+    * 
+    * @return True if variable actually changed value
+    */
+   public final boolean setValueAndOrigin(Object value, String origin) {
+      Boolean modified = false;
+      modified = setValueQuietly(value);
+      modified = setOriginQuietly(origin) || modified;
+      if (modified) {
+         notifyListeners();
+      }
+      return modified;
+   }
+
+   /**
     * Sets variable value without affecting listeners
     * 
     * @param value The value to set
@@ -329,9 +348,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public Status getStatus() {
       if (!isEnabled()) {
-         if (fStatus != null) {
-            return fStatus;
-         }
+//         if (fStatus != null) {
+//            return fStatus;
+//         }
          return null;
       }
       String status = isValid();
@@ -405,12 +424,13 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return true if origin changed and listeners notified
     */
-   public void setOrigin(String origin) {
+   public boolean setOrigin(String origin) {
       if (!setOriginQuietly(origin)) {
          // No change
-         return;
+         return false;
       }
       notifyListeners();
+      return true;
    }
 
    /** Set if the variable is locked and cannot be edited by user
@@ -1202,6 +1222,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    public void setErrorIf(String errorIf) throws Exception {
+      if (this.getName().contains("mcgClockMode[1]")) {
+         System.err.println("Found it ");
+      }
       fErrorIf = new Expression(errorIf, fProvider);
    }
 
@@ -1252,7 +1275,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (fUnlockedBy != null) {
          fUnlockedBy.addListener(this);
       }
-      expressionChanged(null);
    }
 
    /**
@@ -1263,6 +1285,13 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    void update(VariableUpdateInfo info) throws Exception {
+//      Boolean foundIt = false;
+//      if (this.getName().contains("mcgClockMode[1]")) {
+//         foundIt = true;
+//      }
+//      if (foundIt) {
+//         System.err.println("Found it, Inherited status change " + info.status);
+//      }
       
       if (fUnlockedBy != null) {
          setLocked(fUnlockedBy.getValueAsBoolean());
@@ -1274,28 +1303,40 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
             info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
          }
       }
+      enable(info.enable);
+      
       if (fErrorIf != null) {
          if  (fErrorIf.getValueAsBoolean()) {
             // Forced error status
             info.status = new Status(fErrorIf.getMessage("Error "));
+//            if (foundIt) {
+//               System.err.println("Found it - forced status change " + info.status);
+//            }
          }
       }
-      enable(info.enable);
-
-      if (info.value != null) {
-         setValue(info.value);
-      }
-      if (info.origin != null) {
-         setOrigin(info.origin);
-      }
       setStatus(info.status);
+
+//      if ((info.value != null)&&(info.origin != null)) {
+//         setValueAndOrigin(info.value, info.origin);
+//      }
+//      else {
+         if (info.value != null) {
+            setValue(info.value);
+         }
+         if (info.origin != null) {
+            setOrigin(info.origin);
+         }
+//      }
+//      if (foundIt) {
+//         System.err.println("Found it - status " + info.status);
+//      }
    }
    
    @Override
    public void expressionChanged(Expression expression) {
-//      if (this.getName().contains("osc_cr_range")) {
-//         System.err.println("Found it ");
-//      }
+      if (this.getName().contains("mcgClockMode[1]==VLPR")) {
+         System.err.println("Found it ");
+      }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();
 

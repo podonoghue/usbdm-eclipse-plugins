@@ -1513,7 +1513,10 @@ public class ParseMenuXML extends XML_BaseParser {
       
       Object res = attribute;
       if (attribute.startsWith("=")) {
-         res = SimpleExpressionParser.evaluate(attribute.substring(1), fProvider, Mode.EvaluateFully);
+         res = Expression.evaluate(attribute.substring(1), fProvider);
+//         Expression exp = new Expression(attribute.substring(1), fProvider, ExpressionParser.Mode.EvaluateFully);
+//         exp.getValue();
+//         res = SimpleExpressionParser.evaluate(attribute.substring(1), fProvider, Mode.EvaluateFully);
       }
       return res;
    }

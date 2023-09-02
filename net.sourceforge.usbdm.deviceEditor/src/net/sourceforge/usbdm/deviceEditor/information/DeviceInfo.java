@@ -1873,6 +1873,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 //            }
             var.addInternalListeners();
          }
+         for (Entry<String, Variable> entry:fVariables.entrySet()) {
+            Variable var = fVariables.get(entry.getKey());
+//            if (var.getName().contains("osc_cr_range")) {
+//               System.err.println("Found it "+var.getName());
+//            }
+            var.expressionChanged(null);
+         }
          //       System.err.println("Notify changes of persistent variables");
          
          /*

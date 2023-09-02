@@ -91,28 +91,60 @@ public class Expression implements IModelChangeListener {
       public String toString() {
          return this.getClass().getSimpleName()+"("+fLeft.toString()+","+fRight.toString()+","+fType+")";
       }
+
+      @Override
+      boolean isConstant() {
+         return fLeft.isConstant() && fRight.isConstant();
+      }
+      
    }
 
    static abstract class UnaryExpressionNode extends ExpressionNode {
 
-      ExpressionNode fLeft;
+      ExpressionNode fArg;
 
       UnaryExpressionNode(ExpressionNode left, Type type) {
          super(type);
-         fLeft  = left;
+         fArg  = left;
       }
       
       @Override
       public void collectVars(ArrayList<Variable> variablesFound) {
-         fLeft.collectVars(variablesFound);
+         fArg.collectVars(variablesFound);
       }
       
       @Override
       public ExpressionNode prune() throws Exception {
-         fLeft  = fLeft.prune();
-         if (fLeft.isConstant()) {
+         fArg  = fArg.prune();
+         if (fArg.isConstant()) {
             return wrapConstant(eval());
          }
+         return this;
+      }
+
+      @Override
+      boolean isConstant() {
+         return fArg.isConstant();
+      }
+   }
+
+   static abstract class FunctionNode extends ExpressionNode {
+
+      ExpressionNode fArg;
+
+      FunctionNode(String functionName, ExpressionNode arg, Type type) {
+         super(type);
+         fArg  = arg;
+      }
+      
+      @Override
+      public void collectVars(ArrayList<Variable> variablesFound) {
+         fArg.collectVars(variablesFound);
+      }
+      
+      @Override
+      public ExpressionNode prune() throws Exception {
+         fArg  = fArg.prune();
          return this;
       }
    }
@@ -445,19 +477,164 @@ public class Expression implements IModelChangeListener {
 
       @Override
       Object eval() throws Exception {
-         return !(Boolean)fLeft.eval();
+         return !(Boolean)fArg.eval();
       }
    }
    
-   static class LongToDoubleNode extends UnaryExpressionNode {
+   static class CastToLongNode extends UnaryExpressionNode {
 
-      LongToDoubleNode(ExpressionNode left) {
-         super(left, Type.Double);
+      CastToLongNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.Long);
+         
+         switch(arg.fType) {
+         default:
+            throw new Exception("Expression cannot be cast to 'Long'");
+            
+         case Double:
+         case Long:
+            break;
+         }
       }
 
       @Override
       Object eval() throws Exception {
-         return (double)(Long)fLeft.eval();
+         switch(fArg.fType) {
+         default:
+            throw new Exception("Invalid cast");
+            
+         case Double:
+            break;
+            
+         case Long:
+            break;
+         }
+         Double res = (double) fArg.eval();
+         return res;
+      }
+      
+      /**
+       * Promote arg to Long type
+       * 
+       * @param arg  Expression  to promote
+       * 
+       * @return  Promoted arg, or arg unchanged, if already correct type
+       * 
+       * @throws Exception
+       */
+      static ExpressionNode promoteIfNeeded(ExpressionNode arg) throws Exception {
+         if (arg.fType == Type.Long) {
+            return arg;
+         }
+         return new CastToLongNode(arg);
+      }
+   }
+   
+   static class OrdinalNode extends UnaryExpressionNode {
+
+      OrdinalNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.Long);
+         
+         switch(arg.fType) {
+         default:
+            throw new Exception("Ordinal is not supported for expression");
+            
+         case Long:
+         case String:
+         case Boolean:
+            break;
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         switch(fArg.fType) {
+         default:
+            throw new Exception("Invalid cast");
+            
+         case Long:
+            return fArg.eval();
+            
+         case String: {
+            String s = (String) fArg.eval();
+            if (s.length()!=1) {
+               throw new Exception("Ordinal only available for 1 character strings");
+            }
+            return Character.getNumericValue(s.charAt(0));
+         }
+         case Boolean: {
+            Boolean b = (Boolean) fArg.eval();
+            return b?0L:1L;
+         }
+         }
+      }
+      
+      /**
+       * Promote arg to Long type
+       * 
+       * @param arg  Expression  to promote
+       * 
+       * @return  Promoted arg, or arg unchanged, if already correct type
+       * 
+       * @throws Exception
+       */
+      static ExpressionNode promoteIfNeeded(ExpressionNode arg) throws Exception {
+         if (arg.fType == Type.Long) {
+            return arg;
+         }
+         return new CastToLongNode(arg);
+      }
+   }
+   
+   static class CastToDoubleNode extends UnaryExpressionNode {
+
+      CastToDoubleNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.Double);
+         if ((arg.fType != Expression.Type.Long) && (arg.fType != Expression.Type.Double)) {
+            throw new Exception("Expression cannot be promoted to 'Double'");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         Object res = fArg.eval();
+         if (res instanceof Double) {
+            return res;
+         }
+         double lRes = (Long) res;
+         return lRes;
+      }
+      
+      /**
+       * Promote arg to Double type
+       * 
+       * @param arg  Expression  to promote
+       * 
+       * @return  Promoted arg, or arg unchanged, if already correct type
+       * 
+       * @throws Exception
+       */
+      static ExpressionNode promoteIfNeeded(ExpressionNode arg) throws Exception {
+         if (arg.fType == Type.Double) {
+            return arg;
+         }
+         return new CastToDoubleNode(arg);
+      }
+   }
+   
+   static class CastToCharacterString extends UnaryExpressionNode {
+
+      CastToCharacterString(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+         if (arg.fType != Expression.Type.Long) {
+            throw new Exception("Expression cannot be promoted to 'Character String'");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         long l = (long) fArg.eval();
+         int i = (int) l;
+         return Character.toString((char)i);
       }
    }
    
@@ -469,7 +646,7 @@ public class Expression implements IModelChangeListener {
 
       @Override
       Object eval() throws Exception {
-         Object result = fLeft.eval();
+         Object result = fArg.eval();
          if (result instanceof Double) {
             return -(Double)result;
          } else {
@@ -486,7 +663,7 @@ public class Expression implements IModelChangeListener {
 
       @Override
       Object eval() throws Exception {
-         return fLeft.eval();
+         return fArg.eval();
       }
    }
    
@@ -498,14 +675,20 @@ public class Expression implements IModelChangeListener {
 
       @Override
       Object eval() throws Exception {
-         return ~(Long)(fLeft.eval());
+         return ~(Long)(fArg.eval());
       }
    }
    
    static class MultiplyNode extends BinaryExpressionNode {
 
-      MultiplyNode(ExpressionNode left, ExpressionNode right) {
+      MultiplyNode(ExpressionNode left, ExpressionNode right) throws Exception {
          super(left,right,left.fType);
+         if (left.fType != right.fType) {
+            throw new Exception("Incompatible operand to '*'");
+         }
+         if ((left.fType != Type.Double) && (left.fType != Type.Long)) {
+            throw new Exception("Illegal operand to '*'");
+         }
       }
 
       @Override
@@ -962,7 +1145,7 @@ public class Expression implements IModelChangeListener {
       if (constantValue instanceof Boolean) {
          return new BooleanNode((Boolean)constantValue);
       }
-      throw new Exception("Node not of expected type");
+      throw new Exception("Node not of expected type" + constantValue.getClass().toString());
    }
    
    /**
@@ -987,13 +1170,16 @@ public class Expression implements IModelChangeListener {
     * @param fVarProvider
     * @throws Exception
     */
-   Expression(String expression, VariableProvider provider, Mode mode) throws Exception {
+   public Expression(String expression, VariableProvider provider, Mode mode) throws Exception {
       fExpressionStr = expression;
       fVarProvider   = provider;
       fMode          = mode;
    }
 
    private void prelim() throws Exception {
+//      if (this.fExpressionStr.contains("/SMC/smc_pmctrl_runm[1]==VLPR")) {
+//         System.err.println("Found it ");
+//      }
       
       String expression = fExpressionStr;
       String parts[] = expression.split("#");
@@ -1287,6 +1473,9 @@ public class Expression implements IModelChangeListener {
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
+//      if (fExpressionStr.contains("(/SMC/smc_pmctrl_runm[1]==VLPR)")) {
+//         System.err.println("Found it");
+//      }
       try {
          Object newValue = evaluate();
          if (newValue == fCurrentValue) {
@@ -1359,5 +1548,14 @@ public class Expression implements IModelChangeListener {
       return fExpressionStr;
    }
 
+   @Override
+   public String toString() {
+      return "Expression("+fExpressionStr+")";
+   }
+
+   public static Object evaluate(String expressionString, VariableProvider provider) throws Exception {
+      Expression exp = new Expression(expressionString, provider, Mode.EvaluateFully);
+      return exp.getValue();
+   }
 
 }

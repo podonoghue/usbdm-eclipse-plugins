@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.BooleanNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -152,6 +154,41 @@ public class ExpressionParser {
    }
 
    /**
+    * Parse a function argument from the opening '(' to closing ')
+    * 
+    * @param functionName  Name of function
+    * 
+    * @return
+    * @throws Exception
+    */
+   private ExpressionNode getFunction(String functionName) throws Exception {
+      
+      Character ch = skipSpace();
+      
+      if (ch != '(') {
+         throw new Exception("Expected function argument (impossible)");
+      }
+      // Discard '('
+      getNextCh();
+      
+      ExpressionNode arg = parseSubExpression();
+      
+      ch = skipSpace();
+      if (ch != ')') {
+         throw new Exception("Expected ')' after function argument");
+      }
+      // Discard ')'
+      getNextCh();
+      if ("Ordinal".equalsIgnoreCase(functionName)) {
+         return new Expression.OrdinalNode(arg);
+      }
+      if ("Character".equalsIgnoreCase(functionName)) {
+         return new Expression.CastToCharacterString(arg);
+      }
+      throw new Exception("Function not supported");
+   }
+   
+   /**
     * Accepts identifier : alpha [alpha|digit|'/'|'['|']']+
     * 
     * @return identifier value or null
@@ -175,7 +212,7 @@ public class ExpressionParser {
          ch = fExpressionString.charAt(fIndex);
          if ((ch == '/') || Character.isJavaIdentifierPart(ch)) {
             sb.append(ch);
-            fIndex++;
+            getNextCh();;
             continue;
          }
          break;
@@ -193,8 +230,13 @@ public class ExpressionParser {
       if ("disabled".equalsIgnoreCase(key)) {
          return new Expression.DisabledValueNode();
       }
-      // Check for index
+      
+      if ("Long".equalsIgnoreCase(key)) {
+      }
       ch = skipSpace();
+      if ((ch != null) && (ch == '(')) {
+         return getFunction(key);
+      }
       Expression index = null;
       if ((ch != null) && (ch == '[')) {
          ch = getNextNonWhitespaceCh();
@@ -303,7 +345,7 @@ public class ExpressionParser {
             isDouble = true;
          }
          sb.append(ch);
-         fIndex++;
+         getNextCh();;
       };
       String val = sb.toString();
       if (isDouble) {
@@ -325,7 +367,7 @@ public class ExpressionParser {
       if ((ch == null) || (ch != '"')) {
          return null;
       }
-      fIndex++;
+      getNextCh();;
       StringBuilder sb = new StringBuilder();
       
       // Collect string
@@ -337,12 +379,12 @@ public class ExpressionParser {
             break;
          }
          sb.append(ch);
-         fIndex++;
+         getNextCh();;
       };
       if (!foundTerminator) {
          throw new Exception("Unterminated string");
       }
-      fIndex++;
+      getNextCh();;
       return new Expression.StringNode(sb.toString());
    }
    
@@ -408,7 +450,7 @@ public class ExpressionParser {
       if ("+-~!".indexOf(ch)>=0) {
          boolean okResult = false;
          
-         fIndex++;
+         getNextCh();;
          result = parseFactor();
          switch (ch) {
             case '+' :
@@ -432,33 +474,18 @@ public class ExpressionParser {
          }
       }
       else if (ch == '(') {
-         fIndex++;
+         getNextCh();
          result = parseSubExpression();
          ch = skipSpace();
          if ((ch == null) || (ch != ')')) {
             throw new Exception("Expected ')'");
          }
-         fIndex++;
+         getNextCh();
       }
       else {
          result = getValue();
       }
       return result;
-   }
-   
-   /**
-    * Promote Long node to Double
-    * If not a Long node then left unchanged
-    * 
-    * @param node Node to promote
-    * 
-    * @return  Promoted node (may be unchanged)
-    */
-   private ExpressionNode promoteLongNode(ExpressionNode node) {
-      if (node.fType != Expression.Type.Long) {
-         return node;
-      }
-      return new Expression.LongToDoubleNode(node);
    }
    
    /**
@@ -479,13 +506,15 @@ public class ExpressionParser {
          }
          boolean failed = false;
          if (ch == '*') {
-            fIndex++;
+            getNextCh();
             failed = true;
             if (isFloatOrInteger(leftOperand)) {
                rightOperand = parseFactor();
-               if (leftOperand.fType != rightOperand.fType) {
-                  leftOperand  = promoteLongNode(leftOperand);
-                  rightOperand = promoteLongNode(rightOperand);
+               if ((leftOperand.fType != rightOperand.fType) &&
+                     ((leftOperand.fType == Type.Double)||(rightOperand.fType == Type.Double))) {
+                  // Promote both to Double
+                  leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
+                  rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
                }
                if (leftOperand.fType == rightOperand.fType) {
                   leftOperand = new Expression.MultiplyNode(leftOperand, rightOperand);
@@ -494,13 +523,13 @@ public class ExpressionParser {
             }
          }
          else if (ch == '/') {
-            fIndex++;
+            getNextCh();
             failed = true;
             if (isFloatOrInteger(leftOperand)) {
                rightOperand = parseFactor();
                if (leftOperand.fType != rightOperand.fType) {
-                  leftOperand  = promoteLongNode(leftOperand);
-                  rightOperand = promoteLongNode(rightOperand);
+                  leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
+                  rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
                }
                if (leftOperand.fType == rightOperand.fType) {
                   leftOperand = new Expression.DivideNode(leftOperand, rightOperand);
@@ -509,7 +538,7 @@ public class ExpressionParser {
             }
          }
          else if (ch == '%') {
-            fIndex++;
+            getNextCh();;
             failed = true;
             if (isInteger(leftOperand)) {
                rightOperand = parseFactor();
@@ -546,13 +575,15 @@ public class ExpressionParser {
          }
          boolean failed = false;
          if (ch == '+') {
-            fIndex++;
+            getNextCh();;
             failed = true;
             if (isFloatOrInteger(leftOperand)||isString(leftOperand)) {
                ExpressionNode rightOperand = parseTerm();
-               if (leftOperand.fType != rightOperand.fType) {
-                  leftOperand  = promoteLongNode(leftOperand);
-                  rightOperand = promoteLongNode(rightOperand);
+               if ((leftOperand.fType != rightOperand.fType) &&
+                     ((leftOperand.fType == Type.Double)||(rightOperand.fType == Type.Double))) {
+                  // Promote both to Double
+                  leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
+                  rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
                }
                if (leftOperand.fType == rightOperand.fType) {
                   leftOperand = new Expression.AddNode(leftOperand, rightOperand);
@@ -561,13 +592,13 @@ public class ExpressionParser {
             }
          }
          else if (ch == '-') {
-            fIndex++;
+            getNextCh();;
             failed = true;
             if (isFloatOrInteger(leftOperand)) {
                ExpressionNode rightOperand = parseTerm();
                if (leftOperand.fType != rightOperand.fType) {
-                  leftOperand  = promoteLongNode(leftOperand);
-                  rightOperand = promoteLongNode(rightOperand);
+                  leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
+                  rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
                }
                if (leftOperand.fType == rightOperand.fType) {
                   leftOperand = new Expression.SubtractNode(leftOperand, rightOperand);
@@ -602,8 +633,8 @@ public class ExpressionParser {
             return leftOperand;
          }
          // either '<<' or '>>'
-         fIndex++;
-         fIndex++;
+         getNextCh();;
+         getNextCh();;
          if (ch == '<') {
             ExpressionNode rightOperand = parseSum();
 
@@ -657,9 +688,11 @@ public class ExpressionParser {
          }
          ExpressionNode rightOperand = parseShift();
          
-         if (leftOperand.fType != rightOperand.fType) {
-            leftOperand  = promoteLongNode(leftOperand);
-            rightOperand = promoteLongNode(rightOperand);
+         if ((leftOperand.fType != rightOperand.fType) &&
+               ((leftOperand.fType == Type.Double)||(rightOperand.fType == Type.Double))) {
+            // Promote both to Double
+            leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
+            rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
          }
          if (leftOperand.fType != rightOperand.fType) {
             throw new Exception("Incompatible operands in Comparison");
@@ -718,12 +751,14 @@ public class ExpressionParser {
          if ((ch == null) || ((ch != '!') && (ch != '=')) || (peek() == null) || (peek() != '=')) {
             return leftOperand;
          }
-         fIndex++;
-         fIndex++;
+         getNextCh();;
+         getNextCh();;
          ExpressionNode rightOperand = parseCompare();
-         if (leftOperand.fType != rightOperand.fType) {
-            leftOperand  = promoteLongNode(leftOperand);
-            rightOperand = promoteLongNode(rightOperand);
+         if ((leftOperand.fType != rightOperand.fType) &&
+               ((leftOperand.fType == Type.Double)||(rightOperand.fType == Type.Double))) {
+            // Promote both to Double
+            leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
+            rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
          }
          if (leftOperand.fType != rightOperand.fType) {
             throw new Exception("Incompatible operands in Equality");
@@ -752,7 +787,7 @@ public class ExpressionParser {
          if ((ch == null) || (ch != '&')||((peek() != null)&&(peek() == '&'))) {
             return leftOperand;
          }
-         fIndex++;
+         getNextCh();;
          ExpressionNode rightOperand = parseEquality();
 
          if ((isInteger(leftOperand)) && (isInteger(rightOperand))) {
@@ -780,7 +815,7 @@ public class ExpressionParser {
          if ((ch == null) || (ch != '^')) {
             return leftOperand;
          }
-         fIndex++;
+         getNextCh();;
          ExpressionNode rightOperand = parseBitAnd();
 
          if ((isInteger(leftOperand)) && (isInteger(rightOperand))) {
@@ -808,7 +843,7 @@ public class ExpressionParser {
          if ((ch == null) || (ch != '|')||((peek() != null) && (peek() == '|'))) {
             return leftOperand;
          }
-         fIndex++;
+         getNextCh();;
          ExpressionNode rightOperand = parseXor();
 
          if ((isInteger(leftOperand)) && (isInteger(rightOperand))) {
@@ -836,12 +871,12 @@ public class ExpressionParser {
          if ((ch == null) || (ch != '&')) {
             return leftOperand;
          }
-         fIndex++;
+         getNextCh();;
          ch = skipSpace();
          if ((ch == null) || (ch != '&')) {
             throw new Exception("Expected '&'");
          }
-         fIndex++;
+         getNextCh();;
 
          if (!(isBoolean(leftOperand))) {
             throw new Exception("Unexpected data type for operand in Logical-AND");
@@ -870,12 +905,12 @@ public class ExpressionParser {
          if ((ch == null) || (ch != '|')) {
             return leftOperand;
          }
-         fIndex++;
+         getNextCh();;
          ch = skipSpace();
          if ((ch == null) || (ch != '|')) {
             throw new Exception("Expected '|'");
          }
-         fIndex++;
+         getNextCh();;
          
          if (!isBoolean(leftOperand)) {
             throw new Exception("Unexpected data type for operand in Logical-OR");
@@ -906,13 +941,13 @@ public class ExpressionParser {
       if (!isBoolean(control)) {
          throw new Exception("Unexpected data type for operand in Ternary");
       }
-      fIndex++;
+      getNextCh();;
       ExpressionNode trueExp = parseSubExpression();
       ch = skipSpace();
       if (ch != ':') {
          throw new Exception("':' expected");
       }
-      fIndex++;
+      getNextCh();;
       ExpressionNode falseExp = parseSubExpression();
       if (falseExp.fType != trueExp.fType) {
          throw new Exception("Incompatible operands");
@@ -997,7 +1032,7 @@ public class ExpressionParser {
       try {
          ExpressionNode exp = parseSubExpression();
          if ((fIndex) != fExpressionString.length()) {
-            throw new Exception("Unexpected characters at end of expression, found='");
+            throw new Exception("Unexpected characters at end of expression, found='" + skipSpace());
          }
          return exp;
       } catch (Exception e) {
