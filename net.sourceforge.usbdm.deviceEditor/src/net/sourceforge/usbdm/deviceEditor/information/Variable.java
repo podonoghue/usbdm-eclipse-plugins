@@ -44,6 +44,16 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public enum Units {
       None, Hz, s, ticks;
+
+      public String getType() {
+         switch (this) {
+         case None:  return "int";
+         case Hz:    return "Hertz";
+         case s:     return "Seconds";
+         case ticks: return "Ticks";
+         }
+         return "IllegalUnits";
+      }
       
       public String append(String value) {
          if (this == None) {
@@ -1222,9 +1232,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    public void setErrorIf(String errorIf) throws Exception {
-      if (this.getName().contains("mcgClockMode[1]")) {
-         System.err.println("Found it ");
-      }
+//      if (this.getName().contains("mcgClockMode[1]")) {
+//         System.err.println("Found it ");
+//      }
       fErrorIf = new Expression(errorIf, fProvider);
    }
 
@@ -1334,9 +1344,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    
    @Override
    public void expressionChanged(Expression expression) {
-      if (this.getName().contains("mcgClockMode[1]==VLPR")) {
-         System.err.println("Found it ");
-      }
+//      if (this.getName().contains("mcgClockMode[1]==VLPR")) {
+//         System.err.println("Found it ");
+//      }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();
 

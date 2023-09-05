@@ -78,7 +78,7 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
 
       gc.setBackground(display.getSystemColor(backGroundColor));
       gc.setForeground(display.getSystemColor(lineColor));
-
+      
       fillPoly(gc, new Point[] {
             map(-slope/2, -height/2),
             map(slope/2,  -height/2+slope),
@@ -93,6 +93,12 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
             map(slope/2,   height/2-slope),
             map(-slope/2,  height/2),
       });
+      
+      gc.setBackground(display.getSystemColor(lineColor));
+//      Point dot = map(dotSize/2, 10-dotSize/2);
+      Point dot = map(getRelativeInput(0));
+      gc.fillOval(dot.x+1-dotSize/2, dot.y-dotSize/2, dotSize, dotSize);
+      
       Variable var = getVariable();
       int sel = (int)var.getValueAsLong();
       Point p1 = getInput(sel);

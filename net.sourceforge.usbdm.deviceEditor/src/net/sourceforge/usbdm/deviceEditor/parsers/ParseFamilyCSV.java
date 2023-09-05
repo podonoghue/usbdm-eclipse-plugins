@@ -509,7 +509,7 @@ public class ParseFamilyCSV {
 		String peripheralName  = null;
 		String paramName       = null;
       String paramValue      = null;
-      String paramType       = "String";
+      String paramType       = "StringVariable";
 		
       if (line[1].startsWith("/")) {
 		   // An absolute key is given - must be PERIPHERAL/SIMPLE_KEY
@@ -647,11 +647,22 @@ public class ParseFamilyCSV {
 		final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>
 		fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);
 
-		final HashMap<String, Integer> instanceCounter = new HashMap<String, Integer>();
+		final HashMap<String, String> instanceLists = new HashMap<String, String>();
 		
 		// Attach information from device database
 		for (Entry<String, Peripheral> entry:fDeviceInfo.getPeripherals().entrySet()) {
 			Peripheral peripheral = entry.getValue();
+
+         // Count instance
+         String baseName = entry.getValue().getBaseName();
+         String instanceList = instanceLists.get(baseName);
+         if (instanceList == null) {
+            instanceList = entry.getValue().getName();
+         }
+         else {
+            instanceList = instanceList + ";" + entry.getValue().getName();
+         }
+         instanceLists.put(baseName, instanceList);
 
 			// Get database peripheral entry
 			net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral = fPeripheralMap.get(entry.getKey());
@@ -724,15 +735,6 @@ public class ParseFamilyCSV {
 				}
 			}
 			
-			// Count instance
-			String baseName = entry.getValue().getBaseName();
-			Integer instanceCtr = instanceCounter.get(baseName);
-			if (instanceCtr == null) {
-			   instanceCtr = Integer.valueOf(0);
-			}
-			instanceCtr = instanceCtr + 1;
-         instanceCounter.put(baseName, instanceCtr);
-			
 			// Attach interrupt information
 			final Pattern p = Pattern.compile("^GPIO([A-Z]).*$");
 			Matcher m = p.matcher(entry.getKey());
@@ -753,13 +755,14 @@ public class ParseFamilyCSV {
 				}
 			}
 		}
-      for (Entry<String, Peripheral> peripheheral:fDeviceInfo.getPeripherals().entrySet()) {
-         String baseName = peripheheral.getValue().getBaseName();
-         Integer instanceCount = instanceCounter.get(baseName);
-         if (instanceCount == null) {
-            instanceCount = Integer.valueOf(1);
+      for (Entry<String, Peripheral> peripheral:fDeviceInfo.getPeripherals().entrySet()) {
+         String baseName = peripheral.getValue().getBaseName();
+         String instanceList = instanceLists.get(baseName);
+         if (instanceList == null) {
+           System.err.println("No instances found for " + baseName);
+           instanceList = "";
          }
-         peripheheral.getValue().setInstanceCount(instanceCount);
+         peripheral.getValue().setInstanceList(instanceList);
       }
 		
 		fDeviceInfo.consistencyCheck();

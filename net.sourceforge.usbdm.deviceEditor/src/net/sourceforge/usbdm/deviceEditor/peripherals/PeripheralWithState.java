@@ -778,7 +778,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    protected void extractAllRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
 
-      String key = makeKey("$present");
+      String key = makeKey("_present");
       addOrIgnoreStringConstant(key);
 
       // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present

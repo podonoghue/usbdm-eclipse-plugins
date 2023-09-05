@@ -1511,6 +1511,9 @@ public class ParseMenuXML extends XML_BaseParser {
       String attribute = fForStack.doForSubstitutions(element.getAttribute(attrName));
       attribute = replaceCommonNames(attribute).trim();
       
+//      if ("=_enable".equalsIgnoreCase(attribute)) {
+//         System.err.println("Found it "+attribute);
+//      }
       Object res = attribute;
       if (attribute.startsWith("=")) {
          res = Expression.evaluate(attribute.substring(1), fProvider);
@@ -2422,7 +2425,15 @@ public class ParseMenuXML extends XML_BaseParser {
          
          String paramType = variable.getTypeName();
          if (paramType == null) {
-            paramType = "'%enumClass' is not valid here";
+            if (variable instanceof LongVariable) {
+               paramType = ((LongVariable)variable).getUnits().getType();
+            }
+            else if (variable instanceof DoubleVariable) {
+               paramType = ((DoubleVariable)variable).getUnits().getType();
+            }
+            if (paramType == null) {
+               paramType = "'%enumClass' is not valid here";
+            }
          }
          else {
             paramType = paramType.strip();
@@ -2870,17 +2881,34 @@ public class ParseMenuXML extends XML_BaseParser {
 
       templateBasicCheck(namespace, key, element.getTagName());
       
-      String variable     = getAttributeAsString(element, "variable");
-      Variable var = safeGetVariable(variable);
-      if (var == null) {
-         return;
+      String variable  = getAttributeAsString(element, "variable");
+      String variables = getAttributeAsString(element, "variables");
+      List<StringPair> substitutions;
+      
+      if (variable != null) {
+         Variable var = safeGetVariable(variable);
+         if (var == null) {
+            return;
+         }
+         String caseBody = getTemplateCaseStatement(element, var);
+         substitutions = getTemplateSubstitutions(element, "variable");
+         substitutions.add(0, new StringPair("%body", caseBody));
       }
-      String caseBody = getTemplateCaseStatement(element, var);
-      
-      List<StringPair> substitutions = getTemplateSubstitutions(element, "variable");
-      
-      substitutions.add(0, new StringPair("%body", caseBody));
-
+      else if (variables != null) {
+         String[] t = variables.split(",");
+         // Use 1st variable
+         Variable    var = safeGetVariable(t[0]);
+         if (var == null) {
+            return;
+         }
+         String caseBody = getTemplateCaseStatement(element, var);
+         substitutions = getTemplateSubstitutions(element, "variables");
+         substitutions.add(0, new StringPair("%body", caseBody));
+      }
+      else {
+         throw new Exception("<clockCodeTemplate> must have 'variable' or 'variables' attribute, key='" + key + "'");
+      }
+         
       TemplateInformation templateInfo = addTemplate(key, namespace, getAttributeAsString(element, "codeGenCondition"));
       
       for (Node node = element.getFirstChild();
@@ -3081,9 +3109,6 @@ public class ParseMenuXML extends XML_BaseParser {
          parseValidate(element);
       }
       else if (tagName == "clockCodeTemplate") {
-         if (!element.hasAttribute("variable")) {
-            throw new Exception("<clockCodeTemplate> must have 'variables' attribute, key='" + key + "'");
-         }
          parseClockCodeTemplate(element);
       }
       else if (tagName == "template") {
@@ -3167,6 +3192,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          fProvider.addVariable(var);
          var.setDerived(true);
+         var.setConstant();
       }
       var.setValue(expression);
    }

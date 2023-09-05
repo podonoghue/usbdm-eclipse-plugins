@@ -101,8 +101,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Proxy used to support ObservableModel interface */
    private final ObservableModel fProxy;
    
-   /** Instance count for this peripheral class */
-   private int fInstanceCount;
+   /** String showing instances of this peripheral class e.g. "0,1" or "A,B,C" */
+   private String fInstanceList;
    
    /**
     * Indicates the class representing this peripheral is const - default true
@@ -389,7 +389,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       documentUtilities.openTag("peripheral");
       documentUtilities.writeAttribute("baseName",       fBaseName);
       documentUtilities.writeAttribute("instance",       fInstance);
-      documentUtilities.writeAttribute("instanceCount",  fInstanceCount);
+      documentUtilities.writeAttribute("instanceList",   fInstanceList);
       documentUtilities.writeAttribute("version",        fVersion);
 
       documentUtilities.openTag("handler");
@@ -412,7 +412,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          documentUtilities.closeTag();
       }
       documentUtilities.writeParam(
-            "instanceCount", "/"+getName()+"/_instanceCount", "LongVariable", Integer.toString(fInstanceCount));
+            "instanceList", "/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
 
       writeExtraXMLDefinitions(documentUtilities);
       documentUtilities.closeTag();
@@ -1615,20 +1615,19 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Set instance count for this peripheral class
+    * Set string showing instances of this peripheral class e.g. "0,1" or "A,B,C"
     * 
-    * @param instanceCount
+    * @param instanceList
     */
-   public void setInstanceCount(int instanceCount) {
-      fInstanceCount = instanceCount;
+   public void setInstanceList(String instanceList) {
+      fInstanceList = instanceList;
    }
    
    /**
-    * Set instance count for this peripheral class
-    * 
-    * @param instanceCount
+    * Get string showing instances of this peripheral class e.g. "0,1" or "A,B,C"
     */
-   public int getInstanceCount() {
-      return fInstanceCount;
+   public String getInstanceCount() {
+      return fInstanceList;
    }
+
 }

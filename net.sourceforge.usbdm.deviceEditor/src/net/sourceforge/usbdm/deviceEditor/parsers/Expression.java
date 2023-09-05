@@ -587,6 +587,12 @@ public class Expression implements IModelChangeListener {
    
    static class CastToDoubleNode extends UnaryExpressionNode {
 
+      /**
+       * Cast a Long or Double ExpressionNode to Double ExpressionNode
+       * 
+       * @param arg
+       * @throws Exception
+       */
       CastToDoubleNode(ExpressionNode arg) throws Exception {
          super(arg, Type.Double);
          if ((arg.fType != Expression.Type.Long) && (arg.fType != Expression.Type.Double)) {
@@ -623,6 +629,12 @@ public class Expression implements IModelChangeListener {
    
    static class CastToCharacterString extends UnaryExpressionNode {
 
+      /**
+       * Cast a Long ExpressionNode to a single character String ExpressionNode e.g. 30 => "0"
+       * 
+       * @param arg
+       * @throws Exception
+       */
       CastToCharacterString(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
          if (arg.fType != Expression.Type.Long) {
@@ -638,6 +650,32 @@ public class Expression implements IModelChangeListener {
       }
    }
    
+//   static class CastToVariableNode extends UnaryExpressionNode {
+//
+//      private final VariableProvider fProvider;
+//
+//      /**
+//       * Cast a String ExpressionNode to a Variable ExpressionNode
+//       *
+//       * @param arg
+//       * @throws Exception
+//       */
+//      CastToVariableNode(VariableProvider provider, ExpressionNode arg) throws Exception {
+//         super(arg, Type.String);
+//         if (arg.fType != Expression.Type.String) {
+//            throw new Exception("Expression cannot be used as name of variable");
+//         }
+//         fProvider = provider;
+//      }
+//
+//      @Override
+//      Object eval() throws Exception {
+//         String varName = (String) fArg.eval();
+//         Variable var = fProvider.getVariable(varName);
+//         return var.getSubstitutionValue();
+//      }
+//   }
+//
    static class MinusNode extends UnaryExpressionNode {
 
       MinusNode(ExpressionNode left) {

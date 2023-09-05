@@ -486,9 +486,9 @@ public class WriterForGpio extends PeripheralWithState {
             break;
          }
       }
-      addOrIgnoreStringConstant("/"+getName()+"/$present");
+      addOrIgnoreStringConstant("/"+getName()+"/_present");
       if (pcrFound) {
-         String key = "/PCR/$present";
+         String key = "/PCR/_present";
          addOrIgnoreStringConstant(key);
       }
    }
