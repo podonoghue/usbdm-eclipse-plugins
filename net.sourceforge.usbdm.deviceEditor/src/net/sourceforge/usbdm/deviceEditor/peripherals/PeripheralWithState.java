@@ -52,7 +52,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /** Status of the peripheral */
    protected Status fStatus = null;
 
-   /** Variable associated with signals */
+   /** Variable representing signals associated with this peripheral */
    protected PeripheralSignalsVariable fPeripheralSignalsVar;
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
@@ -93,16 +93,24 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Add peripheral as source for signals for this peripheral.
     * Actual signal models are created later.
     * 
-    * @param parentModel   Model to contain signal category
-    * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
-    * @param enabledBy
+    * @param peripheral Peripheral to obtain signals from
+    * @param filter     Filer applied to select signals added
+    * @param enabledBy  Expression enabling this GUI model (used later)
+    * @param locked     Whether signal mappings can be modified directly through GUI
+    * 
     * @throws Exception
     */
-   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral, String filter, String enabledBy) throws Exception {
+   public void addSignalsFromPeripheral(
+         Peripheral peripheral,
+         String     filter,
+         String     enabledBy,
+         Boolean    locked) throws Exception {
+      
       fHasSignal = true;
       if (fPeripheralSignalsVar == null) {
-         // Create dummy variable associated with Signals list
-         fPeripheralSignalsVar = new PeripheralSignalsVariable(getName(), makeKey("_signals"));
+         // Create variable associated with Signals list
+         fPeripheralSignalsVar = new PeripheralSignalsVariable(this);
+         fPeripheralSignalsVar.setLocked(locked);
          fPeripheralSignalsVar.setProvider(this);
          addVariable(fPeripheralSignalsVar);
       }
@@ -114,6 +122,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          // Don't add signals to self!
          return;
       }
+      // Add associated signals from provided peripheral (other than self)
       if (fSignalPeripherals == null) {
          fSignalPeripherals = new ArrayList<PeripheralSignals>();
       }
@@ -122,7 +131,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /**
     * Create models representing the signals for this peripheral.<br>
-    * <i><b>May add related pins e.g. RTC may contains OSC pins</b></i>
+    * <i><b>May add related signals e.g. RTC may contains OSC signals</b></i>
     * 
     * @param parent Model to attach PeripheralSignalsModel to
     * 

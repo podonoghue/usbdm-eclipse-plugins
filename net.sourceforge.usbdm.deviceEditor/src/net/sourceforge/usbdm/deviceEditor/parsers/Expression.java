@@ -18,7 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public class Expression implements IModelChangeListener {
 
    public enum Type {
-      Double, Long, String, Boolean, DisabledValue,
+      Double, Long, String, Boolean, DisabledValue, List
    }
    
    static abstract class ExpressionNode {
@@ -1125,6 +1125,56 @@ public class Expression implements IModelChangeListener {
          }
          return this;
       }
+      @Override
+      public String toString() {
+         return this.getClass().getSimpleName()+"("+fCondition.toString()+"?"+fLeft.toString()+":"+fRight.toString()+","+fType+")";
+      }
+
+   }
+
+   static class CommaListNode extends ExpressionNode {
+      ExpressionNode[] fList;
+      
+      CommaListNode(ExpressionNode[] expressions) {
+         super(Type.List);
+         fList = expressions;
+      }
+
+      @Override
+      Object eval() throws Exception {
+         Object[] result = new Object[fList.length];
+         for (int index=0; index<fList.length; index++) {
+            result[index] = fList[index].eval();
+         }
+         return result;
+      }
+
+      @Override
+      public void collectVars(ArrayList<Variable> variablesFound) {
+         for (ExpressionNode exp:fList) {
+            exp.collectVars(variablesFound);
+         }
+      }
+      
+      @Override
+      public ExpressionNode prune() throws Exception {
+         for (int index=0; index<fList.length; index++) {
+            fList[index] = fList[index].prune();
+         }
+         return this;
+      }
+      
+      @Override
+      public String toString() {
+         StringBuilder description = new StringBuilder();
+         description.append(this.getClass().getSimpleName()).append("(");
+         for (ExpressionNode exp:fList) {
+            description.append(exp.toString());
+         }
+         description.append(")");
+         return description.toString();
+      }
+
    }
 
    /**
@@ -1215,23 +1265,24 @@ public class Expression implements IModelChangeListener {
    }
 
    private void prelim() throws Exception {
-//      if (this.fExpressionStr.contains("/SMC/smc_pmctrl_runm[1]==VLPR")) {
+//      if (this.fExpressionStr.contains("ACMP0_IN%i")) {
 //         System.err.println("Found it ");
 //      }
       
       String expression = fExpressionStr;
+
+      // Check for expression#primaryVar#message
       String parts[] = expression.split("#");
       if (parts.length>1) {
-         String primaryVarStr = parts[0].trim();
-         fPrimaryVar = fVarProvider.getVariable(primaryVarStr);
-         expression  = parts[1];
+         expression  = parts[0].trim();
+         
+         String primaryVarStr = parts[1].trim();
+         if (!primaryVarStr.isBlank()) {
+            fPrimaryVar = fVarProvider.getVariable(primaryVarStr);
+         }
       }
-      parts = expression.split(",");
-      if (parts.length>1) {
-         fMessage = parts[1].trim();
-      }
-      else {
-         fMessage = null;
+      if (parts.length>2) {
+         fMessage = parts[2].trim();
       }
       
       ExpressionParser ep = new ExpressionParser(this, fVarProvider, fMode);
@@ -1509,6 +1560,67 @@ public class Expression implements IModelChangeListener {
       }
    }
 
+//   static class Pair {
+//      final IExpressionChangeListener listener;
+//      final Expression                expression;
+//
+//      Pair(IExpressionChangeListener listener, Expression expression) {
+//         this.listener   = listener;
+//         this.expression = expression;
+//      }
+//   }
+//
+//   static ConcurrentLinkedQueue<Pair> listenersBeingNotfied =
+//         new ConcurrentLinkedQueue<Pair>();
+//
+//   static boolean queueIsFree = true;
+//
+//   enum QueueAction {Obtain, Release};
+//
+//   /**
+//    *
+//    * @param request
+//    *
+//    * @return true if queue ownership obtained, false otherwise
+//    */
+//   static synchronized boolean changeQueueOwnership(QueueAction action) {
+//      switch (action) {
+//      case Obtain:
+//         if (queueIsFree) {
+//            queueIsFree = false;
+//            return true;
+//         }
+//         return false;
+//      case Release:
+//         queueIsFree = true;
+//         return false;
+//      }
+//      return false;
+//   }
+//
+//   void notifyIfNeeded() {
+//      // Add to listeners needing notification
+//      for (IExpressionChangeListener x:fListeners) {
+//         listenersBeingNotfied.add(new Pair(x, this));
+//      }
+//      // Check if we need to do the notification
+//      if (changeQueueOwnership(QueueAction.Obtain)) {
+//         do {
+//            Pair item = listenersBeingNotfied.poll();
+//            if (item == null) {
+//               break;
+//            }
+//            try {
+//               item.listener.expressionChanged(item.expression);
+//            } catch (Exception e) {
+//               e.printStackTrace();
+//            }
+//         } while(true);
+//         changeQueueOwnership(QueueAction.Release);
+//      }
+//   }
+   
+   
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
 //      if (fExpressionStr.contains("(/SMC/smc_pmctrl_runm[1]==VLPR)")) {
@@ -1537,10 +1649,10 @@ public class Expression implements IModelChangeListener {
          }
          if (changed) {
             fCurrentValue = newValue;
+//            notifyIfNeeded();
             notifyExpressionChangeListeners();
          }
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }

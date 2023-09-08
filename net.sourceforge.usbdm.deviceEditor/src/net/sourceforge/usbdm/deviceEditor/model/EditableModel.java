@@ -38,9 +38,9 @@ public abstract class EditableModel extends BaseModel {
       fIsConstant = value;
    }
    
-   /** 
+   /**
     * Set value of underlying data<br>
-    * The string value given is the GUI displayed value and may need to be converted to suitable type 
+    * The string value given is the GUI displayed value and may need to be converted to suitable type
     * 
     * @param value Value used by GUI/Model. Will be converted for data.
     */

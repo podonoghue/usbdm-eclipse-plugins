@@ -234,7 +234,7 @@ public class CreateDeviceSkeletonFromSVD {
             "\n"+
             "   <!-- ************* Class Declaration ****************** -->\n" +
             "   <constant key=\"_class_declaration\" type=\"String\" \n" +
-            "      value=\"&quot;$(_Class)Info : public $(_Class)BasicInfo&quot;\" />\n";
+            "      value=\"&quot;$(_Class)Info : public $(_Baseclass)BasicInfo&quot;\" />\n";
       resultSb.append(classDecl);
    }
    
@@ -263,7 +263,7 @@ public class CreateDeviceSkeletonFromSVD {
                }
                String periphName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
                String condition = "condition=\""+periphName+"_present\"";
-               String enabledBy = "enabledBy=\"/$(_BASENAME)/enablePeripheralSupport\"";
+               String enabledBy = "enabledBy=\"enablePeripheralSupport\"";
                String enumName  = prettyName(periphName);
                ArrayList<Enumeration> enumerations = field.getEnumerations();
 
@@ -352,7 +352,7 @@ public class CreateDeviceSkeletonFromSVD {
             "<!-- Graphic here -->\n");
       
       final String setTemplate =
-          "      <setTemplate variables=\"%(field)\" codeGenCondition=\"/$(_BASENAME)/enableGettersAndSetters\"\n" +
+          "      <setTemplate variables=\"%(field)\" codeGenCondition=\"enableGettersAndSetters\"\n" +
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Set %description\n" +
@@ -1003,7 +1003,7 @@ public class CreateDeviceSkeletonFromSVD {
             "\n" +
             "   <!-- ************* Common ****************** -->\n" +
             "\n" +
-            "   <template key=\"/$(_BASENAME)/declarations\" namespace=\"all\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" ><![CDATA[\n" +
+            "   <template key=\"/$(_BASENAME)/declarations\" namespace=\"all\" codeGenCondition=\"enablePeripheralSupport\" ><![CDATA[\n" +
             "   \\t/**\n" +
             "   \\t * Class representing $(_NAME)\n" +
             "   \\t */\n" +
@@ -1068,8 +1068,11 @@ public class CreateDeviceSkeletonFromSVD {
 //         "PMC",
 //         "PWT",
 //         "RTC",
+//         "RCM",
+//         "SMC",
 //         "SPI",
 //            "UART",
+//         "LPTMR",
 //       "OSC",
 //       "PIT",
 
@@ -1077,7 +1080,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "FGPIO",
 //         "PORT",
 //         "SIM",
-         "WDOG",
+//         "WDOG",
 //         "UART",
 //         "ICS",
    };
@@ -1118,7 +1121,8 @@ public class CreateDeviceSkeletonFromSVD {
 
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("FRDM_KE04Z");
-      doAllPeripherals("FRDM_KE06Z");
+//      doAllPeripherals("FRDM_KE06Z");
+      doAllPeripherals("FRDM_KL02Z");
    }
 
 }

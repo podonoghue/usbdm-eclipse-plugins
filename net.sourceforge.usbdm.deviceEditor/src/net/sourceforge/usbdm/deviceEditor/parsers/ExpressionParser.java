@@ -93,7 +93,7 @@ public class ExpressionParser {
    
    /**
     * Skip whitespace and return first non-whitespace<br>
-    * This does <b>not</b> advance the character point first.
+    * This does <b>not</b> advance the character pointer first.
     * 
     * @return Character found or null if at end of expression
     */
@@ -410,7 +410,7 @@ public class ExpressionParser {
             break;
          }
          sb.append(ch);
-         getNextCh();;
+         getNextCh();
       };
       if (!foundTerminator) {
          throw new Exception("Unterminated string");
@@ -994,7 +994,23 @@ public class ExpressionParser {
     * @throws Exception
     */
    private ExpressionNode parseSubExpression() throws Exception {
-      return parseTernary();
+      ExpressionNode left = parseTernary();
+      Character ch = skipSpace();
+      if ((ch == null) || (ch != ',')) {
+         return left;
+      }
+      ArrayList<ExpressionNode> list = new ArrayList<ExpressionNode>();
+      list.add(left);
+      do {
+         // Discard ','
+         getNextCh();
+         list.add(parseTernary());
+         ch = skipSpace();
+         if ((ch == null) || (ch != ',')) {
+            break;
+         }
+      } while(true);
+      return new Expression.CommaListNode(list.toArray(new ExpressionNode[list.size()]));
    }
 
 //   /**

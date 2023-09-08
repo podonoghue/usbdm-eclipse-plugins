@@ -49,7 +49,6 @@ public final class PeripheralSignalsModel extends VariableModel implements IMode
          if (child instanceof SignalModel ) {
             SignalModel s = (SignalModel)child;
             s.getSignal().addListener(this);
-            s.setConstant(true);
          }
       }
    }
@@ -101,9 +100,18 @@ public final class PeripheralSignalsModel extends VariableModel implements IMode
       // No data
    }
 
+   /**
+    * Indicates children should be constant
+    * 
+    * @return
+    */
+   boolean areChildrenLocked() {
+      return fVariable.isLocked();
+   }
+   
    @Override
    public CellEditor createCellEditor(Tree tree) {
-      // TODO Auto-generated method stub
+      // Not editable
       return null;
    }
 }

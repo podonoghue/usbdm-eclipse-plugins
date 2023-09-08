@@ -1026,10 +1026,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return fInfoTable;
    }
    
-   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, INVALID_PCR,  (PcrValue)0          },\n";
-   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, UNMAPPED_PCR, (PcrValue)0          },\n";
-   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, FIXED_NO_PCR, (PcrValue)0          },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %-25s (PcrValue)%-10s },\n";
+   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { PinIndex::INVALID_PCR,  PcrValue(0)         },\n";
+   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { PinIndex::UNMAPPED_PCR, PcrValue(0)         },\n";
+   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { PinIndex::FIXED_NO_PCR, PcrValue(0)         },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { PinIndex::%-13s PcrValue(%s) },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-20s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
@@ -1064,7 +1064,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
                   INFO_TABLE_NAME
             ));
       pinMappingHeaderFile.write(String.format(
-            indent+HEADING_TEMPLATE, "Signal", "Pin","    portInfo    gpioBit                 PCR value"));
+            indent+HEADING_TEMPLATE, "Signal", "Pin","    PinIndex                PCR value"));
       // Signal information table
       int index = -1;
       for (Signal signal:signalTable.table) {
@@ -1121,10 +1121,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * <pre>
     * //! Information for each signal of peripheral
     * static constexpr PinInfo  info[] = {
-    *   //      Signal         Pin                 portInfo    gpioBit                 PCR value
-    *   /*   0: UART0_TX     = PTB17 (ConTx) &#42;/  { PortCInfo,  6,            (PcrValue)0x00000UL  },
-    *   /*   1: UART0_RX     = PTB16 (ConRx) &#42;/  { NoPortInfo, UNMAPPED_PCR, (PcrValue)0          },
-    *   /*   2: UART0_RTS_b  = --            &#42;/  { NoPortInfo, FIXED_NO_PCR, (PcrValue)0          },
+    *   //      Signal         Pin                     PinIndex                PCR value
+    *   /*   0: UART0_TX     = PTB17 (ConTx) &#42;/  { PinIndex::PTB17,        PcrValue(0x00000UL)  },
+    *   /*   1: UART0_RX     = PTB16 (ConRx) &#42;/  { PinIndex::UNMAPPED_PCR, PcrValue(0)          },
+    *   /*   2: UART0_RTS_b  = --            &#42;/  { PinIndex::FIXED_NO_PCR, PcrValue(0)          },
     *   ...
     * };
     * </pre>
@@ -1336,15 +1336,16 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    };
    
    /**
-    * Array of peripherals to obtain signals from
+    * Array of (peripheral+filter) to obtain signals associated with this peripheral
+    * from other peripherals.
     */
    ArrayList<PeripheralSignals> fSignalPeripherals;
 
    /**
-    * Create models representing the signals directly associated with this peripheral filtered
-    * by regex filter.
+    * Create models representing the signals directly associated with this
+    * peripheral filtered by a regex filter.
     * 
-    * @param parent     Parent model to contain pins created
+    * @param parent   Created signal models are added to this model.
     */
    private void createMySignalModels(BaseModel parent, String filter) {
       Pattern pattern = null;
@@ -1378,12 +1379,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     */
    public void createSignalModels(BaseModel parent) {
 
-      // Add signals from this peripheral
+      // Add all signals from this peripheral
       createMySignalModels(parent, null);
 
       if (fSignalPeripherals != null) {
          
-         // Add signals from referenced peripherals
+         // Add signals from referenced peripherals with filer
          for (PeripheralSignals signalPeripheral:fSignalPeripherals) {
             signalPeripheral.getPeripheral().createMySignalModels(parent, signalPeripheral.getSignalFilter());
          }

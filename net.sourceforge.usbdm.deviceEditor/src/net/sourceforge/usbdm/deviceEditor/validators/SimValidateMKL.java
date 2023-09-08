@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.ListIterator;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -48,16 +49,12 @@ public class SimValidateMKL extends IndexedValidator {
       }
    };
 
-   static class VariablePair {
-      final Variable       left;
-      final LongVariable   right;
-
-      VariablePair(Variable left, LongVariable right) {
-         this.left  = left;
-         this.right = right;
-      }
-   };
-
+   /**
+    * Updates sim_clkdiv2_usb[]
+    * 
+    * @param system_peripheral_clockVar
+    * @throws Exception
+    */
    private void validateUsbfsClock(LongVariable system_peripheral_clockVar) throws Exception {
 
       // USB FS Clock source select
@@ -116,17 +113,17 @@ public class SimValidateMKL extends IndexedValidator {
    }
 
    /**
+    * Checks
+    * - system_peripheral_clock[]
+    * - system_core_clock[]
+    * - system_bus_clock[]
+    * 
     * Updates
-    * - sim_sopt2_pllfllsel[x]
-    * - system_peripheral_clock[x]
-    * - system_core_clock[x]
-    * - system_bus_clock[x]
-    * - system_flexbus_clock[x]
-    * - system_flash_clock[x]
-    * - sim_clkdiv1_outdiv1[x]
-    * - sim_clkdiv1_outdiv2[x]
-    * - sim_clkdiv1_outdiv3[x]
-    * - sim_clkdiv1_outdiv4[x]
+    * - sim_clkdiv2_usb[]
+    * - sim_clkdiv1_outdiv1[]
+    * - sim_clkdiv1_outdiv2[]
+    * - sim_clkdiv1_outdiv3[]
+    * - sim_clkdiv1_outdiv4[]
     * 
     * @param variable
     * @throws Exception
@@ -137,7 +134,10 @@ public class SimValidateMKL extends IndexedValidator {
     */
    @Override
    public void validate(Variable variable, int index) throws Exception {
-
+//      if ((variable != null) && variable.getName().contains("[3]")) {
+//         System.err.println(variable.getName() + " changed to  "+variable.getValueAsLong());
+//      }
+      
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock[]");
 
@@ -168,6 +168,7 @@ public class SimValidateMKL extends IndexedValidator {
       }
 
       if ((variable == null) || (variable == smc_pmctrl_runmVar)) {
+         // Update initially or if RUN mode changes
          system_core_clockVar.setMax(maxCoreClockFreq);
          system_bus_clockVar.setMax(maxBusClockFreq);
       }
@@ -177,56 +178,75 @@ public class SimValidateMKL extends IndexedValidator {
       // Permit GUI derived updates?
       boolean doGuiUpdates = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
       
+      // All clocks are derived from this value
+      final LongVariable system_mcgoutclk_clockVar = getLongVariable("/MCG/system_mcgoutclk_clock[]");
+      final BooleanVariable enableClockConfigurationVar = getBooleanVariable("/MCG/enableClockConfiguration[]");
+
+      if (!enableClockConfigurationVar.isEnabled()) {
+         // No updates if not enabled
+         return;
+      }
       // Core & System Clock
       //===========================================
-      // Attempt to find acceptable divisor
-      final LongVariable   system_mcgoutclk_clockVar    =  getLongVariable("/MCG/system_mcgoutclk_clock[]");
-//      long system_mcgoutclk_clock = system_mcgoutclk_clockVar.getValueAsLong();
-      
-      final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clockVar, system_core_clockVar.getValueAsLong()) {
-         @Override
-         boolean okValue(int divisor, double frequency) {
-            return frequency<=maximum;
+      if (system_core_clockVar.isEnabled() && ((variable==null)||(variable==system_core_clockVar))) {
+         // Core clock changed
+         // Attempt to find acceptable divisor
+         final FindDivisor coreDivisor = new FindDivisor(maxCoreClockFreq, system_mcgoutclk_clockVar, system_core_clockVar.getValueAsLong()) {
+            @Override
+            boolean okValue(int divisor, double frequency) {
+               return frequency<=maximum;
+            }
+         };
+         {
+            Severity severity = Severity.OK;
+            if (coreDivisor.failed()) {
+               severity = Severity.ERROR;
+            }
+            else if (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency) {
+               system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+            }
+            system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
          }
-      };
-      {
-         Severity severity = Severity.OK;
-         if (coreDivisor.failed() || (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency)) {
-            severity = Severity.ERROR;
+         if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
+            // Target clock manually changed - update divisor
+//            if (sim_clkdiv1_outdiv1Var.getName().contains("[3]")) {
+//               System.err.println("Updating sim_clkdiv1_outdiv1Var[3] to "+(coreDivisor.divisor-1));
+//               System.err.println("system_core_clockVar changed to  "+system_core_clockVar.getValueAsLong());
+//            }
+            sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor-1);
          }
-         system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
       }
-      if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
-         // Target clock manually changed - update divisor
-         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor-1);
-//         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
-      }
-
       // Bus & Flash Clock
       //===========================================
+      // Bus clock changed
       // Attempt to find acceptable divisor
-      final long coreFrequency     = system_core_clockVar.getValueAsLong();
-      final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, system_core_clockVar, system_bus_clockVar.getValueAsLong()) {
-         @Override
-         boolean okValue(int divisor, double frequency) {
-            return (frequency<=maximum) &&
-                  (frequency<=coreFrequency);
+      if (system_bus_clockVar.isEnabled() && ((variable==null)||(variable==system_bus_clockVar))) {
+
+         final long coreFrequency     = system_core_clockVar.getValueAsLong();
+         final FindDivisor busDivisor = new FindDivisor(maxBusClockFreq, system_core_clockVar, system_bus_clockVar.getValueAsLong()) {
+            @Override
+            boolean okValue(int divisor, double frequency) {
+               return (frequency<=maximum) &&
+                     (frequency<=coreFrequency);
+            }
+         };
+         {
+            Severity severity = Severity.OK;
+            StringBuilder sb  = new StringBuilder();
+            if (busDivisor.failed()) {
+               severity = Severity.ERROR;
+               sb.append("Illegal Frequency\n");
+            }
+            else if (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency) {
+               system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
+            }
+            sb.append(busDivisor.divisors);
+            system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
          }
-      };
-      {
-         Severity      severity = Severity.OK;
-         StringBuilder sb       = new StringBuilder();
-         if (busDivisor.failed() || (system_bus_clockVar.getValueAsLong() != busDivisor.nearestTargetFrequency)) {
-            severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
+         if (!busDivisor.failed() && doGuiUpdates && (variable == system_bus_clockVar)) {
+            // Target clock manually changed - update divisors
+            sim_clkdiv1_outdiv4Var.setValue(busDivisor.divisor-1);
          }
-         sb.append(busDivisor.divisors);
-         system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
-      }
-      if (!busDivisor.failed() && doGuiUpdates && (variable == system_bus_clockVar)) {
-         // Target clock manually changed - update divisors
-         sim_clkdiv1_outdiv4Var.setValue(busDivisor.divisor-1);
-         system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
       }
    }
 
@@ -325,19 +345,13 @@ public class SimValidateMKL extends IndexedValidator {
 
       addToWatchedVariables(variablesToWatch);
       final String[] externalVariables = {
-            "/MCG/system_mcgirclk_clock[]",
-            "/MCG/system_mcgfllclk_clock[]",
-            "/MCG/system_mcgpllclk_clock[]",
+            "/MCG/enableClockConfiguration[]",
             "/MCG/system_mcgoutclk_clock[]",
-            "/MCG/usb1pfdclk_Clock[]",
             "/SMC/smc_pmctrl_runm[]",
             "system_peripheral_clock[]",
             "system_core_clock[]",
             "system_bus_clock[]",
-            "system_flexbus_clock[]",
-            "system_flash_clock[]",
             "sim_sopt2_usbsrc[]",
-            "sim_clkdiv2_usb[]",
       };
       addToWatchedVariables(externalVariables);
       

@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -12,7 +14,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
-import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
 
 public class BitmaskDialogue extends Dialog {
    private final Button    fButtons[];
@@ -99,7 +101,7 @@ public class BitmaskDialogue extends Dialog {
                if ((fBitmask & mask) != 0) {
                   Button btn = new Button(container, SWT.CHECK);
                   if (bitNameIndex >= fBitNames.length) {
-                     throw new RuntimeException("Insufficient bit names in list");
+                     throw new RuntimeException("Insufficient bit names in list "+fBitNames.toString());
                   }
                   btn.setText(fBitNames[bitNameIndex++]);
                   btn.setSelection((fValue & mask) != 0);
@@ -195,7 +197,7 @@ public class BitmaskDialogue extends Dialog {
      newShell.setText(fTitle);
    }
 
-   public static void main(String[] args) {
+   public static void main(String[] args) throws Exception {
       Display display = new Display();
 
       Shell shell = new Shell(display, SWT.DIALOG_TRIM|SWT.CENTER);
@@ -230,7 +232,8 @@ public class BitmaskDialogue extends Dialog {
 
    public void setBitNameList(String bitList) {
       if ((bitList != null) && !bitList.isEmpty()) {
-         fBitNames = VariableModel.expandNameList(bitList);
+         ArrayList<String> t = PinListExpansion.expandPinList(bitList,",");
+         fBitNames = t.toArray(new String[t.size()]);
       }
    }
 

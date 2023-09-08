@@ -34,14 +34,6 @@ public class WriterForI2c extends PeripheralWithState {
       return getSignalIndex(signal, signalNames);
    }
 
-//   @Override
-//   public String getPcrDefinition() {
-//      return String.format(
-//            "   //! Base value for PCR (excluding MUX value)\n"+
-//            "   static constexpr uint32_t %s  = I2C_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
-//            );
-//   }
-
    @Override
    public String getPcrValue(Signal y) {
       return "USBDM::I2C_DEFAULT_PCR";
@@ -76,6 +68,17 @@ public class WriterForI2c extends PeripheralWithState {
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
       extractAllRegisterFields(dbPortPeripheral);
+   }
+
+   @Override
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      final String template = "   static constexpr PinIndex %s = PinIndex::%s;\n\n";
+      pinMappingHeaderFile.write("   // I2C SCL (clock) Pin\n");
+      pinMappingHeaderFile.write(String.format(template, "sclPinIndex", fInfoTable.table.get(0).getMappedPin().getName()));
+      pinMappingHeaderFile.write("   // I2C SDA (data) Pin\n");
+      pinMappingHeaderFile.write(String.format(template, "sdaPinIndex", fInfoTable.table.get(1).getMappedPin().getName()));
+
    }
 
 }

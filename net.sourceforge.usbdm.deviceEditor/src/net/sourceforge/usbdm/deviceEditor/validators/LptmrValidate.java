@@ -1,7 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -17,6 +17,10 @@ public class LptmrValidate extends PeripheralValidator {
       super(peripheral);
    }
 
+   private DoubleVariable counterFrequencyVar;
+   private DoubleVariable lptmr_cmrPeriodVar;
+   private DoubleVariable lptmr_cmrFrequencyVar;
+   private LongVariable   lptmr_cmr_compareVar;
    /**
     * Class to determine LPTMR settings
     * @throws Exception
@@ -28,39 +32,6 @@ public class LptmrValidate extends PeripheralValidator {
 
 //      System.err.println("LptmrValidate.validate("+variable+")");
       
-      // Variables
-      //=================================
-      DoubleVariable    counterFrequencyVar        =  getDoubleVariable("counterFrequency");
-      DoubleVariable    maximumPeriodVar           =  getDoubleVariable("maximumPeriod");
-      
-      DoubleVariable    filterDurationVar          =  getDoubleVariable("filterDuration");
-      
-      ChoiceVariable    lptmr_psr_prescalerVar     =  getChoiceVariable("lptmr_psr_prescaler");
-      ChoiceVariable    lptmr_psr_glitchFilterVar  =  getChoiceVariable("lptmr_psr_glitchFilter");
-      BooleanVariable   lptmr_csr_tmsVar           =  getBooleanVariable("lptmr_csr_tms");
-      Variable          lptmr_csr_tpsVar           =  getVariable("lptmr_csr_tps");
-      Variable          lptmr_csr_tppVar           =  getVariable("lptmr_csr_tpp");
-
-      LongVariable      lptmr_cmr_compareVar       =  getLongVariable("lptmr_cmr_compare");
-      DoubleVariable    lptmr_cmrPeriodVar         =  getDoubleVariable("lptmr_cmrPeriod");
-      DoubleVariable    lptmr_cmrFrequencyVar      =  getDoubleVariable("lptmr_cmrFrequency");
-
-      // Enable/disable parameters that depend on mode
-      boolean isPulseMode = lptmr_csr_tmsVar.getValueAsBoolean();
-
-      // Available in timer mode
-      lptmr_psr_prescalerVar.enable(!isPulseMode);
-      lptmr_cmrPeriodVar.enable(!isPulseMode);
-      lptmr_cmrFrequencyVar.enable(!isPulseMode);
-      maximumPeriodVar.enable(!isPulseMode);
-      counterFrequencyVar.enable(!isPulseMode);
-
-      // Available in pulse counting mode
-      lptmr_psr_glitchFilterVar.enable(isPulseMode);
-      lptmr_csr_tpsVar.enable(isPulseMode);
-      lptmr_csr_tppVar.enable(isPulseMode);
-      filterDurationVar.enable(isPulseMode);
-      
       double counterFrequency = counterFrequencyVar.getValueAsDouble();
       double clockPeriod    = (counterFrequency==0)?0:(1/counterFrequency);
       
@@ -69,7 +40,6 @@ public class LptmrValidate extends PeripheralValidator {
       lptmr_cmrPeriodVar.setMin(2*clockPeriod);
       lptmr_cmrFrequencyVar.setMax(1/(2*clockPeriod));
       lptmr_cmrFrequencyVar.setMin(1/maximumPeriod);
-      
       
       long lptmr_cmr = lptmr_cmr_compareVar.getValueAsLong();
 
@@ -102,6 +72,16 @@ public class LptmrValidate extends PeripheralValidator {
    
    @Override
    protected boolean createDependencies() throws Exception {
+      
+      ArrayList<String> externalVariablesList = new ArrayList<String>();
+      
+      counterFrequencyVar        =  getDoubleVariable("counterFrequency",   externalVariablesList);
+      lptmr_cmrPeriodVar         =  getDoubleVariable("lptmr_cmrPeriod" ,   externalVariablesList);
+      lptmr_cmrFrequencyVar      =  getDoubleVariable("lptmr_cmrFrequency", externalVariablesList);
+      lptmr_cmr_compareVar       =  getLongVariable("lptmr_cmr_compare",    externalVariablesList);
+
+      addToWatchedVariables(externalVariablesList);
+      
       // Don't add default dependencies
       return false;
    }

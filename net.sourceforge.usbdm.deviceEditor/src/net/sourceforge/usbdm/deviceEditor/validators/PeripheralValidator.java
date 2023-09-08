@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -179,6 +180,24 @@ public class PeripheralValidator extends Validator {
    protected LongVariable getLongVariable(String targetName, ArrayList<String> namesToWatch) throws Exception {
 
       LongVariable reference = getLongVariable(targetName);
+      namesToWatch.add(targetName);
+      return reference;
+   }
+
+   /**
+    * Create reference to a target by name <br>
+    * The name of the target variable will be added to namesToWatch
+    * 
+    * @param targetName    Name of Variable
+    * @param namesToWatch  List of names of variables to be watched
+    * 
+    * @return Target variable
+    * 
+    * @throws Exception if target variable doesn't exist
+    */
+   protected DoubleVariable getDoubleVariable(String targetName, ArrayList<String> namesToWatch) throws Exception {
+
+      DoubleVariable reference = getDoubleVariable(targetName);
       namesToWatch.add(targetName);
       return reference;
    }

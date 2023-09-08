@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class BitmaskVariable extends LongVariable {
 
@@ -85,8 +84,9 @@ public class BitmaskVariable extends LongVariable {
     * Update pin mapping based on the bitmap provided
     * 
     * @param bitmap Bitmap where '1' => map pin to signal, '0' => unmap the pin
+    * @throws Exception
     */
-   private void updatePinMap(long bitmap) {
+   private void updatePinMap(long bitmap) throws Exception {
       String disablePinMap = getDisabledPinMap();
       if (!isEnabled() && (disablePinMap != null)) {
          // Disabled and special map provided
@@ -95,7 +95,7 @@ public class BitmaskVariable extends LongVariable {
       else {
          // Use map associated with choice (even if variable disabled)
          if (fPinMap != null) {
-            String[] pinMaps = VariableModel.expandNameList(fPinMap);
+            String[] pinMaps = PinListExpansion.expandNameList(fPinMap);
 
             for (int index=0; index<pinMaps.length; index++) {
                String pinMapEntry = pinMaps[index];
@@ -121,7 +121,11 @@ public class BitmaskVariable extends LongVariable {
    public boolean enable(boolean enabled) {
       boolean rv = super.enable(enabled);
       if (rv) {
-         updatePinMap(getValueAsLong());
+         try {
+            updatePinMap(getValueAsLong());
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
       }
       return rv;
    }
@@ -130,7 +134,11 @@ public class BitmaskVariable extends LongVariable {
    public boolean setValueQuietly(Long value) {
       boolean rv = super.setValueQuietly(value);
       if (rv) {
-         updatePinMap(value);
+         try {
+            updatePinMap(value);
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
       }
       return rv;
    }

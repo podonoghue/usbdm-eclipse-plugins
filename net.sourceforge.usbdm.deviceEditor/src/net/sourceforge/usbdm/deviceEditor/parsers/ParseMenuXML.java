@@ -3410,9 +3410,11 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       // Add information for later action
-      String filter    = getAttributeAsString(element, "filter");
-      String enabledBy = getAttributeAsString(element, "enabledBy");
-      fPeripheral.addSignalsFromPeripheral(parentModel, peripheral, filter, enabledBy);
+      String  filter    = getAttributeAsString(element, "filter");
+      String  enabledBy = getAttributeAsString(element, "enabledBy");
+      Boolean locked    = getAttributeAsBoolean(element, "locked", false);
+      
+      fPeripheral.addSignalsFromPeripheral(peripheral, filter, enabledBy, locked);
    }
 
    private static class ChoiceInformation {

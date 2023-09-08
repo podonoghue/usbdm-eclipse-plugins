@@ -34,7 +34,7 @@ public class SignalTemplate {
    private final String fSignalPattern;
    
    /** Constructor for derived Peripheral<br>
-    * <b><i>String Peripheral(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo)</b></i> 
+    * <b><i>String Peripheral(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo)</b></i>
     */
    Constructor<?> fConstructor;
 
@@ -47,19 +47,19 @@ public class SignalTemplate {
     * @param peripheralBasename     Base name of peripheral e.g. FTM2 => FTM
     * @param instancePattern        Instance name e.g. FTM2 => "2"
     * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
-    * @param matchTemplate2 
+    * @param matchTemplate2
     * @param instanceWriter         Detailed instanceWriter to use
     * 
-    * @throws Exception 
+    * @throws Exception
     */
 
    public SignalTemplate(
-         DeviceInfo     deviceInfo, 
+         DeviceInfo     deviceInfo,
          DeviceFamily   deviceFamily,
-         String         namePattern, 
-         String         signalPattern, 
-         String         instancePattern, 
-         String         matchTemplate, 
+         String         namePattern,
+         String         signalPattern,
+         String         instancePattern,
+         String         matchTemplate,
          Class<?>       instanceWriterClass) throws Exception {
       
       fDeviceInfo       = deviceInfo;
@@ -67,8 +67,8 @@ public class SignalTemplate {
       fInstancePattern  = instancePattern;
       fSignalPattern    = signalPattern;
       fConstructor      = instanceWriterClass.getConstructor(
-            /* basename   */ String.class, 
-            /* instance   */ String.class, 
+            /* basename   */ String.class,
+            /* instance   */ String.class,
             /* deviceinfo */ DeviceInfo.class );
       if (matchTemplate != null) {
          fMatchPattern       = Pattern.compile(matchTemplate);
@@ -80,7 +80,7 @@ public class SignalTemplate {
 
    /**
     * Create peripheral from template
-    *    
+    * 
     * @param basename   Base name of peripheral e.g. FTM3 => FTM
     * @param instance   Instance of peripheral e.g. FTM3 => 3
     * 
@@ -155,7 +155,7 @@ public class SignalTemplate {
     * @param pin The pin being configured
     * 
     * @return
-    * @throws Exception 
+    * @throws Exception
     */
    public static String getPinInfoInitString(Pin pin) {
       if (pin == null) {
@@ -164,11 +164,9 @@ public class SignalTemplate {
       String portInfo         = pin.getPortInfo();
       if (portInfo == null) {
          // No PCR - probably an analogue pin
-         return "NoPortInfo, 0, 0, ";
+         return " 0, 0, ";
       }
-      String gpioBitNum       = pin.getGpioBitNum();
-      
-      return String.format("%-11s %-4s", portInfo+",", gpioBitNum+",");
+      return pin.getName()+",";
    }
 
    /**
@@ -189,7 +187,7 @@ public class SignalTemplate {
     * 
     * @param function PeripheralFunction to match
     * 
-    * @return True if the template is applicable to this function 
+    * @return True if the template is applicable to this function
     */
    public boolean matches(Signal function) {
       if (function == Signal.DISABLED_SIGNAL) {
@@ -220,21 +218,21 @@ public class SignalTemplate {
    }
 
    /**
-    * @return Base name of C peripheral alias e.g. adc_ 
+    * @return Base name of C peripheral alias e.g. adc_
     */
    public String getAliasBaseName() {
       return "AAAA"; //fAliasBaseName;
    }
 
    /**
-    * @return Base name of C peripheral instance e.g. adc 
+    * @return Base name of C peripheral instance e.g. adc
     */
    public String getInstanceBaseName() {
       return fInstancePattern;
    }
 
    /**
-    * @return Base name of peripheral e.g. FTM2 => FTM 
+    * @return Base name of peripheral e.g. FTM2 => FTM
     */
    public String getPeripheralBasename() {
       return "PPPP"; //fPeripheralBasename;

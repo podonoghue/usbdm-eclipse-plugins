@@ -251,4 +251,19 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       return super.clone();
    }
 
+   @Override
+   public boolean canEdit() {
+      boolean canedit = super.canEdit();
+      if (fParent instanceof PeripheralSignalsModel) {
+         canedit = canedit && !((PeripheralSignalsModel)fParent).areChildrenLocked();
+      }
+      return canedit;
+   }
+
+   @Override
+   public void setConstant(boolean value) {
+      // TODO Auto-generated method stub
+      super.setConstant(value);
+   }
+
 }
