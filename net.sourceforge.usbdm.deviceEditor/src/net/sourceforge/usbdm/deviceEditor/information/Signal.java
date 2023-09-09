@@ -81,6 +81,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Indicates that code for a user instance of the signal class should be created */
    private boolean fCreateInstance;
 
+   /** Indicates if the signal is enabled */
+   private boolean fEnabled = true;
+
    private static final String getCreateInstanceKey(String name) {
       return "$signal$"+name+"_createInstance";
    }
@@ -393,6 +396,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @return Set of mapped pins.  The set may be empty if no pins mapped.
     */
    public List<MappingInfo> getMappedPinInformation() {
+      if (!fEnabled) {
+         return null;
+      }
       ArrayList<MappingInfo> rv = new ArrayList<MappingInfo>();
       for (MappingInfo mappingInfo:fPinMappings) {
          if (mappingInfo.isSelected()) {
@@ -410,6 +416,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @return Mapped pin (may be Pin.UNASSIGNED_PIN)
     */
    public Pin getMappedPin() {
+      if (!fEnabled) {
+         return Pin.UNASSIGNED_PIN;
+      }
       MappingInfo mappedPins = getFirstMappedPinInformation();
       return mappedPins.getPin();
    }
@@ -635,6 +644,24 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
    public ModifierEditorInterface getModifierEditor() {
       return fPeripheral.getModifierEditor();
+   }
+
+   /**
+    * Check if signal enabled
+    * 
+    * @return
+    */
+   public boolean isEnabled() {
+      return fEnabled;
+   }
+
+   /**
+    * Enable signal
+    * 
+    * @param enable
+    */
+   public void enable(boolean enable) {
+      fEnabled = enable;
    }
 
  }

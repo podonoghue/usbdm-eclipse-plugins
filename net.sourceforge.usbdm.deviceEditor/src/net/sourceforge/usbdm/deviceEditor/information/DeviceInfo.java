@@ -315,7 +315,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       DeviceInfo deviceInfo = new DeviceInfo();
 
       Settings projectSettings = deviceInfo.getSettings(filePath);
-
+      
       Path hardwarePath = Paths.get(projectSettings.get(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY));
 
       if (!hardwarePath.isAbsolute()) {
@@ -342,6 +342,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       deviceInfo.loadHardwareDescription(hardwarePath);
       deviceInfo.loadSettings(device, projectSettings);
+      
       return deviceInfo;
    }
 
@@ -382,6 +383,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                variable.addListener(DeviceInfo.this);
             }
          };
+         // Add device sub-family as variable
+         addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
          
          fMenuData = ParseMenuXML.parseMenuFile("_common_settings", fVariableProvider);
          
@@ -1875,8 +1878,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
          for (Entry<String, Variable> entry:fVariables.entrySet()) {
             Variable var = fVariables.get(entry.getKey());
-//            if (var.getName().contains("osc_cr_range")) {
-//               System.err.println("Found it "+var.getName());
+//            if (var.getName().equals("kbi_pe_kbipe")) {
+//               System.err.println("Found it "+ var.getKey());
 //            }
             var.expressionChanged(null);
          }

@@ -24,15 +24,20 @@ public class BitmaskVariableModel extends VariableModel {
       @Override
       protected Object openDialogBox(Control paramControl) {
          BitmaskVariable var = fModel.getVariable();
-         BitmaskDialogue dialog = new BitmaskDialogue(
-               fModel.getVariable(),
-               paramControl.getShell(), var.getPermittedBits(),
-               var.getValueAsLong(), (long)var.getDefault());
-         dialog.setBitNameList(var.getBitList());
-         dialog.setTitle(var.getDescription());
-         if (dialog.open() == Window.OK) {
-            return Long.toString(dialog.getResult());
-         };
+         try {
+            BitmaskDialogue dialog = new BitmaskDialogue(
+                  fModel.getVariable(),
+                  paramControl.getShell(),
+                  var.getBitList(),
+                  var.getPermittedBits(),
+                  var.getValueAsLong());
+            dialog.setTitle(var.getDescription());
+            if (dialog.open() == Window.OK) {
+               return Long.toString(dialog.getResult());
+            };
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
          return null;
       }
    }

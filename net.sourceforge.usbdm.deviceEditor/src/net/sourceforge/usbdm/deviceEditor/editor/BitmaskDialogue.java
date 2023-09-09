@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import java.util.ArrayList;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -19,12 +17,11 @@ import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
 public class BitmaskDialogue extends Dialog {
    private final Button    fButtons[];
    private       long      fValue;
-//   private final long      fDefaultValue;
    private final long      fBitmask;
    private final BitmaskVariable fVariable;
    
    // Set name pattern for elements e.g. pin%d
-   private String   fElementName = "%d";
+   private String   fElementName = "%i";
    
    // List of names for the bits
    private String[] fBitNames = null;
@@ -32,25 +29,74 @@ public class BitmaskDialogue extends Dialog {
    
    /**
     * Create dialogue displaying a set of check boxes
-    * @param bitmaskVariable
     * 
-    * @param parentShell
-    * @param bitmask        Bit mask for available bits
-    * @param initialValue   Initial bit mask
+    * @param bitmaskVariable  Variable representing bit mask
+    * @param parentShell      Shell
+    * @param bitNames         Names for bits e.g. "B0,B2,,,,B6", "Pin#%i" or null for defaults
+    * @param bitmask          Bit-mask for valid bit selections
+    * @param initialValue     Initial value for mask
+    * 
+    * @throws Exception
     */
-   public BitmaskDialogue(BitmaskVariable bitmaskVariable, Shell parentShell, long bitmask, long initialValue, long defaultValue) {
+   public BitmaskDialogue(BitmaskVariable bitmaskVariable, Shell parentShell, String bitNames, long bitmask, long initialValue) throws Exception {
      super(parentShell);
      fVariable = bitmaskVariable;
-     fBitmask  = bitmask;
-     long highestOne = Long.highestOneBit(bitmask);
+     
+     if  ((bitmask !=0) && (bitNames != null)) {
+        // Both supplied
+        String[] t = bitNames.split(",", -1);
+        if (t.length == 1) {
+           if (!bitNames.isBlank()) {
+              // Name is a template e.g. Bit%i
+              fElementName = bitNames;
+           }
+           fBitNames = null;
+        }
+        else {
+           fBitNames = t;
+        }
+        fBitmask  = bitmask;
+     }
+     else if  ((bitmask == 0) && (bitNames != null)) {
+        // Determine bitmask from names
+        fBitNames = PinListExpansion.expandPinList(bitNames, ",");
+        long tBitmask = 0;
+        for (int index=0; index<fBitNames.length; index++) {
+           long mask = (1L<<index);
+           if (!fBitNames[index].isBlank()) {
+              tBitmask |= mask;
+           }
+           System.err.println("mask="+Long.toBinaryString(mask)+", tbitmask="+Long.toBinaryString(tBitmask));
+        }
+        fBitmask = tBitmask;
+     }
+     else if ((bitmask != 0) && (bitNames == null)) {
+        // Create default bit names based on bitmask
+        fBitmask  = bitmask;
+     }
+     else {
+        throw new Exception("Either bitmask or bit names must be provided");
+     }
+     // Limit value to permitted range
+     fValue = initialValue & fBitmask;
+     
+     // Create button array
+     long highestOne = Long.highestOneBit(fBitmask);
+     int numButtons = Long.numberOfTrailingZeros(highestOne)+1;
+     if ((fBitNames != null) && (numButtons != fBitNames.length)) {
+        throw new Exception("Number of names provided ("+fBitNames.length+") from '"+String.join(",", fBitNames)+"' doesn't match mask 0x"+Long.toBinaryString(fBitmask));
+     }
      if (highestOne != 0) {
-        fButtons  = new Button[Long.numberOfTrailingZeros(highestOne)+1];
+        fButtons  = new Button[numButtons];
      }
      else {
         fButtons = null;
      }
-     fValue        = initialValue & fBitmask;
-//     fDefaultValue = defaultValue & fBitmask;
+     if (fBitNames != null) {
+        for (int index=0; index<fBitNames.length; index++) {
+           fBitNames[index] = fBitNames[index].trim();
+        }
+     }
    }
 
    /**
@@ -89,7 +135,6 @@ public class BitmaskDialogue extends Dialog {
          lbl.setText("No bits selectable");
       }
       else {
-         int bitNameIndex = 0;
          for (int i=0; i<32; i++) {
             long mask = (1L<<i);
             if (mask > fBitmask) {
@@ -100,10 +145,11 @@ public class BitmaskDialogue extends Dialog {
                // If names are given only create required buttons
                if ((fBitmask & mask) != 0) {
                   Button btn = new Button(container, SWT.CHECK);
-                  if (bitNameIndex >= fBitNames.length) {
-                     throw new RuntimeException("Insufficient bit names in list "+fBitNames.toString());
+                  String text = fBitNames[i];
+                  if ((text == null) || text.isBlank()) {
+                     text = fElementName.replaceAll("%i", Integer.toString(i));
                   }
-                  btn.setText(fBitNames[bitNameIndex++]);
+                  btn.setText(text);
                   btn.setSelection((fValue & mask) != 0);
                   btn.setData(i);
                   fButtons[i] = btn;
@@ -112,7 +158,7 @@ public class BitmaskDialogue extends Dialog {
             else {
                // Create all buttons but selectively enabled
                Button btn = new Button(container, SWT.CHECK);
-               btn.setText(fElementName.replaceAll("%d", Integer.toString(i)));
+               btn.setText(fElementName.replaceAll("%i", Integer.toString(i)));
                btn.setSelection((fValue & mask) != 0);
                btn.setEnabled((fBitmask & mask) != 0);
 //               Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_GRAY);
@@ -203,18 +249,26 @@ public class BitmaskDialogue extends Dialog {
       Shell shell = new Shell(display, SWT.DIALOG_TRIM|SWT.CENTER);
       shell.setText("Device Editor");
       shell.setLayout(new FillLayout());
-      shell.setSize(600, 200);
+      shell.setSize(600, 600);
       
-      long selection = 0xC2;
+      long selection = 0xFF;
       BitmaskVariable var = new BitmaskVariable("Name", "Key");
+      int index=0;
+      String names[]    = {",This is #1,,,,This is #5,,", "Num%i", "",   null, ",#1,,,,#5,#6,#7"};
+      long   bitmasks[] = {0xA2,                           0xA2,   0xA2, 0xA2, 0};
       while(true) {
-         BitmaskDialogue editor = new BitmaskDialogue(var, shell, 0xCC2, selection, 0x14);
-//         editor.setElementName("pin%d");
-         editor.setBitNameList("This is #1,This is #6,This is #7");
+         
+         // BitmaskVariable bitmaskVariable, Shell parentShell, String bitNames, long bitmask, long initialValue, long defaultValue
+         BitmaskDialogue editor = new BitmaskDialogue(var, shell, names[index], bitmasks[index], selection);
          if  (editor.open() != OK) {
             break;
          }
          selection = editor.getResult();
+         System.err.println("Result = " + Long.toBinaryString(selection));
+         index++;
+         if (index>=names.length) {
+            index = 0;
+         }
 //         System.err.println("res = " + editor.getResultAsList() + " (0x" + Long.toHexString(editor.getResult())+")");
       }
       
@@ -232,8 +286,7 @@ public class BitmaskDialogue extends Dialog {
 
    public void setBitNameList(String bitList) {
       if ((bitList != null) && !bitList.isEmpty()) {
-         ArrayList<String> t = PinListExpansion.expandPinList(bitList,",");
-         fBitNames = t.toArray(new String[t.size()]);
+         fBitNames = PinListExpansion.expandPinList(bitList,",");
       }
    }
 

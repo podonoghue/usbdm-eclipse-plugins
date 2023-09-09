@@ -8,8 +8,23 @@ import java.util.regex.Pattern;
 
 public class PinListExpansion {
 
+   static class PinMap {
+      final String signal;
+      final String pin;
+      
+      PinMap(String signal, String pin) {
+         this.signal = signal;
+         this.pin    = pin;
+      }
+      
+      @Override
+      public String toString() {
+         return "("+signal+"=>"+pin+")";
+      }
+   }
+   
    /**
-    * Expand patterns in string<br>
+    * Expand pattern in string<br>
     * <b>Examples:</b>
     * <li> PTA(0-6)       => PTA0,PTA1,PTA2,PTA3,PTA4,PTA5
     * <li> PT(A-B)(0-6)   => PTA0,PTA1,PTA2,PTA3,PTA4,PTA5,PTB0,PTB1,PTB2,PTB3,PTB4,PTB5
@@ -93,18 +108,18 @@ public class PinListExpansion {
     * 
     * @throws Exception
     */
-   static private ArrayList<String> expand(String pattern, int dimension) throws Exception {
+   static private String[] expand(String pattern, int dimension) throws Exception {
       
       ArrayList<String> list = new ArrayList<String>();
       
       for (int dim=0; dim<dimension; dim++) {
          list.add(pattern.replaceAll("%i", Integer.toString(dim)));
       }
-      return list;
+      return list.toArray(new String[list.size()]);
    }
    
    /**
-    * Expand patterns in string<br>
+    * Expand patterns in string.  This is typically used to expand pin names<br>
     * <b>Examples:</b>
     * <li> PTA(0-6),PTB(1-2)  => PTA0:PTA1:PTA2:PTA3:PTA4:PTA5:PTB1:PTB2
     * <li> PT(A-B)(0-6)       => PTA0:PTA1:PTA2:PTA3:PTA4:PTA5:PTB0:PTB1:PTB2:PTB3:PTB4:PTB5
@@ -115,7 +130,7 @@ public class PinListExpansion {
     * 
     * @throws Exception
     */
-   public static ArrayList<String> expandPinList(String pattern, String delimeter) {
+   public static String[] expandPinList(String pattern, String delimeter) {
 
       ArrayList<String> result = new ArrayList<String>();
 
@@ -127,7 +142,7 @@ public class PinListExpansion {
          System.err.println("Failed to expand '" + pattern + "'");
          e.printStackTrace();
       }
-      return result;
+      return result.toArray(new String[result.size()]);
    }
    
    /**
@@ -142,29 +157,29 @@ public class PinListExpansion {
     * 
     * @throws Exception
     */
-   private static ArrayList<String> expandList(String pattern) throws Exception {
+   private static ArrayList<PinMap> expandList(String pattern) throws Exception {
       
-      ArrayList<String> result = new ArrayList<String>();
+      ArrayList<PinMap> result = new ArrayList<PinMap>();
       for (String s:pattern.split(";")) {
          s = s.trim();
-         String[] parts = s.split(",|(\\=\\>)");
+         String[] parts = s.split(":|(\\=\\>)");
          if (parts.length != 2) {
            throw new Exception("Unmatched expansion (should be 2 elements) '" + s + "'");
          }
-         ArrayList<String> froms = expandPinList(parts[0].trim(),":");
-         ArrayList<String> tos   = expandPinList(parts[1].trim(),":");
+         String[] froms = expandPinList(parts[0].trim(),",");
+         String[] tos   = expandPinList(parts[1].trim(),",");
          
-         if ((froms.size() == 1) && froms.get(0).contains("%i") && (tos.size()>1)) {
-            froms = expand(froms.get(0), tos.size());
+         if ((froms.length == 1) && froms[0].contains("%i") && (tos.length>1)) {
+            froms = expand(froms[0], tos.length);
          }
-         if ((tos.size() == 1) && tos.get(0).contains("%i") && (froms.size()>1)) {
-            tos = expand(tos.get(0), froms.size());
+         if ((tos.length == 1) && tos[0].contains("%i") && (froms.length>1)) {
+            tos = expand(tos[0], froms.length);
          }
-         if (froms.size() != tos.size()) {
+         if (froms.length != tos.length) {
             throw new Exception("Unmatched expansion (should be matching length) '"+parts[0]+" => '"+parts[1]);
           }
-         for (int index=0; index<froms.size(); index++) {
-            result.add(froms.get(index)+","+tos.get(index));
+         for (int index=0; index<froms.length; index++) {
+            result.add(new PinMap(froms[index],tos[index]));
          }
       }
       return result;
@@ -184,34 +199,56 @@ public class PinListExpansion {
     * @return Expanded list as array
     * @throws Exception
     */
-   public static String[] expandNameList(String pattern) {
+   public static PinMap[] expandNameList(String pattern) {
 
-      if (!pattern.contains(";")) {
-         // Simple list separated by commas
-         return pattern.split(",");
-      }
-      ArrayList<String> res = null;
+      ArrayList<PinMap> res = null;
       try {
          res = expandList(pattern);
       } catch (Exception e) {
          e.printStackTrace();
       }
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new PinMap[res.size()]);
+   }
+   
+   private static String join(String delimiter, Object ar[]) {
+      
+      StringBuilder sb = new StringBuilder();
+      boolean needDelimiter = false;
+      for (Object obj:ar) {
+         if (needDelimiter) {
+            sb.append(delimiter);
+         }
+         needDelimiter = delimiter != null;
+         sb.append(obj.toString());
+      }
+      return sb.toString();
    }
    
    public static void main(String[] args) throws Exception {
       String[] tests = {
-            "KBI0_P%i,PT(A-B)(0-2);",
-            "ADC(0-1):w,PTA(0-1):y",
-            "ADC(0-1),PTA(0-1);w,y",
-            "ADC(0-1),PTA(0-1)",
-            "a:b:c,w:x:y",
-            "a,aa  ;  b,bb;  c,cc  ",
-            "d:e,dd:ee",
-            "f:g,ff:gg", };
+//            "a:w",                                    // Pin => signal
+//            "a,b,c:aa,bb,cc",                         // List of pins => list of signals
+//            "a:aa;b:bb;c:cc;",                        // List of (pin => signal)
+//            "ADC(0-1):PTA(0-1)",                      // Pin-expansion => signal-expansion
+//            "KBI0_P%i:PT(A-B)(0-2),u,v",              // Pin-iteration => signal-expansion
+//            "PT(A-B)(0-2),a,b:KBI0_P%i",              // Signal-expansion => pin-iteration
+//            "ADC(0-1):PTA(0-1);w:ww;KBI0_P%i:a,b,c",  // List including lower-level iterated expansion
+//            " a : aa  ;  b : bb ;  c : cc  ",         // Space stripping
+//            " ADC(0-1) : PTA(0-1) ;w : ww ; KBI0_P%i : a , b , c ",   // Space stripping
+            "KBI0_P%i:PT(A-D)(0-7)",
+            "a:-",                                     // Pin => signal
+            "a,b,c:-,-,-",                         // List of pins => list of signals
+            "a:-;b:-;c:-;",                        // List of (pin => signal)
+            "ADC(0-1):PTA(0-1)",                      // Pin-expansion => signal-expansion
+            "KBI0_P%i:PT(A-B)(0-2),u,v",              // Pin-iteration => signal-expansion
+            "PT(A-B)(0-2),a,b:KBI0_P%i",              // Signal-expansion => pin-iteration
+            "ADC(0-1):PTA(0-1);w:ww;KBI0_P%i:a,b,c",  // List including lower-level iterated expansion
+            " a : aa  ;  b : bb ;  c : cc  ",         // Space stripping
+            " ADC(0-1) : PTA(0-1) ;w : ww ; KBI0_P%i : a , b , c ",   // Space stripping
+      };
       for (String test:tests) {
-         String[] result = expandNameList(test);
-         System.err.println(test + " => " + result.toString());
+         PinMap[] result = expandNameList(test);
+         System.err.println(test + " => " + join(",", result));
       }
    }
 

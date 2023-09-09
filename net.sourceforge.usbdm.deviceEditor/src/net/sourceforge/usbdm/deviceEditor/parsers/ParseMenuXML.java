@@ -2042,32 +2042,32 @@ public class ParseMenuXML extends XML_BaseParser {
       return placeholderModel;
    }
 
-   private String[] split(String s, char separator) {
-      
-      ArrayList<String> list = new ArrayList<>();
-      int index = 0;
-      boolean inQuote = false;
-      StringBuilder sb = new StringBuilder();
-      
-      for (index=0; index<s.length(); index++) {
-         char currentChar = s.charAt(index);
-         if (currentChar == '"') {
-            inQuote = !inQuote;
-         }
-         if (inQuote) {
-            sb.append(currentChar);
-            continue;
-         }
-         if (currentChar == separator) {
-            list.add(sb.toString());
-            sb = new StringBuilder();
-            continue;
-         }
-         sb.append(currentChar);
-      }
-      list.add(sb.toString());
-      return list.toArray(new String[list.size()]);
-   }
+//   private String[] split(String s, char separator) {
+//
+//      ArrayList<String> list = new ArrayList<>();
+//      int index = 0;
+//      boolean inQuote = false;
+//      StringBuilder sb = new StringBuilder();
+//
+//      for (index=0; index<s.length(); index++) {
+//         char currentChar = s.charAt(index);
+//         if (currentChar == '"') {
+//            inQuote = !inQuote;
+//         }
+//         if (inQuote) {
+//            sb.append(currentChar);
+//            continue;
+//         }
+//         if (currentChar == separator) {
+//            list.add(sb.toString());
+//            sb = new StringBuilder();
+//            continue;
+//         }
+//         sb.append(currentChar);
+//      }
+//      list.add(sb.toString());
+//      return list.toArray(new String[list.size()]);
+//   }
    
    /**
     * @param parentModel
@@ -2092,31 +2092,41 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean isDerived = getAttributeAsBoolean(element, "derived", true);
       boolean isHidden  = getAttributeAsBoolean(element, "hidden", true);
       
-//      if (key.contains("MCGOUTCLK_max")) {
-//         System.err.println("Found it " + name);
-//      }
+      if (key.contains("pinMap")) {
+         System.err.println("Found it " + name);
+      }
       if (value == null) {
          value="true";
       }
-      String values[] = split(value,',');
+      Object result = Expression.getValue(value, fProvider);
       
-      SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.CheckIdentifierExistance);
+      // Make into array even if a single item
+      Object results[];
+      if (result.getClass().isArray()) {
+         System.err.println("Found it : array for " + key);
+         // Array constant
+         results = (Object[]) result;
+      }
+      else {
+         // Simply constant
+         results = new Object[1];
+         results[0] = result;
+      }
       
-      for(int index=0; index<values.length; index++) {
+      for(int index=0; index<results.length; index++) {
          String indexedKey = key;
-         if (values.length>1) {
+         if (results.length>1) {
+            System.err.println("Found it " + key);
             indexedKey = key+"["+index+"]";
          }
-         values[index] = values[index].trim();
          Variable var = safeGetVariable(indexedKey);
-         Object exprValue = parser.evaluate(values[index]);
          if (var != null) {
             if (isWeak) {
                // Ignore constant
             }
             else if (isReplace) {
                // Replace constant value
-               var.setValue(exprValue);
+               var.setValue(results[index]);
                if (element.hasAttribute("name")) {
                   var.setName(name);
                }
@@ -2131,9 +2141,10 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else {
             if ("Integer".equalsIgnoreCase(type)) {
+               System.err.println("Warning: Old style 'Integer' type for '" + key + "'");
                type = "Long";
             }
-            var = Variable.createVariableWithNamedType(name, indexedKey, type+"Variable", exprValue);
+            var = Variable.createVariableWithNamedType(name, indexedKey, type+"Variable", results[index]);
             var.setDescription(description);
             var.setDerived(isDerived);
             var.setHidden(isHidden);

@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
@@ -19,6 +20,9 @@ public class WriterForKbi extends PeripheralWithState {
       
       // Instance has internal state
       clearConstType();
+      
+      // Can create type declarations for signals belonging to this peripheral
+      fcanCreateSignalType = true;
    }
 
    @Override
@@ -40,6 +44,33 @@ public class WriterForKbi extends PeripheralWithState {
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
       extractAllRegisterFields(dbPortPeripheral);
+   }
+
+   @Override
+   protected void writeDeclarations() {
+      
+      super.writeDeclarations();
+      
+      for (int index=0; index<fInfoTable.table.size(); index++) {
+         Signal signal = fInfoTable.table.get(index);
+         if (signal == null) {
+            continue;
+         }
+         Pin pin = signal.getFirstMappedPinInformation().getPin();
+         if (pin == Pin.UNASSIGNED_PIN) {
+            continue;
+         }
+         String cIdentifier = signal.getCodeIdentifier();
+         if ((cIdentifier == null) || cIdentifier.isBlank()) {
+            continue;
+         }
+         if (!pin.isAvailableInPackage()) {
+            continue;
+         }
+         String trailingComment  = pin.getNameWithLocation();
+         String type = "Kbi"+getInstance()+"PinIndex";
+         writeConstexprValue(signal.getUserDescription(), cIdentifier, type, type+"("+index+")", trailingComment);
+      }
    }
 
 }

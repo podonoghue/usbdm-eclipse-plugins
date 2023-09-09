@@ -61,11 +61,11 @@ public class FamilyXmlWriter {
     *      &lt;default sel="mux1" /&gt;
     *   &lt;/pin&gt;
     * </pre>
-    *  
+    * 
     * @param documentUtilities   Where to write
     * @param pin                 Pin to write definitions for
     * 
-    * @throws IOException 
+    * @throws IOException
     */
    private void writePin(XmlDocumentUtilities documentUtilities, Pin pin) throws IOException {
       documentUtilities.openTag("pin");
@@ -127,9 +127,9 @@ public class FamilyXmlWriter {
     *   ...
     * &lt/pins&gt;
     * </pre>
-    *  
+    * 
     * @param documentUtilities   Where to write
-    * @throws IOException 
+    * @throws IOException
     */
    private void writePins(XmlDocumentUtilities documentUtilities) throws IOException {
 
@@ -147,8 +147,8 @@ public class FamilyXmlWriter {
       };
       final String UNMATCHED_NAME = "Miscellaneous Pins";
       Pair[] pinPatterns = {
-            new Pair("XXXX",          UNMATCHED_NAME), 
-            new Pair("PT([A-Z]).*",   "Port $1 Pins"), 
+            new Pair("XXXX",          UNMATCHED_NAME),
+            new Pair("PT([A-Z]).*",   "Port $1 Pins"),
       };
       ArrayList<String> categoryTitles = new ArrayList<String>();
       for (String name:fDeviceInfo.getPins().keySet()) {
@@ -185,7 +185,7 @@ public class FamilyXmlWriter {
     * 
     * @param documentUtilities
     * @throws IOException
-    * @throws UsbdmException 
+    * @throws UsbdmException
     */
    void writePeripherals(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
       documentUtilities.openTag("peripherals");
@@ -209,9 +209,9 @@ public class FamilyXmlWriter {
     *    ...
     * &lt/packages&gt;
     * </pre>
-    *  
+    * 
     * @param documentUtilities   Where to write
-    * @throws IOException 
+    * @throws IOException
     */
    private void writePackages(XmlDocumentUtilities documentUtilities) throws IOException {
       documentUtilities.openTag("packages");
@@ -238,15 +238,15 @@ public class FamilyXmlWriter {
     * 
     * @param xmlFilePath      Path to write XML to
     * @param deviceInfomation Data to write
-    * @throws Exception 
+    * @throws Exception
     */
    public void writeXmlFile(Path xmlFilePath) throws Exception {
       String xmlFilename = xmlFilePath.getFileName().toString();
       BufferedWriter writer = Files.newBufferedWriter(xmlFilePath, StandardCharsets.UTF_8);
       XmlDocumentUtilities documentUtilities = new XmlDocumentUtilities(writer);
       documentUtilities.writeXmlFilePreamble(
-            xmlFilename, 
-            DeviceInfo.DTD_FILE, 
+            xmlFilename,
+            DeviceInfo.DTD_FILE,
             "Generated from "+ fDeviceInfo.getSourceFilename());
 
       documentUtilities.openTag("root");
@@ -254,6 +254,8 @@ public class FamilyXmlWriter {
 
       documentUtilities.openTag("family");
       documentUtilities.writeAttribute("name", fDeviceInfo.getDeviceSubFamily());
+      
+//      documentUtilities.writeParam(null,"/_deviceFamily","StringVariable",fDeviceInfo.getDeviceSubFamily());
       
       for (String key:fDeviceInfo.getDeviceVariants().keySet()) {
          DeviceVariantInformation deviceInformation = fDeviceInfo.findVariant(key);

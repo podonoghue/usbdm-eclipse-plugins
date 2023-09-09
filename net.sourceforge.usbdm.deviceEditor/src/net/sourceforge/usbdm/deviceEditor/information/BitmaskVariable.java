@@ -1,7 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion.PinMap;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 
 public class BitmaskVariable extends LongVariable {
 
@@ -95,19 +97,18 @@ public class BitmaskVariable extends LongVariable {
       else {
          // Use map associated with choice (even if variable disabled)
          if (fPinMap != null) {
-            String[] pinMaps = PinListExpansion.expandNameList(fPinMap);
+            PinMap[] pinMaps = PinListExpansion.expandNameList(fPinMap);
 
             for (int index=0; index<pinMaps.length; index++) {
-               String pinMapEntry = pinMaps[index];
-               String[] map = pinMapEntry.split(",");
+               PinMap pinMapEntry = pinMaps[index];
                try {
                   if ((bitmap & (1L<<index)) != 0) {
                      // Map these
-                     setActivePinMapping(map[0], map[1]);
+                     setActivePinMapping(pinMapEntry.signal, pinMapEntry.pin);
                   }
                   else {
                      // Unmap these
-                     setActivePinMapping(map[0], null);
+                     setActivePinMapping(pinMapEntry.signal, null);
                   }
                } catch (Exception e) {
                   System.err.println("Signal mapping change failed for " + pinMapEntry);
@@ -147,6 +148,16 @@ public class BitmaskVariable extends LongVariable {
    protected Object clone() throws CloneNotSupportedException {
       // TODO Auto-generated method stub
       return super.clone();
+   }
+
+   @Override
+   public void expressionChanged(Expression expression) {
+      super.expressionChanged(expression);
+      try {
+         updatePinMap(getValueAsLong());
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
    }
 
 }

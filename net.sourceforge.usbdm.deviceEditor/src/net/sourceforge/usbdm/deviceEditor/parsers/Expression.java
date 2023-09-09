@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
@@ -298,7 +299,10 @@ public class Expression implements IModelChangeListener {
 
       @Override
       public String toString() {
-         return this.getClass().getSimpleName()+"("+fVar.getName()+", "+fType+")";
+         if (fVar != null) {
+            return this.getClass().getSimpleName()+"("+fVar.getName()+", "+fType+")";
+         }
+         return this.getClass().getSimpleName()+"("+fVarName+", "+fType+")";
       }
 
       @Override
@@ -627,7 +631,7 @@ public class Expression implements IModelChangeListener {
       }
    }
    
-   static class CastToCharacterString extends UnaryExpressionNode {
+   static class CastToCharacterStringNode extends UnaryExpressionNode {
 
       /**
        * Cast a Long ExpressionNode to a single character String ExpressionNode e.g. 30 => "0"
@@ -635,7 +639,7 @@ public class Expression implements IModelChangeListener {
        * @param arg
        * @throws Exception
        */
-      CastToCharacterString(ExpressionNode arg) throws Exception {
+      CastToCharacterStringNode(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
          if (arg.fType != Expression.Type.Long) {
             throw new Exception("Expression cannot be promoted to 'Character String'");
@@ -647,6 +651,28 @@ public class Expression implements IModelChangeListener {
          long l = (long) fArg.eval();
          int i = (int) l;
          return Character.toString((char)i);
+      }
+   }
+   
+   static class ExpandPinListNode extends UnaryExpressionNode {
+
+      /**
+       * Cast a Long ExpressionNode to a single character String ExpressionNode e.g. 30 => "0"
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      ExpandPinListNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+         if (arg.fType != Expression.Type.String) {
+            throw new Exception("Expression has wrong type for expansion");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         String s = (String) fArg.eval();
+         return String.join(",", PinListExpansion.expandPinList(s, ","));
       }
    }
    

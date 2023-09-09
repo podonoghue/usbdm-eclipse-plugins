@@ -240,9 +240,18 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       updateAncestors();
    }
 
+   /**
+    * Enable this signal
+    * 
+    * @param enable
+    */
+   public void enable(boolean enable) {
+      fSignal.enable(enable);
+   }
+   
    @Override
    public boolean isEnabled() {
-      return fParent.isEnabled();
+      return fParent.isEnabled() && fSignal.isEnabled();
    }
 
    @Override

@@ -214,7 +214,10 @@ public class ExpressionParser {
          return new Expression.OrdinalNode(arg);
       }
       if ("Character".equalsIgnoreCase(functionName)) {
-         return new Expression.CastToCharacterString(arg);
+         return new Expression.CastToCharacterStringNode(arg);
+      }
+      if ("ExpandPinList".equalsIgnoreCase(functionName)) {
+         return new Expression.ExpandPinListNode(arg);
       }
       throw new Exception("Function not supported");
    }

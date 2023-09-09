@@ -677,6 +677,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          fHardwareDefinitions.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+args+";", trailingComment));
       }
    }
+   
    /**
     *  Write variable declaration
     * 
@@ -764,6 +765,21 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
    }
 
+   protected void writeConstexprValue(String description, String cIdentifier, String cType, String cValue, String trailingComment) {
+      cIdentifier = makeCTypeIdentifier(cIdentifier);
+      boolean isRepeated = !fUsedNames.add(cIdentifier);
+      
+      fHardwareDeclarations.append("\n");
+      if (!description.isBlank()) {
+         fHardwareDeclarations.append("/// " + description + "\n");
+      }
+      
+      if (!trailingComment.isBlank()) {
+         trailingComment = "// " + trailingComment;
+      }
+      setHardwareIncludeFile();
+      fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"constexpr "+cType, cIdentifier+" = "+cValue+";", trailingComment));
+   }
    /**
     * Write PCR style type declarations for all named and mapped signals in peripheral<br>
     * 
