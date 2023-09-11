@@ -537,7 +537,7 @@ public class ParseFamilyCSV {
 		} catch (ClassCastException e) {
 			e.printStackTrace();
 		}
-		Variable var = Variable.createVariableWithNamedType(paramName, paramKey, paramType, paramValue);
+		Variable var = Variable.createConstantWithNamedType(paramName, paramKey, paramType, paramValue);
 		peripheral.addVariable(var);
 		
       if (paramKey.equals(peripheral.makeKey("version"))) {

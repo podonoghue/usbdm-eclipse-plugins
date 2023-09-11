@@ -999,6 +999,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("disabledPinMap")) {
          variable.setDisabledPinMap(getAttributeAsString(varElement, "disabledPinMap"));
       }
+      if (varElement.hasAttribute("pinMapEnable")) {
+         variable.setPinMapEnable(getAttributeAsString(varElement, "pinMapEnable"));
+      }
       variable.setRegister(getAttributeAsString(varElement, "register"));
 
       if (varElement.hasAttribute("value")) {
@@ -1045,7 +1048,7 @@ public class ParseMenuXML extends XML_BaseParser {
 //      }
       
       VariableModel model = variable.createModel(parent);
-      model.setConstant(Boolean.valueOf(getAttributeAsString(varElement, "constant")));
+      model.setLocked(Boolean.valueOf(getAttributeAsString(varElement, "constant")));
       model.setHidden(Boolean.valueOf(getAttributeAsString(varElement, "hidden")));
       return model;
    }
@@ -1943,6 +1946,21 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
+    * Parse &lt;binaryOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception
+    */
+   private void parsePinmapOption(BaseModel parent, Element varElement) throws Exception {
+
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      BooleanVariable variable = (BooleanVariable)createVariable(varElement, BooleanVariable.class);
+      parseCommonAttributes(parent, varElement, variable);
+   }
+
+   /**
     * Parse &lt;irqOption&gt; element<br>
     * Expects:
     * <ul>
@@ -2036,7 +2054,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       AliasPlaceholderModel placeholderModel = new AliasPlaceholderModel(parent, name, description);
       placeholderModel.setkey(key);
-      placeholderModel.setConstant(isConstant);
+      placeholderModel.setLocked(isConstant);
       placeholderModel.setOptional(isOptional);
       placeholderModel.setToolTip(toolTip);
       return placeholderModel;
@@ -2089,12 +2107,8 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isBlank()) {
          throw new Exception("<constant> must have 'key' attribute, value='"+value+"'");
       }
-      boolean isDerived = getAttributeAsBoolean(element, "derived", true);
       boolean isHidden  = getAttributeAsBoolean(element, "hidden", true);
       
-      if (key.contains("pinMap")) {
-         System.err.println("Found it " + name);
-      }
       if (value == null) {
          value="true";
       }
@@ -2103,7 +2117,6 @@ public class ParseMenuXML extends XML_BaseParser {
       // Make into array even if a single item
       Object results[];
       if (result.getClass().isArray()) {
-         System.err.println("Found it : array for " + key);
          // Array constant
          results = (Object[]) result;
       }
@@ -2116,7 +2129,6 @@ public class ParseMenuXML extends XML_BaseParser {
       for(int index=0; index<results.length; index++) {
          String indexedKey = key;
          if (results.length>1) {
-            System.err.println("Found it " + key);
             indexedKey = key+"["+index+"]";
          }
          Variable var = safeGetVariable(indexedKey);
@@ -2144,9 +2156,8 @@ public class ParseMenuXML extends XML_BaseParser {
                System.err.println("Warning: Old style 'Integer' type for '" + key + "'");
                type = "Long";
             }
-            var = Variable.createVariableWithNamedType(name, indexedKey, type+"Variable", results[index]);
+            var = Variable.createConstantWithNamedType(name, indexedKey, type+"Variable", results[index]);
             var.setDescription(description);
-            var.setDerived(isDerived);
             var.setHidden(isHidden);
             fProvider.addVariable(var);
          }
@@ -3060,6 +3071,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "binaryOption") {
          parseBinaryOption(parentModel, element);
       }
+      else if (tagName == "pinMapOption") {
+         parsePinmapOption(parentModel, element);
+      }
       else if (tagName == "irqOption") {
          parseIrqOption(parentModel, element);
       }
@@ -3183,8 +3197,9 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseEquation(Element element) throws Exception {
       String key        = getKeyAttribute(element);
       Object expression = getAttribute(element, "value");
-      
+      boolean isConstant = getAttributeAsBoolean(element, "constant", false);
       Variable var = fProvider.safeGetVariable(key);
+      
       if (var == null) {
          if (expression instanceof Long) {
             var = new LongVariable(expression.toString(), key);
@@ -3202,8 +3217,9 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("Unexpected type for expression result. Type = "+expression.getClass()+", eqn = "+expression);
          }
          fProvider.addVariable(var);
+         var.setConstant(isConstant);
          var.setDerived(true);
-         var.setConstant();
+         var.setLocked(true);
       }
       var.setValue(expression);
    }
@@ -3888,8 +3904,8 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setToolTip(toolTip);
       }
       VariableModel model = variable.createModel(null);
-      boolean isConstant = aliasModel.isConstant() || variable.isLocked();
-      model.setConstant(isConstant);
+      boolean isConstant = aliasModel.isLocked() || variable.isLocked();
+      model.setLocked(isConstant);
       String displayName = aliasModel.getName();
       if (displayName != null) {
          model.setName(displayName);

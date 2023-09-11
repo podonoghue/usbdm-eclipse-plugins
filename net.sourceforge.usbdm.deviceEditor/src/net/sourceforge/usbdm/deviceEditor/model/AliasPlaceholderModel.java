@@ -6,7 +6,7 @@ public class AliasPlaceholderModel extends BaseModel {
 
    private String  fKey = null;
    private boolean fIsOptional = false;
-   private boolean fIsConstant = false;
+   private boolean fIsLocked = false;
    
    public AliasPlaceholderModel(BaseModel parent, String name, String description) {
       super(parent, name);
@@ -29,12 +29,22 @@ public class AliasPlaceholderModel extends BaseModel {
       return fIsOptional;
    }
 
-   public void setConstant(boolean isConstant) {
-      fIsConstant = isConstant;
+   /**
+    * Allows the alias to be locked or editable
+    * 
+    * @param isLocked
+    */
+   public void setLocked(boolean isLocked) {
+      fIsLocked = isLocked;
    }
 
-   public boolean isConstant() {
-      return fIsConstant;
+   /**
+    * Indicates if the alias is to be locked or editable
+    * 
+    * @param isLocked
+    */
+   public boolean isLocked() {
+      return fIsLocked;
    }
 
    public void setKey(String fKey) {

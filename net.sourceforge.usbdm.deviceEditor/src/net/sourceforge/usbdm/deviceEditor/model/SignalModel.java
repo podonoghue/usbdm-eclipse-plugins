@@ -270,9 +270,9 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
 
    @Override
-   public void setConstant(boolean value) {
+   public void setLocked(boolean value) {
       // TODO Auto-generated method stub
-      super.setConstant(value);
+      super.setLocked(value);
    }
 
 }

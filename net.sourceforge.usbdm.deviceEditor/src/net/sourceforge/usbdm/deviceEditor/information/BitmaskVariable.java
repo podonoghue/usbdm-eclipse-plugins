@@ -91,7 +91,7 @@ public class BitmaskVariable extends LongVariable {
    private void updatePinMap(long bitmap) throws Exception {
       String disablePinMap = getDisabledPinMap();
       if (!isEnabled() && (disablePinMap != null)) {
-         // Disabled and special map provided
+         // Disabled and disabled map provided
          setActivePinMappings(getDisabledPinMap());
       }
       else {

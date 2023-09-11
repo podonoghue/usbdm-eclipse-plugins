@@ -88,11 +88,11 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    private String fOrigin = null;
 
    /** Indicates this variable is derived (calculated) from other variables */
-   private boolean fDerived = false;
+   private boolean fIsDerived = false;
 
-   protected boolean fConstant = false;
+   protected boolean fIsConstant = false;
 
-   private boolean fHidden;
+   private boolean fIsHidden;
 
    private String fDataValue;
 
@@ -127,7 +127,11 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
    private Boolean fIsNamedClock = false;
 
+   /** Pin mapping applied when option is disabled */
    private String fDisabledPinMap = null;
+
+   /** Controls when pin-map is enabled */
+   private Expression fpinMapEnable = null;
 
    /**
     * Constructor
@@ -259,7 +263,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return The default value
     */
-   abstract Object getDefault();
+   public abstract Object getDefault();
 
    private String getSimpleClassName() {
       String s = getClass().toString();
@@ -451,7 +455,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       return fLocked;
    }
 
-   /** Indicates if the variable is locked and cannot be edited by user
+   /** Indicates if the variable is locked and cannot be edited in the GUI
     * 
     * @param locked The locked state to set
     * 
@@ -465,11 +469,11 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       return true;
    }
 
-   /** Indicates if the variable is locked and cannot be edited by user
+   /** Indicates if the variable is locked and cannot be edited in the GUI
     * 
     * @param locked The locked state to set
     * 
-    * @return True if variable actually changed lock state and listerenrs notified
+    * @return True if variable actually changed lock state and listeners notified
     */
    public boolean setLocked(boolean locked) {
       if (!setLockedQuietly(locked)) {
@@ -480,10 +484,17 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Mark variable as a constant
+    * Mark variable as a constant!
     */
    public void setConstant() {
-      fConstant = true;
+      fIsConstant = true;
+   }
+   
+   /**
+    * Mark variable as a constant!
+    */
+   public void setConstant(boolean isConstant) {
+      fIsConstant = isConstant;
    }
    
    /**
@@ -492,7 +503,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return
     */
    public boolean isConstant() {
-      return fConstant;
+      return fIsConstant;
    }
    
    /**
@@ -726,7 +737,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @param derived
     */
    public void setDerived(boolean derived) {
-      fDerived = derived;
+      fIsDerived = derived;
    }
    
    /**
@@ -735,7 +746,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return true if derived
     */
    public boolean getDerived() {
-      return fDerived;
+      return fIsDerived;
    }
    
    /**
@@ -744,7 +755,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return
     */
    public boolean isDerived() {
-      return fDerived;
+      return fIsDerived;
    }
 
    /**
@@ -822,12 +833,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    public void setHidden(boolean b) {
-      fHidden = b;
+      fIsHidden = b;
       notifyStructureChangeListeners();
    }
    
    public boolean isHidden() {
-      return fHidden;
+      return fIsHidden;
    }
 
    /**
@@ -1285,6 +1296,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (fUnlockedBy != null) {
          fUnlockedBy.addListener(this);
       }
+      if (fpinMapEnable != null) {
+         fpinMapEnable.addListener(this);
+      }
    }
 
    /**
@@ -1445,12 +1459,35 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
+    * Set active pin mappings
+    * 
+    * @param activePinMap list of pin mappings e.g. 'SWD_DIO,PTA4;SWD_CLK,PTC4'
+    */
+   protected void releaseActivePinMappings(String activePinMap) {
+      if (activePinMap == null) {
+         return;
+      }
+      String[] pinMaps = activePinMap.split(";");
+      for (String pinMapEntry:pinMaps) {
+
+         // Signal => pin
+         String[] map = pinMapEntry.split(",");
+         setActivePinMapping(map[0], null);
+      }
+   }
+   
+   /**
     * Set disabled pin-map
     * 
-    * @param pinMap
+    * @param pinMap  Pin mapping string with optional enable expression e.g. 'I2C0_SCL,PTA3;I2C0_SDA,PTA2#/I2C0/enablePeripheralSupport'
+    * @throws Exception
     */
-   public void setDisabledPinMap(String pinMap) {
-      fDisabledPinMap = pinMap;
+   public void setDisabledPinMap(String pinMap) throws Exception {
+      String[] t = pinMap.split("#");
+      fDisabledPinMap = t[0];
+      if (t.length>1) {
+         setPinMapEnable(t[1]);
+      }
    }
    
    /**
@@ -1463,6 +1500,25 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
+    * Set when pin-map is enabled
+    * 
+    * @param pinMap
+    * @throws Exception
+    */
+   public void setPinMapEnable(String pinMapEnable) throws Exception {
+      fpinMapEnable = new Expression(pinMapEnable, fProvider);
+   }
+   
+   /**
+    * Get when pin-map is enabled
+    * 
+    * @return pinMap enable expression
+    */
+   public Expression getPinMapEnable() {
+      return fpinMapEnable;
+   }
+   
+   /**
     * Used to create arbitrary variable from strings
     * 
     * @param name    Name of variable (may be null to use name derived from key)
@@ -1474,7 +1530,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @throws Exception
     */
-   public static Variable createVariableWithNamedType(String name, String key, String type, Object value) throws Exception {
+   public static Variable createConstantWithNamedType(String name, String key, String type, Object value) throws Exception {
       
       Variable var = null;
       type = "net.sourceforge.usbdm.deviceEditor.information."+type;
@@ -1486,6 +1542,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          // Most likely reason
          throw new Exception("Failed to create variable with type '" + type + "'", e);
       }
+      var.setDerived(true);
       var.setConstant();
       return var;
    }

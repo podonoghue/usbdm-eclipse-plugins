@@ -135,7 +135,7 @@ public abstract class VariableWithChoices extends Variable {
     * 
     * @param index Index into available currently available choices
     */
-   abstract void setIndex(int index);
+   public abstract void setIndex(int index);
    
    /**
     * Set value by name
@@ -162,6 +162,13 @@ public abstract class VariableWithChoices extends Variable {
       return setValue(index);
    }
 
+   /**
+    * Get default choice entry
+    * 
+    * @return choice or null if none
+    */
+   protected abstract ChoiceData getdefaultChoice();
+   
    /**
     * Get index of value in choice entries
     * Only the visible choices are available.
@@ -303,39 +310,51 @@ public abstract class VariableWithChoices extends Variable {
     * Update targets affected by this choice selection
     * 
     * @param choiceData
+    * @throws Exception
     */
    void updateTargets(ChoiceData choiceData) {
-      
+
       if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
       if (choiceData == null) {
          return;
       }
-      // Update pin mapping form choice (or disabled)
-      String disabledPinMap = getDisabledPinMap();
-      if (!isEnabled() && (disabledPinMap != null)) {
-         // Disabled and special mapping provided
-         setActivePinMappings(disabledPinMap);
-      }
-      else {
-         // Use mapping from choice
-         setActivePinMappings(choiceData.getPinMap());
-      }
+      try {
+         // Update pin mapping from choice (or disabled)
+         String     disabledPinMap = getDisabledPinMap();
+         Expression pinMapEnable   = getPinMapEnable();
 
-      // Target affected?
-      String target = getTarget();
-      if (target == null) {
-         return;
-      }
-      
-      String multiRef = choiceData.getMultiValueReference();
-      if (multiRef != null) {
-         String refs[]    = multiRef.split(";");
-         String targets[] = getTarget().split(";");
-         try {
+         if ((pinMapEnable != null) && !pinMapEnable.getValueAsBoolean()) {
+            if ((disabledPinMap == null)||(disabledPinMap.isBlank())) {
+               // Use map from default choice
+               ChoiceData defaultChoice = getdefaultChoice();
+               disabledPinMap = defaultChoice.getPinMap();
+            }
+            // Release pin mappings
+            releaseActivePinMappings(disabledPinMap);
+         }
+         else if (!isEnabled() && (disabledPinMap != null) && (!disabledPinMap.isBlank())) {
+            // Disabled and special mapping provided
+            setActivePinMappings(disabledPinMap);
+         }
+         else {
+            // Use mapping from choice
+            setActivePinMappings(choiceData.getPinMap());
+         }
+
+         // Target affected?
+         String target = getTarget();
+         if (target == null) {
+            return;
+         }
+
+         String multiRef = choiceData.getMultiValueReference();
+         if (multiRef != null) {
+            String refs[]    = multiRef.split(";");
+            String targets[] = getTarget().split(";");
             if (refs.length != targets.length) {
-               throw new Exception("unmatched");
+               throw new Exception("length of refs does not match target");
             }
             for (int index=0; index<refs.length; index++) {
                Variable targetVar = getProvider().getVariable(targets[index]);
@@ -343,11 +362,7 @@ public abstract class VariableWithChoices extends Variable {
                targetVar.setValue(value);
             }
             return;
-         } catch (Exception e) {
-            e.printStackTrace();
          }
-      }
-      try {
          // choice.ref => target
          Variable targetVar = getProvider().getVariable(target);
 
@@ -356,14 +371,12 @@ public abstract class VariableWithChoices extends Variable {
          // Assume enabled (may be later disabled by enabledBy etc.)
          info.enable = true;
          determineReferenceUpdate(info, choiceData.getReference());
-         
+
          targetVar.update(info);
-         
+
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
-      
       updateChoices();
    }
    
@@ -377,7 +390,11 @@ public abstract class VariableWithChoices extends Variable {
       if (choice == null) {
          return;
       }
-      updateTargets(getCurrentChoice());
+      try {
+         updateTargets(getCurrentChoice());
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
    }
 
    @Override

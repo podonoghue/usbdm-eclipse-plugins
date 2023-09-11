@@ -112,9 +112,9 @@ public class WriterForFtm extends PeripheralWithState {
    
    @Override
    public boolean isPcrTableNeeded() {
-      boolean required = 
+      boolean required =
             super.isPcrTableNeeded() ||
-           (fQuadSignals.table.size() + 
+           (fQuadSignals.table.size() +
             fFaultSignals.table.size()) > 0;
       return required;
    }
@@ -165,7 +165,7 @@ public class WriterForFtm extends PeripheralWithState {
       if (signalIndex>=infoTable.table.size()) {
          infoTable.table.setSize(signalIndex+1);
       }
-      if ((infoTable.table.get(signalIndex) != null) && 
+      if ((infoTable.table.get(signalIndex) != null) &&
             (infoTable.table.get(signalIndex) != signal)) {
          throw new RuntimeException("Multiple signals mapped to index = "+signalIndex+"\n new = " + signal + ",\n old = " + infoTable.table.get(signalIndex));
       }

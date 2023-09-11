@@ -396,10 +396,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @return Set of mapped pins.  The set may be empty if no pins mapped.
     */
    public List<MappingInfo> getMappedPinInformation() {
-      if (!fEnabled) {
-         return null;
-      }
       ArrayList<MappingInfo> rv = new ArrayList<MappingInfo>();
+      if (!fEnabled) {
+         return rv;
+      }
       for (MappingInfo mappingInfo:fPinMappings) {
          if (mappingInfo.isSelected()) {
             rv.add(mappingInfo);
@@ -496,8 +496,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * Other mappings are removed.
     * 
     * @param pin Pin to map signal to
+    * 
+    * @return true if changed (and listeners notified)
     */
-   public void mapPin(Pin pin) {
+   public boolean mapPin(Pin pin) {
       boolean changed = false;
       MappingInfo mappingInfo = null;
       for (MappingInfo mapping:fPinMappings) {
@@ -511,11 +513,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          changed = mappingInfo.select(this, true) || changed;
       }
       setDirty(changed);
-      notifyListeners();
-   
-//      for(MappingInfo mapping:fPinMappings) {
-//         mapping.select(this, mapping.getPin() == pin);
-//      }
+      if (changed) {
+         notifyListeners();
+      }
+      return changed;
    }
    
    /**

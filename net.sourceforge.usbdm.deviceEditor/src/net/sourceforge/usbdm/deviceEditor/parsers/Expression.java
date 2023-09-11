@@ -246,18 +246,21 @@ public class Expression implements IModelChangeListener {
       
       private Variable getVar() throws Exception {
          Variable var = fVar;
-//         if (var == null) {
+         if (var == null) {
             String name = fVarName;
             if (fIndex != null) {
                name = name+"["+fIndex.getValueAsLong()+"]";
             }
             var = fOwner.fVarProvider.getVariable(name);
-            
-//            // If index is unchanging then we can cache the variable
-//            if ((fIndex == null)||fIndex.isConstant()) {
-//               fVar = var;
+
+//            if ((fIndex != null) && fIndex.isConstant()) {
+//               System.err.println("Caching indexed variable lookup '" + fVarName + "[" + fIndex.getExpressionStr() + "]'");
 //            }
-//         }
+            // If there is no index or index is unchanging then we can cache the variable lookup
+            if ((fIndex == null)||fIndex.isConstant()) {
+               fVar = var;
+            }
+         }
          return var;
       }
       
@@ -289,8 +292,11 @@ public class Expression implements IModelChangeListener {
       public ExpressionNode prune() throws Exception {
          if (isConstant()) {
             if (fIndex != null) {
-               System.err.println("Pruning with index " + fIndex.getExpressionStr());
+               System.err.println("Pruning constant indexed variable '" + fVarName + "[" + fIndex.getExpressionStr() +"]' to " + eval().toString() );
             }
+//            else {
+//               System.err.println("Pruning constant variable '" + fVarName + "' to " + eval().toString() );
+//            }
             return wrapConstant(eval());
          }
          return this;
@@ -1301,7 +1307,6 @@ public class Expression implements IModelChangeListener {
       String parts[] = expression.split("#");
       if (parts.length>1) {
          expression  = parts[0].trim();
-         
          String primaryVarStr = parts[1].trim();
          if (!primaryVarStr.isBlank()) {
             fPrimaryVar = fVarProvider.getVariable(primaryVarStr);

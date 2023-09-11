@@ -85,7 +85,7 @@ public class ChoiceVariable extends VariableWithChoices {
    }
 
    @Override
-   void setIndex(int index) {
+   public void setIndex(int index) {
       setValue(index);
    }
    
@@ -340,6 +340,19 @@ public class ChoiceVariable extends VariableWithChoices {
       return fHiddenData;
    }
 
+   @Override
+   protected ChoiceData getdefaultChoice() {
+      ChoiceData[] data = getChoiceData();
+      if (data == null) {
+         return null;
+      }
+      Integer index = fDefaultValue;
+      if ((index==null) || (index<0)) {
+         return null;
+      }
+      return data[index];
+   }
+   
    /**
     * @param entries The name/value entries to set
     */

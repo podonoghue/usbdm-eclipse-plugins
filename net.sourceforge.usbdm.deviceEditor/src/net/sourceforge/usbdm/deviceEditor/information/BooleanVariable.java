@@ -99,7 +99,7 @@ public class BooleanVariable extends VariableWithChoices {
    }
    
    @Override
-   void setIndex(int index) {
+   public void setIndex(int index) {
       setValue(index != 0);
    }
    
@@ -332,6 +332,11 @@ public class BooleanVariable extends VariableWithChoices {
    @Override
    public Object getNativeValue() {
       return getValueAsBoolean();
+   }
+
+   @Override
+   protected ChoiceData getdefaultChoice() {
+      return fDefaultValue?fTrue:fFalse;
    }
 
 }

@@ -10,7 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public abstract class EditableModel extends BaseModel {
 
    /** Used to mark model as a constant i.e. can't be changed by editor */
-   boolean fIsConstant = false;
+   boolean fIsLocked = false;
    
    /**
     * Constructor
@@ -26,16 +26,16 @@ public abstract class EditableModel extends BaseModel {
    
    @Override
    public boolean canEdit() {
-      return !fIsConstant;
+      return !fIsLocked;
    }
 
    /**
-    * Used to set the items as a constant
+    * Used to set the model as locked
     * 
-    * @param value true to make item a constant (i.e. canEdit() => false)
+    * @param isLocked true to make item locked (i.e. canEdit() => false)
     */
-   public void setConstant(boolean value) {
-      fIsConstant = value;
+   public void setLocked(boolean isLocked) {
+      fIsLocked = isLocked;
    }
    
    /**

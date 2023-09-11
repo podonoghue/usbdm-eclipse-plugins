@@ -247,7 +247,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             String key   = element.getAttribute("key");
             String type  = element.getAttribute("type");
             String value = element.getAttribute("value");
-            Variable var = Variable.createVariableWithNamedType(name, key, type, value);
+            Variable var = Variable.createConstantWithNamedType(name, key, type, value);
             PeripheralWithState periph = (PeripheralWithState) peripheral;
             periph.addVariable(var);
             periph.addParam(key);

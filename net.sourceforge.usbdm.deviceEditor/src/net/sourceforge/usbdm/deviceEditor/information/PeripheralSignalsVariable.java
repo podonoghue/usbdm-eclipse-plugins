@@ -48,7 +48,7 @@ public class PeripheralSignalsVariable extends Variable {
    }
 
    @Override
-   Object getDefault() {
+   public Object getDefault() {
       throw new RuntimeException("This method should never be called");
    }
 

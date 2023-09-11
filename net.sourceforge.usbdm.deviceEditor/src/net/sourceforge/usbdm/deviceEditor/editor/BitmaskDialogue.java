@@ -66,7 +66,6 @@ public class BitmaskDialogue extends Dialog {
            if (!fBitNames[index].isBlank()) {
               tBitmask |= mask;
            }
-           System.err.println("mask="+Long.toBinaryString(mask)+", tbitmask="+Long.toBinaryString(tBitmask));
         }
         fBitmask = tBitmask;
      }
