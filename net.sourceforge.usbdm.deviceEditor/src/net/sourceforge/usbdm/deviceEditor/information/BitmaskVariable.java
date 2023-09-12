@@ -101,6 +101,9 @@ public class BitmaskVariable extends LongVariable {
 
             for (int index=0; index<pinMaps.length; index++) {
                PinMap pinMapEntry = pinMaps[index];
+               if (pinMapEntry.pin.isBlank()) {
+                  continue;
+               }
                try {
                   if ((bitmap & (1L<<index)) != 0) {
                      // Map these

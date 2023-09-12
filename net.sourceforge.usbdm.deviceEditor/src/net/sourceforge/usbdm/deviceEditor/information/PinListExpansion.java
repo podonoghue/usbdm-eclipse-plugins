@@ -135,7 +135,7 @@ public class PinListExpansion {
       ArrayList<String> result = new ArrayList<String>();
 
       try {
-         for(String item:pattern.split(delimeter)) {
+         for(String item:pattern.split(delimeter, -1)) {
             result.addAll(expand(item.trim()));
          }
       } catch (Exception e) {

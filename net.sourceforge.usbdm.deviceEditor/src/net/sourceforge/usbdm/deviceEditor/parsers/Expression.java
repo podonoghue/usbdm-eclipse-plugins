@@ -291,9 +291,9 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          if (isConstant()) {
-            if (fIndex != null) {
-               System.err.println("Pruning constant indexed variable '" + fVarName + "[" + fIndex.getExpressionStr() +"]' to " + eval().toString() );
-            }
+//            if (fIndex != null) {
+//               System.err.println("Pruning constant indexed variable '" + fVarName + "[" + fIndex.getExpressionStr() +"]' to " + eval().toString() );
+//            }
 //            else {
 //               System.err.println("Pruning constant variable '" + fVarName + "' to " + eval().toString() );
 //            }

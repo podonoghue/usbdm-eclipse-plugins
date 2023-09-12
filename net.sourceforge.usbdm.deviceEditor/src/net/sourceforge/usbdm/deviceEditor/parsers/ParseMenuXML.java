@@ -226,16 +226,18 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @param keys    List of keys e.g. "keyA,keyB"
        * @param values  List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
+       * @param delimiter Delimiter to separate multiple keys/values
+       * 
        * @throws Exception
        */
-      public ForLoop(VariableProvider fProvider, String keys, String values) throws Exception {
+      public ForLoop(VariableProvider fProvider, String keys, String values, String delimiter) throws Exception {
          SimpleExpressionParser expressionParser =
                new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
          if (keys.contains(",")) {
             throw new ForloopException("Can't have ',' in keys '" + keys + "'");
          }
          fKeys       = keys.split(":");
-         fValueList  = values.split(";");
+         fValueList  = values.split(Pattern.quote(delimiter));
          for (int index=0; index<fValueList.length; index++) {
             if (fValueList[index].startsWith("@")) {
                fValueList[index] = expressionParser.evaluate(fValueList[index].substring(1)).toString();
@@ -370,13 +372,14 @@ public class ParseMenuXML extends XML_BaseParser {
        * Add for-loop level
        * @param fProvider
        * 
-       * @param keys    List of keys e.g. "keyA,keyB"
-       * @param values  List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
+       * @param keys      List of keys e.g. "keyA,keyB"
+       * @param values    List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
+       * @param delimiter Delimiter to separate multiple keys/values
        * 
        * @throws Exception If keys and values are unmatched
        */
-      public void createLevel(VariableProvider fProvider, String keys, String values) throws Exception {
-         ForLoop loop = new ForLoop(fProvider, keys, values);
+      public void createLevel(VariableProvider fProvider, String keys, String values, String delimiter) throws Exception {
+         ForLoop loop = new ForLoop(fProvider, keys, values, delimiter);
          forStack.push(loop);
       }
       
@@ -546,10 +549,14 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!checkCondition(element)) {
          return;
       }
-      String keys   = getAttributeAsString(element, "keys");
-      String values = getAttributeAsString(element, "values");
-      String dim    = getAttributeAsString(element, "dim");
+      String keys       = getAttributeAsString(element, "keys");
+      String values     = getAttributeAsString(element, "values");
+      String dim        = getAttributeAsString(element, "dim");
+      String delimiter  = getAttributeAsString(element, "delimiter", ";");
       
+//      if (delimiter != ";") {
+//         System.err.println("Found it, del = "+delimiter);
+//      }
       if (keys.isBlank()) {
          throw new Exception("<for> requires keys = '"+keys+"', values = '"+values+"'");
       }
@@ -592,7 +599,7 @@ public class ParseMenuXML extends XML_BaseParser {
          // Empty loop
          return;
       }
-      fForStack.createLevel(fProvider, keys, values);
+      fForStack.createLevel(fProvider, keys, values, delimiter);
       do {
          if (graphicWrapper != null) {
             graphicWrapper.parseGraphicBoxOrGroup(parentModel, element);
@@ -961,7 +968,10 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setRegister(otherVariable.getRegister());
       }
       if (varElement.hasAttribute("constant")) {
-         variable.setLocked(Boolean.valueOf(getAttributeAsString(varElement, "constant")));
+         System.err.println("'constant' attribute no longer supported when creating '" + variable.getName() + "'");
+      }
+      if (varElement.hasAttribute("locked")) {
+         variable.setLocked(Boolean.valueOf(getAttributeAsString(varElement, "locked")));
       }
       if (varElement.hasAttribute("description")) {
          variable.setDescription(getAttributeAsString(varElement, "description"));
@@ -1048,7 +1058,7 @@ public class ParseMenuXML extends XML_BaseParser {
 //      }
       
       VariableModel model = variable.createModel(parent);
-      model.setLocked(Boolean.valueOf(getAttributeAsString(varElement, "constant")));
+      model.setLocked(Boolean.valueOf(getAttributeAsString(varElement, "locked")));
       model.setHidden(Boolean.valueOf(getAttributeAsString(varElement, "hidden")));
       return model;
    }
@@ -2049,7 +2059,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          throw new Exception("Alias requires key "+name);
       }
-      boolean isConstant  = Boolean.valueOf(getAttributeAsString(stringElement, "constant", "true"));
+      boolean isConstant  = Boolean.valueOf(getAttributeAsString(stringElement, "locked",   "true"));
       boolean isOptional  = Boolean.valueOf(getAttributeAsString(stringElement, "optional", "false"));
       
       AliasPlaceholderModel placeholderModel = new AliasPlaceholderModel(parent, name, description);
