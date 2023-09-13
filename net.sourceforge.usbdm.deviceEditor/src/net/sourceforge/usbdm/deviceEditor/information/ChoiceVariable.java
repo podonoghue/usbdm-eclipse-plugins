@@ -57,8 +57,7 @@ public class ChoiceVariable extends VariableWithChoices {
       if (value instanceof String) {
          String sValue = (String)value;
          if (  ("Reserved".equalsIgnoreCase(sValue)) ||
-               ("Default".equalsIgnoreCase(sValue)) ||
-               ("Disabled".equalsIgnoreCase(sValue))) {
+               ("Default".equalsIgnoreCase(sValue))) {
             // Quietly translate reserved values
             index = fDefaultValue;
          }
