@@ -56,7 +56,7 @@ public class CreateDeviceSkeletonFromSVD {
    
    void savePeripheralFiles() throws UsbdmException, IOException {
       // USBDM installation path
-      Path hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(DeviceInfo.USBDM_ARM_PERIPHERALS_LOCATION).resolve(peripheral.getSourceFilename().toLowerCase()+".xml");
+      Path hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(DeviceInfo.USBDM_ARM_PERIPHERALS_LOCATION).resolve(peripheral.getSourceFilename().toLowerCase()+"_new"+".xml");
       
       Charset charset = Charset.forName("US-ASCII");
       BufferedWriter writer = Files.newBufferedWriter(hardwarePath, charset);
@@ -1076,7 +1076,7 @@ public class CreateDeviceSkeletonFromSVD {
 //       "OSC",
 //       "PIT",
 
-//         "FTM",
+         "FTM",
 //         "FGPIO",
 //         "PORT",
 //         "SIM",
@@ -1121,8 +1121,8 @@ public class CreateDeviceSkeletonFromSVD {
 
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("FRDM_KE04Z");
-//      doAllPeripherals("FRDM_KE06Z");
-      doAllPeripherals("FRDM_KL02Z");
+      doAllPeripherals("FRDM_KE06Z");
+//      doAllPeripherals("FRDM_KL02Z");
    }
 
 }

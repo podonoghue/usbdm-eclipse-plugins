@@ -15,6 +15,9 @@ public class BitmaskVariable extends LongVariable {
 
    // Pin mapping information
    private String fPinMap;
+   
+   // Extended descriptions for bits
+   private String fBitDescriptions;
 
    public BitmaskVariable(String name, String key) {
       super(name, key);
@@ -161,6 +164,24 @@ public class BitmaskVariable extends LongVariable {
       } catch (Exception e) {
          e.printStackTrace();
       }
+   }
+
+   /**
+    * Set extended descriptions for bits
+    * 
+    * @param bitDescription
+    */
+   public void setBitDescription(String bitDescription) {
+      fBitDescriptions = bitDescription;
+   }
+
+   /**
+    * Set extended descriptions for bits
+    * 
+    * @param bitDescription
+    */
+   public String getBitDescriptions() {
+      return fBitDescriptions;
    }
 
 }

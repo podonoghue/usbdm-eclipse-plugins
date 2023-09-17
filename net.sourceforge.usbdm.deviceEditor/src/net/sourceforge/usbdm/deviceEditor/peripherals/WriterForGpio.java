@@ -300,7 +300,7 @@ public class WriterForGpio extends PeripheralWithState {
             if (fieldPolarity != 0) {
                if (gpioPinInformation.isMixedPolarity()) {
                   // Use explicit bit-mask
-                  polarity = "0b" + Integer.toBinaryString(fieldPolarity);
+                  polarity = "Polarity(0b" + Integer.toBinaryString(fieldPolarity)+")";
                }
                else {
                   polarity = "ActiveLow";

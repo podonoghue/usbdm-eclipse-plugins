@@ -37,15 +37,14 @@ public class ExpressionParser {
    /**
     * Controls operation of parser
     * 
-    *  <li>CollectIdentifiers        => Only parse expression to collect identifiers
     *  <li>CheckIdentifierExistance  => Treat identifiers as true/false => present/absent (must be boolean expression)
-    *  <li>EvaluateFully             => Fully evaluate expression
+    *  <li>EvaluateImmediate         => Fully evaluate expression immediately
+    *  <li>Dynamic                   => Construct expression tree and add listeners
     */
    public enum Mode {
-      CollectIdentifiers,        ///< Only parse expression to collect identifiers
-      CheckIdentifierExistance,  ///< Treat identifiers as true/false => present/absent (must be boolean expression)
-      EvaluateFully,             ///< Fully evaluate expression
-      Construct,                 ///< Construct expression tree and add listeners
+      CheckIdentifierExistance,
+      EvaluateImmediate,
+      Dynamic,
    }
 
    /** Index into current expression being parsed */
@@ -57,11 +56,8 @@ public class ExpressionParser {
    /** Provider for variables */
    private VariableProvider fProvider;
    
-   /** Non-constant variable found in expression */
-   private ArrayList<Variable> fCollectedVariables = null;
-
    // Operating mode
-   private Mode fMode = Mode.EvaluateFully;
+   private Mode fMode = Mode.EvaluateImmediate;
 
    // Listener for changes in variables
    private Expression fListener;
@@ -188,27 +184,29 @@ public class ExpressionParser {
          if (!(argValue instanceof String)) {
             throw new Exception("Variable() function with non-string expression");
          }
-         String key = fProvider.makeKey((String)argValue);
-         Variable var = fProvider.safeGetVariable(key);
-         switch(fMode) {
-         case CheckIdentifierExistance: {
-            return new BooleanNode(var != null);
-         }
-         default:
-         case Construct:
-            if (var == null) {
-               throw new Exception("Failed to find variable '" + key + "'");
-            }
-            if (!var.isConstant()) {
-               var.addListener(fListener);
-            }
-         case CollectIdentifiers:
-         case EvaluateFully:
-            if (var == null) {
-               throw new Exception("Failed to find variable '" + key + "'");
-            }
-            return Expression.VariableNode.create(fListener, key, null, null);
-         }
+         String   key = fProvider.makeKey((String)argValue);
+         return Expression.VariableNode.create(fListener, key, null, null);
+         
+//         Variable var = fProvider.safeGetVariable(key);
+//
+//         switch(fMode) {
+//         case CheckIdentifierExistance: {
+//            return new BooleanNode(var != null);
+//         }
+//         default:
+//         case Construct:
+//            if (var == null) {
+//               throw new Exception("Failed to find variable '" + key + "'");
+//            }
+//            if (!var.isConstant()) {
+//               var.addListener(fListener);
+//            }
+//         case Evaluate:
+//            if (var == null) {
+//               throw new Exception("Failed to find variable '" + key + "'");
+//            }
+//            return Expression.VariableNode.create(fListener, key, null, null);
+//         }
       }
       if ("Ordinal".equalsIgnoreCase(functionName)) {
          return new Expression.OrdinalNode(arg);
@@ -279,7 +277,7 @@ public class ExpressionParser {
                // [] should only be used in existence checks
                System.err.println("Empty index used in evaluated variable'"+fExpressionString+"'");
             }
-            index = new Expression("0", fProvider);
+            index = new Expression("0", fProvider, Mode.EvaluateImmediate);
          }
          else {
             int startOfIndex = fIndex;
@@ -314,43 +312,42 @@ public class ExpressionParser {
          throw new Exception("Provider used but not provided");
       }
       key = fProvider.makeKey(key);
-
-      Variable var;
-      if (index != null) {
-         var = fProvider.safeGetVariable(key+"["+index.getValueAsLong()+"]");
-      }
-      else {
-         var = fProvider.safeGetVariable(key);
-      }
       
-      if ((var != null) && !var.isConstant()) {
-         if (!fCollectedVariables.contains(var)) {
-            fCollectedVariables.add(var);
-         }
-      }
-      switch(fMode) {
-      case CheckIdentifierExistance:
+      if (fMode == Mode.CheckIdentifierExistance) {
          if (!forceEvaluate) {
+            String varKey = key;
+            if (index != null) {
+               varKey = varKey + "[0]";
+            }
+            Variable var = fProvider.safeGetVariable(varKey);
             return new BooleanNode(var != null);
          }
-      default:
-      case Construct:
-         if (var == null) {
-            throw new Exception("Failed to find variable '" + key + "'");
-         }
-         if (!var.isConstant()) {
-            var.addListener(fListener);
-         }
-      case CollectIdentifiers:
-      case EvaluateFully:
-         if (var == null) {
-            throw new Exception("Failed to find variable '" + key + "'");
-         }
-//         if (index != null) {
-//            System.err.println("Found it" + index);
-//         }
-         return Expression.VariableNode.create(fListener, key, modifier, index);
       }
+      return Expression.VariableNode.create(fListener, key, modifier, index);
+//      switch(fMode) {
+//      case CheckIdentifierExistance:
+//         if (!forceEvaluate) {
+//            String varKey = key;
+//            if (index != null) {
+//               varKey = varKey + "[0]";
+//            }
+//            Variable var = fProvider.safeGetVariable(varKey);
+//            return new BooleanNode(var != null);
+//         }
+//      default:
+//      case Construct:
+//         if (var == null) {
+//            throw new Exception("Failed to find variable '" + key + "'");
+//         }
+//         if (!var.isConstant()) {
+//            var.addListener(fListener);
+//         }
+//      case EvaluateFully:
+//         if ((var == null)&&(index == null)) {
+//            throw new Exception("Failed to find variable '" + key + "'");
+//         }
+//         return Expression.VariableNode.create(fListener, key, modifier, index);
+//      }
    }
    
    /**
@@ -492,7 +489,7 @@ public class ExpressionParser {
                break;
             case '-' :
                okResult = isFloatOrInteger(result);
-               result = new Expression.MinusNode(result);
+               result = new Expression.UnaryMinueNode(result);
                break;
             case '!' :
                okResult = isBoolean(result);
@@ -1016,22 +1013,6 @@ public class ExpressionParser {
       return new Expression.CommaListNode(list.toArray(new ExpressionNode[list.size()]));
    }
 
-//   /**
-//    * Accepts expr : ternary
-//    *
-//    * @return value of expr
-//    *
-//    * @throws Exception
-//    */
-//   private ExpressionNode parseIndexExpression() throws Exception {
-//      // Save current variables found
-//      ArrayList<Variable> currentVariables = fCollectedVariables;
-//      fCollectedVariables = new ArrayList<Variable>();
-//      ExpressionNode index = parseTernary();
-//      fCollectedVariables = currentVariables;
-//      return index;
-//   }
-
    private String getDiagnostic() {
       return String.format("\nInput     '%s" + "'" +
             "\n           %"+(fIndex+1)+"s", fExpressionString, "^")+
@@ -1076,7 +1057,6 @@ public class ExpressionParser {
 //      if (expression.contains("mcg_sc_fcrdiv")) {
 //         System.err.println("Found it " + expression);
 //      }
-      fCollectedVariables = new ArrayList<Variable>();
       fExpressionString = expression;
       fIndex = 0;
       try {
@@ -1091,13 +1071,4 @@ public class ExpressionParser {
       }
    }
 
-   /**
-    * Get list of non-constant variables collected while parsing expression
-    * 
-    * @return List
-    */
-   public ArrayList<Variable> getCollectedVariables() {
-      return fCollectedVariables;
-   }
-   
 }

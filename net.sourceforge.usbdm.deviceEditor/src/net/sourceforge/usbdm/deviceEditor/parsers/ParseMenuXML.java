@@ -51,7 +51,6 @@ import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.TitleModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -220,9 +219,11 @@ public class ParseMenuXML extends XML_BaseParser {
       // Iteration count 0..(fValueList-1)
       private int iter = 0;
 
+      private VariableProvider fProvider;
+
       /**
        * Construct for-loop element to keep track of substitutions
-       * @param fProvider
+       * @param provider
        * 
        * @param keys    List of keys e.g. "keyA,keyB"
        * @param values  List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
@@ -230,17 +231,31 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @throws Exception
        */
-      public ForLoop(VariableProvider fProvider, String keys, String values, String delimiter) throws Exception {
-         SimpleExpressionParser expressionParser =
-               new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
+      public ForLoop(VariableProvider provider, String keys, Object values, String delimiter) throws Exception {
          if (keys.contains(",")) {
             throw new ForloopException("Can't have ',' in keys '" + keys + "'");
          }
+         fProvider = provider;
          fKeys       = keys.split(":");
-         fValueList  = values.split(Pattern.quote(delimiter));
+         if (values instanceof String) {
+            fValueList  = ((String)values).split(Pattern.quote(delimiter));
+         }
+         else if(values.getClass().isArray()) {
+            fValueList = new String[((Object[]) values).length];
+            int index = 0;
+            for (Object obj:(Object[]) values) {
+               fValueList[index++] = obj.toString();
+            }
+         }
+         else {
+            fValueList = new String[1];
+            fValueList[0] = values.toString();
+         }
          for (int index=0; index<fValueList.length; index++) {
             if (fValueList[index].startsWith("@")) {
-               fValueList[index] = expressionParser.evaluate(fValueList[index].substring(1)).toString();
+//               String t = fValueList[index];
+               fValueList[index] = Expression.getValue(fValueList[index].substring(1), provider).toString();
+//               System.err.println("Found it "+t + " => " + fValueList[index]);
             }
          }
       }
@@ -325,6 +340,13 @@ public class ParseMenuXML extends XML_BaseParser {
                "' does not match number of keys = "+fKeys.length);
          }
          for (int index=0; index<fKeys.length; index++) {
+            if (fValues[index].startsWith("=")) {
+               try {
+                  fValues[index] = Expression.getValue(fValues[index].substring(1),fProvider).toString();
+               } catch (Exception e) {
+                  e.printStackTrace();
+               }
+            }
             text = text.replace("%("+fKeys[index].trim()+")", fValues[index]);
          }
          return text;
@@ -378,7 +400,7 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @throws Exception If keys and values are unmatched
        */
-      public void createLevel(VariableProvider fProvider, String keys, String values, String delimiter) throws Exception {
+      public void createLevel(VariableProvider fProvider, String keys, Object values, String delimiter) throws Exception {
          ForLoop loop = new ForLoop(fProvider, keys, values, delimiter);
          forStack.push(loop);
       }
@@ -419,7 +441,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
   
    /** Parser for template conditions */
-   private final SimpleExpressionParser  fExpressionParser;
+//   private final SimpleExpressionParser  fExpressionParser;
    
    /** Provider providing the variables used by the menu */
    private final VariableProvider  fProvider;
@@ -430,7 +452,7 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Templates being accumulated.
     * This is a map using (key + namespace) as map key.
-    * Multiple matching templates are kept in a list rather than combined (to allow individual iteration).
+    * Multiple matching templates are kept in a list rather than combined to allow individual conditions etc.
     */
    private final Map<String, ArrayList<TemplateInformation>> fTemplateInfos = new HashMap<String, ArrayList<TemplateInformation>>();
 
@@ -468,30 +490,26 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element Element being examined
     * @param name    Attribute name
     * 
-    * @return value parsed as Long or null if attribute not present
-    *         If the attribute value starts with "=" the it is evaluated as an expression with
-    *         variable substitution.
+    * @return value as Long or null if attribute not present<br>
+    *         If the attribute is a simple string it is parsed as a Long.<br>
+    *         If the attribute value starts with "=" then it is evaluated as an immediate expression
+    *         with variable substitution.  If this results in a Long it is returned, otherwise it is
+    *         converted to a string and parsed as a Long.
     * 
     * @throws Exception
     */
    protected Long getLongExpressionAttribute(Element element, String name) throws Exception {
-      String attr = getAttributeAsString(element, name);
-      if (attr.isBlank()) {
+      Object attr = getAttribute(element, name);
+      if (attr == null) {
          return null;
       }
-      if (attr.startsWith("=")) {
-         SimpleExpressionParser expressionParser = new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
-         Object res = expressionParser.evaluate(attr.substring(1));
-         if (res instanceof String) {
-            // If string result assume it is an expression
-            res = expressionParser.evaluate((String)res);
-         }
-         return (Long)res;
+      if (attr instanceof Long) {
+         return (Long) attr;
       }
       try {
-         return Long.decode(attr);
+         return Long.decode(attr.toString());
       } catch (NumberFormatException e) {
-         throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' in '"+element+"'");
+         throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' value '"+attr+"'");
       }
    }
    
@@ -550,7 +568,7 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       String keys       = getAttributeAsString(element, "keys");
-      String values     = getAttributeAsString(element, "values");
+      Object values     = getAttribute(element, "values");
       String dim        = getAttributeAsString(element, "dim");
       String delimiter  = getAttributeAsString(element, "delimiter", ";");
       
@@ -561,8 +579,6 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("<for> requires keys = '"+keys+"', values = '"+values+"'");
       }
 
-      SimpleExpressionParser expressionParser =
-            new SimpleExpressionParser(fProvider, SimpleExpressionParser.Mode.EvaluateFully);
       if (dim != null) {
          if (values != null) {
             throw new Exception("Both values and dim attribute given in <for> '" + keys +"'");
@@ -575,14 +591,14 @@ public class ParseMenuXML extends XML_BaseParser {
             end   = getLongWithVariableSubstitution(dims[0]).intValue();
          }
          else if (dims.length == 2) {
-            Object s = expressionParser.evaluate(dims[0]);
+            Object s = Expression.getValue(dims[0], fProvider);
             if (s instanceof String) {
-               s = expressionParser.evaluate((String) s);
+               s = Expression.getValueAsLong((String) s, fProvider);
             }
             start = (long) s;
-            Object e = expressionParser.evaluate(dims[1]);
+            Object e = Expression.getValue(dims[1], fProvider);
             if (e instanceof String) {
-               e = expressionParser.evaluate((String) e);
+               e = Expression.getValueAsLong((String) s, fProvider);
             }
             end = (long) e;
          }
@@ -595,7 +611,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          values=sb.toString();
       }
-      if (values.isBlank()) {
+      if ((values instanceof String) && ((String)values).isBlank()) {
          // Empty loop
          return;
       }
@@ -670,9 +686,6 @@ public class ParseMenuXML extends XML_BaseParser {
       fPeripheral = peripheral;
 
       fProjectActionList = new ProjectActionList(provider.getName()+" Action list");
-
-//      fTemplateConditionParser = new TemplateConditionParser(provider);
-      fExpressionParser = new SimpleExpressionParser(provider, SimpleExpressionParser.Mode.CheckIdentifierExistance);
    }
 
    /**
@@ -1186,15 +1199,14 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseBitmaskOption(BaseModel parent, Element varElement) throws Exception {
-      long bitmask = 0;
       if (!checkCondition(varElement)) {
          return;
       }
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
       parseCommonAttributes(parent, varElement, variable);
       try {
-         bitmask = getLongExpressionAttribute(varElement, "bitmask");
-         variable.setPermittedBits(bitmask);
+         variable.setBitDescription(getAttributeAsString(varElement, "bitDescription"));
+         variable.setPermittedBits(getLongExpressionAttribute(varElement, "bitmask"));
          variable.setBitList(getAttributeAsString(varElement, "bitList"));
          variable.setPinMap(getAttributeAsString(varElement, "pinMap"));
       } catch( NumberFormatException e) {
@@ -1524,15 +1536,12 @@ public class ParseMenuXML extends XML_BaseParser {
       String attribute = fForStack.doForSubstitutions(element.getAttribute(attrName));
       attribute = replaceCommonNames(attribute).trim();
       
-//      if ("=_enable".equalsIgnoreCase(attribute)) {
-//         System.err.println("Found it "+attribute);
-//      }
+      if (attribute.startsWith("\\=")) {
+         return attribute.substring(2);
+      }
       Object res = attribute;
       if (attribute.startsWith("=")) {
-         res = Expression.evaluate(attribute.substring(1), fProvider);
-//         Expression exp = new Expression(attribute.substring(1), fProvider, ExpressionParser.Mode.EvaluateFully);
-//         exp.getValue();
-//         res = SimpleExpressionParser.evaluate(attribute.substring(1), fProvider, Mode.EvaluateFully);
+         res = Expression.getValue(attribute.substring(1), fProvider);
       }
       return res;
    }
@@ -1582,6 +1591,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (res == null) {
          return null;
       }
+      
       return res.toString();
    }
    
@@ -1655,13 +1665,13 @@ public class ParseMenuXML extends XML_BaseParser {
          return (Long)res;
       }
       if (res instanceof String) {
-         res = SimpleExpressionParser.evaluate(res.toString(), fProvider, Mode.EvaluateFully);
+         res = Expression.getValue(res.toString(), fProvider);
       }
       try {
          return Long.valueOf(res.toString());
       } catch (NumberFormatException e) {
          e.printStackTrace();
-         return Long.valueOf(2);
+         return Long.valueOf(0);
       }
    }
    
@@ -1857,7 +1867,7 @@ public class ParseMenuXML extends XML_BaseParser {
       CategoryModel model = new CategoryModel(parent, getAttributeAsString(varElement, "name"));
       boolean hidden = Boolean.parseBoolean(getAttributeAsString(varElement, "hidden"));
       model.setHidden(hidden);
-      model.setToolTip(getAttributeAsString(varElement, "toolTip"));
+      model.setToolTip(getToolTip(varElement));
       model.setSimpleDescription(getAttributeAsString(varElement, "description"));
       parseChildModels(model, varElement);
       if ((model.getChildren()==null)||(model.getChildren().size()==0)) {
@@ -1890,7 +1900,10 @@ public class ParseMenuXML extends XML_BaseParser {
    
    private void parseAliasCategoryOption(BaseModel parent, Element varElement) throws Exception {
       AliasPlaceholderModel model = parseAliasOption(parent, varElement);
-
+      if (model == null) {
+         // Disabled
+         return;
+      }
       parseChildModels(model, varElement);
 
       if ((model.getChildren() == null) || (model.getChildren().size() == 0)) {
@@ -2051,6 +2064,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private AliasPlaceholderModel parseAliasOption(BaseModel parent, Element stringElement) throws Exception {
+      if (!checkCondition(stringElement)) {
+         return null;
+      }
+      
       String  key          = getKeyAttribute(stringElement);
       String  name         = getAttributeAsString(stringElement, "name");
       String  description  = getAttributeAsString(stringElement, "description");
@@ -2137,9 +2154,11 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       for(int index=0; index<results.length; index++) {
-         String indexedKey = key;
+         String indexedKey  = key;
+         String indexedName = name;
          if (results.length>1) {
-            indexedKey = key+"["+index+"]";
+            indexedKey  = key+"["+index+"]";
+            indexedName = name+"["+index+"]";
          }
          Variable var = safeGetVariable(indexedKey);
          if (var != null) {
@@ -2150,7 +2169,7 @@ public class ParseMenuXML extends XML_BaseParser {
                // Replace constant value
                var.setValue(results[index]);
                if (element.hasAttribute("name")) {
-                  var.setName(name);
+                  var.setName(indexedName);
                }
                if (element.hasAttribute("description")) {
                   var.setDescription(description);
@@ -2158,7 +2177,7 @@ public class ParseMenuXML extends XML_BaseParser {
                return;
             }
             else {
-               throw new Exception("Constant multiply defined, name="+name+", key=" + indexedKey);
+               throw new Exception("Constant multiply defined, name="+indexedName+", key=" + indexedKey);
             }
          }
          else {
@@ -2166,7 +2185,7 @@ public class ParseMenuXML extends XML_BaseParser {
                System.err.println("Warning: Old style 'Integer' type for '" + key + "'");
                type = "Long";
             }
-            var = Variable.createConstantWithNamedType(name, indexedKey, type+"Variable", results[index]);
+            var = Variable.createConstantWithNamedType(indexedName, indexedKey, type+"Variable", results[index]);
             var.setDescription(description);
             var.setHidden(isHidden);
             fProvider.addVariable(var);
@@ -2818,7 +2837,6 @@ public class ParseMenuXML extends XML_BaseParser {
             String bodyText = getText(node);
             bodyText = doTemplateSubstitutions(bodyText, substitutions);
             templateInfo.addText(bodyText);
-            continue;
          }
       }
    }
@@ -3193,6 +3211,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "graphic") {
          parseGraphic(parentModel, element);
       }
+      else if (tagName == "dialogue") {
+         parseDialogue(parentModel, element);
+      }
       else {
          throw new Exception("Unexpected tag in parseControlItem(), \'"+tagName+"\'");
       }
@@ -3233,6 +3254,53 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       var.setValue(expression);
    }
+
+   private void parseDialogue(BaseModel parentModel, Element element) throws Exception {
+      
+      ClockSelectionFigure figure = new ClockSelectionFigure(fProvider, 0 /* getIntAttribute(element, "clockConfigIndex" */);
+      
+      OpenGraphicModel model = new OpenGraphicModel(
+            parentModel,
+            getKeyAttribute(element),
+            fProvider.safeGetVariable(getKeyAttribute(element, "var")),
+            figure);
+      
+      model.setToolTip(getAttributeAsString(element, "toolTip"));
+      model.setSimpleDescription(getAttributeAsString(element, "description"));
+      
+      for (Node node = element.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element boxElement = (Element) node;
+         if (!checkCondition(boxElement)) {
+            // Discard element
+            continue;
+         }
+         String tagName = boxElement.getTagName();
+         if (tagName == "graphicBox") {
+            parseGraphicBoxOrGroup(parentModel, 0, 0, figure, boxElement);
+            continue;
+         }
+         if (tagName == "graphicGroup") {
+            parseGraphicBoxOrGroup(parentModel, 0, 0, figure, boxElement);
+            continue;
+         }
+         if (tagName == "equation") {
+            parseEquation(boxElement);
+            continue;
+         }
+         if (tagName == "for") {
+            GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, figure);
+            parseForLoop(parentModel, boxElement, graphicWrapper);
+            continue;
+         }
+         throw new Exception("Expected tag = <graphicBox>, found = <"+tagName+">");
+      }
+   }
+
 
    static class GraphicWrapper {
       final int                  fBoxX, fBoxY;
@@ -3491,14 +3559,14 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("<choice> must have name and value attributes "+element);
          }
          // Check if entry has condition to be available for choice to be present
-         Boolean keepChoice = (Boolean) fExpressionParser.evaluate(getAttributeAsString(element, "condition"));
+         Boolean keepChoice = Expression.checkCondition(getAttributeAsString(element, "condition"), fProvider);
          if (!keepChoice) {
             // Discard choice
             continue;
          }
          boolean hidden = false;
          if (element.hasAttribute("hidden")) {
-            hidden = (Boolean) fExpressionParser.evaluate(getAttributeAsString(element, "hidden"));
+            hidden = Expression.getValueAsBoolean(getAttributeAsString(element, "hidden"), fProvider);
          }
          ChoiceData entry = new ChoiceData(
                getAttributeAsString(element, "name"),
@@ -3521,7 +3589,7 @@ public class ParseMenuXML extends XML_BaseParser {
             defaultValue = 0;
          }
          if (element.hasAttribute("isDefault")) {
-            if ((Boolean) fExpressionParser.evaluate(getAttributeAsString(element, "isDefault"))) {
+            if (Expression.checkCondition(getAttributeAsString(element, "isDefault"), fProvider)) {
                // Explicit default set
                if (defaultExplicitlySet) {
                   throw new Exception("Multiple default choices set in <"+menuElement.getTagName() + " name=\""+menuElement.getAttribute("name")+"\"> <choice name=\"" + getAttributeAsString(element, "name")+ "\">");
@@ -3690,8 +3758,6 @@ public class ParseMenuXML extends XML_BaseParser {
       long dimension = getLongAttributeWithVariableSubstitution(validateElement, "dim");
       ValidatorInformation validator = new ValidatorInformation(getAttributeAsString(validateElement, "class"), (int)dimension);
       
-      SimpleExpressionParser parser = new SimpleExpressionParser(fProvider, Mode.EvaluateFully);
-      
       for (Node node = validateElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -3705,10 +3771,10 @@ public class ParseMenuXML extends XML_BaseParser {
             
             // Do substitutions on parameter
             if (type.equalsIgnoreCase("long")) {
-               validator.addParam(parser.evaluate(value));
+               validator.addParam(Expression.getValue(value, fProvider));
             }
             else if (type.equalsIgnoreCase("string")) {
-               validator.addParam(parser.evaluate(value));
+               validator.addParam(Expression.getValue(value, fProvider));
             }
             else {
                throw new Exception("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");

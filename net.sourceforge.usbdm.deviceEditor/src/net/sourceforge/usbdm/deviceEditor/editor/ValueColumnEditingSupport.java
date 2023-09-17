@@ -58,7 +58,7 @@ public class ValueColumnEditingSupport extends EditingSupport {
          }
       }
       else if (element instanceof EditableModel) {
-         ((EditableModel)element).setValueAsString((String) value);
+         ((EditableModel)element).setValueAsString(value.toString());
       }
       fViewer.update(element, null);
    }

@@ -147,6 +147,7 @@ public class Field extends ModeControl implements Cloneable {
       fEnumerations       = other.fEnumerations;
       fName               = other.fName;
       fOwner              = other.fOwner;
+      fIgnoreOverlap      = other.fIgnoreOverlap;
    }
 
    public Field getDerivedFrom() {

@@ -52,6 +52,13 @@ public enum MuxSelection {
       return shortName;
    }
    /**
+    * Gets the mux values
+    * 
+    */
+   public int getMuxValue() {
+      return value;
+   }
+   /**
     * Indicates if the mux value is a mapped value i.e. 0...7<br>
     * rather than one of the special values fixed or unassigned.
     * 
@@ -61,6 +68,7 @@ public enum MuxSelection {
       return this.ordinal() >= mux0.ordinal();
    }
    
+   @Override
    public String toString() {
       return super.toString()+"("+Integer.toString(value)+")";
    }

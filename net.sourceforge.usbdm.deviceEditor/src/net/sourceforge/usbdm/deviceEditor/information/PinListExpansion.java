@@ -132,6 +132,9 @@ public class PinListExpansion {
     */
    public static String[] expandPinList(String pattern, String delimeter) {
 
+      if (pattern == null) {
+         return null;
+      }
       ArrayList<String> result = new ArrayList<String>();
 
       try {

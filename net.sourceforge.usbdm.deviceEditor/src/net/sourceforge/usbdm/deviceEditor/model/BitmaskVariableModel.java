@@ -27,10 +27,7 @@ public class BitmaskVariableModel extends VariableModel {
          try {
             BitmaskDialogue dialog = new BitmaskDialogue(
                   fModel.getVariable(),
-                  paramControl.getShell(),
-                  var.getBitList(),
-                  var.getPermittedBits(),
-                  var.getValueAsLong());
+                  paramControl.getShell());
             dialog.setTitle(var.getDescription());
             if (dialog.open() == Window.OK) {
                return Long.toString(dialog.getResult());

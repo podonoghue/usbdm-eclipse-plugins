@@ -47,8 +47,8 @@ public class Activator extends AbstractUIPlugin {
     */
    @Override
    public void stop(BundleContext context) throws Exception {
-      plugin = null;
       log(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      plugin = null;
       super.stop(context);
    }
 

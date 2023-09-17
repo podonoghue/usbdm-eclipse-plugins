@@ -39,6 +39,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
       fDeviceInfo.addListener(this);
    }
 
+   @Override
    public void setValueAsString(String value) {
       int oldSelection = fSelection;
       super.setValueAsString(value);

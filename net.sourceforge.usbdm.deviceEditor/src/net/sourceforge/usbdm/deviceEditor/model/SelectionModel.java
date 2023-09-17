@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -15,7 +16,7 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
 
    /** Current selection index */
    protected int fSelection = 0;
-   
+
    public SelectionModel(BaseModel parent, String name) {
       super(parent, name);
    }
@@ -35,6 +36,15 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
    }
 
    /**
+    * Get the index of the selected value from choices
+    * 
+    * @return Index of choice
+    */
+   public int getSelection() {
+      return fSelection;
+   }
+   
+   /**
     * Set the selected value from choices
     * 
     * @param selection Index of choice
@@ -44,7 +54,7 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
          fSelection = selection;
       }
    }
-   
+
    @Override
    public String getValueAsString() {
       try {
@@ -54,15 +64,17 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
          return "Illegal current selection!!";
       }
    }
-   
+
    @Override
    public void setValueAsString(String value) {
+      // value may be from a check-box (true/false) or a selection (string from selection chosen)
+      
+//      System.err.println("setValueAsString(" + value + ")");
+
       fSelection = findChoiceIndex(value);
       if (fSelection<0) {
-         // Invalid - reset to first element
          fSelection = 0;
       }
-      return;
    }
 
    /**
@@ -81,9 +93,43 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
       return -1;
    }
 
+   static class BooleanCellEditor extends CheckboxCellEditor {
+      
+      // The selection model owning this editor
+      final SelectionModel fModel;
+
+      public BooleanCellEditor(Tree tree, SelectionModel model) {
+         super(tree);
+         setValueValid(true);
+         fModel = model;
+      }
+
+      @Override
+      protected Object doGetValue() {
+         // Boolean => choice (String) => setValueAsString()
+         Boolean value = (Boolean) super.doGetValue();
+//         System.err.println("doGetValue()" + value + "=>" + value);
+         return fModel.getChoices()[value?1:0];
+      }
+
+      @Override
+      protected void doSetValue(Object value) {
+         // GUI value (String) => boolean
+         int index = fModel.findChoiceIndex(value.toString());
+         Boolean bValue = index > 0;
+//         System.err.println("doSetValue(" + value + "=>" + bValue + ")");
+         super.doSetValue(bValue);
+      }
+   }
+
    static class ChoiceCellEditor extends ComboBoxCellEditor {
-      public ChoiceCellEditor(Composite tree, String[] choices) {
-         super(tree, choices, SWT.READ_ONLY);
+
+      // The selection model owning this editor
+      final SelectionModel fModel;
+
+      public ChoiceCellEditor(Composite tree, SelectionModel model) {
+         super(tree, model.getChoices(), SWT.READ_ONLY);
+         fModel = model;
          setActivationStyle(
                ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
                ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
@@ -92,30 +138,28 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
 
       @Override
       protected Object doGetValue() {
+         // Index(int) => choice (String) => setValueAsString()
          int index = (Integer) super.doGetValue();
-         String[] items = getItems();
-         if ((index<0) || (index>=items.length)) {
-            index = 0;
-         }
-         String item = items[index];
+         String item = getItems()[index];
+//         System.err.println("doGetValue()" + index + "=>" + item);
          return item;
       }
 
       @Override
       protected void doSetValue(Object value) {
-         String[] items = getItems();
-         for (int index=0; index<items.length; index++) {
-            if (items[index].equalsIgnoreCase(value.toString())) {
-               super.doSetValue(index);
-               return;
-            }
-         }
+         // GUI value (String) => index
+         int index = fModel.findChoiceIndex(value.toString());
+//         System.err.println("doSetValue(" + value + ")");
+         super.doSetValue(index);
       }
    }
 
    @Override
    public CellEditor createCellEditor(Tree tree) {
-      return new ChoiceCellEditor(tree, getChoices());
+      if (getChoices().length == 2) {
+         return new BooleanCellEditor(tree, this);
+      }
+      return new ChoiceCellEditor(tree, this);
    }
 
 }

@@ -12,43 +12,46 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
 
 public class BitmaskDialogue extends Dialog {
-   // Buttons within dialogue
-   private       Button    fButtons[];
-
-   // Maps button to bit number
-   private       Integer[] fBitMapping;
-   
-   // List of names for the bits
-   private String[] fBitNames = null;
-   
-   // Current value
-   private       long      fValue;
+   // Associated variable
+   private final BitmaskVariable fVariable;
    
    // Mask indicating valid bits (if non-zero)
    private final long      fBitmask;
    
-   // Associated variable
-   private final BitmaskVariable fVariable;
+   // Maps button to bit number
+   private final Integer[] fBitMapping;
    
-   // Name pattern for buttons e.g. pin%d (if not individually specified)
-   private String   fBitNameTemplate = "B%i";
+   // List of names for the bits
+   private final String[] fBitNames;
    
+   // List of names for the bits
+   private final String[] fDescriptions;
+   
+   // Buttons within dialogue
+   private final Button    fButtons[];
+
    // Dialogue title
-   private String   fTitle = "Select pins";
+   private String fTitle = "Select pins";
+   
+   // Current value
+   private long fValue;
    
    /**
     * Create dialogue displaying a set of check boxes
     * 
     * @param bitmaskVariable  Variable representing bit mask
-    * @param parentShell      Shell
-    * @param bitNames         Names for bits e.g. "B0,B2,*,,,B6", "Pin#%i" or null for defaults. '*' or ' ' = unused bit
-    * @param bitmask          Bit-mask for valid bit selections.  May be zero if bitNames provided.
-    * @param initialValue     Initial value for mask<br>
+    * @param parentShell      Shell<br>
+    * 
+    * Other information is obtained from the bitmaskVariable e.g.<br>
+    * <li> Names for bits e.g. "B0,B2,*,,,B6", "Pin#%i" or null for defaults. '*' or ' ' = unused bit
+    * <li> Bit-mask for valid bit selections.  May be zero if bitNames provided.
+    * <li> Initial value for mask
     * 
     * <b>Examples:</b>
     * <pre>
@@ -56,190 +59,200 @@ public class BitmaskDialogue extends Dialog {
     *  case 1: 0x27      Pin%i      => Pin0,Pin1,Pin2,,,Pin5   0,1,2,5           Pin0,Pin1,Pin2,Pin5 (generated as needed)
     *  case 2: 0x27      A,B,C,D    => A,B,C,,,D               0,1,2,5           A,B,C,D
     *  case 3: 0x00      A,,B,,,C   => A,,B,,,C                0,3,5             A,B,C
-    *  case 4: 0x27      null or '' => B0,B1,B2,,,B5           -1,1,2,3,-1,-1,5  B0,B1,B2,B3,B4,B5 (generated as needed, some disabled)
+    *  case 4: 0x27      null or '' => B0,B1,B2,,,B5           0,1,2,-1,-1,5     B0,B1,B2,,,B5 (generated as needed, some disabled)
     * </pre>
+    * @return
     * 
     * @throws Exception
     */
-   public BitmaskDialogue(BitmaskVariable bitmaskVariable, Shell parentShell, String bitNames, long bitmask, long initialValue) throws Exception {
-     super(parentShell);
-     fVariable = bitmaskVariable;
-     if  ((bitmask !=0) && (bitNames != null) && !bitNames.isBlank()) {
+   public BitmaskDialogue(BitmaskVariable bitmaskVariable, Shell parentShell) throws Exception {
+      super(parentShell);
+      fVariable = bitmaskVariable;
+      
+     String tBitNames     = bitmaskVariable.getBitList();
+     long   tBitmask      = bitmaskVariable.getPermittedBits();
+     String tDescriptions = bitmaskVariable.getBitDescriptions();
+     
+     if  ((tBitmask !=0) && (tBitNames != null) && !tBitNames.isBlank()) {
         // Both supplied - cases 1,2
-        String[] t = bitNames.split(",", -1);
-        if (t.length == 1) {
-           // Case 1
-           // Name is a template e.g. Pin%i
-           fBitNameTemplate = bitNames;
-           fBitNames = null;
-        }
-        else {
-           // Case 2
-           fBitNames = t;
-        }
-        ArrayList<Integer> indices = new ArrayList<Integer>();
+        
+        // Create bit mapping
+        ArrayList<Integer> bitMappingList = new ArrayList<Integer>();
         for (int index=0; index<32; index++) {
            long mask = (1L<<index);
-           if (mask>bitmask) {
+           if (mask>tBitmask) {
               break;
            }
-           if ((bitmask&mask) != 0) {
-              indices.add(index);
+           if ((tBitmask&mask) != 0) {
+              bitMappingList.add(index);
            }
         }
-        fBitMapping = indices.toArray(new Integer[indices.size()]);
-        fBitmask    = bitmask;
-     }
-     else if  ((bitmask == 0) && (bitNames != null)) {
-        // Case 3
-        // Determine bitmask and indices from names
-        String[] tBitNames = PinListExpansion.expandPinList(bitNames, ",");
-        long tBitmask = 0;
-        ArrayList<Integer> indices = new ArrayList<Integer>();
-        ArrayList<String>  names   = new ArrayList<String>();
-        for (int index=0; index<tBitNames.length; index++) {
-           long mask = (1L<<index);
-           if (!tBitNames[index].isBlank()) {
-              tBitmask |= mask;
-              indices.add(index);
-              names.add(tBitNames[index]);
+
+        // Create bit names
+        String[] tBitNamesArray = tBitNames.split(",", -1);
+        if (tBitNamesArray.length == 1) {
+           // Case 1 - template Pin%i + bitmask
+           // Create names as needed
+           
+           String[] tDescriptionsArray = null;
+           if ((tDescriptions != null) && !tDescriptions.isBlank()) {
+              tDescriptionsArray = tDescriptions.split(",", -1);
+              if (tDescriptionsArray.length != tBitNamesArray.length) {
+                 throw new Exception("# of bit names does not match # of descriptions");
+              }
            }
-        }
-        fBitNames   = names.toArray(new String[names.size()]);
-        fBitMapping = indices.toArray(new Integer[indices.size()]);
-        fBitmask    = tBitmask;
-     }
-     else if ((bitmask != 0) && (bitNames == null)) {
-        // Case 4
-        // Create default bit names based on bitmask
-        ArrayList<Integer> indices = new ArrayList<Integer>();
-        for (int index=0; index<32; index++) {
-           long mask = (1L<<index);
-           if ((bitmask&mask) != 0) {
-              indices.add(index);
+           ArrayList<String>  bitNameList        = new ArrayList<String>();
+           ArrayList<String>  bitDescriptionList = new ArrayList<String>();
+           for (int index=0; index<32; index++) {
+              long mask = (1L<<index);
+              if (mask>tBitmask) {
+                 break;
+              }
+              if ((tBitmask&mask) != 0) {
+                 bitNameList.add(tBitNamesArray[0].replaceAll("%i", Integer.toString(index)));
+                 if (tDescriptionsArray != null) {
+                    bitDescriptionList.add(tDescriptionsArray[0].replaceAll("%i", Integer.toString(index)));
+                 }
+              }
+           }
+           fBitNames = bitNameList.toArray(new String[bitNameList.size()]);
+           if (tDescriptionsArray != null) {
+              fDescriptions = bitDescriptionList.toArray(new String[bitNameList.size()]);
            }
            else {
-              indices.add(-1);
+              fDescriptions = null;
+           }
+//           System.err.println("Case 1: " + Long.toBinaryString(tBitmask) + " | " +  bitMappingList.toString() +" | " + Arrays.toString(fBitNames) + " | " + Arrays.toString(fDescriptions));
+        }
+        else {
+           // Case 1 - Names list Pin1,Pin2,,Pin3 + bitmask
+           fBitNames     = tBitNamesArray;
+           if (tDescriptions != null) {
+              fDescriptions = tDescriptions.split(",", -1);
+           }
+           else {
+              fDescriptions = null;
+           }
+//           System.err.println("Case 2: " + Long.toBinaryString(tBitmask) + " | " +  bitMappingList.toString() +" | " + Arrays.toString(fBitNames) + " | " + Arrays.toString(fDescriptions));
+        }
+        fBitMapping = bitMappingList.toArray(new Integer[bitMappingList.size()]);
+        fBitmask    = tBitmask;
+     }
+     else if  ((tBitmask == 0) && (tBitNames != null) && !tBitNames.isBlank()) {
+        // Case 3 - Bitmask=0, Names provided
+        // Determine bitmask and indices from names
+        String[] bitNamesArray     = PinListExpansion.expandPinList(tBitNames, ",");
+        String[] descriptionsArray = PinListExpansion.expandPinList(tDescriptions, ",");
+        if ((descriptionsArray != null) && (descriptionsArray.length != bitNamesArray.length)) {
+           throw new Exception("# of expanded bit names does not match # of expanded descriptions");
+        }
+        ArrayList<Integer> bitMappingList     = new ArrayList<Integer>();
+        ArrayList<String>  bitNamesList       = new ArrayList<String>();
+        ArrayList<String>  bitDescriptionList = new ArrayList<String>();
+        for (int index=0; index<bitNamesArray.length; index++) {
+           long mask = (1L<<index);
+           if (!bitNamesArray[index].isBlank()) {
+              tBitmask |= mask;
+              bitMappingList.add(index);
+              bitNamesList.add(bitNamesArray[index]);
+              if (descriptionsArray != null) {
+                 bitDescriptionList.add(descriptionsArray[index]);
+              }
            }
         }
-        fBitMapping = indices.toArray(new Integer[indices.size()]);
-        fBitmask    = bitmask;
+        fBitNames     = bitNamesList.toArray(new String[bitNamesList.size()]);
+        if (tDescriptions != null) {
+           fDescriptions = bitDescriptionList.toArray(new String[bitDescriptionList.size()]);
+        }
+        else {
+           fDescriptions = null;
+        }
+        fBitMapping   = bitMappingList.toArray(new Integer[bitMappingList.size()]);
+        fBitmask      = tBitmask;
+//        System.err.println("Case 3: " + Long.toBinaryString(tBitmask) + " | " +  bitMappingList.toString() + " | " + Arrays.toString(fBitNames) + " | " + Arrays.toString(fDescriptions));
+     }
+     else if ((tBitmask != 0) && ((tBitNames == null)||tBitNames.isBlank())) {
+        // Case 4 - bitmask only
+        // Create default bit names based on bitmask
+        ArrayList<Integer> bitMappingList = new ArrayList<Integer>();
+        ArrayList<String>  bitnames       = new ArrayList<String>();
+
+        for (int index=0; index<32; index++) {
+           long mask = (1L<<index);
+           if (mask>tBitmask) {
+              break;
+           }
+           if ((tBitmask&mask) != 0) {
+              bitMappingList.add(index);
+           }
+           else {
+              bitMappingList.add(-1);
+           }
+           bitnames.add("B%i".replaceAll("%i", Integer.toString(index)));
+        }
+        fBitNames     = bitnames.toArray(new String[bitnames.size()]);
+        fDescriptions = null;
+        fBitMapping   = bitMappingList.toArray(new Integer[bitMappingList.size()]);
+        fBitmask      = tBitmask;
+//        System.err.println("Case 4: " + Long.toBinaryString(tBitmask) + " | " +  bitMappingList.toString() + " | " + Arrays.toString(fBitNames) + " | " + Arrays.toString(fDescriptions));
      }
      else {
         throw new Exception("Either bitmask or bit names must be provided");
      }
-     // Limit value to permitted range
-     fValue = initialValue & fBitmask;
-     
-     // Create button array
-//     if ((fBitNames != null) && (numButtons != fBitNames.length)) {
-//        throw new Exception("Number of names provided ("+fBitNames.length+") from '"+String.join(",", fBitNames)+"' doesn't match mask 0x"+Long.toBinaryString(fBitmask));
-//     }
-//     if (highestOne != 0) {
-//        fButtons  = new Button[numButtons];
-//     }
-//     else {
-//        fButtons = null;
-//     }
-     fButtons = new Button[fBitMapping.length];
-     if (fBitNames != null) {
-        for (int index=0; index<fBitNames.length; index++) {
-           fBitNames[index] = fBitNames[index].trim();
+     for (int index=0; index<fBitNames.length; index++) {
+        fBitNames[index] = fBitNames[index].trim();
+     }
+     if (fDescriptions != null) {
+        for (int index=0; index<fDescriptions.length; index++) {
+           fDescriptions[index] = fDescriptions[index].trim();
         }
      }
+     // Set value to permitted range
+     fValue = bitmaskVariable.getValueAsLong() & fBitmask;
+     
+     // Create buttons array
+     fButtons = new Button[fBitNames.length];
    }
 
-   /**
-    * Set name pattern for elements e.g. pin%d
-    * 
-    * @param name
-    */
-   void setElementName(String name) {
-      fBitNameTemplate = name;
-   }
-   
    @Override
    protected Control createDialogArea(Composite parent) {
+      
       Composite container = (Composite) super.createDialogArea(parent);
       container.setToolTipText(fVariable.getToolTip());
-      int width = 8;
-      if (fBitNames != null) {
-         if (fBitNames.length<width) {
-            width = fBitNames.length;
-         }
+      
+      GridLayout gl  = (GridLayout) container.getLayout();
+      if (fDescriptions != null) {
+         gl.numColumns  = 2;
       }
       else {
-         if (fButtons.length<width) {
-            width = fButtons.length;
-         }
+         gl.numColumns  = fBitNames.length;
       }
-      GridLayout gl  = new GridLayout(width, true);
-      gl.marginLeft  = 10;
-      gl.marginRight = 10;
-      gl.marginTop   = 10;
-      container.setLayout(gl);
-      container.layout();
 
       if (fBitmask == 0) {
          Label lbl = new Label(container, SWT.CHECK);
          lbl.setText("No bits selectable");
       }
       else {
-         int nameIndex = 0;
-         for (int i=0; i<32; i++) {
-            long mask = (1L<<i);
-            if (mask > fBitmask) {
-               break;
-            }
-            fButtons[nameIndex] = null;
-            if (fBitNames != null) {
-               // If names are given only create required buttons
-               if ((fBitmask & mask) != 0) {
-                  Button btn = new Button(container, SWT.CHECK);
-                  String text = fBitNames[nameIndex];
-                  if ((text == null) || text.isBlank()) {
-                     text = fBitNameTemplate.replaceAll("%i", Integer.toString(i));
-                  }
-                  btn.setText(text);
-                  btn.setSelection((fValue & mask) != 0);
-                  btn.setData(i);
-                  fButtons[nameIndex] = btn;
-                  btn.setToolTipText(fVariable.getToolTip());
-                  nameIndex++;
-               }
+         for (int nameIndex=0; nameIndex<fBitNames.length; nameIndex++) {
+            Button btn = new Button(container, SWT.CHECK);
+            if (fBitMapping[nameIndex]>=0) {
+               btn.setSelection((fValue & (1<<fBitMapping[nameIndex])) != 0);
             }
             else {
-               // Create all buttons but selectively enabled
-               Button btn = new Button(container, SWT.CHECK);
-               btn.setText(fBitNameTemplate.replaceAll("%i", Integer.toString(i)));
-               btn.setSelection((fValue & mask) != 0);
-               btn.setEnabled((fBitmask & mask) != 0);
-//               Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_GRAY);
-//               btn.setForeground(c);
-               btn.setData(i);
-               fButtons[i] = btn;
+               btn.setEnabled(false);
             }
-//            if (fButtons[i] != null) {
-//               fButtons[i].setToolTipText(fVariable.getToolTip());
-//               fButtons[i].addSelectionListener(new SelectionListener() {
-//                  @Override
-//                  public void widgetSelected(SelectionEvent e) {
-//                     Button b = (Button) e.widget;
-//                     long mask  = 1<<((int) b.getData());
-//                     long value = (b.getSelection()?mask:0);
-//                     boolean changedFromDefault = (((value^fDefaultValue) & mask) != 0);
-//                     Color c = Display.getCurrent().getSystemColor(changedFromDefault?SWT.COLOR_BLACK:SWT.COLOR_TITLE_INACTIVE_BACKGROUND);
-//                     b.setForeground(c);
-//                  }
-//
-//                  @Override
-//                  public void widgetDefaultSelected(SelectionEvent e) {
-//                  }
-//               });
-//            }
+            btn.setText(fBitNames[nameIndex]);
+            btn.setData(nameIndex);
+            btn.setToolTipText(fVariable.getToolTip());
+            fButtons[nameIndex] = btn;
+            if (fDescriptions != null) {
+               Text text = new Text(container, SWT.LEFT);
+               text.setText(fDescriptions[nameIndex]);
+            }
          }
       }
-      parent.layout(true);
+//      container.layout();
+//      parent.layout(true);
       return container;
    }
 
@@ -255,12 +268,14 @@ public class BitmaskDialogue extends Dialog {
          return "";
       }
       for (int buttonIndex=0; buttonIndex<fButtons.length; buttonIndex++) {
-         if ((fValue & (1<<fBitMapping[buttonIndex]))!=0) {
-            if (!firstElement) {
-               sb.append(",");
+         if (fBitMapping[buttonIndex]>=0) {
+            if ((fValue & (1<<fBitMapping[buttonIndex]))!=0) {
+               if (!firstElement) {
+                  sb.append(",");
+               }
+               sb.append(buttonIndex);
+               firstElement = false;
             }
-            sb.append(buttonIndex);
-            firstElement = false;
          }
       }
       return sb.toString();
@@ -278,13 +293,10 @@ public class BitmaskDialogue extends Dialog {
    @Override
    protected void okPressed() {
       fValue = 0;
-      if (fButtons != null) {
-         for (int buttonIndex=0; buttonIndex<fButtons.length; buttonIndex++) {
-            Control b = fButtons[buttonIndex];
-            Button btn = (Button)b;
-            if (btn != null) {
-               fValue |= btn.getSelection()?(1L<<fBitMapping[buttonIndex]):0;
-            }
+      for (int buttonIndex=0; buttonIndex<fButtons.length; buttonIndex++) {
+         Button btn = fButtons[buttonIndex];
+         if (fBitMapping[buttonIndex]>=0) {
+            fValue |= btn.getSelection()?(1L<<fBitMapping[buttonIndex]):0;
          }
       }
       super.okPressed();
@@ -305,14 +317,20 @@ public class BitmaskDialogue extends Dialog {
       shell.setSize(600, 600);
       
       long selection = 0xFF;
-      BitmaskVariable var = new BitmaskVariable("Name", "Key");
+      
       int index=0;
-      String names[]    = {",This is #1,,,,This is #5,,", "Num%i", "",   null, ",#1,,,,#5,#6,#7"};
-      long   bitmasks[] = {0xA2,                           0xA2,   0xA2, 0xA2, 0};
+      String descriptions[]   = {",Bit 1,,,,Bit 5,,",           "Bit%i", "",   null, ",(1),,,,(5),(6),(7)"};
+      String names[]          = {",This is #1,,,,This is #5,,", "Num%i", "",   null, ",#1,,,,#5,#6,#7"};
+      long   bitmasks[]       = {0x0,                            0xA2,   0xA3, 0xA7, 0};
       while(true) {
+         BitmaskVariable var = new BitmaskVariable("Name", "Key");
+         var.setBitDescription(descriptions[index]);
+         var.setPermittedBits(bitmasks[index]);
+         var.setBitList(names[index]);
+         var.setValue(selection);
+//         var.setPinMap();
          
-         // BitmaskVariable bitmaskVariable, Shell parentShell, String bitNames, long bitmask, long initialValue, long defaultValue
-         BitmaskDialogue editor = new BitmaskDialogue(var, shell, names[index], bitmasks[index], selection);
+         BitmaskDialogue editor = new BitmaskDialogue(var, shell);
          if  (editor.open() != OK) {
             break;
          }
@@ -335,12 +353,6 @@ public class BitmaskDialogue extends Dialog {
             display.sleep();
       }
       display.dispose();
-   }
-
-   public void setBitNameList(String bitList) {
-      if ((bitList != null) && !bitList.isEmpty()) {
-         fBitNames = PinListExpansion.expandPinList(bitList,",");
-      }
    }
 
    public String getTitle() {

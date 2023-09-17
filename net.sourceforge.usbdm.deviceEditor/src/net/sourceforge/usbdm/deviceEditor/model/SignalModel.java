@@ -57,6 +57,10 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          mappingInfos.add(mappingInfo);
       }
       fChoices = values.toArray(new String[values.size()]);
+      fSelection = fSignal.getFirstMappedPinInformation().getMux().getMuxValue();
+      if (fSelection<0) {
+         fSelection = 0;
+      }
       fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
 
       fSignal.addListener(this);
@@ -121,11 +125,15 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       if (fSignal.checkMappingConflicted() != null) {
          return "Multiple";
       }
-      int index = fSignal.getFirstMappedPinInformation().getMux().ordinal();
+//      int index = fSignal.getFirstMappedPinInformation().getMux().getMuxValue();
+//      if (index<0) {
+//         return "Unmapped";
+//      }
+      int index = findValueIndex(fSignal.getFirstMappedPinInformation());
       if (index<0) {
-         return "Unmapped";
+         index = 0;
       }
-      return fChoices[findValueIndex(fSignal.getFirstMappedPinInformation())];
+      return fChoices[index];
    }
 
    @Override
@@ -255,24 +263,12 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
 
    @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
-   }
-
-   @Override
    public boolean canEdit() {
       boolean canedit = super.canEdit();
       if (fParent instanceof PeripheralSignalsModel) {
          canedit = canedit && !((PeripheralSignalsModel)fParent).areChildrenLocked();
       }
       return canedit;
-   }
-
-   @Override
-   public void setLocked(boolean value) {
-      // TODO Auto-generated method stub
-      super.setLocked(value);
    }
 
 }

@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -34,6 +33,7 @@ public class TemplateInformation {
       fKey        = key;
       fNameSpace  = nameSpace;
       fBuilder    = new StringBuilder(100);
+      fText       = null;
       fCodeGenerationCondition = codeGenerationCondition;
    }
    
@@ -110,7 +110,6 @@ public class TemplateInformation {
          }
       }
       fBuilder.append(sb.toString());
-      fText = null;
    }
    
    /**
@@ -129,23 +128,19 @@ public class TemplateInformation {
       if (fText == null) {
          // Convert to string on first use
          fText = fBuilder.toString();
+         fBuilder = null;
       }
       if (fCodeGenerationCondition != null) {
          try {
-            Object result = SimpleExpressionParser.evaluate(fCodeGenerationCondition, varProvider, Mode.EvaluateFully);
-            if (!(result instanceof Boolean)) {
-               throw new Exception("Expected boolean expression " + fCodeGenerationCondition);
-            }
-            if ((Boolean)result) {
+            Boolean condition = Expression.getValueAsBoolean(fCodeGenerationCondition, varProvider);
+            if (condition) {
                return fText;
             }
             return "";
          } catch (Exception e) {
             e.printStackTrace();
          }
-          return fText;
       }
-      String fText = fBuilder.toString();
       return fText;
    }
 
@@ -161,6 +156,11 @@ public class TemplateInformation {
     */
    @Override
    public String toString() {
-      return "T["+fBuilder.toString()+"]";
+      String text = fText;
+      if (fBuilder != null) {
+         text = fBuilder.toString();
+      }
+      return "T["+text+"]";
    }
+   
 }

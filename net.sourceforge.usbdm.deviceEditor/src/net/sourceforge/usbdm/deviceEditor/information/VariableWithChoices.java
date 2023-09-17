@@ -7,8 +7,6 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
 
 public abstract class VariableWithChoices extends Variable {
 
@@ -358,7 +356,7 @@ public abstract class VariableWithChoices extends Variable {
             }
             for (int index=0; index<refs.length; index++) {
                Variable targetVar = getProvider().getVariable(targets[index]);
-               Object   value     = SimpleExpressionParser.evaluate(refs[index], getProvider(), Mode.EvaluateFully);
+               Object   value     = Expression.getValue(refs[index], getProvider());
                targetVar.setValue(value);
             }
             return;

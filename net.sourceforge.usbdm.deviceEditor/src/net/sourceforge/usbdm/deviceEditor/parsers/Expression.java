@@ -36,14 +36,6 @@ public class Expression implements IModelChangeListener {
       }
 
       /**
-       * Collect a list of the variables used in expression
-       * 
-       * @param variablesFound  List to add found variables to
-       */
-      public void collectVars(ArrayList<Variable> variablesFound) {
-      }
-      
-      /**
        * Prune expression tree by doing constant folding
        * 
        * @return Pruned tree (may be 'this' unchanged)
@@ -54,6 +46,14 @@ public class Expression implements IModelChangeListener {
          return this;
       }
 
+      /**
+       * Collect a list of the variables used in expression
+       * 
+       * @param variablesFound  List to add found variables to
+       */
+      public void collectVars(ArrayList<Variable> variablesFound) {
+      }
+      
       @Override
       public String toString() {
          return this.getClass().getSimpleName()+"("+fType+")";
@@ -73,12 +73,6 @@ public class Expression implements IModelChangeListener {
       }
       
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
-         fLeft.collectVars(variablesFound);
-         fRight.collectVars(variablesFound);
-      }
-      
-      @Override
       public ExpressionNode prune() throws Exception {
          fLeft  = fLeft.prune();
          fRight = fRight.prune();
@@ -89,15 +83,21 @@ public class Expression implements IModelChangeListener {
       }
       
       @Override
-      public String toString() {
-         return this.getClass().getSimpleName()+"("+fLeft.toString()+","+fRight.toString()+","+fType+")";
+      public void collectVars(ArrayList<Variable> variablesFound) {
+         fLeft.collectVars(variablesFound);
+         fRight.collectVars(variablesFound);
       }
-
+      
       @Override
       boolean isConstant() {
          return fLeft.isConstant() && fRight.isConstant();
       }
       
+      @Override
+      public String toString() {
+         return this.getClass().getSimpleName()+"("+fLeft.toString()+","+fRight.toString()+","+fType+")";
+      }
+
    }
 
    static abstract class UnaryExpressionNode extends ExpressionNode {
@@ -110,11 +110,6 @@ public class Expression implements IModelChangeListener {
       }
       
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
-         fArg.collectVars(variablesFound);
-      }
-      
-      @Override
       public ExpressionNode prune() throws Exception {
          fArg  = fArg.prune();
          if (fArg.isConstant()) {
@@ -123,6 +118,11 @@ public class Expression implements IModelChangeListener {
          return this;
       }
 
+      @Override
+      public void collectVars(ArrayList<Variable> variablesFound) {
+         fArg.collectVars(variablesFound);
+      }
+      
       @Override
       boolean isConstant() {
          return fArg.isConstant();
@@ -146,6 +146,9 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          fArg  = fArg.prune();
+         if (fArg.isConstant()) {
+            return wrapConstant(fArg.eval());
+         }
          return this;
       }
    }
@@ -167,10 +170,10 @@ public class Expression implements IModelChangeListener {
       private final Expression fOwner;
       
       /** Name of variable without index */
-      private final String fVarName;
+      private String fVarName;
       
       /** Expression for index */
-      private final Expression fIndex;
+      private Expression fIndex;
 
 //    private final Variable[]       fVars = new Variable[MAX_DIMENSION];
 
@@ -199,14 +202,26 @@ public class Expression implements IModelChangeListener {
        * 
        * @throws Exception
        */
-      public static VariableNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
+      /**
+       * 
+       * @param owner    The expression owning this variable reference
+       * @param varName  The variable name
+       * @param modifier Modifier e.g. name, code etc (Field)
+       * @param index    Index for indexed variable. null if not indexed
+       * 
+       * @return
+       * @throws Exception
+       */
+      public static ExpressionNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
          
          String name = varName;
          if (index != null) {
-            name = name+"["+index.getValueAsLong()+"]";
+            // Use zero index to allow safe access to array variable
+            name = name+"[0]";
          }
-         Variable var = owner.fVarProvider.getVariable(name);
-               
+         // Get variable to determine type
+         Variable var = owner.fVarProvider.safeGetVariable(name);
+         
          if (modifier != null) {
             if ("name".equalsIgnoreCase(modifier)) {
                // .name  => Name from choice
@@ -245,6 +260,7 @@ public class Expression implements IModelChangeListener {
       }
       
       private Variable getVar() throws Exception {
+         
          Variable var = fVar;
          if (var == null) {
             String name = fVarName;
@@ -258,11 +274,21 @@ public class Expression implements IModelChangeListener {
 //            }
             // If there is no index or index is unchanging then we can cache the variable lookup
             if ((fIndex == null)||fIndex.isConstant()) {
+//               if ((fIndex != null) && (var.getName().contains("ftm_cnsc_mode"))) {
+//                  System.err.println("Pruning variable with constant index '" + var.getName() );
+//               }
                fVar = var;
+               fIndex = null;
             }
          }
          return var;
       }
+      
+//      private Variable getIndexedVar(int index) throws Exception {
+//
+//         String name = fVarName+"["+index+"]";
+//         return fOwner.fVarProvider.getVariable(name);
+//      }
       
       @Override
       public void expressionChanged(Expression expression) {
@@ -276,6 +302,7 @@ public class Expression implements IModelChangeListener {
          try {
             variablesFound.add(getVar());
          } catch (Exception e) {
+            e.printStackTrace();
          }
       }
 
@@ -290,10 +317,14 @@ public class Expression implements IModelChangeListener {
 
       @Override
       public ExpressionNode prune() throws Exception {
+         if ((fIndex != null)&&(fIndex.isConstant())) {
+            // Do indexing once only
+            getVar();
+         }
          if (isConstant()) {
-//            if (fIndex != null) {
-//               System.err.println("Pruning constant indexed variable '" + fVarName + "[" + fIndex.getExpressionStr() +"]' to " + eval().toString() );
-//            }
+            if (fIndex != null) {
+               System.err.println("Pruning constant indexed variable '" + fVarName + "[" + fIndex.getExpressionStr() +"]' to " + eval().toString() );
+            }
 //            else {
 //               System.err.println("Pruning constant variable '" + fVarName + "' to " + eval().toString() );
 //            }
@@ -682,35 +713,9 @@ public class Expression implements IModelChangeListener {
       }
    }
    
-//   static class CastToVariableNode extends UnaryExpressionNode {
-//
-//      private final VariableProvider fProvider;
-//
-//      /**
-//       * Cast a String ExpressionNode to a Variable ExpressionNode
-//       *
-//       * @param arg
-//       * @throws Exception
-//       */
-//      CastToVariableNode(VariableProvider provider, ExpressionNode arg) throws Exception {
-//         super(arg, Type.String);
-//         if (arg.fType != Expression.Type.String) {
-//            throw new Exception("Expression cannot be used as name of variable");
-//         }
-//         fProvider = provider;
-//      }
-//
-//      @Override
-//      Object eval() throws Exception {
-//         String varName = (String) fArg.eval();
-//         Variable var = fProvider.getVariable(varName);
-//         return var.getSubstitutionValue();
-//      }
-//   }
-//
-   static class MinusNode extends UnaryExpressionNode {
+   static class UnaryMinueNode extends UnaryExpressionNode {
 
-      MinusNode(ExpressionNode left) {
+      UnaryMinueNode(ExpressionNode left) {
          super(left, left.fType);
       }
 
@@ -725,9 +730,9 @@ public class Expression implements IModelChangeListener {
       }
    }
    
-   static class PlusNode extends UnaryExpressionNode {
+   static class UnaryPlusNode extends UnaryExpressionNode {
 
-      PlusNode(ExpressionNode left) {
+      UnaryPlusNode(ExpressionNode left) {
          super(left, left.fType);
       }
 
@@ -1069,26 +1074,31 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          fLeft  = fLeft.prune();
-         fRight = fRight.prune();
          
          if (fLeft.isConstant()) {
             if ((Boolean)fLeft.eval()) {
                // Node value is determined from right node alone
-               return fRight;
+//               System.err.println("Pruning && (LHS=T) -> RHS=" + fRight);
+               return fRight.prune();
             }
             // Node is always false
+//            System.err.println("Pruning && (LHS=F) -> false, discarding RHS=" + fRight);
             return new BooleanNode(false);
          }
+         fRight = fRight.prune();
          if (fRight.isConstant()) {
             if ((Boolean)fRight.eval()) {
                // Node value is determined from left node alone
+//               System.err.println("Pruning && (RHS=T) -> LHS=" + fLeft);
                return fLeft;
             }
             // Node is always false
+//            System.err.println("Pruning && (RHS=F) -> false, discarding LHS=" + fLeft);
             return new BooleanNode(false);
          }
          return this;
       }
+
    }
 
    static class LogicalOrNode extends BinaryExpressionNode {
@@ -1105,22 +1115,26 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          fLeft  = fLeft.prune();
-         fRight = fRight.prune();
          
          if (fLeft.isConstant()) {
             if ((Boolean)fLeft.eval()) {
                // Node is always true
+//               System.err.println("Pruning || (LHS=T) -> true, discarding RHS=" + fRight);
                return new BooleanNode(true);
             }
             // Node value is determined from right node alone
-            return fRight;
+//            System.err.println("Pruning || (LHS=F) -> RHS=" + fRight);
+            return fRight.prune();
          }
+         fRight = fRight.prune();
          if (fRight.isConstant()) {
             if ((Boolean)fRight.eval()) {
                // Node is always true
+//               System.err.println("Pruning || (RHS-T) -> true, discarding LHS=" + fLeft);
                return new BooleanNode(true);
             }
             // Node value is determined from left node alone
+//            System.err.println("Pruning || (RHS=F) -> LHS=" + fLeft);
             return fLeft;
          }
          return this;
@@ -1128,6 +1142,7 @@ public class Expression implements IModelChangeListener {
    }
 
    static class TernaryNode extends BinaryExpressionNode {
+      
       ExpressionNode fCondition;
       
       TernaryNode(ExpressionNode condition, ExpressionNode left, ExpressionNode right) {
@@ -1141,22 +1156,28 @@ public class Expression implements IModelChangeListener {
       }
 
       @Override
+      public ExpressionNode prune() throws Exception {
+         fCondition  = fCondition.prune();
+         
+         if (fCondition.isConstant()) {
+            return ((boolean) fCondition.eval())?fLeft.prune():fRight.prune();
+         }
+         fLeft       = fLeft.prune();
+         fRight      = fRight.prune();
+         return this;
+      }
+
+      @Override
       public void collectVars(ArrayList<Variable> variablesFound) {
          super.collectVars(variablesFound);
          fCondition.collectVars(variablesFound);
       }
-      
+
       @Override
-      public ExpressionNode prune() throws Exception {
-         fCondition  = fCondition.prune();
-         fLeft       = fLeft.prune();
-         fRight      = fRight.prune();
-         
-         if (fCondition.isConstant() && fLeft.isConstant() && fRight.isConstant()) {
-            return wrapConstant(eval());
-         }
-         return this;
+      boolean isConstant() {
+         return fCondition.isConstant() && super.isConstant();
       }
+      
       @Override
       public String toString() {
          return this.getClass().getSimpleName()+"("+fCondition.toString()+"?"+fLeft.toString()+":"+fRight.toString()+","+fType+")";
@@ -1207,6 +1228,15 @@ public class Expression implements IModelChangeListener {
          return description.toString();
       }
 
+      @Override
+      boolean isConstant() {
+         boolean isConstant = true;
+         for (int index=0; (index<fList.length)&&isConstant; index++) {
+            isConstant = isConstant && fList[index].isConstant();
+         }
+         return isConstant;
+      }
+
    }
 
    /**
@@ -1233,6 +1263,9 @@ public class Expression implements IModelChangeListener {
    
    /** Primary variable if provided */
    private Variable       fPrimaryVar;
+   
+   /** Indicates the expression is constant */
+   private Boolean fIsConstant;
    
    private Object fCurrentValue;
 
@@ -1272,22 +1305,10 @@ public class Expression implements IModelChangeListener {
     * Create expression with optional message and primary variable from string of form:
     * "primaryVar#expression,message"
     * 
-    * @param expression Expression+message as string
-    * @param fVarProvider
-    * @throws Exception
-    */
-   public Expression(String expression, VariableProvider provider) throws Exception {
-      fExpressionStr = expression;
-      fVarProvider   = provider;
-      fMode          = ExpressionParser.Mode.Construct;
-   }
-
-   /**
-    * Create expression with optional message and primary variable from string of form:
-    * "primaryVar#expression,message"
+    * @param expression    Expression+message as string
+    * @param fVarProvider  Provider for variables used in expression (mat be null if none)
+    * @param mode          Mode of evaluation i.e. whether variable value or existence only is used
     * 
-    * @param expression Expression+message as string
-    * @param fVarProvider
     * @throws Exception
     */
    public Expression(String expression, VariableProvider provider, Mode mode) throws Exception {
@@ -1296,9 +1317,21 @@ public class Expression implements IModelChangeListener {
       fMode          = mode;
    }
 
+   /**
+    * Create expression with optional message and primary variable from string of form:
+    * "primaryVar#expression,message"
+    *
+    * @param expression Expression+message as string
+    * @param fVarProvider
+    * @throws Exception
+    */
+   public Expression(String expression, VariableProvider provider) throws Exception {
+      this(expression, provider, Mode.Dynamic);
+   }
+
    private void prelim() throws Exception {
-//      if (this.fExpressionStr.contains("ACMP0_IN%i")) {
-//         System.err.println("Found it ");
+//      if (fExpressionStr.matches(".*\\|\\|\\(ftm_cnsc_mode\\[0.*")) {
+//         System.err.println("Found it prelim("+fExpressionStr+")");
 //      }
       
       String expression = fExpressionStr;
@@ -1316,14 +1349,30 @@ public class Expression implements IModelChangeListener {
          fMessage = parts[2].trim();
       }
       
+      // Parse expression
       ExpressionParser ep = new ExpressionParser(this, fVarProvider, fMode);
       fExpression = ep.parseExpression(parts[0].trim());
+      
+      // Prune constant nodes
       fExpression = fExpression.prune();
-      fVariables = ep.getCollectedVariables();
-      if ((fPrimaryVar == null) && (fVariables.size() == 1)) {
-         fPrimaryVar = fVariables.get(0);
+      
+      if (fMode == Mode.Dynamic) {
+         
+         // Collect variables
+         fVariables = new ArrayList<Variable>();
+         fExpression.collectVars(fVariables);
+         
+         // Listen to variables
+         for (Variable var:fVariables) {
+            var.addListener(this);
+         }
+         // Update primary variable
+         if ((fPrimaryVar == null) && (fVariables.size() == 1)) {
+            fPrimaryVar = fVariables.get(0);
+         }
+         fVariables.remove(fPrimaryVar);
       }
-      fVariables.remove(fPrimaryVar);
+
    }
 
    /**
@@ -1334,6 +1383,8 @@ public class Expression implements IModelChangeListener {
     */
    private Object evaluate() throws Exception {
       if (fExpression == null) {
+         
+         // Parse expression
          prelim();
       }
       return fExpression.eval();
@@ -1444,16 +1495,21 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public boolean isConstant() throws Exception {
-      if (fExpression == null) {
-         prelim();
+      
+      if (fIsConstant == null) {
+         if (fExpression == null) {
+            prelim();
+         }
+         fIsConstant = fExpression.isConstant();
       }
-      return fExpression.isConstant();
+      return fIsConstant;
    }
 
    /**
     * Get value of expression
     * 
-    * @return Current value
+    * @return Current value of expression
+    * 
     * @throws Exception
     */
    public Object getValue() throws Exception {
@@ -1466,7 +1522,8 @@ public class Expression implements IModelChangeListener {
    /**
     * Get value of expression as String
     * 
-    * @return
+    * @return Current value of expression
+    * 
     * @throws Exception
     */
    public String getValueAsString() throws Exception {
@@ -1476,7 +1533,8 @@ public class Expression implements IModelChangeListener {
    /**
     * Get value of expression as Boolean
     * 
-    * @return
+    * @return Current value of expression
+    * 
     * @throws Exception
     */
    public Boolean getValueAsBoolean() throws Exception {
@@ -1486,7 +1544,8 @@ public class Expression implements IModelChangeListener {
    /**
     * Get value of expression as Long
     * 
-    * @return
+    * @return Current value of expression
+    * 
     * @throws Exception
     */
    public Long getValueAsLong() throws Exception {
@@ -1496,71 +1555,87 @@ public class Expression implements IModelChangeListener {
    /**
     * Get value of expression as Double
     * 
-    * @return
+    * @return Current value of expression
+    * 
     * @throws Exception
     */
    public Double getValueAsDouble() throws Exception {
       return (Double)getValue();
    }
 
+   /*
+    * Static methods
+    */
    /**
-    * Get value of expression
+    * Get value of expression<br>
+    * This constructs an expression and immediately evaluates it.
     * 
-    * @return
+    * @return Current value of expression
+    * 
     * @throws Exception
     */
    public static Object getValue(String expression, VariableProvider provider) throws Exception {
-      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
-      return exp.getValue();
+      return new Expression(expression, provider, Mode.EvaluateImmediate).getValue();
    }
 
+   @SuppressWarnings("unchecked")
+   private static <T> T castResult(Class<T> toClass, String expression, VariableProvider provider) throws Exception {
+      Object res = getValue(expression, provider);
+      if (!toClass.isInstance(res)) {
+         throw new Exception("Expected "+toClass.getSimpleName()+" result for expression '"+expression+"'");
+      }
+      return (T) res;
+   }
+   
    /**
-    * Get value of expression as String
+    * Get value of expression as String<br>
+    * This constructs an expression and immediately evaluates it.
     * 
     * @return
     * @throws Exception
     */
    public static String getValueAsString(String expression, VariableProvider provider) throws Exception {
-      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
-      return (String) exp.getValue();
+      return castResult(String.class, expression, provider);
    }
 
    /**
-    * Get value of expression as Boolean
+    * Get value of expression as Boolean<br>
+    * This constructs an expression and immediately evaluates it.
     * 
     * @return
     * @throws Exception
     */
    public static Boolean getValueAsBoolean(String expression, VariableProvider provider) throws Exception {
-      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
-      return (Boolean) exp.getValue();
+      return castResult(Boolean.class, expression, provider);
    }
 
    /**
-    * Get value of expression as Long
+    * Get value of expression as Long<br>
+    * This constructs an expression and immediately evaluates it.
     * 
     * @return
     * @throws Exception
     */
    public static Long getValueAsLong(String expression, VariableProvider provider) throws Exception {
-      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
-      return (Long) exp.getValue();
+      return castResult(Long.class, expression, provider);
    }
 
    /**
-    * Get value of expression as Double
+    * Get value of expression as Double<br>
+    * This constructs an expression and immediately evaluates it.
     * 
     * @return
     * @throws Exception
     */
    public static Double getValueAsDouble(String expression, VariableProvider provider) throws Exception {
-      Expression exp = new Expression(expression, provider, Mode.EvaluateFully);
-      return (Double) exp.getValue();
+      return castResult(Double.class, expression, provider);
    }
 
    /**
     * Get value of expression as Boolean<br>
-    * Variable values are not used.  If a variable exists then it evaluates as <b>true</b>, otherwise <b>false</b>.<br>
+    * This constructs an expression and immediately evaluates it.<br>
+    * Variable values are <b>not used</b> unless prefixed with <b>@</b>.<br>
+    * If a variable exists then it evaluates as <b>true</b>, otherwise <b>false</b>.<br>
     * An empty expression evaluates as <b>true</b>;
     * 
     * @return
@@ -1570,11 +1645,12 @@ public class Expression implements IModelChangeListener {
       if (expression == null) {
          return true;
       }
-//      if (expression.contains("mcg_sc_fcrdiv")) {
-//         System.err.println("Found it " + expression);
-//      }
       Expression exp = new Expression(expression, provider, Mode.CheckIdentifierExistance);
-      return (Boolean) exp.getValue();
+      try {
+         return (Boolean) exp.getValue();
+      } catch (ClassCastException e) {
+         throw new Exception("Expected boolean result for condition", e);
+      }
    }
 
    public void removeAllListeners() {
@@ -1591,71 +1667,11 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-//   static class Pair {
-//      final IExpressionChangeListener listener;
-//      final Expression                expression;
-//
-//      Pair(IExpressionChangeListener listener, Expression expression) {
-//         this.listener   = listener;
-//         this.expression = expression;
-//      }
-//   }
-//
-//   static ConcurrentLinkedQueue<Pair> listenersBeingNotfied =
-//         new ConcurrentLinkedQueue<Pair>();
-//
-//   static boolean queueIsFree = true;
-//
-//   enum QueueAction {Obtain, Release};
-//
-//   /**
-//    *
-//    * @param request
-//    *
-//    * @return true if queue ownership obtained, false otherwise
-//    */
-//   static synchronized boolean changeQueueOwnership(QueueAction action) {
-//      switch (action) {
-//      case Obtain:
-//         if (queueIsFree) {
-//            queueIsFree = false;
-//            return true;
-//         }
-//         return false;
-//      case Release:
-//         queueIsFree = true;
-//         return false;
-//      }
-//      return false;
-//   }
-//
-//   void notifyIfNeeded() {
-//      // Add to listeners needing notification
-//      for (IExpressionChangeListener x:fListeners) {
-//         listenersBeingNotfied.add(new Pair(x, this));
-//      }
-//      // Check if we need to do the notification
-//      if (changeQueueOwnership(QueueAction.Obtain)) {
-//         do {
-//            Pair item = listenersBeingNotfied.poll();
-//            if (item == null) {
-//               break;
-//            }
-//            try {
-//               item.listener.expressionChanged(item.expression);
-//            } catch (Exception e) {
-//               e.printStackTrace();
-//            }
-//         } while(true);
-//         changeQueueOwnership(QueueAction.Release);
-//      }
-//   }
-   
-   
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-//      if (fExpressionStr.contains("(/SMC/smc_pmctrl_runm[1]==VLPR)")) {
-//         System.err.println("Found it");
+      
+//      if (fExpressionStr.matches(".*ftm_cnsc_mode\\[0.*")) {
+//         System.err.println("Found it modelElementChanged"+fExpressionStr+")");
 //      }
       try {
          Object newValue = evaluate();
@@ -1697,8 +1713,8 @@ public class Expression implements IModelChangeListener {
    }
    
    /**
-    * Add listener for expression changes
-    * Only adds listener if the expression is dynamic
+    * Add listener for expression changes<br>
+    * Only adds listener if the expression is not constant
     * 
     * @param listener Listener to add<br>
     *        Adding the same listener multiple times is ignored
@@ -1714,14 +1730,13 @@ public class Expression implements IModelChangeListener {
             }
          }
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       return false;
    }
 
    /**
-    * Get original expression
+    * Get original expression string
     * 
     * @return
     */
@@ -1732,11 +1747,6 @@ public class Expression implements IModelChangeListener {
    @Override
    public String toString() {
       return "Expression("+fExpressionStr+")";
-   }
-
-   public static Object evaluate(String expressionString, VariableProvider provider) throws Exception {
-      Expression exp = new Expression(expressionString, provider, Mode.EvaluateFully);
-      return exp.getValue();
    }
 
 }

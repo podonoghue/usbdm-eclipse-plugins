@@ -150,11 +150,31 @@ public class WriterForFtm extends PeripheralWithState {
          }
       }
       if (infoTable == null) {
+         final String faultNames[] = {"FAULT0", "FAULT1", "FAULT2", "FAULT3"};
+         for (signalIndex=0; signalIndex<faultNames.length; signalIndex++) {
+            if (signal.getSignalName().endsWith(faultNames[signalIndex])) {
+               infoTable = fFaultSignals;
+               break;
+            }
+         }
+      }
+      if (infoTable == null) {
          // Look for shared clock inputs
          for (signalIndex=0; signalIndex<clockSignalNames.length; signalIndex++) {
             if (signal.getSignalName().matches(clockSignalNames[signalIndex])) {
                infoTable = fInfoTable;
                signalIndex += 8;
+               break;
+            }
+         }
+      }
+      if (infoTable == null) {
+         final String triggerNames[] = {"TRIG0", "TRIG1", "TRIG2", "TRIG3"};
+         // Look for shared trigger inputs
+         for (signalIndex=0; signalIndex<triggerNames.length; signalIndex++) {
+            if (signal.getSignalName().matches(triggerNames[signalIndex])) {
+               infoTable = fInfoTable;
+               signalIndex += 10;
                break;
             }
          }

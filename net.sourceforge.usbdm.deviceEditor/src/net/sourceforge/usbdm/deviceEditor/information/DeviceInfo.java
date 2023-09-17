@@ -1175,7 +1175,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForFlexBus.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
+               "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d|TRIG\\d|FAULT\\d)",
                getDeviceFamily(),
                WriterForFtm.class);
          createPeripheralTemplateInformation(

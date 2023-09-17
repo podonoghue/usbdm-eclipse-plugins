@@ -1,7 +1,6 @@
 package tests.internal;
 
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser;
-import net.sourceforge.usbdm.deviceEditor.parsers.SimpleExpressionParser.Mode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 
 public class TestExpression {
 
@@ -93,8 +92,7 @@ public class TestExpression {
       };
       for (String expression:tests) {
          try {
-            SimpleExpressionParser parser = new SimpleExpressionParser(null, Mode.EvaluateFully);
-            Object result = parser.evaluate(expression);
+            Object result = Expression.getValue(expression, null);
             System.err.println("Evaluate '"+expression+"' => "+ result + " (" + result.getClass() + ")");
          } catch (Exception e) {
             System.err.println(e.getMessage());
