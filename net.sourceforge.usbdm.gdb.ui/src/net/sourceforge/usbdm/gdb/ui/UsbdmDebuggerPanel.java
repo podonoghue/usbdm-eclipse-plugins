@@ -261,7 +261,12 @@ public class UsbdmDebuggerPanel {
                if (device != null) {
                   fSuspendUpdate++;
                   fClockType = device.getClockType();
-                  fGdbServerParameters.setClockTrimFrequency(device.getDefaultClockTrimFreq());
+                  try {
+                     fGdbServerParameters.setClockTrimFrequency(device.getDefaultClockTrimFreq());
+                  } catch (Exception e1) {
+                     // Can't do much here
+                     e1.printStackTrace();
+                  }
                   fGdbServerParameters.setNvmClockTrimLocation(device.getDefaultClockTrimNVAddress());
                   populateTrim();
                   fSuspendUpdate--;
@@ -425,6 +430,7 @@ public class UsbdmDebuggerPanel {
       fComboSelectBDM = new Combo(grpSelectBdm, SWT.READ_ONLY);
       fComboSelectBDM.setToolTipText("Allows selection of preferred or required BDM\nfrom those currently attached.");
       fComboSelectBDM.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             fSuspendUpdate++;
             updateBdmDescription();
@@ -440,6 +446,7 @@ public class UsbdmDebuggerPanel {
       fButtonRefreshBDMs.setToolTipText("Check for connected BDMs");
       fButtonRefreshBDMs.setText("Refresh");
       fButtonRefreshBDMs.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             fSuspendUpdate++;
             populateBdmChoices(null, true);
@@ -457,6 +464,7 @@ public class UsbdmDebuggerPanel {
       fButtonRequireExactBdm.setToolTipText("Use only the selected BDM.\nOtherwise selection is preferred BDM.");
       fButtonRequireExactBdm.setText("Exact");
       fButtonRequireExactBdm.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
@@ -720,6 +728,7 @@ public class UsbdmDebuggerPanel {
       fComboSecurityOption.select(SecurityOptions.SECURITY_SMART.ordinal());
 
       fComboSecurityOption.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             fSuspendUpdate++;
             updateBdmDescription();
@@ -751,6 +760,7 @@ public class UsbdmDebuggerPanel {
       fComboTargetVdd = new Combo(grpTargetVddSupply, SWT.READ_ONLY);
       fComboTargetVdd.setToolTipText("Target Vdd supplied from BDM to target");
       fComboTargetVdd.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
@@ -784,6 +794,7 @@ public class UsbdmDebuggerPanel {
       fButtonTrimTargetClock.setText("Frequency"); //$NON-NLS-1$
       fButtonTrimTargetClock.setToolTipText("Enable trimming of target internal clock source\r\nto given frequency."); //$NON-NLS-1$
       fButtonTrimTargetClock.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             fSuspendUpdate++;
             enableTrim(((Button) e.getSource()).getSelection());

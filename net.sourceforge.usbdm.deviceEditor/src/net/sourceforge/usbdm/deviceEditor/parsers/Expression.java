@@ -692,24 +692,50 @@ public class Expression implements IModelChangeListener {
    }
    
    static class ExpandPinListNode extends UnaryExpressionNode {
-
+      
       /**
        * Cast a Long ExpressionNode to a single character String ExpressionNode e.g. 30 => "0"
        * 
        * @param arg
+       * @param delimiter
        * @throws Exception
        */
       ExpandPinListNode(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
-         if (arg.fType != Expression.Type.String) {
-            throw new Exception("Expression has wrong type for expansion");
+         if (arg instanceof CommaListNode) {
+            CommaListNode argList = (CommaListNode)arg;
+            ExpressionNode[] args = argList.fList;
+            if (args.length>2) {
+               throw new Exception("Too many arguments for function");
+            }
+            if (!args[1].isConstant()) {
+               throw new Exception("2nd argument must be a constant");
+            }
+            if (args[0].fType != Type.String) {
+               throw new Exception("1st argument must be a string");
+            }
+            if (args[1].fType != Type.String) {
+               throw new Exception("2nd argument must be a string");
+            }
+         }
+         else if (arg.fType != Expression.Type.String) {
+            throw new Exception("Argument must be a string");
          }
       }
 
       @Override
       Object eval() throws Exception {
-         String s = (String) fArg.eval();
-         return String.join(",", PinListExpansion.expandPinList(s, ","));
+         if (fArg instanceof CommaListNode) {
+            CommaListNode argList = (CommaListNode)fArg;
+            ExpressionNode[] args = argList.fList;
+            String s = String.join((String)args[1].eval(), PinListExpansion.expandPinList((String)args[0].eval(), ","));
+            s = s.replace("\\n", "\n");
+            return s.replace("\\t", "   ");
+         }
+         else {
+            String s = (String) fArg.eval();
+            return String.join(",", PinListExpansion.expandPinList(s, ","));
+         }
       }
    }
    

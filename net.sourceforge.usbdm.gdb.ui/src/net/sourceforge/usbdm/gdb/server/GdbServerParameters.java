@@ -99,14 +99,14 @@ public class GdbServerParameters {
                                  
    public  static final int      NEEDS_SPEED         = 1<<0;  // Mask indicating Interface requires Speed selection
    public  static final int      NEEDS_RESET         = 1<<1;  // Mask indicating Interface requires Reset selection
-   public  static final int      NEEDS_PST           = 1<<2;  // Mask indicating Interface requires PST selection 
-   public  static final int      NEEDS_CLOCK         = 1<<3;  // Mask indicating Interface requires Clock selection   
+   public  static final int      NEEDS_PST           = 1<<2;  // Mask indicating Interface requires PST selection
+   public  static final int      NEEDS_CLOCK         = 1<<3;  // Mask indicating Interface requires Clock selection
    public  static final int      NEEDS_VLLSCATCH     = 1<<4;  // Mask indicating Interface requires VLLSCatch selection
    public  static final int      NEEDS_CLKTRIM       = 1<<5;  // Mask indicating Interface requires VLLSCatch selection
    public  static final int      NEEDS_MASKINTS      = 1<<6;  // Mask indicating Interface requires VLLSCatch selection
    public  static final int      NEEDS_RESET_METHODS = 1<<7;  // Mask indicating Interface requires Reset method selection
    
-   private static final int      armDialogueNeeds  = NEEDS_RESET_METHODS|NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS;
+   private static final int      armDialogueNeeds  = NEEDS_RESET_METHODS|NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS|NEEDS_CLKTRIM;
    private static final int      cfv1DialogueNeeds = NEEDS_RESET|NEEDS_CLOCK|NEEDS_CLKTRIM;
    private static final int      cfvxDialogueNeeds = NEEDS_SPEED|NEEDS_PST;
            
@@ -127,11 +127,11 @@ public class GdbServerParameters {
    
    /**
     *   Get default GdbServerParameters for Interface
-    *   
+    * 
     * @param interfaceType  Interface to select defaults
     * @return Appropriate GdbServerParameters
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public static GdbServerParameters getDefaultServerParameters(InterfaceType interfaceType) throws Exception {
       switch (interfaceType) {
@@ -204,8 +204,8 @@ public class GdbServerParameters {
    }
    
    /**
-    * @param interfaceType             Type of interface (T_ARM, T_CFV1 etc)              
-    * @param serialNumber              Serial number of (preferred) bdm 
+    * @param interfaceType             Type of interface (T_ARM, T_CFV1 etc)
+    * @param serialNumber              Serial number of (preferred) bdm
     * @param serialNumberMatchRequired Only use bdm with serial number
     * 
     * @note If serialNumberMatchRequired is false then serialNumber is viewed as a preference only
@@ -436,7 +436,7 @@ public class GdbServerParameters {
    }
 
    public void setNvmClockTrimLocation(int i) {
-      this.nvmClockTrimLocation = ((long)i)&0xFFFFFFFFL;
+      this.nvmClockTrimLocation = (i)&0xFFFFFFFFL;
    }
 
    public void setNvmClockTrimLocation(long l) {
@@ -522,7 +522,7 @@ public class GdbServerParameters {
          exeSuffix = ".exe";
       }
       if (isUseDebugVersion()) {
-         return serverPath.append(UsbdmSharedConstants.USBDM_GDB_GUI_SERVER_DEBUG+exeSuffix);         
+         return serverPath.append(UsbdmSharedConstants.USBDM_GDB_GUI_SERVER_DEBUG+exeSuffix);
       }
       else {
          return serverPath.append(UsbdmSharedConstants.USBDM_GDB_GUI_SERVER+exeSuffix);
@@ -595,8 +595,8 @@ public class GdbServerParameters {
    }
 
    protected String escapeArg(String arg) {
-      if (arg.indexOf(' ') >= 0) { 
-         return '"' + arg + '"'; 
+      if (arg.indexOf(' ') >= 0) {
+         return '"' + arg + '"';
       }
       return arg;
    }
@@ -702,7 +702,7 @@ public class GdbServerParameters {
    /**
     * Load the GDB settings from the system default
     * 
-    * Assumes the interface type has been set 
+    * Assumes the interface type has been set
     * 
     * @throws Exception if interface type has not already been set
     */
@@ -743,7 +743,7 @@ public class GdbServerParameters {
     * Save the GDB settings as the system default for the target type
     * 
     * @return
-    * @throws Exception 
+    * @throws Exception
     */
    public boolean saveSettingsAsDefault() throws Exception {
       if (interfaceType == null) {
@@ -779,6 +779,7 @@ public class GdbServerParameters {
       return true;
    }
 
+   @Override
    public String toString() {
       StringBuffer buff = new StringBuffer(2000);
       
@@ -811,7 +812,7 @@ public class GdbServerParameters {
    }
    
    public void performApply(ILaunchConfigurationWorkingCopy configuration, String key) {
-      // Save to settings 
+      // Save to settings
       configuration.setAttribute((key+deviceNameKey),                    getDeviceName());
       configuration.setAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber());
       configuration.setAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired());
@@ -864,7 +865,7 @@ public class GdbServerParameters {
 //      System.err.println("GdbServerParameters.initializeFrom() " + key + catchVLLSxEventsKey + " = " +
 //         CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
 
-      // Update from settings 
+      // Update from settings
       setDeviceName(            CDebugUtils.getAttribute(attributes, (key+deviceNameKey),                    getDeviceName()));
       // Map KDS internal name to USBDM name e.g. MK20DN512xxx10 => MK20DN512M10
       final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
@@ -873,7 +874,7 @@ public class GdbServerParameters {
          setDeviceName(m.group(1)+"M"+m.group(2));
       }
       setBdmSerialNumber(       CDebugUtils.getAttribute(attributes, (key+bdmSerialNumberKey),               getBdmSerialNumber()), true);
-      enableBdmSerialNumberMatchRequired(  
+      enableBdmSerialNumberMatchRequired(
                                 CDebugUtils.getAttribute(attributes, (key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired()));
       setGdbServerPortNumber(   CDebugUtils.getAttribute(attributes, (key+SERVER_PORT_KEY),                  getGdbServerPortNumber()));
       setGdbTtyPortNumber(      CDebugUtils.getAttribute(attributes, (key+TTY_PORT_KEY),                     getGdbTtyPortNumber()));
@@ -883,20 +884,20 @@ public class GdbServerParameters {
       setServerType(GdbServerType.valueOf(
                                 CDebugUtils.getAttribute(attributes, (key+serverTypeKey),                    getServerType().name())));
       setInterfaceFrequency(    CDebugUtils.getAttribute(attributes, (key+interfaceFrequencyKey),            getInterfaceFrequency()));
-      setAutoReconnect(AutoConnect.valueOf( 
+      setAutoReconnect(AutoConnect.valueOf(
                                 CDebugUtils.getAttribute(attributes, (key+autoReconnectKey),                 getAutoReconnect().name())));
       enableUseReset(           CDebugUtils.getAttribute(attributes, (key+useResetKey),                      isUseReset()));
       enableUsePstSignals(      CDebugUtils.getAttribute(attributes, (key+usePstSignalsKey),                 isUsePstSignals()));
-      setEraseMethod(EraseMethod.getEraseMethod (  
+      setEraseMethod(EraseMethod.getEraseMethod (
             CDebugUtils.getAttribute(attributes, (key+eraseMethodKey),                   getEraseMethod().name())));
-      setResetMethod(ResetMethod.getResetMethod (  
+      setResetMethod(ResetMethod.getResetMethod (
             CDebugUtils.getAttribute(attributes, (key+resetMethodKey),                   getResetMethod().name())));
-      setSecurityOption(SecurityOptions.valueOf(  
+      setSecurityOption(SecurityOptions.valueOf(
               CDebugUtils.getAttribute(attributes, (key+securityOptionKey),                getSecurityOption().name())));
-      setTargetVdd(TargetVddSelect.valueOf( 
+      setTargetVdd(TargetVddSelect.valueOf(
                                 CDebugUtils.getAttribute(attributes, (key+targetVddKey),                     getTargetVdd().name())));
       enableTrimClock(          CDebugUtils.getAttribute(attributes, (key+trimClockKey),                     isTrimClock()));
-      Object obj = null; 
+      Object obj = null;
       try {
          obj = attributes.get(key+clockTrimFrequencyKey);
          if (obj != null){

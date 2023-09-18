@@ -50,27 +50,31 @@ public class LaunchParameterUtilities {
     * @param paramMap Map to add attributes to
     * @param device   Device needed to obtain attributes
     * @param binPath  Path to binary (may be null)
+    * @throws Exception
     */
    public static void addLaunchParameters(ISubstitutionMap variableMap, Device device, IPath binPath) {
 
+      try {
       variableMap.addValue(UsbdmConstants.TARGET_DEVICE_KEY,           device.getName());
       variableMap.addValue(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
       variableMap.addValue(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
       variableMap.addValue(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
-
-      variableMap.addValue(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,    String.valueOf(device.getDefaultClockTrimFreq()));            
-      variableMap.addValue(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY, String.valueOf(device.getDefaultClockTrimNVAddress()));            
-      variableMap.addValue(UsbdmConstants.ERASE_METHOD_KEY,            device.getPreferredEraseMethod().getOptionName());          
+      variableMap.addValue(UsbdmConstants.ERASE_METHOD_KEY,            device.getPreferredEraseMethod().getOptionName());
       variableMap.addValue(UsbdmConstants.RESET_METHOD_KEY,            device.getPreferredResetMethod().getOptionName());
+      variableMap.addValue(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,    String.valueOf(device.getDefaultClockTrimFreq()));
+      variableMap.addValue(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY, Long.toHexString(device.getDefaultClockTrimNVAddress()));
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
 
       if (binPath != null) {
          // Add path to binary
-         variableMap.addValue(UsbdmConstants.BIN_PATH_KEY,  binPath.toPortableString());            
+         variableMap.addValue(UsbdmConstants.BIN_PATH_KEY,  binPath.toPortableString());
       }
 //      if (binPath == null) {
 //         // Add default path to binary
 //         String projectName = variableMap.get(UsbdmConstants.PROJECT_NAME_KEY);
-//         variableMap.addValue(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");            
+//         variableMap.addValue(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");
 //      }
    }
 
@@ -80,7 +84,7 @@ public class LaunchParameterUtilities {
     * @param filename
     * 
     * @return String containing file contents
-    * @throws Exception 
+    * @throws Exception
     */
    private static String readFile(String filename) throws Exception {
       URL url = new URL("platform:/plugin/net.sourceforge.usbdm.cdt.ui/files/" + filename);
@@ -232,7 +236,7 @@ public class LaunchParameterUtilities {
     * @param elements  Element to search (may be binaries or projects etc.).
     * 
     * @return Array of binaries found  may be empty
-    */ 
+    */
    public static IBinary[] searchForExecutable(final Object[] elements) {
 
       //      System.err.println("Elements        = " + elements);
@@ -246,7 +250,7 @@ public class LaunchParameterUtilities {
       if ((elements.length == 1) && (elements[0] instanceof IBinary)) {
          IBinary bin = (IBinary) elements[0];
 //         System.err.println("Found elements[0] == binary"+bin.getElementName());
-         return new IBinary[]{(IBinary) bin};
+         return new IBinary[]{bin};
       }
 
       final List<IBinary>  results = new ArrayList<IBinary>();
@@ -261,7 +265,7 @@ public class LaunchParameterUtilities {
 //             System.err.println("Checking IResource " + elements[i] );
                if (elements[i] instanceof IAdaptable) {
 //                System.err.println("Checking IAdaptable " + elements[i] );
-                  IResource r = (IResource) ((IAdaptable) elements[i]).getAdapter(IResource.class);
+                  IResource r = ((IAdaptable) elements[i]).getAdapter(IResource.class);
 //                System.err.println("Checking IResource " + r );
                   if (r != null) {
                      //                        System.err.println("Found IResource " + r.getName());
@@ -322,11 +326,11 @@ public class LaunchParameterUtilities {
     * 
     * @param shell   Shell for dialogues
     * @param project Project to create launch configuration within
-    * @param bin Path to binary 
+    * @param bin Path to binary
     * @param build   String describing build e.g. debug or release. Used in naming launch configuration
     * 
     * @return A launch configuration
-    * @throws Exception 
+    * @throws Exception
     */
    public static ILaunchConfiguration createLaunchConfig(final Shell shell, final IProject project, IBinary bin) throws Exception {
 

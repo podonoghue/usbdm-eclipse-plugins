@@ -160,21 +160,24 @@ public class ExpressionParser {
    private ExpressionNode getFunction(String functionName) throws Exception {
       
       Character ch = skipSpace();
-      
       if (ch != '(') {
-         throw new Exception("Expected function argument (impossible)");
+         throw new Exception("Expected '(' before function arguments");
       }
-      // Discard '('
+      
+      // Discard '(' or ','
       getNextCh();
       
+      // Note this may be a CommaListNode
       ExpressionNode arg = parseSubExpression();
       
       ch = skipSpace();
+      
       if (ch != ')') {
-         throw new Exception("Expected ')' after function argument");
+         throw new Exception("Expected ')' after function arguments");
       }
       // Discard ')'
       getNextCh();
+      
       if ("Variable".equalsIgnoreCase(functionName)) {
          if (!arg.isConstant()) {
             Object currentValue = arg.eval();
@@ -184,29 +187,8 @@ public class ExpressionParser {
          if (!(argValue instanceof String)) {
             throw new Exception("Variable() function with non-string expression");
          }
-         String   key = fProvider.makeKey((String)argValue);
+         String key = fProvider.makeKey((String)argValue);
          return Expression.VariableNode.create(fListener, key, null, null);
-         
-//         Variable var = fProvider.safeGetVariable(key);
-//
-//         switch(fMode) {
-//         case CheckIdentifierExistance: {
-//            return new BooleanNode(var != null);
-//         }
-//         default:
-//         case Construct:
-//            if (var == null) {
-//               throw new Exception("Failed to find variable '" + key + "'");
-//            }
-//            if (!var.isConstant()) {
-//               var.addListener(fListener);
-//            }
-//         case Evaluate:
-//            if (var == null) {
-//               throw new Exception("Failed to find variable '" + key + "'");
-//            }
-//            return Expression.VariableNode.create(fListener, key, null, null);
-//         }
       }
       if ("Ordinal".equalsIgnoreCase(functionName)) {
          return new Expression.OrdinalNode(arg);

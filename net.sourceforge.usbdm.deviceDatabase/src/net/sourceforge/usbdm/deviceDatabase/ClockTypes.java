@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.deviceDatabase;
 import java.util.HashMap;
 import java.util.Map;
 
-//! RS08/HCS08/CFV1 clock types
+//! RS08/HCS08/CFV1/ARM clock types
 //!
 public enum ClockTypes {
    INVALID        (-1, "Invalid"      ),
@@ -22,13 +22,14 @@ public enum ClockTypes {
    S08MCGV1       (12, "S08MCGV1"     ),
    S08MCGV2       (13, "S08MCGV2"     ),
    S08MCGV3       (14, "S08MCGV3"     ),
+   MKEICS         (15, "MKEICS");
    ;
 
    private final int    mask;
    private final String name;
 
    // Used for reverse lookup of frequency (Hz)
-   private static final Map<String,ClockTypes> lookupString 
+   private static final Map<String,ClockTypes> lookupString
       = new HashMap<String, ClockTypes>();
 
    static {
@@ -49,16 +50,17 @@ public enum ClockTypes {
    }
    /**
     *   Get matching ClockType
-    *   
+    * 
     *   @param name Readable name of ClockType
     * 
     *   @return ClockSpeed matching (exactly) the frequency given or the default value if not found.
+    * @throws Exception
     */
-   public static ClockTypes parse(String name) {
+   public static ClockTypes parse(String name) throws Exception {
       ClockTypes rv = lookupString.get(name);
       if (rv == null) {
-         rv = INVALID;
+         throw new Exception("Illegal clock type '" + name +"'" );
       }
       return  rv;
-   }   
+   }
 }

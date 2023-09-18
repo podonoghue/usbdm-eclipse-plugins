@@ -81,12 +81,17 @@ public class Device implements Cloneable {
       else if (targetType == TargetType.T_CFV1) {
          return 0x3FE;
       }
+      else if ((targetType == TargetType.T_ARM)||
+            (targetType == TargetType.T_ARM_JTAG)||
+            (targetType == TargetType.T_ARM_SWD)) {
+         return 0x3FE;
+      }
       else if (targetType == TargetType.T_HCS08) {
          switch (clockType) {
          case S08ICGV1 :
          case S08ICGV2 :
          case S08ICGV3 :
-         case S08ICGV4 :      
+         case S08ICGV4 :
             return 0xFFBE;
 
          case S08ICSV1 :
@@ -94,20 +99,20 @@ public class Device implements Cloneable {
          case S08ICSV2x512 :
          case S08ICSV3 :
          case RS08ICSOSCV1 :
-         case RS08ICSV1 :     
+         case RS08ICSV1 :
             return 0xFFAE;
 
-         case S08ICSV4 :      
+         case S08ICSV4 :
             return 0xFF6E;
 
          case S08MCGV1 :
          case S08MCGV2 :
-         case S08MCGV3 :      
+         case S08MCGV3 :
             return 0xFFAE;
 
          case INVALID :
          case EXTERNAL :
-         default :            
+         default :
             return 0;
          }
       }
@@ -132,9 +137,10 @@ public class Device implements Cloneable {
     * @param  clockType - Clock type being queried
     * 
     * @return clock trim frequency in Hz.
+    * @throws Exception
     *
     */
-   static private int getDefaultClockTrimFreq(ClockTypes clockType) {
+   static private int getDefaultClockTrimFreq(ClockTypes clockType) throws Exception {
       switch (clockType) {
       case S08ICGV1 :
       case S08ICGV2 :
@@ -158,18 +164,21 @@ public class Device implements Cloneable {
 
       case INVALID :
       case EXTERNAL :
-      default :
          return 0;
+      case MKEICS:
+         return 37500;
       }
+      throw new Exception("Illegal clock type '" + clockType.toString() +"'" );
    }
 
    /**
     * Returns the default (nominal) trim frequency for the currently selected clock
     *
     * @return clock trim frequency in Hz.
+    * @throws Exception
     *
     */
-   public int getDefaultClockTrimFreq()  {
+   public int getDefaultClockTrimFreq() throws Exception  {
       return getDefaultClockTrimFreq(fClockType);
    }
 

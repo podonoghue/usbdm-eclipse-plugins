@@ -225,7 +225,11 @@ public class BitmaskDialogue extends Dialog {
          gl.numColumns  = 2;
       }
       else {
-         gl.numColumns  = fBitNames.length;
+         int width = fBitNames.length;
+         if (width>8) {
+            width = 8;
+         }
+         gl.numColumns  = width;
       }
 
       if (fBitmask == 0) {
@@ -319,10 +323,11 @@ public class BitmaskDialogue extends Dialog {
       long selection = 0xFF;
       
       int index=0;
-      String descriptions[]   = {",Bit 1,,,,Bit 5,,",           "Bit%i", "",   null, ",(1),,,,(5),(6),(7)"};
-      String names[]          = {",This is #1,,,,This is #5,,", "Num%i", "",   null, ",#1,,,,#5,#6,#7"};
-      long   bitmasks[]       = {0x0,                            0xA2,   0xA3, 0xA7, 0};
+      String descriptions[]   = {",Bit 1,,,,Bit 5,,",           "Bit%i", "",   null, ",(1),,,,(5),(6),(7)", null};
+      String names[]          = {",This is #1,,,,This is #5,,", "Num%i", "",   null, ",#1,,,,#5,#6,#7",     "bit%i" };
+      long   bitmasks[]       = {0x0L,                            0xA2L,   0xA3L, 0xA7L, 0L,                     0xFFFFFFFFL};
       while(true) {
+
          BitmaskVariable var = new BitmaskVariable("Name", "Key");
          var.setBitDescription(descriptions[index]);
          var.setPermittedBits(bitmasks[index]);
