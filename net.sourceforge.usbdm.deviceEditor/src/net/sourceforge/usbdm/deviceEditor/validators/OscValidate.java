@@ -204,7 +204,7 @@ public class OscValidate extends PeripheralValidator {
       OscMode_RTC_Controlled         =  getLongVariable("/OscMode_RTC_Controlled").getValueAsLong();
       
       // Inputs
-      oscModeVar                     =  getChoiceVariable("/MCG/mcg_c2_oscmode", externalVariablesList);
+      oscModeVar                     =  getChoiceVariable("/MCG/mcg_c2_oscMode", externalVariablesList);
       
       // Inout
       osc_input_freqVar              =  getLongVariable("osc_input_freq", externalVariablesList);
@@ -212,8 +212,6 @@ public class OscValidate extends PeripheralValidator {
       // Output
       oscillatorRangeVar             =  getChoiceVariable("oscillatorRange");
 
-      externalVariablesList.add("mcg_c2_oscmode");
-      
       addToWatchedVariables(externalVariablesList);
       
       // Don't add default dependencies

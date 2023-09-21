@@ -104,9 +104,9 @@ public class Expression implements IModelChangeListener {
 
       ExpressionNode fArg;
 
-      UnaryExpressionNode(ExpressionNode left, Type type) {
+      UnaryExpressionNode(ExpressionNode arg, Type type) {
          super(type);
-         fArg  = left;
+         fArg  = arg;
       }
       
       @Override
@@ -389,6 +389,14 @@ public class Expression implements IModelChangeListener {
          }
          // Default to treating as string
          return var.getValueAsString();
+      }
+
+      public Boolean exists() {
+         String name = fVarName;
+         if (fIndex != null) {
+            name = name+"[0]";
+         }
+         return fOwner.fVarProvider.safeGetVariable(name) != null;
       }
       
    }
@@ -690,7 +698,7 @@ public class Expression implements IModelChangeListener {
          return Character.toString((char)i);
       }
    }
-   
+
    static class ExpandPinListNode extends UnaryExpressionNode {
       
       /**

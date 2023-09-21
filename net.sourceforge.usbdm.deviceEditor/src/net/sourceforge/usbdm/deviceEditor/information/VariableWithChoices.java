@@ -355,6 +355,10 @@ public abstract class VariableWithChoices extends Variable {
                throw new Exception("length of refs does not match target");
             }
             for (int index=0; index<refs.length; index++) {
+               if (refs[index].isBlank()) {
+                  // Blank ignore
+                  continue;
+               }
                Variable targetVar = getProvider().getVariable(targets[index]);
                Object   value     = Expression.getValue(refs[index], getProvider());
                targetVar.setValue(value);

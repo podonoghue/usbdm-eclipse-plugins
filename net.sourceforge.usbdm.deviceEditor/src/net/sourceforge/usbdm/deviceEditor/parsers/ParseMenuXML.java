@@ -1153,6 +1153,7 @@ public class ParseMenuXML extends XML_BaseParser {
          generateEnum(varElement, variable);
       }
       if (varElement.hasAttribute("radix")) {
+         variable.setRadix(getRequiredLongAttribute(varElement, "radix"));
       }
    }
 

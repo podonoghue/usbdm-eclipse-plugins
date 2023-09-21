@@ -614,8 +614,8 @@ public class LongVariable extends Variable {
       return fRadix;
    }
 
-   public void setRadix(int radix) {
-      fRadix = radix;
+   public void setRadix(long radix) {
+      fRadix = (int) radix;
    }
 
    @Override

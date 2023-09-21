@@ -169,7 +169,7 @@ public class CreateDeviceSkeletonFromSVD {
          "   <constant key=\"isGeneratedByDefault\"     type=\"Boolean\" value=\"false\"         />\n"   +
          "   <constant key=\"isSupportedinStartup\"     type=\"Boolean\" value=\"true\"          />\n"    +
          "   <xi:include href=\"_enablePeripheral.xml\"  />\n"                                    +
-         "   <title description=\"------------------------------------------\" />\n"             +
+         "   <title />\n"             +
          "";
 
       final String usefulInfo =
@@ -412,7 +412,7 @@ public class CreateDeviceSkeletonFromSVD {
          "   <template key=\"init_description\" namespace=\"all\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
          "   <![CDATA[\n" +
          "      \\t/**\n" +
-         "      \\t * Class used to do initialisation of the $(_Class)\n" +
+         "      \\t * Class used to do initialisation of the $(_Baseclass)\n" +
          "      \\t *\n" +
          "      \\t * This class has a templated constructor that accepts various values.\n" +
          "      \\t *\n" +
@@ -443,6 +443,7 @@ public class CreateDeviceSkeletonFromSVD {
          "      \\t * @endcode\n" +
          "      \\t */\n" +
          "   ]]>\n" +
+         "\n" +
          "   </template>\n";
       
       StringBuilder sb = new StringBuilder();
@@ -456,9 +457,9 @@ public class CreateDeviceSkeletonFromSVD {
       
       String openBasicInfoClass =
             "\n" +
-            "   <template namespace=\"usbdm\" >\n" +
+            "   <template namespace=\"usbdm\" discardRepeats=\"true\" >\n" +
             "   <![CDATA[\n" +
-            "      class $(_Class)BasicInfo {\n" +
+            "      class $(_Baseclass)BasicInfo {\n" +
             "      \\t\n" +
             "      public:\\n\n" +
             "   ]]>\n" +
@@ -466,49 +467,52 @@ public class CreateDeviceSkeletonFromSVD {
 
       String irqDeclaration =
             "\n" +
-            "   <template namespace=\"usbdm\" codeGenCondition=\"irqHandlingMethod\" >\n" +
-            "   <![CDATA[\n" +
-            "      \\t/**\n" +
-            "      \\t * Type definition for $(_Class) interrupt call back.\n" +
-            "      \\t */\n" +
-            "      \\ttypedef void (*CallbackFunction)($(irq_parameters));\\n\n" +
-            "   ]]>\n" +
-            "   </template>\n";
-
-      String irqUnhandledMethod =
-            "\n" +
-            "   <template codeGenCondition=\"irqHandlingMethod\" >\n" +
-            "   <![CDATA[\n" +
-            "      \\t/** Callback function for ISR */\n"                                   +
-            "      \\tstatic CallbackFunction sCallback;\n"                                 +
+            "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+            "      variables=\"/$(_BASENAME)/irqHandlingMethod\"\n"+
+            "   ><![CDATA[\n"+
+            "       \\t//! Common class based callback code has been generated for this class of peripheral\n"+
+            "       \\tstatic constexpr bool irqHandlerInstalled = %symbolicValueExpression;\n"+
+            "       \\t\\n\n"+
+            "   ]]></initialValueTemplate>\n"+
+            "\n"+
+            "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\" >\n" +
+            "   <![CDATA[\n"                                                                +
+            "      \\t/**\n"                                                                +
+            "      \\t * Type definition for $(_Baseclass) interrupt call back.\n"          +
+            "      \\t */\n"                                                                +
+            "      \\ttypedef void (*CallbackFunction)($(irq_parameters));\n"               +
             "      \\t\n"                                                                   +
             "      \\t/**\n"                                                                +
             "      \\t * Callback to catch unhandled interrupt\n"                           +
             "      \\t */\n"                                                                +
-            "      \\tstatic void unhandledCallback($(irq_dummy_parameters)) {\n"                 +
+            "      \\tstatic void unhandledCallback($(irq_dummy_parameters)) {\n"           +
             "      \\t   setAndCheckErrorCode(E_NO_HANDLER);\n"                             +
             "      \\t}\n"                                                                  +
-            "      \\t\\n\n"                                                                                      +
-            "   ]]>\n" +
+            "      \\t\\n\n" +
+            "   ]]>\n"                                                                      +
             "   </template>\n";
 
-      String irqHandler =
-            "\n" +
-           "   <template codeGenCondition=\"irqHandlingMethod\" >\n"  +
-           "   <![CDATA[\n"                                                                                   +
+      String irqCallbackFunctionPtr =
+           "\n"                                                                            +
+           "   <template codeGenCondition=\"irqHandlingMethod\" >\n"                       +
+           "   <![CDATA[\n"                                                                +
+           "      \\t/** Callback function for ISR */\n"                                   +
+           "      \\tstatic CallbackFunction sCallback;\n"                                 +
+           "      \\t\n"                                                                   +
            "      \\t/**\n"                                                                                   +
            "      \\t * Set interrupt callback function.\n"                                                   +
            "      \\t *\n"                                                                                    +
-           "      \\t * @param[in]  %cb Callback function to execute on interrupt\n"        +
+           "      \\t * @param[in]  $(_basename)Callback Callback function to execute on interrupt\n"         +
            "      \\t */\n"                                                                                   +
-           "      \\tstatic void setCallback(CallbackFunction %cb) {\n"                               +
-           "      \\t   if (%cb == nullptr) {\n"                                                      +
-           "      \\t      %cb = unhandledCallback;\n"                                                +
+           "      \\tstatic void setCallback(CallbackFunction $(_basename)Callback) {\n"                      +
+           "      \\t   if ($(_basename)Callback == nullptr) {\n"                                             +
+           "      \\t      $(_basename)Callback = unhandledCallback;\n"                                       +
            "      \\t   }\n"                                                                                  +
-           "      \\t   usbdm_assert(\n" +
-           "      \\t         (sCallback == unhandledCallback) || (sCallback == %cb),\n" +
-           "      \\t         \"Handler already set\");\n" +
-           "      \\t   sCallback = %cb;\n"                                                           +
+           "      \\t   // Allow either no handler set yet or removing handler\n"                             +
+           "      \\t   usbdm_assert(\n"                                                                      +
+           "      \\t         (sCallback == unhandledCallback) || ($(_basename)Callback == unhandledCallback),\n" +
+           "      \\t         \"Handler already set\");\n"                                                    +
+           "      \\t   sCallback = $(_basename)Callback;\n"                                                  +
            "      \\t}\n"                                                                                     +
            "      \\t\n"                                                                                      +
            "      \\t/**\n"                                                                                   +
@@ -516,13 +520,12 @@ public class CreateDeviceSkeletonFromSVD {
            "      \\t */\n"                                                                                   +
            "      \\tstatic void irqHandler() {\n"                                                            +
            "      \\t\n"                                                                                      +
-           "      \\t   //.....IRQ handler code here..........\n"                                +
+           "      \\t   //.....IRQ handler code here..........\n"                                             +
            "      \\t\n"                                                                                      +
-           "      \\t   // Execute call-back\n"                                                                                      +
-           "      \\t   sCallback($(irq_call));\n"                                   +
-           "      \\t   return;\n"                                                                            +
-           "      \\t}\n"                                                                                  +
-           "      \\t\\n\n" +
+           "      \\t   // Execute call-back\n"                                                               +
+           "      \\t   sCallback($(irq_call));\n"                                                            +
+           "      \\t}\n"                                                                                     +
+           "      \\t\\n\n"                                                                                   +
            "   ]]>\n"                                                                                         +
            "   </template>\n"                                                                                 +
            "";
@@ -542,15 +545,14 @@ public class CreateDeviceSkeletonFromSVD {
       resultSb.append (String.format(openBasicInfoClass, ""));
       
       if (irqsUsed) {
-         resultSb.append (String.format(irqDeclaration));
-         resultSb.append (String.format(irqUnhandledMethod));
-         resultSb.append (String.format(irqHandler.replace("%cb", peripheralBasename.toLowerCase()+"Callback")));
-         resultSb.append (String.format(irqStaticDefinition.replace("%cb", peripheralBasename.toLowerCase()+"Callback")));
+         resultSb.append (irqDeclaration);
+         resultSb.append (irqCallbackFunctionPtr);
+         resultSb.append (irqStaticDefinition);
       }
       
       String openInitClass =
             "\n" +
-            "   <template namespace=\"usbdm\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
+            "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
             "   <![CDATA[\n" +
             "      $(init_description)\n" +
             "      \\tclass Init {\n" +
@@ -575,19 +577,19 @@ public class CreateDeviceSkeletonFromSVD {
 
       String irqEntryTemplate =
             "\n" +
-            "   <initialValueTemplate namespace=\"usbdm\" variables=\"irqHandlingMethod\" codeGenCondition=\"irqHandlingMethod\"\n" +
+            "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" variables=\"irqHandlingMethod\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
             "    ><![CDATA[\n" +
-            "      \\t   /// %%description\n" +
-            "      \\t   %%params = nullptr;\\n\\n\n" +
+            "      \\t   /// %description\n" +
+            "      \\t   %params = nullptr;\\n\\n\n" +
             "   ]]></initialValueTemplate>\n";
       
       if (irqsUsed) {
-         resultSb.append(String.format(irqEntryTemplate));
+         resultSb.append(irqEntryTemplate);
       }
 
       String memberDeclaration =
             "\n" +
-            "   <initialValueTemplate namespace=\"usbdm\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+            "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
             "      variables=\"%s\"\n" +
             "   ><![CDATA[\n" +
             "      \\t   /// %s\n" +
@@ -622,7 +624,7 @@ public class CreateDeviceSkeletonFromSVD {
 
       String irqLevelTemplate =
             "\n" +
-            "   <initialValueTemplate namespace=\"usbdm\" codeGenCondition=\"irqHandlingMethod\"\n" +
+            "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
             "      variables=\"/PCR/nvic_irqLevel,irqLevel\"\n" +
             "   ><![CDATA[\n" +
             "      \\t   /// %%description\n" +
@@ -634,11 +636,12 @@ public class CreateDeviceSkeletonFromSVD {
          resultSb.append(String.format(irqLevelTemplate));
       }
       
-      String configureMethodDefaultConfig =
+      String configureMethod =
             "\n" +
             "<!--   Configure methods -->\n" +
             "\n" +
-            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" ><![CDATA[\n" +
+            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
+            "   <![CDATA[\n" +
             "      \\t/**\n" +
             "      \\t * Configure with default settings.\n" +
             "      \\t * Configuration determined from Configure.usbdmProject\n" +
@@ -648,12 +651,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t   // Update settings\n" +
             "      \\t   configure(Info::DefaultInitValue);\n" +
             "      \\t}\n" +
-            "      \\t\\n\n" +
-            "   ]]></template>\n";
-      
-      String configureMethodConfigureOpen =
-            "\n" +
-            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" ><![CDATA[\n" +
+            "      \\t\n" +
             "      \\t/**\n" +
             "      \\t * Configure $(_BASENAME) from values specified in init\n" +
             "      \\t *\n" +
@@ -668,27 +666,30 @@ public class CreateDeviceSkeletonFromSVD {
             "   ]]></template>\n";
 
       String configureMethodIrq =
-            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
-            "             condition=\"irqHandlingMethod\" ><![CDATA[\n" +
+            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" \n" +
+            "             condition=\"irqHandlingMethod\" >" +
+            "   <![CDATA[\n" +
             "      \\t   if constexpr (Info::irqHandlerInstalled) {\n" +
+            "      \\t      // Only set call-backs if feature enabled\n" +
             "      \\t      Info::setCallback(init.callbackFunction);\n" +
             "      \\t      enableNvicInterrupts(init.irqlevel);\n" +
             "      \\t   }\n" +
             "      \\t\\n\n" +
-            "   ]]></template>\n" +
-            "\n";
+            "   ]]>\n" +
+            "   </template>\n";
             
       String configureMethodRegs =
-            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" ><![CDATA[\n" +
+            "   <template key=\"/$(_BASENAME)/InitMethod\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
+            "   <![CDATA[\n" +
             "      \\t   // ..........  Regs to init .......... ;\n"                               +
             "%s" +
             "      \\t}\n"                                                                            +
             "      \\t\\n\n"                                                                          +
-            "   ]]></template>\n"                                                                     +
+            "   ]]>\n" +
+            "   </template>\n"                                                                     +
             "";
       
-      resultSb.append(String.format(configureMethodDefaultConfig));
-      resultSb.append(String.format(configureMethodConfigureOpen));
+      resultSb.append(String.format(configureMethod));
       resultSb.append(String.format(configureMethodIrq));
       
       sb = new StringBuilder();
@@ -714,11 +715,11 @@ public class CreateDeviceSkeletonFromSVD {
       }
       String constructorTitle =
           "\n" +
-          "<!--   Constructors -->\n";
+          "   <!--   Constructors -->\n";
       
       String irqHandlerConstructorTemplate =
             "\n" +
-            "   <setTemplate namespace=\"usbdm\" codeGenCondition=\"irqHandlingMethod\"\n" +
+            "   <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
             "      variables=\"irqHandlingMethod\"\n" +
             "      linePadding=\"xxx\"\n" +
             "    ><![CDATA[\n" +
@@ -736,7 +737,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t   }\\n\\n\n" +
             "   ]]></setTemplate>\n" +
             "\n" +
-            "   <setTemplate namespace=\"usbdm\" codeGenCondition=\"irqHandlingMethod\"\n" +
+            "   <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
             "      variables=\"/PCR/nvic_irqLevel\"\n" +
             "      linePadding=\"xxx\"\n" +
             "    ><![CDATA[\n" +
@@ -768,7 +769,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      values=\"\n" +
           "%s\n" +
           "            \" >\n" +
-          "      <setTemplate namespace=\"usbdm\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+          "      <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
           "         variables=\"%%(r)\"\n" +
           "         linePadding=\"xxx\" >\n" +
           "      <![CDATA[\n" +
@@ -796,7 +797,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      values=\"\n" +
           "%s\n" +
           "            \" >\n" +
-          "      <setTemplate namespace=\"usbdm\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+          "      <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
           "         variables=\"%%(r)\"\n" +
           "         linePadding=\"xxx\" >\n" +
           "      <![CDATA[\n" +
@@ -898,7 +899,8 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t */\n" +
             "      \\tstatic constexpr Init DefaultInitValue = {%%initExpression\n" +
             "      \\t};\\n\\n\n" +
-            "   ]]></initialValueTemplate>\n";
+            "   ]]>\n" +
+            "   </initialValueTemplate>\n";
       
 //      String irqReferenceDeclaration =
 //            "      \\t/**\n" +
@@ -980,17 +982,18 @@ public class CreateDeviceSkeletonFromSVD {
 
       String closeInitClass =
             "\n" +
-            "   <template namespace=\"usbdm\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
+            "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
             "      <![CDATA[\n" +
-            "      \\t}; // $(_Class)BasicInfo::Init\\n\\n\n" +
+            "      \\t}; // class $(_Baseclass)BasicInfo::Init\n" +
+            "      \\t\\n\n" +
             "   ]]>\n" +
             "   </template>\n";
       
       String closeBasicInfoClass =
             "\n" +
-            "   <template namespace=\"usbdm\" >\n" +
+            "   <template namespace=\"usbdm\" discardRepeats=\"true\" >\n" +
             "      <![CDATA[\n" +
-            "      }; // $(_Class)BasicInfo\\n\\n\n" +
+            "      }; // class $(_Class)BasicInfo\\n\\n\n" +
             "   ]]>\n" +
             "   </template>\n";
 
@@ -1003,12 +1006,15 @@ public class CreateDeviceSkeletonFromSVD {
             "\n" +
             "   <!-- ************* Common ****************** -->\n" +
             "\n" +
-            "   <template key=\"/$(_BASENAME)/declarations\" namespace=\"all\" codeGenCondition=\"enablePeripheralSupport\" ><![CDATA[\n" +
-            "   \\t/**\n" +
-            "   \\t * Class representing $(_NAME)\n" +
-            "   \\t */\n" +
-            "   \\tclass $(_Class) : public $(_Baseclass)Base_T<$(_Class)Info> {};\\n\n" +
-            "   ]]></template>\n" +
+            "   <template key=\"/$(_BASENAME)/declarations\" namespace=\"all\" codeGenCondition=\"enablePeripheralSupport\" >\n" +
+            "   <![CDATA[\n" +
+            "      /**\n" +
+            "       * Class representing $(_NAME)\n" +
+            "       */\n" +
+            "      class $(_Class) : public $(_Baseclass)Base_T<$(_Class)Info> {};\n" +
+            "      \\t\\n\n" +
+            "   ]]>\n" +
+            "   </template>\n" +
             "\n" +
             "   <validate\n" +
             "      class=\"net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator\" >\n" +
@@ -1053,7 +1059,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      <aliasOption key=\"/SIM/sim_pinsel1_$(_name)ps\" constant=\"false\" optional=\"true\" />\n" +
             "   </category>\n" +
             "\n" +
-            "   <signals enabledBy=\"/$(_BASENAME)/enablePeripheralSupport\" />\n");
+            "   <signals enabledBy=\"enablePeripheralSupport\" />\n");
       
       resultSb.append("\n</peripheralPage>\n");
    }
@@ -1062,6 +1068,9 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ACMP",
 //         "ADC",
 //         "CAN"
+//         "CMP",
+//         "CRC",
+//         "FTF",
 //         "IRQ",
 //         "I2C",
 //         "KBI",
@@ -1069,17 +1078,20 @@ public class CreateDeviceSkeletonFromSVD {
 //         "PWT",
 //         "RTC",
 //         "RCM",
+         "SIM"
 //         "SMC",
 //         "SPI",
 //            "UART",
 //         "LPTMR",
+//         "LLWU",
 //       "OSC",
 //       "PIT",
 
-         "FTM",
+//         "FTM",
 //         "FGPIO",
 //         "PORT",
 //         "SIM",
+//         "VREF"
 //         "WDOG",
 //         "UART",
 //         "ICS",
@@ -1121,8 +1133,9 @@ public class CreateDeviceSkeletonFromSVD {
 
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("FRDM_KE04Z");
-      doAllPeripherals("FRDM_KE06Z");
-//      doAllPeripherals("FRDM_KL02Z");
+//      doAllPeripherals("FRDM_KE06Z");
+//    doAllPeripherals("FRDM_KL02Z");
+       doAllPeripherals("FRDM_KL03Z");
    }
 
 }

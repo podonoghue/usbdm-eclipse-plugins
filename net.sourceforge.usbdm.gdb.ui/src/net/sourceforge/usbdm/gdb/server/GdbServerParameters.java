@@ -668,9 +668,10 @@ public class GdbServerParameters {
       }
       commandList.add(isExitOnClose()?"-exitOnClose":"");
       if (isTrimClock() && (getClockTrimFrequency() != 0)) {
-         commandList.add("-trim="+getClockTrimFrequency());
+         // Value in kHz
+         commandList.add("-trim="+((double)getClockTrimFrequency())/1000);
          if (getNvmClockTrimLocation() > 0) {
-            commandList.add("-nvloc="+getNvmClockTrimLocation());
+            commandList.add("-nvloc="+"0x"+Long.toHexString(getNvmClockTrimLocation()));
          }
       }
       commandList.add(getPowerParametersAsOption());

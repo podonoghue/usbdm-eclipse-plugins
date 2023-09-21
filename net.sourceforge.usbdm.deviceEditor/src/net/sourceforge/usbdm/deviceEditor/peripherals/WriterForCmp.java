@@ -87,6 +87,9 @@ public class WriterForCmp extends PeripheralWithState {
             if (signal == null) {
                continue;
             }
+            if (!signal.isEnabled()) {
+               continue;
+            }
             MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
             if (mappingInfo == MappingInfo.UNASSIGNED_MAPPING) {
                continue;

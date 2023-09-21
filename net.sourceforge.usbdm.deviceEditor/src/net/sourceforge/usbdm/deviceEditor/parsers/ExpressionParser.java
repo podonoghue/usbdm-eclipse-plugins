@@ -8,6 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.BooleanNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -199,6 +200,13 @@ public class ExpressionParser {
       if ("ExpandPinList".equalsIgnoreCase(functionName)) {
          return new Expression.ExpandPinListNode(arg);
       }
+      if ("Exists".equalsIgnoreCase(functionName)) {
+         if (!(arg instanceof VariableNode)) {
+            throw new Exception("Expected name of variable");
+         }
+         VariableNode vn = (VariableNode) arg;
+         return new BooleanNode(vn.exists());
+      }
       throw new Exception("Function not supported");
    }
    
@@ -257,7 +265,7 @@ public class ExpressionParser {
          if (ch ==']') {
             if (forceEvaluate) {
                // [] should only be used in existence checks
-               System.err.println("Empty index used in evaluated variable'"+fExpressionString+"'");
+               System.err.println("Empty index used in evaluated variable, exp= '"+fExpressionString+"'");
             }
             index = new Expression("0", fProvider, Mode.EvaluateImmediate);
          }
@@ -952,7 +960,7 @@ public class ExpressionParser {
          return control;
       }
       if (!isBoolean(control)) {
-         throw new Exception("Unexpected data type for operand in Ternary");
+         throw new Exception("Unexpected data type for operand in Ternary, " + control);
       }
       getNextCh();;
       ExpressionNode trueExp = parseSubExpression();

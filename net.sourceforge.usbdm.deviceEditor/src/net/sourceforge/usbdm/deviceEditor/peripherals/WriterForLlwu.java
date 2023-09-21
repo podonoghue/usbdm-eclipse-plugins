@@ -475,7 +475,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
          }
       }
       // Choice used if FILT is disabled
-      choiceData.add(new ChoiceData("Disabled", "0"));
+//      choiceData.add(new ChoiceData("Disabled", "LlwuPin(0)"));
       for(int index=0; index<6; index++) {
          ChoiceVariable filter = (ChoiceVariable) safeGetVariable(makeKey("llwu_filt"+index+"_filtsel"));
          if (filter != null) {
