@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
@@ -13,13 +14,14 @@ import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.ExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class Expression implements IModelChangeListener {
 
    public enum Type {
-      Double, Long, String, Boolean, DisabledValue, List
+      Double, Long, String, Boolean, DisabledValue, List, Set, Unknown,
    }
    
    static abstract class ExpressionNode {
@@ -300,7 +302,9 @@ public class Expression implements IModelChangeListener {
       @Override
       public void collectVars(ArrayList<Variable> variablesFound) {
          try {
-            variablesFound.add(getVar());
+            Variable var = getVar();
+            if (!variablesFound.contains(var))
+               variablesFound.add(var);
          } catch (Exception e) {
             e.printStackTrace();
          }
@@ -1019,18 +1023,42 @@ public class Expression implements IModelChangeListener {
       @Override
       Object eval() throws Exception {
          Object leftOperand  = fLeft.eval();
-         Object rightOperand = fRight.eval();
-         switch (fLeft.fType) {
-         case Boolean:
-            return (Boolean)leftOperand == (Boolean)rightOperand;
-         case Double:
-            return (Double)leftOperand == (Double)rightOperand;
-         case Long:
-            return (Long)leftOperand == (Long)rightOperand;
-         case String:
-            return ((String)leftOperand).compareTo((String)rightOperand) == 0;
-         default:
-            throw new Exception("Impossible type!");
+         if (fRight instanceof CommaListNode) {
+            CommaListNode set = (CommaListNode) fRight;
+            Visitor inSet = new Visitor() {
+               Object  value = leftOperand;
+               Boolean result = false;
+
+               @Override
+               void visit(ExpressionNode node) throws Exception {
+                  if (node.eval().equals(value)) {
+                     result = true;
+                  }
+
+               }
+
+               @Override
+               Object getResult() {
+                  return result;
+               }
+            };
+            set.forEach(inSet);
+            return inSet.getResult();
+         }
+         else {
+            Object rightOperand = fRight.eval();
+            switch (fLeft.fType) {
+            case Boolean:
+               return (Boolean)leftOperand == (Boolean)rightOperand;
+            case Double:
+               return (Double)leftOperand == (Double)rightOperand;
+            case Long:
+               return (Long)leftOperand == (Long)rightOperand;
+            case String:
+               return ((String)leftOperand).compareTo((String)rightOperand) == 0;
+            default:
+               throw new Exception("Impossible type!");
+            }
          }
       }
    }
@@ -1219,6 +1247,60 @@ public class Expression implements IModelChangeListener {
 
    }
 
+//   static class SetNode extends ExpressionNode {
+//      ExpressionNode[] fList;
+//
+//      SetNode(ExpressionNode[] expression) {
+//         super(Type.List);
+//         fList = expression;
+//      }
+//
+//      @Override
+//      Object eval() throws Exception {
+//         Object[] result = new Object[fList.length];
+//         for (int index=0; index<fList.length; index++) {
+//            result[index] = fList[index].eval();
+//         }
+//         return result;
+//      }
+//
+//      @Override
+//      public void collectVars(ArrayList<Variable> variablesFound) {
+//         for (ExpressionNode exp:fList) {
+//            exp.collectVars(variablesFound);
+//         }
+//      }
+//
+//      @Override
+//      public ExpressionNode prune() throws Exception {
+//         for (int index=0; index<fList.length; index++) {
+//            fList[index] = fList[index].prune();
+//         }
+//         return this;
+//      }
+//
+//      @Override
+//      public String toString() {
+//         StringBuilder description = new StringBuilder();
+//         description.append(this.getClass().getSimpleName()).append("(");
+//         for (ExpressionNode exp:fList) {
+//            description.append(exp.toString());
+//         }
+//         description.append(")");
+//         return description.toString();
+//      }
+//
+//      @Override
+//      boolean isConstant() {
+//         boolean isConstant = true;
+//         for (int index=0; (index<fList.length)&&isConstant; index++) {
+//            isConstant = isConstant && fList[index].isConstant();
+//         }
+//         return isConstant;
+//      }
+//
+//   }
+   
    static class CommaListNode extends ExpressionNode {
       ExpressionNode[] fList;
       
@@ -1269,6 +1351,27 @@ public class Expression implements IModelChangeListener {
             isConstant = isConstant && fList[index].isConstant();
          }
          return isConstant;
+      }
+
+      public static abstract class Visitor {
+         abstract void visit(ExpressionNode node) throws Exception ;
+
+         Object getResult() {
+            return null;
+         }
+         
+      };
+      
+      /**
+       * Visit each expression in list
+       * 
+       * @param visitor Visitor
+       * @throws Exception
+       */
+      public void forEach(Visitor visitor) throws Exception {
+         for (ExpressionNode node:fList) {
+            visitor.visit(node);
+         }
       }
 
    }
@@ -1362,7 +1465,7 @@ public class Expression implements IModelChangeListener {
    public Expression(String expression, VariableProvider provider) throws Exception {
       this(expression, provider, Mode.Dynamic);
    }
-
+   
    private void prelim() throws Exception {
 //      if (fExpressionStr.matches(".*\\|\\|\\(ftm_cnsc_mode\\[0.*")) {
 //         System.err.println("Found it prelim("+fExpressionStr+")");
@@ -1547,7 +1650,9 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public Object getValue() throws Exception {
-      if (fCurrentValue == null) {
+      InitPhase initPhase = fVarProvider.getDeviceInfo().getInitialisationPhase();
+      if ((fCurrentValue == null) || (initPhase.isEarlierThan( InitPhase.VariableAndGuiPropagationAllowed))) {
+         // Always evaluate if needed or when loading settings
          fCurrentValue = evaluate();
       }
       return fCurrentValue;
@@ -1561,7 +1666,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public String getValueAsString() throws Exception {
-      return (String)getValue();
+      return castResult(String.class);
    }
 
    /**
@@ -1572,7 +1677,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public Boolean getValueAsBoolean() throws Exception {
-      return (Boolean)getValue();
+      return castResult(Boolean.class);
    }
 
    /**
@@ -1583,7 +1688,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public Long getValueAsLong() throws Exception {
-      return (Long)getValue();
+      return castResult(Long.class);
    }
 
    /**
@@ -1594,7 +1699,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public Double getValueAsDouble() throws Exception {
-      return (Double)getValue();
+      return castResult(Double.class);
    }
 
    /*
@@ -1617,6 +1722,15 @@ public class Expression implements IModelChangeListener {
       Object res = getValue(expression, provider);
       if (!toClass.isInstance(res)) {
          throw new Exception("Expected "+toClass.getSimpleName()+" result for expression '"+expression+"'");
+      }
+      return (T) res;
+   }
+   
+   @SuppressWarnings("unchecked")
+   private <T> T castResult(Class<T> toClass) throws Exception {
+      Object res = getValue();
+      if (!toClass.isAssignableFrom(res.getClass())) {
+         throw new Exception("Expected "+toClass.getSimpleName()+" result for expression '"+fExpressionStr+"'");
       }
       return (T) res;
    }

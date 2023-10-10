@@ -119,6 +119,19 @@ public class DoubleVariable extends Variable {
       fValue = translate(value);
    }
    
+   protected static String formatValueAsString(double value, Units units) {
+      switch(units) {
+      default:
+      case None:
+         return Double.toString(value);
+      case ticks:
+         return Math.round(value)+"_"+units.toString();
+      case s:
+      case Hz:
+         return EngineeringNotation.convert(value, 5).toString()+units.toString();
+      }
+   }
+
    /**
     * Converts the given string into a form appropriate for model
     * 
@@ -127,14 +140,7 @@ public class DoubleVariable extends Variable {
     * @return String in appropriate form e.g. 24.56MHz
     */
    public String getValueAsString(double value) {
-      switch(getUnits()) {
-      default:
-      case None:
-         return Double.toString(value);
-      case s:
-      case Hz:
-         return EngineeringNotation.convert(value, 5).toString()+getUnits().toString();
-      }
+      return formatValueAsString(value, getUnits());
    }
 
    @Override

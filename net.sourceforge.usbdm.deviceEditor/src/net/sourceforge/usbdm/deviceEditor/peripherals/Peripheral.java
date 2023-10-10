@@ -386,6 +386,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @throws UsbdmException
     */
    void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
+      
       documentUtilities.openTag("peripheral");
       documentUtilities.writeAttribute("baseName",       fBaseName);
       documentUtilities.writeAttribute("instance",       fInstance);
@@ -414,6 +415,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       documentUtilities.writeParam(
             "instanceList", "/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
 
+      if (getIrqCount()>0) {
+         documentUtilities.writeParam(
+               "instanceList", "/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
+      }
+      
       writeExtraXMLDefinitions(documentUtilities);
       documentUtilities.closeTag();
    }

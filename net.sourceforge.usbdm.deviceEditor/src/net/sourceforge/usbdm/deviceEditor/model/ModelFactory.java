@@ -18,7 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
-   TabModel fParameterModels = null;
+   PeripheralParametersEditor fParameterModels = null;
    boolean  underConstruction;
    
    /**
@@ -38,8 +38,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
        * Constructor <br>
        * Used to group the pins into categories for display
        * 
-       * @param name       Name of category 
-       * @param pattern    Pattern used to select pins to include in this category 
+       * @param name       Name of category
+       * @param pattern    Pattern used to select pins to include in this category
        */
       public PinCategory(String name, String pattern) {
          this.name      = name;
@@ -95,7 +95,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * Device Signals Model
     *    +--- Category Model ...
     *             +----Pin Model ...
-    * </pre> 
+    * </pre>
     * @return Model
     */
    private PinViewPageModel createPinViewPageModel() {
@@ -121,7 +121,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    /**
     * Creates a model for an editor page containing tabbed pages representing all peripherals and their parameters and signals
     * <pre>
-    *     TabModel
+    *     PeripheralParametersEditor (Tab)
     *         +---- Peripheral (Tab) ...
     *                   +---- Parameters (various) ...
     *                   +---- Signals (Category Model)
@@ -129,9 +129,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * </pre>
     * @return Model  Constructed model
     */
-   private TabModel createPeripheralParameterPageModel() {
-      fParameterModels = new TabModel(
-            null, "Peripheral Parameters", "Peripheral signal declarations\nInterrupt handling and\ndefault settings used by defaultConfigure()");
+   private PeripheralParametersEditor createPeripheralParameterTab() {
+      Boolean hasPCR = fDeviceInfo.safeGetVariable("/PCR/_present") != null;
+      fParameterModels = new PeripheralParametersEditor(hasPCR);
       
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
@@ -152,7 +152,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    /** Flag used to prevent multiple consistency checks */
    boolean conflictCheckPending = false;
    
-   /** 
+   /**
     * The model for the first page of the editor<br>
     * This page does not get re-generated
     */
@@ -191,13 +191,15 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       if (!testAndSetConflictCheckPending(true)) {
          // Start new check
          Runnable runnable = new Runnable() {
+            @Override
             public void run() {
                try {
                   Thread.sleep(100);
                } catch (InterruptedException e) {
                }
                Display.getDefault().syncExec(new Runnable() {
-                 public void run() {
+                 @Override
+               public void run() {
                     checkConflictsJob();
                  }
                });
@@ -207,7 +209,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       }
    }
    
-   /** 
+   /**
     * Add mapping to map based on key
     * 
     * @param map           Map to add to
@@ -241,7 +243,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 ////      System.err.println("checkConflictsJob()");
 //      testAndSetConflictCheckPending(false);
 //
-//      /** Used to check for multiple mappings to a single pin */ 
+//      /** Used to check for multiple mappings to a single pin */
 //      Map<String, List<MappingInfo>> mappedSignalsByPin      = new HashMap<String, List<MappingInfo>>();
 //
 //      /** Used to check for a signal being mapped to multiple pins */
@@ -260,7 +262,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 //            // Signal previously mapped to this pin
 //
 //            // Check if any conflicts between new signal mapping and existing ones
-//            // Note - Multiple signals may be mapped to the same pin without conflict 
+//            // Note - Multiple signals may be mapped to the same pin without conflict
 //            // since some signals share a mapping.
 //            // Need to check the signalLists not the signals
 //            boolean conflicting = false;
@@ -380,7 +382,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       fPinViewPageModel = createPinViewPageModel();
       fModels.add(fPinViewPageModel);
       fModels.add(createPeripheralViewPageModel());
-      fModels.add(createPeripheralParameterPageModel());
+      fModels.add(createPeripheralParameterTab());
       fModels.add(fPackageImageModel);
 
 //      report();
@@ -405,7 +407,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return Model created
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public static ModelFactory createModels(Path path, boolean loadSettings) throws Exception {
       return new ModelFactory(DeviceInfo.createFromSettingsFile(null, path));

@@ -8,6 +8,7 @@ import org.eclipse.jface.viewers.Viewer;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
 public class ViewContentProvider implements ITreeContentProvider {
+   @Override
    public void inputChanged(Viewer v, Object oldInput, Object newInput) {
    }
 
@@ -23,9 +24,9 @@ public class ViewContentProvider implements ITreeContentProvider {
       }
       ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
       for (BaseModel child:children) {
-         if (!child.isHidden()) {
+//         if (!child.isHidden()) {
             visibleChildren.add(child);
-         }
+//         }
       }
       return visibleChildren.toArray();
    
@@ -39,9 +40,9 @@ public class ViewContentProvider implements ITreeContentProvider {
       }
       ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
       for (BaseModel child:children) {
-         if (!child.isHidden()) {
+//         if (!child.isHidden()) {
             visibleChildren.add(child);
-         }
+//         }
       }
       return visibleChildren.toArray();
    }
@@ -52,7 +53,7 @@ public class ViewContentProvider implements ITreeContentProvider {
    }
 
    @Override
-   public boolean hasChildren(Object element) { 
+   public boolean hasChildren(Object element) {
       return ((BaseModel) element).hasChildren();
    }
 }

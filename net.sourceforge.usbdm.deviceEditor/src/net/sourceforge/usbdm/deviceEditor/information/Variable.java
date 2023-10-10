@@ -133,6 +133,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /** Controls when pin-map is enabled */
    private Expression fpinMapEnable = null;
 
+   /** Dynamically hides an item */
+   private Expression fHiddenBy = null;
+
    /**
     * Constructor
     * 
@@ -832,9 +835,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       setValue(getDefault());
    }
    
-   public void setHidden(boolean b) {
-      fIsHidden = b;
-      notifyStructureChangeListeners();
+   public void setHidden(boolean isHidden) {
+      boolean changed = (fIsHidden != isHidden );
+      fIsHidden = isHidden;
+      if (changed) {
+         notifyStructureChangeListeners();
+      }
    }
    
    public boolean isHidden() {
@@ -1031,18 +1037,30 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
   
    /**
-    * Set type for code generation e.g. used for enum generation e.g. ttttt => Tttt_yyyy enums
+    * Set type/stem for enum code generation e.g. tttt => <br>
+    *    <pre>enum Tttt {
+    *       Tttt_aaa,
+    *       Tttt_bbb,
+    *       Tttt_ccc,
+    *       }; </pre>
     * 
-    * @param enumStem
+    * @param enumType Enumeration type/stem
     */
-   public void setTypeName(String enumStem) {
-      fTypeName = enumStem;
+   public void setTypeName(String enumType) {
+      fTypeName = enumType;
    }
    
    /**
-    * Get type for code generation e.g. used for enum generation e.g. ttttt => Tttt_yyyy enums
+    * Get type for enum code generation e.g. tttt => <br>
+    * <pre>
+    *    enum Tttt {
+    *       Tttt_aaa,
+    *       Tttt_bbb,
+    *       Tttt_ccc,
+    *       };
+    * </pre>
     * 
-    * @param enumStem
+    * @return Enumeration type/stem
     */
    public String getTypeName() {
       return fTypeName;
@@ -1078,7 +1096,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Get value to use as default for parameter in generated parameter lists in C code
     * 
-    * @return
+    * @return Default parameter value
     * 
     * @throws Exception
     */
@@ -1228,12 +1246,44 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       return fIsNamedClock;
    }
 
+   /**
+    * Sets expression to dynamically unlock an item
+    * 
+    * @param hiddenBy   Expression hiding item
+    * 
+    * @throws Exception
+    */
    public void setUnlockedBy(String unlockedBy) throws Exception {
       fUnlockedBy = new Expression(unlockedBy, fProvider);
    }
 
+   /**
+    * Gets expression that dynamically unlocks an item
+    * 
+    * @return   Expression unlocking item or null if none
+    */
    public Expression getUnlockedBy() {
       return fUnlockedBy;
+   }
+
+   /**
+    * Sets expression to dynamically hide an item
+    * 
+    * @param hiddenBy   Expression hiding item
+    * 
+    * @throws Exception
+    */
+   public void setHiddenBy(String hiddenBy) throws Exception {
+      fHiddenBy = new Expression(hiddenBy, fProvider);
+   }
+
+   /**
+    * Gets expression that dynamically hides an item
+    * 
+    * @return   Expression hiding item or null if none
+    */
+   public Expression getHiddenBy() {
+      return fHiddenBy;
    }
 
    /**
@@ -1299,6 +1349,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (fpinMapEnable != null) {
          fpinMapEnable.addListener(this);
       }
+      if (fHiddenBy != null) {
+         fHiddenBy.addListener(this);
+      }
    }
 
    /**
@@ -1320,10 +1373,18 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (fUnlockedBy != null) {
          setLocked(fUnlockedBy.getValueAsBoolean());
       }
+      if (fHiddenBy != null) {
+         Boolean hidden = fHiddenBy.getValueAsBoolean();
+         setHidden(hidden);
+
+         // Cumulative enable
+         info.enable = info.enable && !hidden;
+      }
       if (fEnabledBy != null) {
          // Cumulative enable
-         info.enable = info.enable && fEnabledBy.getValueAsBoolean();
-         if (!info.enable) {
+         Boolean enabled = fEnabledBy.getValueAsBoolean();
+         info.enable = info.enable && enabled;
+         if (!enabled) {
             info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
          }
       }
@@ -1416,7 +1477,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Set the an active pin mapping Signal => Pin
+    * Set the active pin mapping Signal => Pin
     * 
     * @param signalName Name of signal
     * @param pinName    Name of pin
@@ -1428,10 +1489,20 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
             signal.setMappedPin(MappingInfo.UNASSIGNED_MAPPING);
          }
          else {
-            signal.mapPin(getProvider().getDeviceInfo().findPin(pinName));
+            Pin pin = null;
+            if (pinName.equals("*")) {
+               pin = signal.getOnlyMappablePin();
+               if (pin == null) {
+                  throw new Exception("Can't use '*' if no or multiple pins available for mapping");
+               }
+            }
+            else {
+               pin = getProvider().getDeviceInfo().findPin(pinName);
+            }
+            signal.mapPin(pin);
          }
       } catch (Exception e) {
-         System.err.println("Signal mapping change failed for " + signalName + " => " +pinName);
+         System.err.println("Signal mapping change failed for " + signalName + ", reason=" + e.getMessage());
       }
    }
 

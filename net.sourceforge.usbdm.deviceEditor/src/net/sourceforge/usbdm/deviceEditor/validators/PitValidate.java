@@ -35,7 +35,7 @@ public class PitValidate extends PeripheralValidator {
       // Clocks
       //=================================
       LongVariable   pitInputClockVar           = getLongVariable("pitInputClock");
-      LongVariable   numChannelsVar             = getLongVariable("numChannels");
+      LongVariable   numChannelsVar             = getLongVariable("NumChannels");
 
       double inputClockFrequency = pitInputClockVar.getValueAsDouble();
       int numberOfChannels       = (int) numChannelsVar.getValueAsLong();
@@ -96,7 +96,7 @@ public class PitValidate extends PeripheralValidator {
       ArrayList<String> variablesToWatch = new ArrayList<String>();
 
       variablesToWatch.add("pitInputClock");
-      LongVariable   numChannelsVar = getLongVariable("numChannels");
+      LongVariable   numChannelsVar = getLongVariable("NumChannels");
       for (int num=(int)numChannelsVar.getValueAsLong(); num>=0; num--) {
          variablesToWatch.add("pit_ldval_tsv["+num+"]");
          variablesToWatch.add("pit_period["+num+"]");

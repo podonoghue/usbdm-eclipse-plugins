@@ -78,7 +78,7 @@ public class ChoiceVariable extends VariableWithChoices {
          throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable " + getName());
       }
       if ((index<0) || (index>=getChoiceData().length)) {
-         throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
+         throw new RuntimeException("Object  "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
       }
       return index;
    }
@@ -90,7 +90,14 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public void notifyListeners() {
-      updateTargets(getVisibleChoiceData().get(fValue));
+      ArrayList<ChoiceData> choices = getVisibleChoiceData();
+      if (fValue>=choices.size()) {
+         System.err.println("Opps");
+         choices = getVisibleChoiceData();
+      }
+      else {
+         updateTargets(getVisibleChoiceData().get(fValue));
+      }
       super.notifyListeners();
    }
    

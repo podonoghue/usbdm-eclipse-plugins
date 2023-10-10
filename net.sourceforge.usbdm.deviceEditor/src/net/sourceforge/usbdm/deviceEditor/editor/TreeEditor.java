@@ -9,6 +9,8 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -17,6 +19,7 @@ import org.eclipse.swt.widgets.Tree;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IEditor;
 import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public abstract class TreeEditor implements IEditor {
 
@@ -32,9 +35,9 @@ public abstract class TreeEditor implements IEditor {
       final String            tooltip;
       
       public TreeColumnInformation(
-            String              name, 
-            int                 width, 
-            BaseLabelProvider   labelProvider, 
+            String              name,
+            int                 width,
+            BaseLabelProvider   labelProvider,
             EditingSupport      editingSupport,
             String              tooltip) {
          
@@ -45,9 +48,9 @@ public abstract class TreeEditor implements IEditor {
          this.tooltip        = tooltip;
       }
       public TreeColumnInformation(
-            String              name, 
-            int                 width, 
-            BaseLabelProvider   labelProvider, 
+            String              name,
+            int                 width,
+            BaseLabelProvider   labelProvider,
             EditingSupport      editingSupport) {
          
          this.name           = name;
@@ -62,6 +65,7 @@ public abstract class TreeEditor implements IEditor {
    public TreeEditor() {
    }
 
+   @Override
    public void setModel(BaseModel model) {
       
       fDeviceModel = (TreeViewModel) model;
@@ -69,10 +73,12 @@ public abstract class TreeEditor implements IEditor {
       fDeviceModel.setViewer(fViewer);
    }
 
+   @Override
    public void refresh() {
       fViewer.refresh();
    }
    
+   @Override
    public Control createControl(Composite parent) {
       return createControl(parent, SWT.BORDER);
    }
@@ -89,6 +95,24 @@ public abstract class TreeEditor implements IEditor {
 
       fViewer.setContentProvider(new ViewContentProvider());
 
+      fViewer.addFilter(new ViewerFilter() {
+         
+         @Override
+         public boolean select(Viewer viewer, Object parentElement, Object element) {
+            if (element instanceof VariableModel) {
+               VariableModel vm = (VariableModel) element;
+               Boolean hidden = vm.isHidden();
+               return !hidden;
+            }
+            return true;
+         }
+
+         @Override
+         public boolean isFilterProperty(Object element, String property) {
+            return property.equals("Value");
+         }
+      });
+      
       ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(fViewer) {
          @Override
          protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {

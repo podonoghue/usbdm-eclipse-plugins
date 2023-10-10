@@ -12,6 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 public class LongVariableModel extends VariableModel {
    
    static class NumericTextCellEditor extends TextCellEditor {
+      final LongVariable fVar;
 
       class Validator implements ICellEditorValidator {
          LongVariableModel fModel;
@@ -28,9 +29,26 @@ public class LongVariableModel extends VariableModel {
       
       public NumericTextCellEditor(Tree parent, LongVariableModel model) {
          super(parent, SWT.SINGLE);
+         fVar = model.getVariable();
          setValueValid(true);
          Validator validator =  new Validator(model);
          setValidator(validator);
+      }
+
+      @Override
+      protected Object doGetValue() {
+         return super.doGetValue();
+      }
+
+      @Override
+      protected void doSetValue(Object value) {
+         String v = (String) value;
+         // The value may contain extra text such as a decimal value for a hex radix field e.g. '0x100 (64)'
+         if (v != null) {
+            String values[] = v.split(" ", 2);
+            value = values[0];
+         }
+         super.doSetValue(value);
       }
    }
    

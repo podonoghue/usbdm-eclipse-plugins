@@ -521,6 +521,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       if (model == fFactory) {
          refreshModels();
       }
+      fFactory.getDeviceInfo().refreshConnections();
       firePropertyChange(PROP_DIRTY);
    }
 

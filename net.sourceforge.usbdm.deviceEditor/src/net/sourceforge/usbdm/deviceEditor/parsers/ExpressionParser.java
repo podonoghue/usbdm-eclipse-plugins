@@ -2,11 +2,16 @@ package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.BooleanNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -206,6 +211,22 @@ public class ExpressionParser {
          }
          VariableNode vn = (VariableNode) arg;
          return new BooleanNode(vn.exists());
+      }
+      if ("SignalExists".equalsIgnoreCase(functionName)) {
+         if (!(arg instanceof StringNode)) {
+            throw new Exception("Expected name of signal (a string)");
+         }
+         StringNode sArg = (StringNode) arg;
+         Signal signal = fProvider.getDeviceInfo().safeFindSignal(sArg.toString());
+         return new BooleanNode(signal!=null);
+      }
+      if ("PinExists".equalsIgnoreCase(functionName)) {
+         if (!(arg instanceof StringNode)) {
+            throw new Exception("Expected name of pin (a string)");
+         }
+         StringNode sArg = (StringNode) arg;
+         Pin pin = fProvider.getDeviceInfo().findPin(sArg.toString());
+         return new BooleanNode(pin!=null);
       }
       throw new Exception("Function not supported");
    }
@@ -781,7 +802,25 @@ public class ExpressionParser {
             leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
             rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
          }
-         if (leftOperand.fType != rightOperand.fType) {
+         
+         if (rightOperand instanceof CommaListNode) {
+            CommaListNode rightOp = (CommaListNode) rightOperand;
+            final Type leftType = leftOperand.fType;
+            
+            Visitor checkType = new Visitor() {
+               Type type = leftType;
+
+               @Override
+               void visit(ExpressionNode node) throws Exception {
+                  if ((type != null) && (type != node.fType)) {
+                     throw new Exception("Inconsistent type in set");
+                  }
+                  type = node.fType;
+               }
+            };
+            rightOp.forEach(checkType);
+         }
+         else if (leftOperand.fType != rightOperand.fType) {
             throw new Exception("Incompatible operands in Equality");
          }
          if (ch == '=') {
@@ -965,7 +1004,7 @@ public class ExpressionParser {
       getNextCh();;
       ExpressionNode trueExp = parseSubExpression();
       ch = skipSpace();
-      if (ch != ':') {
+      if ((ch==null)||ch != ':') {
          throw new Exception("':' expected");
       }
       getNextCh();;

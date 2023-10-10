@@ -665,4 +665,25 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       fEnabled = enable;
    }
 
+   /**
+    * Find the only mappable pin of the signal
+    * 
+    * @return The only mappable pin or null if none or multiple available
+    */
+   public Pin getOnlyMappablePin() {
+      Pin pin = null;
+      TreeSet<MappingInfo> mappingInfoSet = getPinMapping();
+      for (MappingInfo mappingInfo: mappingInfoSet) {
+         Pin tPin = mappingInfo.getPin();
+         if (tPin != Pin.UNASSIGNED_PIN) {
+            if (pin != null) {
+               // Multiple mappable pins
+               return null;
+            }
+            pin = tPin;
+         }
+      }
+      return pin;
+   }
+
  }

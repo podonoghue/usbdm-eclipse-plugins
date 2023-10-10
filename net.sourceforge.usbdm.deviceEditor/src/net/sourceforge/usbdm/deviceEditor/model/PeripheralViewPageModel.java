@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import java.util.Arrays;
+
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -37,6 +39,8 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public final class PeripheralViewPageModel extends TreeViewModel implements IPage {
 
+   private final boolean fHasPCR;
+   
    /**
     * Constructs model representing all peripherals along with their associated signals
     * 
@@ -46,14 +50,16 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
     *             +-----Signal Model...
     * </pre>
     * 
-    * @param parent        Parent to attache models to
-    * @param fDeviceInfo   Device to obtain information from
+    * @param parent       Parent to attache models to
+    * @param deviceInfo   Device to obtain information from
     */
-   public PeripheralViewPageModel(BaseModel parent, DeviceInfo fDeviceInfo) {
+   public PeripheralViewPageModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Peripheral View", "Pin mapping organized by peripheral");
+      
+      fHasPCR = deviceInfo.safeGetVariable("/PCR/_present") != null;
 
-      for (String pName:fDeviceInfo.getPeripherals().keySet()) {
-         Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
+      for (String pName:deviceInfo.getPeripherals().keySet()) {
+         Peripheral peripheral = deviceInfo.getPeripherals().get(pName);
          if (peripheral instanceof PeripheralWithState) {
             if (peripheral.hasMappableSignals()) {
                ((PeripheralWithState)peripheral).createPeripheralSignalsModel(this);
@@ -61,6 +67,7 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
          }
       }
    }
+   
    @Override
    public String getValueAsString() {
       return "";
@@ -79,7 +86,7 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                setEditor(new TreeEditor() {
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
-                     final TreeColumnInformation[] fColumnInformation = {
+                     final TreeColumnInformation[] columnInformation1 = {
                            new TreeColumnInformation("Peripherals and Signals", 160, new NameColumnLabelProvider(),              null,
                                  "Signals grouped by peripheral"),
                            new TreeColumnInformation("Mux:Pin",                 120, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer),
@@ -91,6 +98,10 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                                  ModifierColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("Instance",                 80, new InstanceColumnLabelProvider(),          new InstanceEditingSupport(viewer),
                                  InstanceColumnLabelProvider.getColumnToolTipText()),
+                           new TreeColumnInformation("Description",             600, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer),
+                                 DescriptionColumnLabelProvider.getColumnToolTipText()),
+                     };
+                     final TreeColumnInformation[] columnInformation2 = {
                            new TreeColumnInformation("Interrupt/DMA",           115, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),
                                  PinInterruptDmaColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("LK",                       35, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer),
@@ -105,10 +116,15 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                                  "Slew rate limit enable"),
                            new TreeColumnInformation("Pull",                     45, new PinPullColumnLabelProvider(),            new PinPullEditingSupport(viewer),
                                  PinPullColumnLabelProvider.getColumnToolTipText()),
-                           new TreeColumnInformation("Description",             600, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer),
-                                 DescriptionColumnLabelProvider.getColumnToolTipText()),
                      };
-                     return fColumnInformation;
+                     if (fHasPCR) {
+                        TreeColumnInformation[] res = Arrays.copyOf(columnInformation1, columnInformation1.length+columnInformation2.length);
+                        System.arraycopy(columnInformation2, 0, res, columnInformation1.length, columnInformation2.length);
+                        return res;
+                     }
+                     else {
+                        return columnInformation1;
+                     }
                   }
                });
             }

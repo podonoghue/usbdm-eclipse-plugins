@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
@@ -33,12 +34,14 @@ import net.sourceforge.usbdm.deviceEditor.model.ModelFactory.PinCategory;
  * Device Signals Model
  *    +--- Category Model ...
  *             +----Pin Model ...
- * </pre> 
+ * </pre>
  */
 public final class PinViewPageModel extends TreeViewModel implements IPage {
 
    /** List of all pin mapping entries to scan for mapping conflicts */
    private ArrayList<MappingInfo> fMappingInfos;
+   
+   private final boolean fHasPCR;
 
    /** Get list of all pin mapping entries to scan for mapping conflicts
     * 
@@ -54,13 +57,14 @@ public final class PinViewPageModel extends TreeViewModel implements IPage {
     * Device Signals Model
     *    +--- Category Model ...
     *             +----Pin Model ...
-    * </pre> 
+    * </pre>
     * @param parent        Owning model
     * @param fDeviceInfo   Device information needed to create models
     */
    public PinViewPageModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Pin View", "Pin mapping organized by pin");
       createModels(deviceInfo);
+      fHasPCR = deviceInfo.safeGetVariable("/PCR/_present") != null;
    }
 
    @Override
@@ -81,15 +85,21 @@ public final class PinViewPageModel extends TreeViewModel implements IPage {
                setEditor(new TreeEditor() {
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
-                     final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Pin",                 150, new NameColumnLabelProvider(),               null, 
+                     final TreeColumnInformation[] columnInformation1 = {
+                           new TreeColumnInformation("Pin",                 150, new NameColumnLabelProvider(),               null,
                                  "Pins grouped by category"),
-                           new TreeColumnInformation("Code Identifier",     120, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer), 
+                           new TreeColumnInformation("Code Identifier",     120, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer),
                                  "C Identifier for code generation\n"+
                                  "Collected from signals mapped to this pin"),
-                           new TreeColumnInformation("Mux:Signals",         200, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer), 
+                           new TreeColumnInformation("Mux:Signals",         200, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer),
                                  "Signal mapping for this pin\n"+
                                  "More than one signal may be mapped to a pin"),
+                           new TreeColumnInformation("Pin Use Description", 600, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer),
+                                 "Description of pin use\n"+
+                                 "Appears as a comment in user code\n"+
+                                 "Collected from signals mapped to this pin"),
+                     };
+                     final TreeColumnInformation[] columnInformation2 = {
                            new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),
                                  PinInterruptDmaColumnLabelProvider.getColumnToolTipText()),
                            new TreeColumnInformation("LK",                   40, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer),
@@ -104,12 +114,15 @@ public final class PinViewPageModel extends TreeViewModel implements IPage {
                                  "Slew rate limit enable"),
                            new TreeColumnInformation("Pull",                 60, new PinPullColumnLabelProvider(),            new PinPullEditingSupport(viewer),
                                  PinPullColumnLabelProvider.getColumnToolTipText()),
-                           new TreeColumnInformation("Pin Use Description", 600, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer), 
-                                 "Description of pin use\n"+
-                                 "Appears as a comment in user code\n"+
-                                 "Collected from signals mapped to this pin"),
                      };
-                     return fColumnInformation;
+                     if (fHasPCR) {
+                        TreeColumnInformation[] res = Arrays.copyOf(columnInformation1, columnInformation1.length+columnInformation2.length);
+                        System.arraycopy(columnInformation2, 0, res, columnInformation1.length, columnInformation2.length);
+                        return res;
+                     }
+                     else {
+                        return columnInformation1;
+                     }
                   }
                });
             }
@@ -124,10 +137,10 @@ public final class PinViewPageModel extends TreeViewModel implements IPage {
     * Device Signals Model
     *    +--- Category Model ...
     *             +----Pin Model ...
-    * </pre>             
+    * </pre>
     * @param fDeviceInfo   Device information needed to create models
     */
-   private void createModels(DeviceInfo fDeviceInfo) {      
+   private void createModels(DeviceInfo fDeviceInfo) {
 
       fMappingInfos = new ArrayList<MappingInfo>();
 

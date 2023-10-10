@@ -156,10 +156,15 @@ public class Activator extends AbstractUIPlugin {
          if (e != null) {
             e.printStackTrace();
          }
-         getDefault().getLog().error(msg, e);
+         System.err.println(msg);
          return;
       }
-      getDefault().getLog().info(msg);
+      if (e != null) {
+         getDefault().getLog().info(msg, e);
+      }
+      else {
+         getDefault().getLog().info(msg);
+      }
    }
 
    static public void logError(String msg, Exception e) {
@@ -167,10 +172,15 @@ public class Activator extends AbstractUIPlugin {
          if (e != null) {
             e.printStackTrace();
          }
-         getDefault().getLog().error(msg, e);
+         System.err.println(msg);
          return;
       }
-      getDefault().getLog().error(msg);
+      if (e != null) {
+         getDefault().getLog().error(msg, e);
+      }
+      else {
+         getDefault().getLog().error(msg);
+      }
    }
 
 }

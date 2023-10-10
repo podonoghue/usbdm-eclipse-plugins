@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -13,16 +14,20 @@ import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IEditor;
-import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
-import net.sourceforge.usbdm.deviceEditor.model.TabModel;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralParametersEditor;
 import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
 
-public class TabbedEditor implements IEditor {
+/**
+ * Represents a editor tab containing information for a peripheral
+ */
+public class PeripheralParametersEditorTab implements IEditor {
    
    private CTabFolder  fTabFolder           = null;
-   private TabModel    fPeripheralPageModel = null;
-   
-   public TabbedEditor() {
+   private PeripheralParametersEditor    fPeripheralPageModel = null;
+   private final boolean fHasPCR;
+
+   public PeripheralParametersEditorTab(boolean hasPCR) {
+      fHasPCR = hasPCR;
    }
 
    public Control createControl(Composite parent, int style) {
@@ -39,21 +44,6 @@ public class TabbedEditor implements IEditor {
             display.getSystemColor(SWT.COLOR_WHITE),
             display.getSystemColor(SWT.COLOR_WHITE)},
             new int[]{100}, true);
-//      fTabFolder.addListener(SWT.Selection, new Listener() {
-//
-//         @Override
-//         public void handleEvent(Event event) {
-//            Widget item = event.item;
-//            item.
-//            Control c = fTabFolder.getSelection().getControl();
-//            if (c instanceof Tree) {
-//               Tree tree = (Tree) c;
-//               TreeItem item = tree.getItem(0);
-//               fPeripheralPageModel.updatePage();
-//               System.err.println("Selection event" + fTabFolder.getSelectionIndex() + ", c = " + c);
-//            }
-//         }
-//      });
       return fTabFolder;
    }
 
@@ -67,7 +57,7 @@ public class TabbedEditor implements IEditor {
       if (fPeripheralPageModel == model) {
          return;
       }
-      fPeripheralPageModel = (TabModel) model;
+      fPeripheralPageModel = (PeripheralParametersEditor) model;
       fTabFolder.setToolTipText(fPeripheralPageModel.getToolTip());
       for (CTabItem c:fTabFolder.getItems()) {
          c.dispose();
@@ -84,7 +74,7 @@ public class TabbedEditor implements IEditor {
             TreeEditor treeEditor = new TreeEditor() {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
-                  final TreeColumnInformation[] fColumnInformation = {
+                  final TreeColumnInformation[] columnInformation1 = {
                         new TreeColumnInformation("Property",        250, new NameColumnLabelProvider(),           null,
                               "Name of property"),
                         new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer),
@@ -98,6 +88,9 @@ public class TabbedEditor implements IEditor {
                               InstanceColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
                               DescriptionColumnLabelProvider.getColumnToolTipText()),
+                  };
+                  
+                  final TreeColumnInformation[] columnInformation2 = {
                         new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer),
                               PinInterruptDmaColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("LK",                   40, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer)),
@@ -108,17 +101,27 @@ public class TabbedEditor implements IEditor {
                         new TreeColumnInformation("Pull",                 60, new PinPullColumnLabelProvider(),            new PinPullEditingSupport(viewer),
                               PinPullColumnLabelProvider.getColumnToolTipText()),
                   };
-                  return fColumnInformation;
+                  if (fHasPCR) {
+                     TreeColumnInformation[] res = Arrays.copyOf(columnInformation1, columnInformation1.length+columnInformation2.length);
+                     System.arraycopy(columnInformation2, 0, res, columnInformation1.length, columnInformation2.length);
+                     return res;
+                  }
+                  else {
+                     return columnInformation1;
+                  }
                }
             };
             tabItem.setControl(treeEditor.createControl(fTabFolder));
             treeEditor.setModel(pageModel);
          }
-         else if (pageModel instanceof SectionModel) {
-            SectionEditor sectionEditor = new SectionEditor();
-            tabItem.setControl(sectionEditor.createControl(fTabFolder));
-            sectionEditor.setModel(pageModel);
+         else {
+            System.err.println("Unexpected page mode type");
          }
+//         else if (pageModel instanceof SectionModel) {
+//            SectionEditor sectionEditor = new SectionEditor();
+//            tabItem.setControl(sectionEditor.createControl(fTabFolder));
+//            sectionEditor.setModel(pageModel);
+//         }
       }
       fTabFolder.setSelection(0);
    }

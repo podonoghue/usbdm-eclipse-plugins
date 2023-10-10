@@ -35,6 +35,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.SignalPinMapping;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
@@ -791,16 +792,25 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Find signal<br>
     * e.g. findSignal("FTM0_CH6") => <i>Signal</i>(FTM, 0, 6)<br>
     * 
+    * @return Signal found or null if not found
+    */
+   public Signal safeFindSignal(String name) {
+      if (name.equalsIgnoreCase("Disabled")) {
+         return Signal.DISABLED_SIGNAL;
+      }
+      return fSignals.get(name);
+   }
+
+   /**
+    * Find signal<br>
+    * e.g. findSignal("FTM0_CH6") => <i>Signal</i>(FTM, 0, 6)<br>
+    * 
     * @return Signal found
     * 
     * @throws Exception signal nor found
     */
    public Signal findSignal(String name) {
-      Signal signal = null;
-      if (name.equalsIgnoreCase("Disabled")) {
-         return Signal.DISABLED_SIGNAL;
-      }
-      signal = fSignals.get(name);
+      Signal signal = safeFindSignal(name);
       if (signal != null) {
          return signal;
       }
@@ -1468,9 +1478,33 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     *
     */
    public enum InitPhase {
-     VariablePropagationSuspended,     // No variable propagation
-     VariablePropagationAllowed,       // Variable propagation only
-     VariableAndGuiPropagationAllowed, // Propagation from variable and GUI changes allowed
+      // No variable propagation
+      VariablePropagationSuspended,
+      // Variable propagation only
+      VariablePropagationAllowed,
+      // Propagation from variable and GUI changes allowed
+      VariableAndGuiPropagationAllowed,;
+
+      /**
+       * Indicates if this represents an earlier initialisation phase than argument
+       * 
+       * @param phase Initialisation phase to compare to
+       * 
+       * @return  True if earlier
+       */
+      public boolean isEarlierThan(InitPhase phase) {
+         return this.ordinal() < phase.ordinal();
+      }
+      /**
+       * Indicates if this represents an later initialisation phase than argument
+       * 
+       * @param phase Initialisation phase to compare to
+       * 
+       * @return  True if later
+       */
+      public boolean isLaterThan(InitPhase phase) {
+         return this.ordinal() > phase.ordinal();
+      }
    };
    
    /** Indicates variable update propagation is suspended */
@@ -1835,86 +1869,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
          //         System.err.println("Make sure peripherals have been updated");
-
-         // Allow variable change notifications only (not GUI input only variables)
-         fInitPhase = InitPhase.VariablePropagationAllowed;
          
-         /*
-          * Make sure critical peripherals have been updated in order first
-          */
-         String criticalPeripherals[] = {
-               "RTC",
-               "OSC",
-               "OSC0",
-               "OSC_RF0",
-               "MCG",
-               "ICS",
-               "SIM",
-         };
-         for (String name:criticalPeripherals) {
-            Peripheral peripheral =  fPeripheralsMap.get(name);
-            if (peripheral instanceof PeripheralWithState) {
-               PeripheralWithState p = (PeripheralWithState) peripheral;
-               p.variableChanged(null);
-            }
-         }
-         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
-            Peripheral peripheral =  entry.getValue();
-            if (peripheral instanceof PeripheralWithState) {
-               PeripheralWithState p = (PeripheralWithState) peripheral;
-               p.variableChanged(null);
-            }
-         }
+         refreshConnections();
          
-         /**
-          * Add Variable internal listeners (expressions)
-          */
-         for (Entry<String, Variable> entry:fVariables.entrySet()) {
-            Variable var = fVariables.get(entry.getKey());
-//            if (var.getName().contains("osc_cr_range")) {
-//               System.err.println("Found it "+var.getName());
-//            }
-            var.addInternalListeners();
-         }
-         for (Entry<String, Variable> entry:fVariables.entrySet()) {
-            Variable var = fVariables.get(entry.getKey());
-//            if (var.getName().equals("kbi_pe_kbipe")) {
-//               System.err.println("Found it "+ var.getKey());
-//            }
-            var.expressionChanged(null);
-         }
-         //       System.err.println("Notify changes of persistent variables");
-         
-         /*
-          * Notify changes of persistent variables,
-          * even on variables that were not loaded
-          * Shouldn't be necessary
-          */
-         for (Entry<String, Variable> entry:fVariables.entrySet()) {
-            Variable var = entry.getValue();
-//            if (var.getName().contains("osc_input_freq")) {
-//               System.err.println("Found it "+var.getName());
-//            }
-            if (!var.isDerived()) {
-               var.notifyListeners();
-            }
-         }
-         
-         // Allow all variable change notifications
-         fInitPhase = InitPhase.VariableAndGuiPropagationAllowed;
-
-//         System.err.println("Cleaning min-max");
-         /**
-          * Trigger updates of calculated min and max
-          */
-         for (Entry<String, Variable> entry:fVariables.entrySet()) {
-            Variable var = fVariables.get(entry.getKey());
-            if (var instanceof LongVariable) {
-               LongVariable lv = (LongVariable) var;
-               lv.getMin();
-               lv.getMax();
-            }
-         }
          /**
           * Sanity check - (usually) no persistent variables should change value initially
           */
@@ -1926,7 +1883,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                   if (!var.getPersistentValue().equals(value)) {
                      System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getKey());
                      System.err.println("Loaded value     = " + value);
-                     System.err.println("Persistent value = " + var.getPersistentValue());
+                     System.err.println("Final value = " + var.getPersistentValue());
                   }
                }
             }
@@ -1938,6 +1895,104 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       setDirty(false);
    }
 
+   /**
+    * Refreshes dependencies between things!
+    */
+   public void refreshConnections() {
+      // Allow variable change notifications only (not GUI input only variables)
+      fInitPhase = InitPhase.VariablePropagationAllowed;
+      
+      /*
+       * Make sure critical peripherals have been updated in order first
+       */
+      String criticalPeripherals[] = {
+            "RTC",
+            "OSC",
+            "OSC0",
+            "OSC_RF0",
+            "MCG",
+            "ICS",
+            "SIM",
+      };
+      for (String name:criticalPeripherals) {
+         Peripheral peripheral =  fPeripheralsMap.get(name);
+         if (peripheral instanceof PeripheralWithState) {
+            PeripheralWithState p = (PeripheralWithState) peripheral;
+            p.variableChanged(null);
+         }
+      }
+      for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+         Peripheral peripheral =  entry.getValue();
+         if (peripheral instanceof PeripheralWithState) {
+            PeripheralWithState p = (PeripheralWithState) peripheral;
+            p.variableChanged(null);
+         }
+      }
+      
+      /**
+       * Add Variable internal listeners (expressions)
+       */
+      for (Entry<String, Variable> entry:fVariables.entrySet()) {
+         Variable var = fVariables.get(entry.getKey());
+//         if (var.getName().contains("osc_cr_range")) {
+//            System.err.println("Found it "+var.getName());
+//         }
+         try {
+            var.addInternalListeners();
+         } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
+      }
+      for (Entry<String, Variable> entry:fVariables.entrySet()) {
+         Variable var = fVariables.get(entry.getKey());
+//         if (var.getName().equals("kbi_pe_kbipe")) {
+//            System.err.println("Found it "+ var.getKey());
+//         }
+         var.expressionChanged(null);
+      }
+      //       System.err.println("Notify changes of persistent variables");
+      
+      /*
+       * Notify changes of persistent variables,
+       * even on variables that were not loaded
+       * Shouldn't be necessary
+       */
+      for (Entry<String, Variable> entry:fVariables.entrySet()) {
+         Variable var = entry.getValue();
+//         if (var.getName().contains("osc_input_freq")) {
+//            System.err.println("Found it "+var.getName());
+//         }
+         if (!var.isDerived()) {
+            var.notifyListeners();
+         }
+      }
+      // Activate the dynamic signal mappings
+      for (SignalPinMapping signalPinMapping: dynamicSignalPinMappings) {
+         signalPinMapping.activate();
+      }
+      // Allow all variable change notifications
+      fInitPhase = InitPhase.VariableAndGuiPropagationAllowed;
+
+//      System.err.println("Cleaning min-max");
+      /**
+       * Trigger updates of calculated min and max
+       */
+      for (Entry<String, Variable> entry:fVariables.entrySet()) {
+         Variable var = fVariables.get(entry.getKey());
+         if (var instanceof LongVariable) {
+            LongVariable lv = (LongVariable) var;
+            try {
+               lv.getMin();
+               lv.getMax();
+            } catch (Exception e) {
+               // TODO Auto-generated catch block
+               e.printStackTrace();
+            }
+         }
+      }
+   }
+   
    /**
     * Save persistent settings to the current settings path
     */
@@ -2530,6 +2585,22 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public InitPhase getInitialisationPhase() {
       return fInitPhase;
+   }
+
+   /** List of signal to pin mappings dependent on variables */
+   ArrayList<SignalPinMapping> dynamicSignalPinMappings;
+   
+   /**
+    * Add dynamic signal->pin mapping dependent on variables
+    * 
+    * @param signalPinMapping
+    */
+   public void addDynamicSignalMapping(SignalPinMapping signalPinMapping) {
+      
+      if (dynamicSignalPinMappings == null) {
+         dynamicSignalPinMappings = new ArrayList<SignalPinMapping>();
+      }
+      dynamicSignalPinMappings.add(signalPinMapping);
    }
 
 //   /**

@@ -101,7 +101,9 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    public void modelStructureChanged(ObservableModel observableModel) {
       StructuredViewer viewer = getViewer();
       if (viewer != null) {
-         viewer.refresh(observableModel);
+         final String[] properties = {"Value"};
+         viewer.update(getParent(), properties);
+         viewer.refresh(this);
       }
    }
 

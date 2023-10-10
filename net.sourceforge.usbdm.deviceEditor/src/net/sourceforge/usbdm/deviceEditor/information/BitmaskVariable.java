@@ -117,7 +117,7 @@ public class BitmaskVariable extends LongVariable {
                      setActivePinMapping(pinMapEntry.signal, null);
                   }
                } catch (Exception e) {
-                  System.err.println("Signal mapping change failed for " + pinMapEntry);
+                  System.err.println("Signal mapping change failed for " + pinMapEntry + ", reason=" + e.getMessage());
                }
             }
          }

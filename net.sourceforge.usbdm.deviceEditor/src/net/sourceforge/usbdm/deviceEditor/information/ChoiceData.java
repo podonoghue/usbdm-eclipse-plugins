@@ -94,7 +94,8 @@ public class ChoiceData {
       else {
          fEnabledBy = null;
       }
-      if (pinMap != null) {
+      if ((pinMap != null) && (!pinMap.isBlank())) {
+         // Ignore empty pin maps
          fPinMap = pinMap;
       }
    }

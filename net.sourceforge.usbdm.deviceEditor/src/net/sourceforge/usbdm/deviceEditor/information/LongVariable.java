@@ -210,10 +210,15 @@ public class LongVariable extends Variable {
 
    @Override
    public String getUsageValue() {
+      
       String value = getSubstitutionValue();
       Units units = getUnits();
       if (units != Units.None) {
          return units.append(value);
+      }
+      String format = getValueFormat();
+      if (format != null) {
+         value = String.format(format, value);
       }
       String typeName = getTypeName();
       if (typeName != null) {

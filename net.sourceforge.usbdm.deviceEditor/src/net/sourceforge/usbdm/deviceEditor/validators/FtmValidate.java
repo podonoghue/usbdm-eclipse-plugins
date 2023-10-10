@@ -27,7 +27,7 @@ public class FtmValidate extends PeripheralValidator {
       
       //=================================
       
-      LongVariable      clockFrequencyVar          =  getLongVariable("clockFrequency");
+      LongVariable      clockVar                   =  getLongVariable("clock");
       LongVariable      ftm_modVar                 =  getLongVariable("ftm_mod");
       LongVariable      ftm_cntinVar               =  getLongVariable("ftm_cntin");
       DoubleVariable    ftm_modPeriodVar           =  getDoubleVariable("ftm_modPeriod");
@@ -36,7 +36,7 @@ public class FtmValidate extends PeripheralValidator {
       LongVariable      NumChannelsVar    = getLongVariable("NumChannels");
       int               NumChannels       = (int)NumChannelsVar.getValueAsLong();
       
-      long clockFrequency = clockFrequencyVar.getValueAsLong();
+      long clockFrequency = clockVar.getValueAsLong();
       
       ftm_modPeriodVar.enable(clockFrequency != 0);
 
@@ -107,7 +107,7 @@ public class FtmValidate extends PeripheralValidator {
    protected boolean createDependencies() throws Exception {
 
       final String[] externalVariables = {
-            "clockFrequency",
+            "clock",
             "ftm_mod",
             "ftm_cntin",
             "ftm_modPeriod",
