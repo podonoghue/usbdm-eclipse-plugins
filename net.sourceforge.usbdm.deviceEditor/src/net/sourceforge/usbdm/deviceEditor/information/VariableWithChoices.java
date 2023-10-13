@@ -312,12 +312,15 @@ public abstract class VariableWithChoices extends Variable {
     */
    void updateTargets(ChoiceData choiceData) {
 
-      if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
-         return;
-      }
       if (choiceData == null) {
          return;
       }
+      //      System.err.println(getName()+".updateTargets("+choiceData.getName()+")");
+
+      if (fDeviceInfo.getInitialisationPhase().isEarlierThan(InitPhase.VariablePropagationAllowed)) {
+         return;
+      }
+
       try {
          // Update pin mapping from choice (or disabled)
          String     disabledPinMap = getDisabledPinMap();
@@ -340,7 +343,12 @@ public abstract class VariableWithChoices extends Variable {
             // Use mapping from choice
             setActivePinMappings(choiceData.getPinMap());
          }
+      } catch (Exception e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
 
+      try {
          // Target affected?
          String target = getTarget();
          if (target == null) {
@@ -365,38 +373,39 @@ public abstract class VariableWithChoices extends Variable {
             }
             return;
          }
-         // choice.ref => target
+
+         // Update choice.ref => target
          Variable targetVar = getProvider().getVariable(target);
-
-         VariableUpdateInfo info = new VariableUpdateInfo();
-
-         // Assume enabled (may be later disabled by enabledBy etc.)
-         info.enable = true;
-         determineReferenceUpdate(info, choiceData.getReference());
-
-         targetVar.update(info);
-
+         VariableUpdateInfo info = targetVar.determineUpdateInformation(choiceData.getReference());
+         if (targetVar.update(info)) {
+            targetVar.notifyListeners();
+         }
       } catch (Exception e) {
+         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       updateChoices();
    }
    
    @Override
-   public void expressionChanged(Expression expression) {
-//      if (getKey().contains("osc_cr_range")) {
-//         System.err.println("Found it "+getKey());
-//      }
-      super.expressionChanged(expression);
+   public boolean update(Expression expression) throws Exception {
+      
+      boolean changed = super.update(expression);
+      
+      // Check if expression is from active choice and process if so
       ChoiceData choice = getCurrentChoice();
-      if (choice == null) {
-         return;
+      
+      if (choice != null) {
+         // If change or choice expression changed
+         if (changed||(choice.getReference() == expression)) {
+            try {
+               updateTargets(choice);
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
       }
-      try {
-         updateTargets(getCurrentChoice());
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
+      return changed;
    }
 
    @Override

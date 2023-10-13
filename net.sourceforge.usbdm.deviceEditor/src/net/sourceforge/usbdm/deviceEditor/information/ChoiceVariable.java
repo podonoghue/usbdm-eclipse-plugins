@@ -93,10 +93,9 @@ public class ChoiceVariable extends VariableWithChoices {
       ArrayList<ChoiceData> choices = getVisibleChoiceData();
       if (fValue>=choices.size()) {
          System.err.println("Opps");
-         choices = getVisibleChoiceData();
       }
       else {
-         updateTargets(getVisibleChoiceData().get(fValue));
+         updateTargets(choices.get(fValue));
       }
       super.notifyListeners();
    }

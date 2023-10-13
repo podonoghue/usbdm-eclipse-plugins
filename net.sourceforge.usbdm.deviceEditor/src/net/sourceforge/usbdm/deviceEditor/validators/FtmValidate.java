@@ -27,7 +27,7 @@ public class FtmValidate extends PeripheralValidator {
       
       //=================================
       
-      LongVariable      clockVar                   =  getLongVariable("clock");
+      DoubleVariable    clockVar                   =  getDoubleVariable("clock");
       LongVariable      ftm_modVar                 =  getLongVariable("ftm_mod");
       LongVariable      ftm_cntinVar               =  getLongVariable("ftm_cntin");
       DoubleVariable    ftm_modPeriodVar           =  getDoubleVariable("ftm_modPeriod");

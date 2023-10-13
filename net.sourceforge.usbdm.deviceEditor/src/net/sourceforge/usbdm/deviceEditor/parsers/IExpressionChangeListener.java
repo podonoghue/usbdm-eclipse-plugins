@@ -9,9 +9,9 @@ public interface IExpressionChangeListener {
    /**
     * Called when a monitored expression changes.
     * 
-    * @param expression - The expression that has changed
-    * 
-    * @return Boolean indicating if a notification of change has been done
+    * @param expression - The expression that has changed.<br>
+    *        This may be null to force update from all expressions during initialisation.
     */
-   void expressionChanged(Expression expression);
+   public void expressionChanged(Expression expression);
+   
 }

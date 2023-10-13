@@ -42,7 +42,7 @@ public class ValueColumnEditingSupport extends EditingSupport {
          return ((BooleanVariableModel)element).getValueAsBoolean();
       }
       if (element instanceof BaseModel) {
-         return ((BaseModel)element).getValueAsString();
+         return ((BaseModel)element).getEditValueAsString();
       }
       return "";
    }

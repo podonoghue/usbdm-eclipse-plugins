@@ -4,15 +4,22 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 
 public class DoubleVariable extends Variable {
    
    /** Minimum permitted value (user view) */
-   private double fMin    = Double.NEGATIVE_INFINITY;
+   private Double fMin    = Double.NEGATIVE_INFINITY;
    
    /** Maximum permitted value (user view) */
-   private double fMax    = Double.POSITIVE_INFINITY;
+   private Double fMax    = Double.POSITIVE_INFINITY;
 
+   /** Maximum permitted value as expression */
+   private Expression fMinExpression = null;
+
+   /** Minimum permitted value as expression */
+   private Expression fMaxExpression = null;
+   
    /** Units of the quantity the variable represents e.g. Frequency => Hz */
    private Units fUnits = Units.None;
 
@@ -20,7 +27,7 @@ public class DoubleVariable extends Variable {
    private double fValue = 0;
    
    /** Default value of variable */
-   private Double fDefaultValue = null;
+   protected Double fDefaultValue = null;
    
    /** Disabled value of variable */
    private double fDisabledValue = 0;
@@ -58,6 +65,9 @@ public class DoubleVariable extends Variable {
       return new DoubleVariableModel(parent, this);
    }
    
+   private Object translationCache       = new Object();
+   private Double translationCachedValue = null;
+   
    /**
     * Convert object to suitable type for this variable
     * 
@@ -65,25 +75,62 @@ public class DoubleVariable extends Variable {
     * 
     * @return Converted object
     */
-   private double translate(Object value) {
-      try {
-         if (value instanceof Double) {
-            return (Double) value;
-         }
-         if (value instanceof Long) {
-            return (Long) value;
-         }
-         if (value instanceof Integer) {
-            return (Integer) value;
-         }
-         if (value instanceof String) {
-            return EngineeringNotation.parse((String) value);
-         }
-         throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with DoubleVariable");
-      } catch (Exception e) {
-         e.printStackTrace();
+   private Double translate(Object value) {
+      if (translationCache == value) {
+         return translationCachedValue;
       }
-      return fDefaultValue;
+      translationCache = value;
+      
+      if (value instanceof Double) {
+         return (Double) value;
+      }
+      if (value instanceof Long) {
+         Long res = (Long) value;
+         translationCachedValue = res.doubleValue();
+         return translationCachedValue;
+      }
+      if (value instanceof Integer) {
+         translationCachedValue = ((Integer)value).doubleValue();
+         return translationCachedValue;
+      }
+      if (value instanceof String) {
+         Double numericValue = EngineeringNotation.parse((String) value);
+         if (numericValue != null) {
+            Units fromUnits = EngineeringNotation.parseUnits((String) value);
+            Units toUnits   = getUnits();
+            if ((fromUnits == toUnits)||(fromUnits == Units.None)) {
+               // No translation needed
+               translationCachedValue = numericValue;
+               return translationCachedValue;
+            }
+            Double translatedValue = null;
+            switch(toUnits) {
+            case Hz:
+               if (fromUnits == Units.s) {
+                  translatedValue = 1/numericValue;
+               }
+               break;
+            case s:
+               if (fromUnits == Units.Hz) {
+                  translatedValue = 1/numericValue;
+               }
+               break;
+            case ticks:
+               // Wrong units and no translation
+               break;
+            case None:
+               // No translation
+               translatedValue = numericValue;
+               break;
+            }
+            if (translatedValue != null) {
+               translationCachedValue = translatedValue;
+               return translationCachedValue;
+            }
+         }
+      }
+//      System.err.println("Object '"+ value + "' (" + value.getClass()+") is not compatible with DoubleVariable or "+getUnits());
+      return null;
    }
    
    /**
@@ -93,33 +140,39 @@ public class DoubleVariable extends Variable {
     * 
     * @return True if variable actually changed value
     */
-   public boolean setValueQuietly(double value) {
-      if (!isDerived()) {
-         if (value>fMax) {
-            value = fMax;
-         }
-         if (value<fMin) {
-            value = fMin;
-         }
-      }
-      if (fValue == value) {
+   public boolean setValueQuietly(Double value) {
+      
+      if ((value == null)||(fValue == value)) {
          return false;
       }
       fValue = value;
+      
+      // Update range checks
+      setStatusQuietly(isValid());
+
       return true;
    }
    
    @Override
    public boolean setValueQuietly(Object value) {
-      return setValueQuietly(translate(value));
+      Double res = translate(value);
+      return setValueQuietly(res);
    }
    
    @Override
    public void setPersistentValue(String value) {
-      fValue = translate(value);
+      setValueQuietly(value);
    }
    
-   protected static String formatValueAsString(double value, Units units) {
+   /**
+    * Formats the value as a string for GUI
+    * 
+    * @param value Value to format
+    * @param units Units to use for formatting
+    * 
+    * @return String in appropriate form e.g. 24.56MHz
+    */
+   public static String formatValueAsString(double value, Units units) {
       switch(units) {
       default:
       case None:
@@ -132,22 +185,43 @@ public class DoubleVariable extends Variable {
       }
    }
 
-   /**
-    * Converts the given string into a form appropriate for model
-    * 
-    * @param value Value to format
-    * 
-    * @return String in appropriate form e.g. 24.56MHz
-    */
-   public String getValueAsString(double value) {
-      return formatValueAsString(value, getUnits());
+   public String formatValueAsString(double value) {
+
+      double frequency = 1;
+      double period    = 1;
+      switch(getUnits()) {
+      case Hz:
+         // Primary value is frequency
+         frequency = value;
+         period    = 1/frequency;
+         return
+               formatValueAsString(frequency, Units.Hz) + ", (" +
+               formatValueAsString(period, Units.s) + ")";
+      case s:
+         // Primary value is period
+         period    = value;
+         frequency = 1/period;
+         return
+               formatValueAsString(period, Units.s) + ", (" +
+               formatValueAsString(frequency, Units.Hz) +")";
+      case ticks:
+         return formatValueAsString(value, Units.ticks);
+      case None:
+      default:
+         return Double.toString(value);
+      }
    }
 
    @Override
    public String getValueAsString() {
-      return getValueAsString(getValueAsDouble());
+      return formatValueAsString(getValueAsDouble());
    }
    
+   @Override
+   public Object getEditValueAsString() {
+      return formatValueAsString(getValueAsDouble(), getUnits());
+   }
+
    @Override
    public double getValueAsDouble() {
       return isEnabled()?fValue:fValue;
@@ -180,8 +254,12 @@ public class DoubleVariable extends Variable {
    }
 
    @Override
-   public void setDisabledValue(Object value) {
-      setDisabledValue(translate(value));
+   public void setDisabledValue(Object disabledValue) {
+      Double res = translate(disabledValue);
+      if (res == null) {
+         System.err.println("Failed to translate value '"+disabledValue+"'");
+      }
+      setDisabledValue(res);
    }
 
    /**
@@ -189,7 +267,10 @@ public class DoubleVariable extends Variable {
     * 
     * @param fDisabledValue
     */
-   public void setDisabledValue(double disabledValue) {
+   public void setDisabledValue(Double disabledValue) {
+      if (disabledValue == null) {
+         return;
+      }
       this.fDisabledValue = disabledValue;
    }
 
@@ -204,9 +285,9 @@ public class DoubleVariable extends Variable {
    
    @Override
    public void setDefault(Object value) {
-      Double v = translate(value);
-      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != v);
-      fDefaultValue = v;
+      Double res = translate(value);
+      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != res);
+      fDefaultValue = res;
    }
    
    @Override
@@ -227,26 +308,28 @@ public class DoubleVariable extends Variable {
     * 
     * @return Error message or null of valid
     */
-   public String isValid(double value) {
-         if (value<getMin()) {
-            return "Value too small";
-         }
-         if (value>getMax()) {
-            return "Value too large";
+   public String isValid(Double value) {
+         try {
+            if (value<getMin()) {
+               return "Value too small ["+getName()+"<"+formatValueAsString(getMin())+"]";
+            }
+            if (value>getMax()) {
+               return "Value too large ["+getName()+">"+formatValueAsString(getMax())+"]";
+            }
+         } catch (Exception e) {
+            return e.getMessage();
          }
       return null;
    }
 
    @Override
    public String isValid(String value) {
-      double lValue = 0;
-      try {
-         lValue = EngineeringNotation.parse(value);
+      
+      Double lValue = translate(value);
+      if (lValue != null) {
+         return null;
       }
-      catch (NumberFormatException e) {
-         return "Illegal number";
-      }
-      return isValid(lValue);
+      return "Invalid value";
    }
    
    @Override
@@ -264,47 +347,52 @@ public class DoubleVariable extends Variable {
       sb.append(super.getDisplayToolTip());
       boolean newLineNeeded = sb.length()>0;
       
-      if (getMin() != Double.NEGATIVE_INFINITY) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
+      try {
+         if (getMin() != Double.NEGATIVE_INFINITY) {
+            if (newLineNeeded) {
+               sb.append("\n");
+               newLineNeeded = false;
+            }
+            sb.append("min="+formatValueAsString(getMin())+" ");
          }
-         sb.append("min="+getValueAsString(getMin())+" ");
-      }
-      if (getMax() != Double.POSITIVE_INFINITY) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
+         if (getMax() != Double.POSITIVE_INFINITY) {
+            if (newLineNeeded) {
+               sb.append("\n");
+               newLineNeeded = false;
+            }
+            sb.append("max="+formatValueAsString(getMax())+" ");
          }
-         sb.append("max="+getValueAsString(getMax())+" ");
+      } catch (Exception e) {
+         return "ERROR: " + e.getMessage();
       }
       return (sb.length() == 0)?null:sb.toString();
    }
 
+   //============== MIN/MAX handling ==================
    /**
     * Set minimum value.<br>
     * Status listeners are informed of any change.
     * 
     * @param min Minimum value
+    * @throws Exception
     */
-   public void setMin(double min) {
-      boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
+   public void setMin(double min) throws Exception {
+      
+      // Check if error state changed
+      boolean oldError = (fValue<getMin()) || (fValue>getMax());
+      boolean newError = (fValue<min)      || (fValue>getMax());
+      
+      boolean statusChanged = oldError != newError;
       fMin = min;
       if ((fDefaultValue == null) || (fDefaultValue<fMin)) {
          setDefault(min);
       }
-      if (statusChanged) {
-         notifyStatusListeners();
+      if (fDisabledValue<fMin) {
+         fDisabledValue = fMin;
       }
-   }
-
-   /**
-    * Get minimum value
-    * 
-    * @return Minimum value
-    */
-   public double getMin() {
-      return fMin;
+      if (statusChanged) {
+         notifyListeners();
+      }
    }
 
    /**
@@ -312,24 +400,89 @@ public class DoubleVariable extends Variable {
     * Status listeners are informed of any change.
     * 
     * @param max Maximum value
+    * @throws Exception
     */
-   public void setMax(double max) {
-      boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
+   public void setMax(double max) throws Exception {
+
+      // Check if error state changed
+      boolean oldError = (fValue<getMin()) || (fValue>getMax());
+      boolean newError = (fValue<getMin()) || (fValue>max);
+      
+      boolean statusChanged = oldError != newError;
       fMax = max;
       if ((fDefaultValue == null) || (fDefaultValue>fMax)) {
          setDefault(max);
       }
-      if (statusChanged) {
-         notifyStatusListeners();
+      if (fDisabledValue>fMax) {
+         fDisabledValue = fMax;
       }
+      if (statusChanged) {
+         notifyListeners();
+      }
+   }
+
+   /**
+    * Set maximum value as expression.
+    * 
+    * @param max Maximum value as expression
+    * 
+    * @throws Exception
+    */
+   public void setMin(String attribute) throws Exception {
+      
+      fMinExpression = new Expression(attribute, getProvider());
+      
+      // Initially assume dynamic evaluation
+      fMin = null;
+   }
+
+   /**
+    * Set maximum value as expression.
+    * 
+    * @param max Maximum value as expression
+    * 
+    * @throws Exception
+    */
+   public void setMax(String attribute) throws Exception {
+      
+      fMaxExpression = new Expression(attribute, getProvider());
+      
+      // Initially assume dynamic evaluation
+      fMax = null;
+   }
+   
+   /**
+    * Get minimum value
+    * 
+    * @return Minimum value
+    */
+   public double getMin() throws Exception {
+      if (fMin == null) {
+         if (fMinExpression != null) {
+            fMin = fMinExpression.getValueAsDouble();
+         }
+         else {
+            fMin = Double.MIN_VALUE;
+         }
+      }
+      return fMin;
    }
 
    /**
     * Get maximum value
     * 
     * @return Maximum value in user format
+    * @throws Exception
     */
-   public double getMax() {
+   public double getMax() throws Exception {
+      if (fMax == null) {
+         if (fMaxExpression != null) {
+            fMax = fMaxExpression.getValueAsDouble();
+         }
+         else {
+            fMax = Double.MAX_VALUE;
+         }
+      }
       return fMax;
    }
 
@@ -358,5 +511,36 @@ public class DoubleVariable extends Variable {
       return super.clone();
    }
    
+   @Override
+   public boolean update(Expression expression) throws Exception {
+      
+      boolean changed = super.update(expression);
+      
+      boolean updateLimits = false;
+      if (expression == fMinExpression) {
+         fMin = null;
+         updateLimits = true;
+      }
+      if (expression == fMaxExpression) {
+         fMax = null;
+         updateLimits = true;
+      }
+      if (changed||updateLimits) {
+         changed = setStatusQuietly(isValid()) || changed;
+      }
+      return changed;
+   }
+
+   @Override
+   public void addInternalListeners() throws Exception {
+      if (fMinExpression != null) {
+         fMinExpression.addListener(this);
+      }
+      if (fMaxExpression != null) {
+         fMaxExpression.addListener(this);
+      }
+      super.addInternalListeners();
+   }
+
    
 }

@@ -77,40 +77,76 @@ public class LongVariable extends Variable {
       return new LongVariableModel(parent, this);
    }
    
+   private Object translationCache       = new Object();
+   private Long   translationCachedValue = null;
+   
    /**
     * Convert object to suitable type for this variable
     * 
     * @param value
     * 
-    * @return Converted object
+    * @return Converted object or null if failed
     */
-   private long translate(Object value) {
-      try {
-         if (value instanceof Double) {
-            return Math.round((Double) value);
-         }
-         if (value instanceof Long) {
-            return (Long) value;
-         }
-         if (value instanceof Integer) {
-            return (Integer) value;
-         }
-         if (value instanceof String) {
-            if (((String) value).isEmpty()) {
-               value = getDefault().toString();
-            }
-            return EngineeringNotation.parseAsLong((String) value);
-         }
-         if ((value instanceof Boolean) && (fOffset == 0)) {
-            return ((Boolean) value)?1L:0L;
-         }
-         throw new Exception("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
-      } catch (Exception e) {
-//         Activator.log(e.getMessage());
-         System.err.println("'"+value+"' cannot be converted to long");
-         e.printStackTrace();
-         return 0;
+   private Long translate(Object value) {
+      if (translationCache == value) {
+         return translationCachedValue;
       }
+      translationCache = value;
+      
+      if (value instanceof Double) {
+         translationCachedValue = Math.round((Double) value);
+         return translationCachedValue;
+      }
+      if (value instanceof Long) {
+         translationCachedValue = (Long) value;
+         return translationCachedValue;
+      }
+      if (value instanceof Integer) {
+         translationCachedValue = ((Integer)value).longValue();
+         return translationCachedValue;
+      }
+      if ((value instanceof Boolean) && (fOffset == 0)) {
+         translationCachedValue = ((Boolean) value)?1L:0L;
+         return translationCachedValue;
+      }
+      if (value instanceof String) {
+         Double numericValue = EngineeringNotation.parse((String) value);
+         if (numericValue != null) {
+            Units fromUnits = EngineeringNotation.parseUnits((String) value);
+            Units toUnits = getUnits();
+            if ((fromUnits == toUnits)||(fromUnits == Units.None)) {
+               // No translation needed
+               translationCachedValue = Math.round(numericValue);
+               return translationCachedValue;
+            }
+            Double translatedValue = null;
+            switch(toUnits) {
+            case Hz:
+               if (fromUnits == Units.s) {
+                  translatedValue = 1.0/numericValue;
+               }
+               break;
+            case s:
+               if (fromUnits == Units.Hz) {
+                  translatedValue = 1.0/numericValue;
+               }
+               break;
+            case ticks:
+               // Wrong units and no translation
+               break;
+            case None:
+               // No translation
+               translationCachedValue = Math.round(numericValue);
+               return translationCachedValue;
+            }
+            if (translatedValue != null) {
+               translationCachedValue = Math.round(translatedValue);
+               return translationCachedValue;
+            }
+         }
+      }
+//      System.err.println("Object '"+ value + "' (" + value.getClass()+") is not compatible with LongVariable or "+getUnits());
+      return null;
    }
    
    /**
@@ -121,47 +157,46 @@ public class LongVariable extends Variable {
     * @return True if variable actually changed value
     */
    public boolean setValueQuietly(Long value) {
-//      if ((fMax != null) && (value>fMax)) {
-//         value = fMax;
-//      }
-//      if ((fMin != null) && (value<fMin)) {
-//         value = fMin;
-//      }
-      if (fValue == value) {
+      
+      if ((value == null)||(fValue == value)) {
          return false;
       }
       fValue = value;
+      
+      // Update range checks
+      setStatusQuietly(isValid());
+
       return true;
    }
    
    @Override
    public boolean setValueQuietly(Object value) {
-      return setValueQuietly(translate(value));
+      Long res = translate(value);
+      return setValueQuietly(res);
    }
    
    @Override
    public void setPersistentValue(String value) {
-      fValue = translate(value);
+      setValueQuietly(value);
    }
    
    /**
-    * Converts the given string into a form appropriate for model
+    * Formats the value as a string for GUI
     * 
     * @param value Value to format
+    * @param units Units to use for formatting
     * 
     * @return String in appropriate form e.g. 24.56MHz
     */
-   public String formatValueAsString(long value) {
+   public static String formatValueAsString(double value, Units units) {
+      
       int sigDigits = 4;
-      switch(getUnits()) {
+      switch(units) {
       default:
       case None:
-         if (fRadix == 16) {
-            return "0x"+Long.toString(value, fRadix) + " (" + Long.toString(value) + ')';
-         }
-         return Long.toString(value);
+         return Long.toString(Math.round(value));
       case ticks:
-         return Long.toString(value)+"_ticks";
+         return Long.toString(Math.round(value))+"_"+units.toString();
       case s:
       case Hz:
          if (value <= 1) {
@@ -176,8 +211,47 @@ public class LongVariable extends Variable {
          else if (value <= 1000) {
             sigDigits = 4;
          }
-         return EngineeringNotation.convert(value, sigDigits).toString()+getUnits().toString();
+         return EngineeringNotation.convert(value, sigDigits).toString()+units.toString();
       }
+   }
+
+   /**
+    * Converts the given string into a form appropriate for model
+    * 
+    * @param value Value to format
+    * 
+    * @return String in appropriate form e.g. 24.56MHz
+    */
+   public String formatValueAsString(long value) {
+
+      double frequency = 1;
+      double period    = 1;
+      switch(getUnits()) {
+      case Hz:
+         // Primary value is frequency
+         frequency = value;
+         period    = 1/frequency;
+         return
+               formatValueAsString(frequency, Units.Hz) + ", (" +
+               formatValueAsString(period, Units.s) + ")";
+      case s:
+         // Primary value is period
+         period    = value;
+         frequency = 1/period;
+         return
+               formatValueAsString(period, Units.s) + ", (" +
+               formatValueAsString(frequency, Units.Hz) +")";
+      case ticks:
+         return formatValueAsString(value, Units.ticks);
+      case None:
+      default:
+         return Double.toString(value);
+      }
+   }
+
+   @Override
+   public Object getEditValueAsString() {
+      return formatValueAsString(getValueAsLong(), getUnits());
    }
 
    @Override
@@ -266,8 +340,12 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public void setDisabledValue(Object value) {
-      setDisabledValue(translate(value));
+   public void setDisabledValue(Object disabledValue) {
+      Long res = translate(disabledValue);
+      if (res == null) {
+         System.err.println("Failed to translate value '"+disabledValue+"'");
+      }
+      setDisabledValue(res);
    }
 
    /**
@@ -275,7 +353,10 @@ public class LongVariable extends Variable {
     * 
     * @param fDisabledValue
     */
-   public void setDisabledValue(long disabledValue) {
+   public void setDisabledValue(Long disabledValue) {
+      if (disabledValue == null) {
+         return;
+      }
       this.fDisabledValue = disabledValue;
    }
 
@@ -290,9 +371,9 @@ public class LongVariable extends Variable {
    
    @Override
    public void setDefault(Object value) {
-      Long v = translate(value);
-      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != v);
-      fDefaultValue = v;
+      Long res = translate(value);
+      defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != res);
+      fDefaultValue = res;
    }
    
    @Override
@@ -314,8 +395,6 @@ public class LongVariable extends Variable {
     */
    public String isValid(Long value) {
       try {
-//         getUnits();
-//         getUsageValue();
          if (value<getMin()) {
             return "Value too small ["+getName()+"<"+formatValueAsString(getMin())+"]";
          }
@@ -323,7 +402,7 @@ public class LongVariable extends Variable {
             return "Value too large ["+getName()+">"+formatValueAsString(getMax())+"]";
          }
       } catch (Exception e) {
-         return "ERROR: " + e.getMessage();
+         return e.getMessage();
       }
       long remainder = value % getStep();
       if (remainder != 0) {
@@ -334,18 +413,12 @@ public class LongVariable extends Variable {
 
    @Override
    public String isValid(String value) {
-      long lValue = 0;
-      try {
-         lValue = Math.round(EngineeringNotation.parse(value));
+      
+      Long lValue = translate(value);
+      if (lValue != null) {
+         return null;
       }
-      catch (NumberFormatException e) {
-         return "Illegal number";
-      }
-      try {
-         return isValid(lValue);
-      } catch (Exception e) {
-         return "ERROR: " + e.getMessage();
-      }
+      return "Invalid value";
    }
    
    @Override
@@ -441,7 +514,6 @@ public class LongVariable extends Variable {
       }
       if (statusChanged) {
          notifyListeners();
-//         notifyStatusListeners();
       }
    }
 
@@ -511,23 +583,23 @@ public class LongVariable extends Variable {
       return fMax;
    }
 
-   /**
-    * Triggers update of minimum value on next use
-    */
-   public void updateMin() {
-      if (fMinExpression != null) {
-         fMin = null;
-      }
-   }
-
-   /**
-    * Triggers update of maximum value on next use
-    */
-   public void updateMax() {
-      if (fMaxExpression != null) {
-         fMax = null;
-      }
-   }
+//   /**
+//    * Triggers update of minimum value on next use
+//    */
+//   public void updateMin() {
+//      if (fMinExpression != null) {
+//         fMin = null;
+//      }
+//   }
+//
+//   /**
+//    * Triggers update of maximum value on next use
+//    */
+//   public void updateMax() {
+//      if (fMaxExpression != null) {
+//         fMax = null;
+//      }
+//   }
 
    /**
     * Sets expression for dynamic min value
@@ -629,31 +701,23 @@ public class LongVariable extends Variable {
    }
    
    @Override
-   public void expressionChanged(Expression expression) {
-      super.expressionChanged(expression);
-      try {
-         if ((fMinExpression!=null) && (expression == fMinExpression)) {
-            fMin = null;
-            if (isEnabled() && (getValueAsLong() < getMin())) {
-               setStatus("Value too low");
-            }
-            else {
-               setStatus((String)null);
-            }
-         }
-         if ((fMaxExpression!=null) && (expression == fMaxExpression)) {
-            fMax = null;
-            if (isEnabled() && (getValueAsLong() > getMax())) {
-               setStatus("Value too high");
-            }
-            else {
-               setStatus((String)null);
-            }
-         }
-      } catch (Exception e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
+   public boolean update(Expression expression) throws Exception {
+      
+      boolean changed = super.update(expression);
+      
+      boolean updateLimits = false;
+      if (expression == fMinExpression) {
+         fMin = null;
+         updateLimits = true;
       }
+      if (expression == fMaxExpression) {
+         fMax = null;
+         updateLimits = true;
+      }
+      if (changed||updateLimits) {
+         changed = setStatusQuietly(isValid()) || changed;
+      }
+      return changed;
    }
 
    @Override

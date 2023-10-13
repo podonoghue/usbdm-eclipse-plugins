@@ -271,13 +271,23 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /**
-    * Returns a string representing the value in an appropriate form for model
+    * Returns a string representing of the value in an appropriate form for displaying in (GUI)
     * 
     * @return String representation e.g. "PTA3"
     * @throws MemoryException
     */
    public String getValueAsString() {
       return "";
+   }
+
+   /**
+    * Returns a string representing the value in an appropriate form for editing in GUI
+    * 
+    * @return String representation e.g. "PTA3"
+    * @throws MemoryException
+    */
+   public Object getEditValueAsString() {
+      return getValueAsString();
    }
 
    /**

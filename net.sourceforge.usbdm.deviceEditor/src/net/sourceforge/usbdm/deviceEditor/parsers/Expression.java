@@ -1729,6 +1729,10 @@ public class Expression implements IModelChangeListener {
    @SuppressWarnings("unchecked")
    private <T> T castResult(Class<T> toClass) throws Exception {
       Object res = getValue();
+      if ((toClass == Double.class) && (res instanceof Long)) {
+         Double t = ((Long)res).doubleValue();
+         return (T)t;
+      }
       if (!toClass.isAssignableFrom(res.getClass())) {
          throw new Exception("Expected "+toClass.getSimpleName()+" result for expression '"+fExpressionStr+"'");
       }

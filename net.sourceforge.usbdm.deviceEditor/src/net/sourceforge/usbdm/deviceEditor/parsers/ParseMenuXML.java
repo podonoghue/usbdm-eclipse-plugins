@@ -1113,13 +1113,39 @@ public class ParseMenuXML extends XML_BaseParser {
       
       TimeVariable variable = (TimeVariable) createVariable(varElement, TimeVariable.class);
       
-      if (varElement.hasAttribute("units")) {
-         variable.setUnits(Units.valueOf(getAttributeAsString(varElement, "units")));
-      }
+      parseCommonAttributes(parent, varElement, variable);
+      
       if (varElement.hasAttribute("periodEquation")) {
          variable.setPeriodExpression(getAttributeAsString(varElement, "periodEquation"));
       }
-      parseCommonAttributes(parent, varElement, variable);
+      try {
+         if (varElement.hasAttribute("min")) {
+            variable.setMin(getAttributeAsString(varElement, "min"));
+         }
+         if (varElement.hasAttribute("max")) {
+            variable.setMax(getAttributeAsString(varElement, "max"));
+         }
+         if (varElement.hasAttribute("disabledValue")) {
+            variable.setDisabledValue(getRequiredLongExpressionAttribute(varElement, "disabledValue"));
+         }
+      } catch(NumberFormatException e) {
+         throw new Exception("Illegal min/max value in " + variable.getName(), e);
+      }
+      if (varElement.hasAttribute("units")) {
+         variable.setUnits(Units.valueOf(getAttributeAsString(varElement, "units")));
+      }
+      
+      switch(variable.getUnits()) {
+      case None:
+         throw new Exception("<timeOption> must have units");
+      case ticks:
+         if (variable.getPeriodExpression() == null) {
+            throw new Exception("<timeOption> must have periodEquation if using ticks");
+         }
+      case Hz:
+      case s:
+         break;
+      }
    }
    
    /**
@@ -1146,10 +1172,6 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMaxExpression(otherVariable.getMaxExpression());
          variable.setUnits(otherVariable.getUnits());
       }
-      parseCommonAttributes(parent, varElement, variable);
-//      if (variable.getValueFormat() == null) {
-//         variable.setValueFormat(Variable.getBaseNameFromKey(variable.getKey()).toUpperCase()+"(%s)");
-//      }
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getAttributeAsString(varElement, "min"));
@@ -1172,11 +1194,12 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("offset")) {
          variable.setOffset(getRequiredLongAttribute(varElement, "offset"));
       }
-      if (varElement.hasAttribute("enumType")) {
-         generateEnum(varElement, variable);
-      }
       if (varElement.hasAttribute("radix")) {
          variable.setRadix(getRequiredLongAttribute(varElement, "radix"));
+      }
+      parseCommonAttributes(parent, varElement, variable);
+      if (varElement.hasAttribute("enumType")) {
+         generateEnum(varElement, variable);
       }
    }
 
@@ -1203,10 +1226,10 @@ public class ParseMenuXML extends XML_BaseParser {
 
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getDoubleAttribute(varElement, "min"));
+            variable.setMin(getAttributeAsString(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getDoubleAttribute(varElement, "max"));
+            variable.setMax(getAttributeAsString(varElement, "max"));
          }
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);

@@ -3,6 +3,8 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
+
 /**
  * Based on http://www.labbookpages.co.uk/software/java/engNotation.html
  */
@@ -67,9 +69,9 @@ public class EngineeringNotation {
    private static final Pattern NUMBER_PATTERN     = Pattern.compile(
       /*                                  */ "^" +
       /* (#1)                             */ "(-)?" +
-      /* (#2(#3,4)|(#5,6)|(#7,8))         */ "("+ BINARY_PATTERN+"|"+ HEX_PATTERN+"|"+ DEC_PATTERN+")" +
+      /* (#2(#3,4)|(#5,6)|(#7,8)|(#9))    */ "("+ BINARY_PATTERN+"|"+ HEX_PATTERN+"|"+ DEC_PATTERN+"|(Infinity))" +
       /*                                  */ "[\\ \t\n_]*"+
-      /* (#9)(#10)                        */ MULT_PATTERN+UNIT_PATTERN+
+      /* (#10)(#11)                       */ MULT_PATTERN+UNIT_PATTERN+
       /*                                  */ "$");
 
    private static final String suffixes      = "fpnumkMGTkiBMiB";
@@ -77,14 +79,32 @@ public class EngineeringNotation {
          1.0e-15D, 1.0e-12D, 1.0e-9D, 1.0e-6D, 1.0e-3D, 1.0e3D, 1.0e6D, 1.0e9D, 1.0e12D, 1024, -1, -1, 1024*1024,
          };
    
+   static String cachedValue      = null;
+   static Units  cachedUnitsValue = null;
+   
+   synchronized public static Units parseUnits(String num) {
+      if (num == cachedValue) {
+         return cachedUnitsValue;
+      }
+      Matcher matcher = NUMBER_PATTERN.matcher(num);
+      if (!matcher.matches()) {
+         throw new NumberFormatException("Illegal number: "+num);
+      }
+      String unitSuffix  = matcher.group(11);
+      if ((unitSuffix==null)||(unitSuffix.isBlank())) {
+         return Units.None;
+      }
+      return Units.valueOf(unitSuffix);
+   }
+   
    /**
     * Parse a number including Engineering notation e.g. 120MHz
     * 
     * @param str String to parse
     * 
-    * @return Parsed value of string
+    * @return Parsed value of string or null if not valid
     */
-   public static double parse(String num) {
+   synchronized public static Double parse(String num) {
       double value = 0.0;
       
       if (num.equalsIgnoreCase("Infinity")) {
@@ -93,13 +113,23 @@ public class EngineeringNotation {
       }
       Matcher matcher = NUMBER_PATTERN.matcher(num);
       if (!matcher.matches()) {
-         throw new NumberFormatException("Illegal number: "+num);
+         return null;
+//         throw new NumberFormatException("Illegal number: "+num);
       }
       boolean negative     = matcher.group(1) != null;
       String binaryNum     = matcher.group(3+1);
       String hexNum        = matcher.group(5+1);
       String decNum        = matcher.group(7+0);
-      String metricSuffix  = matcher.group(9);
+      String metricSuffix  = matcher.group(10);
+      String unitSuffix    = matcher.group(11);
+      
+      // Cache units translation
+      if ((unitSuffix==null)||(unitSuffix.isBlank())) {
+         cachedUnitsValue = Units.None;
+      }
+      else {
+         cachedUnitsValue = Units.valueOf(unitSuffix);
+      }
       if (decNum != null) {
          value = Double.parseDouble('0'+decNum);
       }
