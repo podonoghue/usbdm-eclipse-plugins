@@ -44,14 +44,15 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * Units for physical quantities
     */
    public enum Units {
-      None, Hz, s, ticks;
+      None, Hz, s, ticks, percent;
 
       public String getType() {
          switch (this) {
-         case None:  return "int";
-         case Hz:    return "Hertz";
-         case s:     return "Seconds";
-         case ticks: return "Ticks";
+         case None:       return "int";
+         case Hz:         return "Hertz";
+         case s:          return "Seconds";
+         case ticks:      return "Ticks";
+         case percent:    return "Percent";
          }
          return "IllegalUnits";
       }
@@ -233,6 +234,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * Sets variable value without affecting listeners
     * 
     * @param value The value to set
+    * 
+    * @return true if change occurred and notification needed
     */
    public abstract boolean setValueQuietly(Object value);
 
@@ -328,6 +331,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return true if status changed
     */
    public boolean setStatusQuietly(Status message) {
+//      if (getName().contains("ftm_modPeriod")) {
+//         System.err.println(getName()+".setStatusQuietly("+message+")");
+//      }
       if ((fStatus == null) && (message == null)) {
          // No change
          return false;
@@ -681,8 +687,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public String getDisplayToolTip() {
       StringBuilder sb = new StringBuilder();
-      if (fToolTip != null) {
-         sb.append(fToolTip);
+      String tooltip = getToolTip();
+      if (tooltip != null) {
+         sb.append(tooltip);
       }
       Status status = getStatus();
       if (status != null) {
@@ -1293,6 +1300,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    public void setHiddenBy(String hiddenBy) throws Exception {
+      if (hiddenBy == null) {
+         fHiddenBy = null;
+         return;
+      }
       fHiddenBy = new Expression(hiddenBy, fProvider);
    }
 
@@ -1405,19 +1416,25 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          }
       }
       changed = enableQuietly(info.enable) || changed;
-
+      
+      if (info.value != null) {
+         changed = setValueQuietly(info.value) || changed;
+      }
       if (fErrorIf != null) {
          if  (fErrorIf.getValueAsBoolean()) {
             // Forced error status
             info.status = new Status(fErrorIf.getMessage("Error "));
          }
       }
+      else {
+         String validCheck = isValid();
+         if (validCheck != null) {
+            info.status = new Status(validCheck);
+         }
+      }
       changed = setStatusQuietly(info.status) || changed;
 
-      if (info.value != null) {
-         changed = setValueQuietly(info.value) || changed;
-      }
-      if (info.origin != null) {
+      if ((info.origin != null) && !info.origin.isBlank()) {
          changed = setOriginQuietly(info.origin) || changed;
       }
       return changed;
@@ -1430,7 +1447,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return True if notification needed i.e. change in state occurred
     */
-   public boolean update(Expression expression) throws Exception {
+   public boolean update(Expression expression) {
       
       // Only handles changes in:
       // - fReference
@@ -1452,12 +1469,40 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
           (expression == fpinMapEnable);
       
       if (checkUpdate) {
-         VariableUpdateInfo info = determineUpdateInformation(fReference);
-         changed = update(info) | changed;
+         try {
+            VariableUpdateInfo info = determineUpdateInformation(fReference);
+            changed = update(info) | changed;
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
       }
       return changed;
    }
    
+   /**
+    * Update state and notify listeners of changes
+    * 
+    * @param expression - The expression that has changed.<br>
+    *        This may be null to force update from all expressions during initialisation.
+    */
+   public void updateAndNotify(Expression expression) {
+      try {
+         if (update(expression)) {
+            notifyListeners(this);
+         }
+      } catch (Exception e) {
+         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
+         t.printStackTrace();
+      }
+   }
+   
+   /**
+    * Force update state and notify listeners of changes
+    */
+   public void updateAndNotify() {
+      updateAndNotify((Expression)null);
+   }
+
    /**
     * Called when a monitored expression changes.
     * 
@@ -1471,26 +1516,15 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
-      try {
-         if (update(expression)) {
-            notifyListeners(this);
-         }
-      } catch (Exception e) {
-         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
-         t.printStackTrace();
-      }
+      updateAndNotify(expression);
    }
 
    /**
     * Determine updates from the controlling expression.  This includes:
-    *  <li> .value  = The value of expression provided
-    *  <li> .status = Status from primary variable in expression
-    *  <li> .enable = Enable from primary variable in expression
-    *  <li> .origin = Origin from expression
-    * 
-    * @param info Cumulative variable update information from evaluating expression etc.
-    *        <li>Always updated if reference present: .value, .origin
-    *        <li>May be updated if reference present: .status, .enable
+    *  <li> .value  = The value of expression provided (null if not set)
+    *  <li> .origin = Origin from expression (empty if not set)
+    *  <li> .status = Status from primary variable in expression (null if not set) ??
+    *  <li> .enable = Enable from primary variable in expression (null if not set) ??
     * 
     * @param expression Expression controlling updates
     * 
@@ -1504,7 +1538,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       
       // Assume enabled (may be later disabled by enabledBy etc.)
       info.enable = true;
-
+      info.origin = "";
+      
       if (expression != null) {
          info.value = expression.getValue();
 
@@ -1517,7 +1552,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 //         }
          info.origin   = expression.getOriginMessage();
       }
-      
       return info;
    }
 

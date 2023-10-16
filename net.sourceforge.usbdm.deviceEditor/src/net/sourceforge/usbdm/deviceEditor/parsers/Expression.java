@@ -216,6 +216,9 @@ public class Expression implements IModelChangeListener {
        */
       public static ExpressionNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
          
+//         if (varName.contains("ftm_filter_ch4fval")) {
+//            System.err.println("VariableNode.create("+varName+")");
+//         }
          String name = varName;
          if (index != null) {
             // Use zero index to allow safe access to array variable
@@ -830,14 +833,31 @@ public class Expression implements IModelChangeListener {
       Object eval() throws Exception {
          Object leftOperand  = fLeft.eval();
          Object rightOperand = fRight.eval();
+         
          if ((leftOperand instanceof Double) && (rightOperand instanceof Double)) {
-            return (Double)leftOperand / (Double)rightOperand;
+            Double right = (Double)rightOperand;
+            if (right == 0.0) {
+               return Double.POSITIVE_INFINITY;
+            }
+            return (Double)leftOperand / right;
          } else if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
-            return (Long)leftOperand / (Long)rightOperand;
+            Long right = (Long)rightOperand;
+            if (right == 0) {
+               return Double.POSITIVE_INFINITY;
+            }
+            return (Long)leftOperand / right;
          } else if ((leftOperand instanceof Long) && (rightOperand instanceof Double)) {
-            return (Long)leftOperand / (Double)rightOperand;
+            Double right = (Double)rightOperand;
+            if (right == 0.0) {
+               return Double.POSITIVE_INFINITY;
+            }
+            return (Long)leftOperand / right;
          } else {
-            return (Double)leftOperand / (Long)rightOperand;
+            Long right = (Long)rightOperand;
+            if (right == 0) {
+               return Double.POSITIVE_INFINITY;
+            }
+            return (Double)leftOperand / right;
          }
       }
    }
@@ -1072,16 +1092,39 @@ public class Expression implements IModelChangeListener {
       @Override
       Object eval() throws Exception {
          Object leftOperand  = fLeft.eval();
-         Object rightOperand = fRight.eval();
-         switch (fLeft.fType) {
-         case Double:
-            return (Double)leftOperand != (Double)rightOperand;
-         case Long:
-            return (Long)leftOperand != (Long)rightOperand;
-         case String:
-            return ((String)leftOperand).compareTo((String)rightOperand)!=0;
-         default:
-            throw new Exception("Impossible type!");
+         if (fRight instanceof CommaListNode) {
+            CommaListNode set = (CommaListNode) fRight;
+            Visitor inSet = new Visitor() {
+               Object  value = leftOperand;
+               Boolean result = false;
+
+               @Override
+               void visit(ExpressionNode node) throws Exception {
+                  if (node.eval().equals(value)) {
+                     result = true;
+                  }
+               }
+
+               @Override
+               Object getResult() {
+                  return result;
+               }
+            };
+            set.forEach(inSet);
+            return !(Boolean)(inSet.getResult());
+         }
+         else {
+            Object rightOperand = fRight.eval();
+            switch (fLeft.fType) {
+            case Double:
+               return (Double)leftOperand != (Double)rightOperand;
+            case Long:
+               return (Long)leftOperand != (Long)rightOperand;
+            case String:
+               return ((String)leftOperand).compareTo((String)rightOperand)!=0;
+            default:
+               throw new Exception("Impossible type!");
+            }
          }
       }
    }
@@ -1465,6 +1508,22 @@ public class Expression implements IModelChangeListener {
    public Expression(String expression, VariableProvider provider) throws Exception {
       this(expression, provider, Mode.Dynamic);
    }
+   
+//   static String stripSpaces(String s) {
+//      boolean stripped = false;
+//      Character escape = null;
+//      StringBuilder sb = new StringBuilder();
+//      for (int index=0; index<s.length(); index++) {
+//
+//         if ("'\"".indexOf(s.charAt(index)) >= 0) {
+//            escape = s.charAt(index);
+//         }
+//      }
+//      if (stripped) {
+//         return sb.toString();
+//      }
+//      return s;
+//   }
    
    private void prelim() throws Exception {
 //      if (fExpressionStr.matches(".*\\|\\|\\(ftm_cnsc_mode\\[0.*")) {

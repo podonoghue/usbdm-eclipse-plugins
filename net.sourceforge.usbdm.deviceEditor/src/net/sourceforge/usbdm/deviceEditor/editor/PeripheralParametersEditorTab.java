@@ -75,8 +75,8 @@ public class PeripheralParametersEditorTab implements IEditor {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                   final TreeColumnInformation[] columnInformation1 = {
-                        new TreeColumnInformation("Property",        250, new NameColumnLabelProvider(),           null,
-                              "Name of property"),
+                        new TreeColumnInformation("Description",     350, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
+                              DescriptionColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer),
                               "Value of property"),
                         new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer),
@@ -86,8 +86,8 @@ public class PeripheralParametersEditorTab implements IEditor {
                               ModifierColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer),
                               InstanceColumnLabelProvider.getColumnToolTipText()),
-                        new TreeColumnInformation("Description",     500, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
-                              DescriptionColumnLabelProvider.getColumnToolTipText()),
+                        new TreeColumnInformation("Property",        250, new NameColumnLabelProvider(),           null,
+                              "Name of property"),
                   };
                   
                   final TreeColumnInformation[] columnInformation2 = {

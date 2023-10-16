@@ -91,7 +91,7 @@ public class StringVariable extends Variable {
          return false;
       }
       fValue = null;
-      fCachedValue = value.toString();
+      fCachedValue = value;
       return true;
    }
    
@@ -102,6 +102,10 @@ public class StringVariable extends Variable {
     */
    @Override
    public boolean setValueQuietly(Object value) {
+//      System.err.println(getName()+".setValueQuietly("+value+")");
+      if (value == null) {
+         return setValueQuietly((String)null);
+      }
       if (value instanceof StringBuilder) {
          fValue = (StringBuilder)value;
          fCachedValue = null;
@@ -117,8 +121,12 @@ public class StringVariable extends Variable {
 
    @Override
    public void setDefault(Object value) {
-      defaultHasChanged = (fDefault != null) && (fDefault != value.toString());
-      fDefault = value.toString();
+      String val = null;
+      if (value != null) {
+         val = value.toString();
+      }
+      defaultHasChanged = (fDefault != null) && !(fDefault.equals(val));
+      fDefault = val;
    }
 
    @Override
@@ -136,7 +144,7 @@ public class StringVariable extends Variable {
 
    @Override
    public boolean isDefault() {
-      return !defaultHasChanged && getPersistentValue().equals(fDefault);
+      return !defaultHasChanged;
    }
 
    @Override

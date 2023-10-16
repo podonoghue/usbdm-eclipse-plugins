@@ -65,7 +65,7 @@ public class EngineeringNotation {
    private static final String  HEX_PATTERN        = /* hex     = +1 */ "(0x([0-9|a-f|A-F]+))";
    private static final String  DEC_PATTERN        = /* decimal = +0 */ "([0-9]*\\.?[0-9]*(E-?[0-9]*)?)";
    private static final String  MULT_PATTERN       = /* +0           */ "(f|p|n|u|m|k|M|G|T|kiB|MiB|ki|Mi)?";
-   private static final String  UNIT_PATTERN       = /* +0           */ "(Hz|ticks|s)?";
+   private static final String  UNIT_PATTERN       = /* +0           */ "(Hz|ticks|s|\\%)?";
    private static final Pattern NUMBER_PATTERN     = Pattern.compile(
       /*                                  */ "^" +
       /* (#1)                             */ "(-)?" +
@@ -94,6 +94,9 @@ public class EngineeringNotation {
       if ((unitSuffix==null)||(unitSuffix.isBlank())) {
          return Units.None;
       }
+      if (unitSuffix.equals("%")) {
+         return Units.percent;
+      }
       return Units.valueOf(unitSuffix);
    }
    
@@ -113,6 +116,7 @@ public class EngineeringNotation {
       }
       Matcher matcher = NUMBER_PATTERN.matcher(num);
       if (!matcher.matches()) {
+         System.err.println("Illegal number "+num);
          return null;
 //         throw new NumberFormatException("Illegal number: "+num);
       }
@@ -124,8 +128,12 @@ public class EngineeringNotation {
       String unitSuffix    = matcher.group(11);
       
       // Cache units translation
+      cachedValue = num;
       if ((unitSuffix==null)||(unitSuffix.isBlank())) {
          cachedUnitsValue = Units.None;
+      }
+      else if (unitSuffix.equals("%")) {
+         cachedUnitsValue = Units.percent;
       }
       else {
          cachedUnitsValue = Units.valueOf(unitSuffix);
@@ -144,6 +152,9 @@ public class EngineeringNotation {
       }
       if (metricSuffix != null) {
          value *= suffixPower[suffixes.indexOf(metricSuffix)];
+      }
+      if (cachedUnitsValue == Units.percent) {
+         value /= 100;
       }
 //      System.err.println(num + "=>");
 //      System.err.println("  bin = " + binaryNum);

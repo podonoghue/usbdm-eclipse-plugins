@@ -157,11 +157,15 @@ public class BitmaskVariable extends LongVariable {
    }
 
    @Override
-   public boolean update(Expression expression) throws Exception {
+   public boolean update(Expression expression) {
       
       boolean changed = super.update(expression);
       
-      updatePinMap(getValueAsLong());
+      try {
+         updatePinMap(getValueAsLong());
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
       
       return changed;
    }

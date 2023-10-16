@@ -27,7 +27,7 @@ public class TimeVariable extends LongVariable {
    }
 
    @Override
-   public boolean update(Expression expression) throws Exception {
+   public boolean update(Expression expression) {
       
       boolean changed = super.update(expression);
       
@@ -69,6 +69,8 @@ public class TimeVariable extends LongVariable {
          sb.append(DoubleVariable.formatValueAsString(frequency, Units.Hz) + ", ");
          sb.append(DoubleVariable.formatValueAsString(period, Units.s) + ")");
          break;
+      case percent:
+         
       case None:
          break;
       }
@@ -163,6 +165,7 @@ public class TimeVariable extends LongVariable {
             case ticks:
                // Wrong units and no translation
                break;
+            case percent:
             case None:
                // No translation
                translatedValue = numericValue;

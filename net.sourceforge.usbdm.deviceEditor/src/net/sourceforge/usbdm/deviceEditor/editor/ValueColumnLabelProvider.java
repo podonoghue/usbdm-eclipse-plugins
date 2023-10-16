@@ -4,6 +4,7 @@ import org.eclipse.swt.graphics.Image;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 
 public class ValueColumnLabelProvider extends BaseLabelProvider {
@@ -14,6 +15,9 @@ public class ValueColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public String getText(BaseModel baseModel) {
+      if (baseModel instanceof CategoryModel) {
+         return baseModel.getDescription();
+      }
       return baseModel.getValueAsString();
    }
 

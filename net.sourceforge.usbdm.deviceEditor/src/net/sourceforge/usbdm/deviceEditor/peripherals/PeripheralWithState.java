@@ -703,7 +703,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    private ArrayList<Object> fMonitoredVariables = null;
 
    /**
-    * Add variable as clock selector
+    * Remove monitored variable
     * 
     * @param clockSelector Clock selector to add
     * @throws Exception

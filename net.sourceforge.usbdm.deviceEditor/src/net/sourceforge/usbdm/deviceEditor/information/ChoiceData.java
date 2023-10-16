@@ -35,6 +35,9 @@ public class ChoiceData {
 
    /** Pin mapping associated with this choice */
    private String fPinMap;
+
+   /** Tool-tip to use with choice */
+   private String fTooltip;
    
    /**
     * 
@@ -279,5 +282,23 @@ public class ChoiceData {
     */
    public String getPinMap() {
       return fPinMap;
+   }
+
+   /**
+    * Set tool-tip
+    * 
+    * @param toolTip Tool-tip to use with choice
+    */
+   public void setToolTip(String toolTip) {
+      fTooltip = toolTip;
+   }
+   
+   /**
+    * Get tool-tip
+    * 
+    * @return Tool-tip to use with choice
+    */
+   public String getToolTip() {
+      return fTooltip;
    }
 }

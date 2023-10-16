@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryVariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 
 public class CategoryVariable extends StringVariable {
 
@@ -16,13 +17,12 @@ public class CategoryVariable extends StringVariable {
       return new CategoryVariableModel(parent, this);
    }
 
-//   @Override
-//   public String getValueAsString() {
-////      if (!isEnabled()) {
-////         return fDisabledValue;
-////      }
-//      // Show value even if disabled
-//      return super.getValueAsString();
-//   }
-   
+   @Override
+   public boolean update(Expression expression) {
+      boolean oldHidden = isHidden();
+      boolean changed = super.update(expression);
+      changed = changed || (isHidden() != oldHidden);
+      return changed;
+   }
+
 }

@@ -5,14 +5,15 @@ import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 
 public class DoubleVariable extends Variable {
    
    /** Minimum permitted value (user view) */
-   private Double fMin    = Double.NEGATIVE_INFINITY;
+   private Double fMin    = null;
    
    /** Maximum permitted value (user view) */
-   private Double fMax    = Double.POSITIVE_INFINITY;
+   private Double fMax    = null;
 
    /** Maximum permitted value as expression */
    private Expression fMinExpression = null;
@@ -82,7 +83,8 @@ public class DoubleVariable extends Variable {
       translationCache = value;
       
       if (value instanceof Double) {
-         return (Double) value;
+         translationCachedValue = (Double) value;
+         return translationCachedValue;
       }
       if (value instanceof Long) {
          Long res = (Long) value;
@@ -98,7 +100,7 @@ public class DoubleVariable extends Variable {
          if (numericValue != null) {
             Units fromUnits = EngineeringNotation.parseUnits((String) value);
             Units toUnits   = getUnits();
-            if ((fromUnits == toUnits)||(fromUnits == Units.None)) {
+            if ((fromUnits == toUnits)||((fromUnits == Units.None)&&(toUnits != Units.percent))) {
                // No translation needed
                translationCachedValue = numericValue;
                return translationCachedValue;
@@ -118,6 +120,13 @@ public class DoubleVariable extends Variable {
             case ticks:
                // Wrong units and no translation
                break;
+            case percent:
+               // No translation
+               translatedValue = numericValue;
+               if (!((String) value).contains("&")) {
+                  translatedValue /= 100;
+               }
+               break;
             case None:
                // No translation
                translatedValue = numericValue;
@@ -130,7 +139,8 @@ public class DoubleVariable extends Variable {
          }
       }
 //      System.err.println("Object '"+ value + "' (" + value.getClass()+") is not compatible with DoubleVariable or "+getUnits());
-      return null;
+      translationCache = null;
+      return translationCachedValue;
    }
    
    /**
@@ -147,9 +157,6 @@ public class DoubleVariable extends Variable {
       }
       fValue = value;
       
-      // Update range checks
-      setStatusQuietly(isValid());
-
       return true;
    }
    
@@ -170,42 +177,67 @@ public class DoubleVariable extends Variable {
     * @param value Value to format
     * @param units Units to use for formatting
     * 
-    * @return String in appropriate form e.g. 24.56MHz
+    * @return String in appropriate form e.g. 100.0Hz (10.0ms)
     */
    public static String formatValueAsString(double value, Units units) {
+      return formatValueAsString(value, units, 5);
+   }
+
+   /**
+    * Formats the value as a string for GUI
+    * 
+    * @param value      Value to format
+    * @param units      Units to use for formatting
+    * @param sigDigits  Number of significant digits
+    * 
+    * @return String in appropriate form e.g. 100.0Hz (10.0ms)
+    */
+   public static String formatValueAsString(double value, Units units, int sigDigits) {
       switch(units) {
       default:
       case None:
          return Double.toString(value);
       case ticks:
          return Math.round(value)+"_"+units.toString();
+      case percent:
+         return String.format("%.2f%%", 100*value);
       case s:
       case Hz:
-         return EngineeringNotation.convert(value, 5).toString()+units.toString();
+         return EngineeringNotation.convert(value, sigDigits).toString()+units.toString();
       }
    }
 
    public String formatValueAsString(double value) {
 
+      if (!Double.isFinite(value)) {
+         return "--";
+      }
       double frequency = 1;
       double period    = 1;
       switch(getUnits()) {
       case Hz:
          // Primary value is frequency
          frequency = value;
-         period    = 1/frequency;
+         if (frequency == 0.0) {
+            return formatValueAsString(frequency, Units.Hz);
+         }
          return
-               formatValueAsString(frequency, Units.Hz) + ", (" +
-               formatValueAsString(period, Units.s) + ")";
+               formatValueAsString(frequency, Units.Hz) + " (" +
+               formatValueAsString(1/frequency, Units.s) + ")";
       case s:
          // Primary value is period
          period    = value;
-         frequency = 1/period;
+         if (period == 0.0) {
+            return
+                  formatValueAsString(period, Units.s);
+         }
          return
-               formatValueAsString(period, Units.s) + ", (" +
-               formatValueAsString(frequency, Units.Hz) +")";
+               formatValueAsString(period, Units.s) + " (" +
+               formatValueAsString(1/period, Units.Hz) +")";
       case ticks:
          return formatValueAsString(value, Units.ticks);
+      case percent:
+         return formatValueAsString(value, Units.percent);
       case None:
       default:
          return Double.toString(value);
@@ -462,7 +494,7 @@ public class DoubleVariable extends Variable {
             fMin = fMinExpression.getValueAsDouble();
          }
          else {
-            fMin = Double.MIN_VALUE;
+            fMin = Double.NEGATIVE_INFINITY;
          }
       }
       return fMin;
@@ -480,7 +512,7 @@ public class DoubleVariable extends Variable {
             fMax = fMaxExpression.getValueAsDouble();
          }
          else {
-            fMax = Double.MAX_VALUE;
+            fMax = Double.POSITIVE_INFINITY;
          }
       }
       return fMax;
@@ -512,22 +544,19 @@ public class DoubleVariable extends Variable {
    }
    
    @Override
-   public boolean update(Expression expression) throws Exception {
+   public boolean update(Expression expression) {
       
-      boolean changed = super.update(expression);
+      boolean changed = false;
       
-      boolean updateLimits = false;
       if (expression == fMinExpression) {
          fMin = null;
-         updateLimits = true;
+         changed = setStatusQuietly(isValid());
       }
       if (expression == fMaxExpression) {
          fMax = null;
-         updateLimits = true;
+         changed = setStatusQuietly(isValid());
       }
-      if (changed||updateLimits) {
-         changed = setStatusQuietly(isValid()) || changed;
-      }
+      changed = super.update(expression) || changed;
       return changed;
    }
 
@@ -540,6 +569,12 @@ public class DoubleVariable extends Variable {
          fMaxExpression.addListener(this);
       }
       super.addInternalListeners();
+   }
+
+   @Override
+   boolean update(VariableUpdateInfo info) throws Exception {
+      // TODO Auto-generated method stub
+      return super.update(info);
    }
 
    

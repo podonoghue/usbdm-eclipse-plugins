@@ -12,10 +12,10 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 public class LongVariable extends Variable {
    
    /** Minimum permitted value (user view) */
-   private Long fMin    = Long.MIN_VALUE;
+   private Long fMin    = null;
    
    /** Maximum permitted value (user view) */
-   private Long fMax    = Long.MAX_VALUE;
+   private Long fMax    = null;
 
    /** Maximum permitted value as expression */
    private Expression fMinExpression = null;
@@ -135,9 +135,12 @@ public class LongVariable extends Variable {
                // Wrong units and no translation
                break;
             case None:
+            case percent:
                // No translation
                translationCachedValue = Math.round(numericValue);
                return translationCachedValue;
+            default:
+               break;
             }
             if (translatedValue != null) {
                translationCachedValue = Math.round(translatedValue);
@@ -146,7 +149,8 @@ public class LongVariable extends Variable {
          }
       }
 //      System.err.println("Object '"+ value + "' (" + value.getClass()+") is not compatible with LongVariable or "+getUnits());
-      return null;
+      translationCache = null;
+      return translationCachedValue;
    }
    
    /**
@@ -157,7 +161,7 @@ public class LongVariable extends Variable {
     * @return True if variable actually changed value
     */
    public boolean setValueQuietly(Long value) {
-      
+//      System.err.println(getName()+".setValueQuietly("+value+")");
       if ((value == null)||(fValue == value)) {
          return false;
       }
@@ -220,7 +224,7 @@ public class LongVariable extends Variable {
     * 
     * @param value Value to format
     * 
-    * @return String in appropriate form e.g. 24.56MHz
+    * @return String in appropriate form e.g. 100Hz (10.0ms)
     */
    public String formatValueAsString(long value) {
 
@@ -230,22 +234,26 @@ public class LongVariable extends Variable {
       case Hz:
          // Primary value is frequency
          frequency = value;
-         period    = 1/frequency;
+         if (frequency==0) {
+            return formatValueAsString(frequency, Units.Hz);
+         }
          return
-               formatValueAsString(frequency, Units.Hz) + ", (" +
-               formatValueAsString(period, Units.s) + ")";
+               formatValueAsString(frequency, Units.Hz) + " (" +
+               DoubleVariable.formatValueAsString(1/frequency, Units.s,4) + ")";
       case s:
          // Primary value is period
          period    = value;
-         frequency = 1/period;
+         if (period==0) {
+            return formatValueAsString(period, Units.s);
+         }
          return
-               formatValueAsString(period, Units.s) + ", (" +
-               formatValueAsString(frequency, Units.Hz) +")";
+               formatValueAsString(period, Units.s) + " (" +
+               DoubleVariable.formatValueAsString(1/period, Units.Hz,4) +")";
       case ticks:
          return formatValueAsString(value, Units.ticks);
       case None:
       default:
-         return Double.toString(value);
+         return Long.toString(value);
       }
    }
 
@@ -701,7 +709,7 @@ public class LongVariable extends Variable {
    }
    
    @Override
-   public boolean update(Expression expression) throws Exception {
+   public boolean update(Expression expression) {
       
       boolean changed = super.update(expression);
       

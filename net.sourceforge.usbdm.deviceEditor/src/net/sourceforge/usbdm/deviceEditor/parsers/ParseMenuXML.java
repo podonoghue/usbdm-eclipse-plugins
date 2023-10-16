@@ -848,10 +848,8 @@ public class ParseMenuXML extends XML_BaseParser {
    private Variable createVariable(Element varElement, Class<?> clazz) throws Exception {
 
       String key  = getKeyAttribute(varElement);
-      String name = getAttributeAsString(varElement, "name");
-      if (name == null) {
-         name = Variable.getNameFromKey(key);
-      }
+      String name = getNameAttribute(varElement);
+      
       boolean replace = Boolean.valueOf(getAttributeAsString(varElement, "replace"));
       boolean modify  = Boolean.valueOf(getAttributeAsString(varElement, "modify"));
       
@@ -1144,6 +1142,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       case Hz:
       case s:
+      case percent:
          break;
       }
    }
@@ -1259,6 +1258,7 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
       }
+      variable.setRadix(16);
       if (varElement.hasAttribute("enumType")) {
          generateEnum(varElement, variable);
       }
@@ -1994,8 +1994,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseCategory(BaseModel parent, Element varElement) throws Exception {
       
       CategoryModel model = new CategoryModel(parent, getAttributeAsString(varElement, "name"));
-      boolean hidden = Boolean.parseBoolean(getAttributeAsString(varElement, "hidden"));
-      model.setHidden(hidden);
+      model.setHidden(getAttributeAsBoolean(varElement, "hidden", false));
       model.setToolTip(getToolTip(varElement));
       model.setSimpleDescription(getAttributeAsString(varElement, "description"));
       parseChildModels(model, varElement);
@@ -2022,12 +2021,7 @@ public class ParseMenuXML extends XML_BaseParser {
       CategoryVariableModel categoryModel    = (CategoryVariableModel) parseCommonAttributes(parent, varElement, categoryVariable);
       
       categoryVariable.setValue(getAttributeAsString(varElement, "value"));
-      Long dimension = safeGetLongAttributeWithVariableSubstitution(varElement, "dim");
-
-      if (dimension != null) {
-         throw new Exception("Dimension no longer supported in '" + varElement+", '"+dimension+"'");
-      }
-      
+//      categoryVariable.setHiddenBy(getAttributeAsString(varElement, "hiddenBy"));
       parseChildModels(categoryModel, varElement);
 
       if ((categoryModel.getChildren() == null) || (categoryModel.getChildren().size() == 0)) {
@@ -2882,11 +2876,11 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception
     */
-   private boolean checkTemplateConditions(Element element) throws Exception {
+   private boolean checkTemplateConditions(Element element, boolean discardRepeats) throws Exception {
       if (!checkCondition(element)) {
          return false;
       }
-      if (element.hasAttribute("discardRepeats")) {
+      if (discardRepeats) {
          
          // Discard repeated templates rather than accumulate
          String repeatKey = getKeyAttribute(element);
@@ -2929,13 +2923,20 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseTemplate(Element element) throws Exception {
 
-      if (!checkTemplateConditions(element)) {
-         return;
+      Boolean discardRepeats = getAttributeAsBoolean(element, "discardRepeats", false);
+      String key             = getKeyAttribute(element);
+      String namespace       = getAttributeAsString(element, "namespace", "info"); // info|usbdm|class|all
+      if (("forceInfo".equals(namespace))) {
+         key = null;
+         namespace="info";
+         discardRepeats = false;
       }
-      String key           = getKeyAttribute(element);
-      String namespace     = getAttributeAsString(element, "namespace", "info"); // info|usbdm|class|all
-      if (key != null) {
-         namespace = "all";
+      if (("forceUsbdm".equals(namespace))) {
+         key = null;
+         namespace="usbdm";
+      }
+      if (!checkTemplateConditions(element, discardRepeats)) {
+         return;
       }
       templateBasicCheck(namespace, key, element.getTagName());
       
@@ -3043,7 +3044,8 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseClockCodeTemplate(Element element) throws Exception {
       
-      if (!checkTemplateConditions(element)) {
+      Boolean discardRepeats = getAttributeAsBoolean(element, "discardRepeats", false);
+      if (!checkTemplateConditions(element, discardRepeats)) {
          return;
       }
       String key          = getKeyAttribute(element);
@@ -3110,7 +3112,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       fPeripheral.removeMonitoredVariable(safeGetVariable(key));
 
-      boolean mustExist = Boolean.parseBoolean(getAttributeAsString(element, "mustExist"));
+      boolean mustExist  = Boolean.parseBoolean(getAttributeAsString(element, "mustExist"));
       boolean wasDeleted = fProvider.removeVariableByName(key);
 
       if (mustExist  && !wasDeleted) {
@@ -3717,6 +3719,7 @@ public class ParseMenuXML extends XML_BaseParser {
                   getAttributeAsString(element, "pinMap"),
                   fProvider
                   );
+            entry.setToolTip(getToolTip(element));
             if (hidden) {
                hiddenEntries.add(entry);
             }

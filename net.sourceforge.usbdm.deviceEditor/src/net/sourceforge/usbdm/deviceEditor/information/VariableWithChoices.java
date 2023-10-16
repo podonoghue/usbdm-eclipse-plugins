@@ -388,7 +388,7 @@ public abstract class VariableWithChoices extends Variable {
    }
    
    @Override
-   public boolean update(Expression expression) throws Exception {
+   public boolean update(Expression expression) {
       
       boolean changed = super.update(expression);
       
@@ -430,6 +430,25 @@ public abstract class VariableWithChoices extends Variable {
       }
       return changed;
    }
-   
+
+   @Override
+   public String getToolTip() {
+      String tooltip = super.getToolTip();
+      
+      ChoiceData choiceData = getCurrentChoice();
+      if (choiceData != null) {
+         String addionalTooltip = choiceData.getToolTip();
+         if (addionalTooltip != null) {
+            addionalTooltip = addionalTooltip.replace("\n", "\n\t");
+            if (tooltip == null) {
+               tooltip = addionalTooltip;
+            }
+            else {
+               tooltip = tooltip + "\n\n" + addionalTooltip;
+            }
+         }
+      }
+      return tooltip;
+   }
    
 }
