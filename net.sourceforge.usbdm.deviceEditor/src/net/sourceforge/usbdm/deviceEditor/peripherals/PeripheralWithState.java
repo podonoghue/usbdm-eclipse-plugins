@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -572,23 +573,18 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return this.getClassName()+"("+getName()+", "+getPeripheralVersionName()+")";
    }
 
-   /**
-    * Add parameter
-    * 
-    * @param name    Display name
-    * @param key     If not absolute it is made relative to peripheral
-    * @param value   Value for param
-    */
-   public void addParam(String key) {
-      fParamList.add(makeKey(key));
-   }
-
    @Override
    protected void writeExtraXMLDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
       Collections.sort(fParamList);
       for (String key:fParamList) {
-         Variable var = safeGetVariable(key);
-         documentUtilities.writeParam(var);
+         Variable var;
+         try {
+            var = getVariable(key);
+            documentUtilities.writeParam(var);
+         } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
 //         documentUtilities.writeParam(var.getName(), var.getKey(), "String", var.getPersistentValue());
       }
    }
@@ -725,20 +721,41 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Create string variable with "true" value<br>
-    * It is also added as a param>br>
+    * Create BooleanVariable variable with "true" value<br>
+    * It is also added as a param<br>
     * If the constant already exists no action if taken
     * 
     * @param key Key for new variable
     */
-   protected void addOrIgnoreStringConstant(String key) {
+   public void addOrIgnoreParam(String key) {
       key = makeKey(key);
-      if (safeGetVariable(key) == null) {
-         StringVariable var = new StringVariable(null, key);
-         var.setValue("true");
+      Variable var = safeGetVariable(key);
+      if (var == null) {
+         var = new BooleanVariable(null, key);
+         var.setValue(true);
          addVariable(var);
-         addParam(var.getKey());
+         fParamList.add(key);
       }
+   }
+   
+   /**
+    * Used to create arbitrary variable from strings<br>
+    * It is also added as a param<br>
+    * 
+    * @param name    Name of variable (may be null to use name derived from key)
+    * @param key     Key for variable
+    * @param type    Type of variable must be e.g. "Long" => "LongVariable: etc
+    * @param value   Initial value and default value for variable
+    * 
+    * @return     Variable created
+    * 
+    * @throws Exception
+    */
+   public void addParam(String name, String key, String type, Object value) throws Exception {
+      key = makeKey(key);
+      Variable var = Variable.createConstantWithNamedType(name, key, type, value);
+      addVariable(var);
+      fParamList.add(key);
    }
    
    public void extractRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral, String registerName) {
@@ -750,7 +767,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (reg.getName().equalsIgnoreCase(registerName)) {
             for (Field field:reg.getFields()) {
                String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
-               addOrIgnoreStringConstant(key);
+               addOrIgnoreParam(key);
             }
          }
       }
@@ -769,7 +786,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             for (Field field:reg.getFields()) {
                String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
                key = key.replace("%s", "");
-               addOrIgnoreStringConstant(key);
+               addOrIgnoreParam(key);
             }
          }
       }
@@ -788,7 +805,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    protected void extractAllRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
 
       String key = makeKey("_present");
-      addOrIgnoreStringConstant(key);
+      addOrIgnoreParam(key);
 
       // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
       for(Cluster cl:dbPortPeripheral.getRegisters()) {

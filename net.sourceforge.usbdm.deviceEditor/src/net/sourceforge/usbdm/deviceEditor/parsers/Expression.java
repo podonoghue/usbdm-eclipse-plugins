@@ -216,17 +216,26 @@ public class Expression implements IModelChangeListener {
        */
       public static ExpressionNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
          
-//         if (varName.contains("ftm_filter_ch4fval")) {
+//         if (varName.contains("ftm_cnsc_secondOutput")) {
 //            System.err.println("VariableNode.create("+varName+")");
 //         }
          String name = varName;
          if (index != null) {
+            int ind = 0;
+            if (index.isConstant()) {
+               ind = index.getValueAsLong().intValue();
+            }
             // Use zero index to allow safe access to array variable
-            name = name+"[0]";
+            name = name+"["+ind+"]";
          }
          // Get variable to determine type
          Variable var = owner.fVarProvider.safeGetVariable(name);
-         
+//         if (name.contains("ftm_combine_decap0_present")) {
+//            System.err.println("Found it");
+//         }
+//         if (var == null) {
+//            System.err.println("Warning - Unable to access var '"+varName+"', assuming string type");
+//         }
          if (modifier != null) {
             if ("name".equalsIgnoreCase(modifier)) {
                // .name  => Name from choice
@@ -703,6 +712,28 @@ public class Expression implements IModelChangeListener {
          long l = (long) fArg.eval();
          int i = (int) l;
          return Character.toString((char)i);
+      }
+   }
+
+   static class ToStringNode extends UnaryExpressionNode {
+
+      /**
+       * Cast a Long ExpressionNode to a single character String ExpressionNode e.g. 30 => "0"
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      ToStringNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+         if (arg.fType != Expression.Type.Long) {
+            throw new Exception("Expression cannot be converted to String");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         long l = (long) fArg.eval();
+         return Long.toString(l);
       }
    }
 

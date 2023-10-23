@@ -59,7 +59,7 @@ public class GraphicVariable extends GraphicBaseVariable {
          }
          if ((this.getStyle()&NOVALUE) == 0) {
             Point p = map(-w/2+6, 0);
-            gc.drawText(getVariable().getValueAsString(), p.x, p.y);
+            gc.drawText(getVariable().getValueAsBriefString(), p.x, p.y);
          }
       }
       else {
@@ -71,7 +71,7 @@ public class GraphicVariable extends GraphicBaseVariable {
             if ((this.getStyle()&NONAME) == 0) {
                label = label +",  ";
             }
-            label = label+getVariable().getValueAsString();
+            label = label+getVariable().getValueAsBriefString();
          }
          Point p = map(-w/2+6, -8);
          gc.drawText(label, p.x, p.y);

@@ -37,17 +37,13 @@ public class LongVariableModel extends VariableModel {
 
       @Override
       protected Object doGetValue() {
+         System.err.println("doGetValue() => "+super.doGetValue());
          return super.doGetValue();
       }
 
       @Override
       protected void doSetValue(Object value) {
-         String v = (String) value;
-         // The value may contain extra text such as a decimal value for a hex radix field e.g. '0x100 (64)'
-         if (v != null) {
-            String values[] = v.split(" ", 2);
-            value = values[0];
-         }
+         System.err.println("doSetValue() => "+value);
          super.doSetValue(value);
       }
    }

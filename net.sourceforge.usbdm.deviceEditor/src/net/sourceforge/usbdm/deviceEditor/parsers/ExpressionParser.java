@@ -199,6 +199,9 @@ public class ExpressionParser {
       if ("Ordinal".equalsIgnoreCase(functionName)) {
          return new Expression.OrdinalNode(arg);
       }
+      if ("ToString".equalsIgnoreCase(functionName)) {
+         return new Expression.ToStringNode(arg);
+      }
       if ("Character".equalsIgnoreCase(functionName)) {
          return new Expression.CastToCharacterStringNode(arg);
       }

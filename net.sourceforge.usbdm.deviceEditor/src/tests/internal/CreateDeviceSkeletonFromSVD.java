@@ -642,7 +642,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      variables=\"/$(_BASENAME)/irqHandlingMethod\"\n"                                                                             +
             "   ><![CDATA[\n"                                                                                                                   +
             "       \\t//! Common class based callback code has been generated for this class of peripheral\n"                                  +
-            "       \\tstatic constexpr bool irqHandlerInstalled = %symbolicValueExpression;\n"                                                 +
+            "       \\tstatic constexpr bool irqHandlerInstalled = %symbolicExpression;\n"                                                 +
             "       \\t\\n\n"                                                                                                                   +
             "   ]]></initialValueTemplate>\n"                                                                                                   +
             "\n"+
@@ -711,7 +711,7 @@ public class CreateDeviceSkeletonFromSVD {
             "   <![CDATA[\n"                                                                                            +
             "      \\t\n"                                                                                               +
             "      \\t/**\n"                                                                                            +
-            "      \\t/** Callback for programmatically set handler for $(_Class)\n"                                    +
+            "      \\t * Callback for programmatically set handler for $(_Class)\n"                                    +
             "      \\t */\n"                                                                                            +
             "      \\t$(_Class)Info::CallbackFunction $(_Class)Info::sCallback = $(_Class)Info::unhandledCallback;\n"   +
             "      \\t\\n\n"                                                                                            +
@@ -896,7 +896,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      variables=\"/PCR/nvic_irqLevel,irqLevel\"\n" +
             "   ><![CDATA[\n" +
             "      \\t   /// %%description\n" +
-            "      \\t   %%enumClass %%registerName0 = %%symbolicValueExpression1;\n" +
+            "      \\t   %%enumClass %%registerName0 = %%symbolicExpression1;\n" +
             "      \\t\\n\n" +
             "   ]]></initialValueTemplate>\n";
             
@@ -1350,10 +1350,11 @@ public class CreateDeviceSkeletonFromSVD {
 //       "OSC",
 //       "PIT",
 
-         "FTM",
+//         "FTM",
 //         "FGPIO",
 //         "PORT",
 //         "SIM",
+         "TSI",
 //         "VREF"
 //         "WDOG",
 //         "UART",
@@ -1396,10 +1397,11 @@ public class CreateDeviceSkeletonFromSVD {
 
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("FRDM_KE04Z");
-      doAllPeripherals("FRDM_KE06Z");
+//      doAllPeripherals("FRDM_KE06Z");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
-//      doAllPeripherals("FRDM_KL05Z");
+//    doAllPeripherals("FRDM_KL05Z");
+    doAllPeripherals("FRDM_KL25Z");
    }
 
 }

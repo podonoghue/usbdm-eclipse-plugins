@@ -281,12 +281,13 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /**
-    * Returns a string representing the value in an appropriate form for editing in GUI
+    * Returns a the value in an appropriate form for editing in GUI
     * 
-    * @return String representation e.g. "PTA3"
+    * @return Edit value e.g. "PTA3"
+    * 
     * @throws MemoryException
     */
-   public Object getEditValueAsString() {
+   public Object getEditValue() {
       return getValueAsString();
    }
 
@@ -492,6 +493,9 @@ public abstract class BaseModel implements Cloneable {
     * @param toolTip
     */
    public void setToolTip(String toolTip) {
+      if (toolTip == null) {
+         toolTip = "";
+      }
       fToolTip = toolTip;
    }
 

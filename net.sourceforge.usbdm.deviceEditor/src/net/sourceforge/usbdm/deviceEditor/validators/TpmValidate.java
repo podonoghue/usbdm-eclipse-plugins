@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
@@ -11,7 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Class to determine tpm settings
  */
 public class TpmValidate extends PeripheralValidator {
-   
+
    public TpmValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
@@ -22,75 +23,86 @@ public class TpmValidate extends PeripheralValidator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
-      
+
       super.validate(variable);
-      
+
       //=================================
-       
-      LongVariable      clockFrequencyVar = getLongVariable("clockFrequency");
-      LongVariable      tpm_modVar        = getLongVariable("tpm_mod");
-      DoubleVariable    tpm_modPeriodVar  = getDoubleVariable("tpm_modPeriod");
-      ChoiceVariable    tpm_sc_modeVar    = getChoiceVariable("tpm_sc_mode");
-      
+
+      ChoiceVariable    modeVar           =  getChoiceVariable("mode");
+
+      int mode = (int) modeVar.getValueAsLong();
+      if (mode == 2) {
+         // Quad-decoder
+         return;
+      }
+
+      DoubleVariable    clockVar          =  getDoubleVariable("clock");
+      LongVariable      modVar            =  getLongVariable("tpm_mod");
+      DoubleVariable    modPeriodVar      =  getDoubleVariable("tpm_modPeriod");
+      BooleanVariable   sc_cpwmsVar       =  getBooleanVariable("tpm_sc_cpwms");
+
       LongVariable      NumChannelsVar    = getLongVariable("NumChannels");
       int               NumChannels       = (int)NumChannelsVar.getValueAsLong();
-      
-      long clockFrequency = clockFrequencyVar.getValueAsLong();
-      
-      tpm_modPeriodVar.enable(clockFrequency != 0);
+
+      double clockFrequency = clockVar.getValueAsDouble();
 
       if (clockFrequency != 0){
-         long   tpm_mod       = tpm_modVar.getValueAsLong();
-         double tpm_modPeriod = tpm_modPeriodVar.getValueAsDouble();
-         if (!Double.isFinite(tpm_modPeriod)) {
+         long   mod       = modVar.getValueAsLong();
+         double modPeriod = modPeriodVar.getValueAsDouble();
+
+         if (!Double.isFinite(modPeriod)) {
             // Don't propagate if invalid calculation of period
             return;
          }
          double clockPeriod = 1.0/clockFrequency;
-         
-         long tpm_sc_mode = tpm_sc_modeVar.getValueAsLong();
-         
+
+         boolean sc_cpwms = sc_cpwmsVar.getValueAsBoolean();
+
          // These updates involves a loop so suppress initially
          if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed) {
             if (variable != null) {
-               if (variable.equals(tpm_modPeriodVar)) {
-                  // Calculate rounded value for mod value in ticks
-                  switch ((int)tpm_sc_mode) {
-                  default:
-                  case 0: // Left-aligned
-                     tpm_mod = Math.max(0, Math.round((tpm_modPeriod/clockPeriod)-1));
-                     tpm_modVar.setValue(tpm_mod);
-                     break;
-                  case 1: // Centre-aligned
-                     tpm_mod = Math.max(0, Math.round((tpm_modPeriod/clockPeriod)/2));
-                     tpm_modVar.setValue(tpm_mod);
-                     break;
-                  case 2:  // Free-running
-                     tpm_modPeriodVar.setValue(clockPeriod*65535);
+               if (variable.equals(modPeriodVar)) {
+                  // modPeriod => mod
+                  // Calculate rounded value
+                  if (sc_cpwms) {
+                     // Centre-aligned
+                     mod = Math.max(0, Math.round((modPeriod/clockPeriod)/2));
+                     modVar.setValue(mod);
+                  }
+                  else {
+                     // Left-aligned
+                     mod = Math.max(0, Math.round((modPeriod/clockPeriod)-1));
+                     modVar.setValue(mod);
+//                   System.err.println("ftm_modPeriod="+ftm_modPeriod+"ftm_modPeriod= "+ftm_modPeriod);
                   }
                   return;
                }
-               for (int channel=0; channel<NumChannels; channel++) {
-                  DoubleVariable tpm_cnvEventTimeVar  = getDoubleVariable("tpm_cnvEventTime["+channel+"]");
-                  if (variable.equals(tpm_cnvEventTimeVar)) {
-                     // Target
-                     LongVariable tpm_cnvVar = getLongVariable("tpm_cnv["+channel+"]");
+               else {
+                  // cnvEventTimeVar[] -> cnv[]
+                  for (int channel=0; channel<NumChannels; channel++) {
+                     DoubleVariable cnvEventTimeVar  = getDoubleVariable("tpm_cnvEventTime["+channel+"]");
+                     if (variable.equals(cnvEventTimeVar)) {
+                        // Target
+                        LongVariable cnvVar = getLongVariable("tpm_cnv["+channel+"]");
 
-                     if (!tpm_cnvEventTimeVar.isEnabled()||!tpm_cnvVar.isEnabled()) {
-                        // Ignore if disabled to preserve value
-                        continue;
+                        if (!cnvEventTimeVar.isEnabled()||!cnvVar.isEnabled()) {
+                           // Ignore if disabled to preserve value
+                           continue;
+                        }
+                        // Calculate rounded value for event time in ticks
+                        double cnvEventTime = cnvEventTimeVar.getValueAsDouble();
+                        if (!Double.isFinite(cnvEventTime)) {
+                           // Don't propagate invalid calculation
+                           continue;
+                        }
+                        long cnv = Math.max(0, Math.round((cnvEventTime/clockPeriod)));
+//                        System.err.println("ftm_cnv="+ftm_cnv+", ftm_cnvEventTime= "+ftm_cnvEventTime);
+                        cnvVar.setValue(cnv);
                      }
-                     // Calculate rounded value for event time in ticks
-                     double tpm_cnvEventTime = tpm_cnvEventTimeVar.getValueAsDouble();
-                     long tpm_cnv = Math.max(0, Math.round((tpm_cnvEventTime/clockPeriod)));
-                     tpm_cnvVar.setValue(tpm_cnv);
                   }
                }
             }
          }
-//         double tpm_modPeriodMax = clockPeriod * (tpm_sc_cpwms?(2*(65535.5)):((65536.5)));
-//         tpm_modPeriodVar.setValue(tpm_modPeriod);
-//         tpm_modPeriodVar.setMax(tpm_modPeriodMax);
       }
    }
 
@@ -98,10 +110,11 @@ public class TpmValidate extends PeripheralValidator {
    protected boolean createDependencies() throws Exception {
 
       final String[] externalVariables = {
-            "clockFrequency",
+            "mode",
+            "clock",
             "tpm_mod",
             "tpm_modPeriod",
-            "tpm_sc_mode",
+            "tpm_sc_cpwms",
             "tpm_cnvEventTime[0]",
             "tpm_cnvEventTime[1]",
             "tpm_cnvEventTime[2]",
@@ -112,7 +125,7 @@ public class TpmValidate extends PeripheralValidator {
             "tpm_cnvEventTime[7]",
       };
       addToWatchedVariables(externalVariables);
-      
+
       // Don't add default dependencies
       return false;
    }

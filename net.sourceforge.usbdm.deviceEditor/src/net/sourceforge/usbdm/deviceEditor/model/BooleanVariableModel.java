@@ -83,5 +83,10 @@ public class BooleanVariableModel extends VariableModel {
    public CellEditor createCellEditor(Tree tree) {
       return new BooleanCellEditor(tree);
    }
-   
+
+   @Override
+   public Object getEditValue() {
+      return getValueAsBoolean();
+   }
+
 }

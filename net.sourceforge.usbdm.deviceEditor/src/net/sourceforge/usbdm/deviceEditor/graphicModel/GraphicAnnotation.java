@@ -61,7 +61,7 @@ public class GraphicAnnotation extends GraphicBaseVariable {
             if (sb.length() != 0) {
                sb.append(", ");
             }
-            sb.append(var.getValueAsString());
+            sb.append(var.getValueAsBriefString());
          }
          label = sb.toString();
       }
@@ -69,7 +69,7 @@ public class GraphicAnnotation extends GraphicBaseVariable {
          label = format;
          label = label.replaceAll("%n", getName());
          Variable var = getVariable();
-         label = label.replaceAll("%v", var.getValueAsString());
+         label = label.replaceAll("%v", var.getValueAsBriefString());
       }
       if (label.length() != 0) {
          FontData data = display.getSystemFont().getFontData()[0];

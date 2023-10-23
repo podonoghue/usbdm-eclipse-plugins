@@ -122,7 +122,7 @@ public class GraphicsDialogue {
          super(var);
 
          text = new Text(canvas, SWT.ON_TOP);
-         text.setText(var.getValueAsString());
+         text.setText((String)var.getEditValueAsString());
          text.setFocus();
          text.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
          text.setBounds(p.x, p.y, 100, 20);

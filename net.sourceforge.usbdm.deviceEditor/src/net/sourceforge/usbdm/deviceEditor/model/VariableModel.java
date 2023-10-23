@@ -53,7 +53,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    }
 
    @Override
-   public Object getEditValueAsString() {
+   public Object getEditValue() {
       return fVariable.getEditValueAsString();
    }
 

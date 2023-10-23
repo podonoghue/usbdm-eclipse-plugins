@@ -205,8 +205,8 @@ public class XmlDocumentUtilities {
          name = Variable.getNameFromKey(key);
       }
       writeAttribute("type",  type, 10);
-      writeAttribute("value", value);
-      writeAttribute("name",  name, 15);
+      writeAttribute("value", value, 5);
+      writeAttribute("name",  name, 18);
       writeAttribute("key",   key);
       closeTag();
    }

@@ -130,6 +130,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Can create instances for signals belonging to this peripheral - Most can't */
    protected boolean fCanCreateSignalInstance = false;
 
+   /** Name of C struct associated with this peripheral */
+   private String fheaderStructName = null;
+
    /**
     * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM
     */
@@ -392,6 +395,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       documentUtilities.writeAttribute("instance",       fInstance);
       documentUtilities.writeAttribute("instanceList",   fInstanceList);
       documentUtilities.writeAttribute("version",        fVersion);
+      documentUtilities.writeAttribute("structName",     fheaderStructName);
 
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());
@@ -413,11 +417,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          documentUtilities.closeTag();
       }
       documentUtilities.writeParam(
-            "instanceList", "/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
+            "_instanceList", "/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
 
       if (getIrqCount()>0) {
          documentUtilities.writeParam(
-               "instanceList", "/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
+               "_irqCount", "/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
       }
       
       writeExtraXMLDefinitions(documentUtilities);
@@ -1652,5 +1656,24 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public String getInstanceCount() {
       return fInstanceList;
    }
+   
+   /**
+    * Set name of C struct associated with this peripheral
+    * 
+    * @param headerStructName
+    */
+   public void setStructName(String headerStructName) {
+      fheaderStructName = headerStructName;
+   }
+
+   /**
+    * Get name of C struct associated with this peripheral
+    * 
+    * @return name of struct
+    */
+   public String getStructName() {
+      return fheaderStructName;
+   }
+
 
 }

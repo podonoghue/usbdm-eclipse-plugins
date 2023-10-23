@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of TSI
@@ -32,14 +33,14 @@ public class WriterForTsi extends PeripheralWithState {
     * Generate set of enum symbols and Types for TSI inputs that are mapped to pins.
     * 
     * <pre>
-    *   // In tsi.h 
+    *   // In tsi.h
     *   TsiInput_Ptb18      = TsiInput_11, ///< Mapped pin PTB18 (p41)
     *   TsiInput_Electrode1 = TsiInput_11, ///< Mapped pin PTB18 (p41)
-    *   
+    * 
     *   // In hardware.h
     *   /// User comment
     *   typedef const Tsi0::Pin&lt;TsiInput_Ptb18&gt;  Electrode1;  // PTB18 (p41)
-    * </pre> 
+    * </pre>
     * 
     * @param documentUtilities
     * @throws IOException
@@ -92,13 +93,13 @@ public class WriterForTsi extends PeripheralWithState {
                trailingComment = commentRoot+"Fixed pin  "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
-                  pinName = "// "+pinName; 
+                  pinName = "// "+pinName;
                }
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier; 
+                     inputIdentifier = "// "+inputIdentifier;
                   }
                   inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
@@ -107,13 +108,13 @@ public class WriterForTsi extends PeripheralWithState {
                trailingComment = commentRoot+"Mapped pin "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
-                  pinName = "// "+pinName; 
+                  pinName = "// "+pinName;
                }
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier; 
+                     inputIdentifier = "// "+inputIdentifier;
                   }
                   inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
@@ -138,4 +139,10 @@ public class WriterForTsi extends PeripheralWithState {
       }
       throw new RuntimeException("Signal does not match expected pattern " + function.getSignalName());
    }
+
+   @Override
+   public void extractHardwareInformation(Peripheral dbPeripheral) {
+      extractAllRegisterFields(dbPeripheral);
+   }
+   
 }

@@ -268,6 +268,11 @@ public class LongVariable extends Variable {
    }
    
    @Override
+   public String getValueAsBriefString() {
+      return formatValueAsString(getValueAsLong(), getUnits());
+   }
+   
+   @Override
    public boolean getValueAsBoolean() {
       return getValueAsLong() != 0;
    }
@@ -298,10 +303,10 @@ public class LongVariable extends Variable {
       if (units != Units.None) {
          return units.append(value);
       }
-      String format = getValueFormat();
-      if (format != null) {
-         value = String.format(format, value);
-      }
+//      String format = getValueFormat();
+//      if (format != null) {
+//         value = String.format(format, value);
+//      }
       String typeName = getTypeName();
       if (typeName != null) {
          // Don't provides cast to (signed) int

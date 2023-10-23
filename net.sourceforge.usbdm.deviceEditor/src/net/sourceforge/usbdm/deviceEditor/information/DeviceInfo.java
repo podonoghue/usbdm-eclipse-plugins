@@ -1968,8 +1968,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
       }
       // Activate the dynamic signal mappings
-      for (SignalPinMapping signalPinMapping: dynamicSignalPinMappings) {
-         signalPinMapping.activate();
+      if (dynamicSignalPinMappings != null) {
+         for (SignalPinMapping signalPinMapping: dynamicSignalPinMappings) {
+            signalPinMapping.activate();
+         }
       }
       // Allow all variable change notifications
       fInitPhase = InitPhase.VariableAndGuiPropagationAllowed;

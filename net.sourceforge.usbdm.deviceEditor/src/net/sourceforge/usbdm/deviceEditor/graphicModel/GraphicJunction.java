@@ -49,7 +49,7 @@ public class GraphicJunction extends GraphicBaseVariable {
             if (label.length() != 0) {
                label.append(", ");
             }
-            label.append(var.getValueAsString());
+            label.append(var.getValueAsBriefString());
          }
       }
       if (label.length() != 0) {

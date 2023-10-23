@@ -13,7 +13,7 @@ public class StringVariableModel extends VariableModel {
    static class StringCellEditor extends TextCellEditor {
       StringVariableModel fModel;
 
-      // Definitely a hack but I can't find a portable method 
+      // Definitely a hack but I can't find a portable method
       final static String acceptableChars = "\t\f\n\r\b\0";
 
       @Override
@@ -30,6 +30,14 @@ public class StringVariableModel extends VariableModel {
          fModel = model;
          setValueValid(true);
       }
+
+      @Override
+      protected void doSetValue(Object value) {
+         System.err.println("Value = "+value);
+         super.doSetValue(value);
+      }
+      
+      
    }
 
    /**

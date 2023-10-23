@@ -180,7 +180,7 @@ public class DoubleVariable extends Variable {
     * @return String in appropriate form e.g. 100.0Hz (10.0ms)
     */
    public static String formatValueAsString(double value, Units units) {
-      return formatValueAsString(value, units, 5);
+      return formatValueAsString(value, units, 4);
    }
 
    /**
@@ -247,6 +247,11 @@ public class DoubleVariable extends Variable {
    @Override
    public String getValueAsString() {
       return formatValueAsString(getValueAsDouble());
+   }
+   
+   @Override
+   public String getValueAsBriefString() {
+      return formatValueAsString(getValueAsLong(), getUnits());
    }
    
    @Override

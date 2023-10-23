@@ -357,8 +357,8 @@ public abstract class VariableWithChoices extends Variable {
 
          String multiRef = choiceData.getMultiValueReference();
          if (multiRef != null) {
-            String refs[]    = multiRef.split(";");
-            String targets[] = getTarget().split(";");
+            String refs[]    = multiRef.split(";",-1);
+            String targets[] = getTarget().split(";",-1);
             if (refs.length != targets.length) {
                throw new Exception("length of refs does not match target");
             }

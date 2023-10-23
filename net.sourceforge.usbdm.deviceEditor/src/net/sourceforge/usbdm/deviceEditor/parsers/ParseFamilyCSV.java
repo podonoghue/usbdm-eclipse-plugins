@@ -23,7 +23,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
@@ -537,15 +536,14 @@ public class ParseFamilyCSV {
 		} catch (ClassCastException e) {
 			e.printStackTrace();
 		}
-		Variable var = Variable.createConstantWithNamedType(paramName, paramKey, paramType, paramValue);
-		peripheral.addVariable(var);
+		peripheral.addParam(paramName, paramKey, paramType, paramValue);
 		
       if (paramKey.equals(peripheral.makeKey("version"))) {
          // Override peripheral file
          peripheral.setPeripheralVersion(paramValue);
       }
       else {
-         peripheral.addParam(paramKey);
+//         peripheral.addParam(paramKey);
       }
 	}
 
@@ -719,7 +717,12 @@ public class ParseFamilyCSV {
 			   peripheralVersions.put(peripheral.getName(), listOfVersions);
 			}
 			listOfVersions.add(version);
-			
+         String structName = dbPeripheral.getHeaderStructName();
+         if ((structName != null) && (peripheral instanceof PeripheralWithState)) {
+//          System.err.println("headerStructName = " + headerStructName);
+            PeripheralWithState pws = (PeripheralWithState) peripheral;
+            pws.addParam(null, "structName", "StringVariable", structName);
+         }
 			// Attach DMAMUX information from database
 			String[] dmaMuxInputs = dbPeripheral.getDmaMuxInputs();
 			if (dmaMuxInputs != null) {
@@ -750,6 +753,9 @@ public class ParseFamilyCSV {
 				ArrayList<InterruptEntry> interruptEntries = dbPeripheral.getInterruptEntries();
 				if (interruptEntries != null) {
 					for (InterruptEntry interruptEntry:interruptEntries) {
+//					   if (peripheral instanceof WriterForGpio) {
+//					      System.err.println("Found it "+peripheral.getName());
+//					   }
 						peripheral.addIrqNum(interruptEntry.getName()+"_IRQn");
 					}
 				}

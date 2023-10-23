@@ -477,19 +477,19 @@ public class WriterForGpio extends PeripheralWithState {
             pcrFound = true;
             for (Field field:reg.getFields()) {
                String key = "/PCR/"+field.getName().toLowerCase()+"_present";
-               addOrIgnoreStringConstant(key);
+               addOrIgnoreParam(key);
             }
          } else if (reg.getName().equalsIgnoreCase("DFER")) {
             String key = "dfer_register_present";
-            addOrIgnoreStringConstant("/PCR/"+key);
-            addOrIgnoreStringConstant(key);
+            addOrIgnoreParam("/PCR/"+key);
+            addOrIgnoreParam(key);
             break;
          }
       }
-      addOrIgnoreStringConstant("/"+getName()+"/_present");
+      addOrIgnoreParam("/"+getName()+"/_present");
       if (pcrFound) {
          String key = "/PCR/_present";
-         addOrIgnoreStringConstant(key);
+         addOrIgnoreParam(key);
       }
    }
    

@@ -183,6 +183,15 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return String for display
     */
    public abstract String getValueAsString();
+
+   /**
+    * Get variable value as a 'brief' string suitable for display in GUI
+    * 
+    * @return String for display
+    */
+   public String getValueAsBriefString() {
+      return getValueAsString();
+   }
    
    /**
     * Returns a string representing the value in an appropriate form for editing in GUI
@@ -1673,7 +1682,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @param name    Name of variable (may be null to use name derived from key)
     * @param key     Key for variable
-    * @param type    Type of variable must be e.g. "Long" => "LongVariable: etc
+    * @param type    Type of variable must be e.g. "LongVariable" etc
     * @param value   Initial value and default value for variable
     * 
     * @return     Variable created
@@ -1681,7 +1690,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    public static Variable createConstantWithNamedType(String name, String key, String type, Object value) throws Exception {
-      
+//      System.err.println("createConstantWithNamedType("+name+", "+key+", "+type+", '"+value+"')");
+
       Variable var = null;
       type = "net.sourceforge.usbdm.deviceEditor.information."+type;
       try {

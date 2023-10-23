@@ -14,7 +14,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public class ParseFamilyXML extends XML_BaseParser {
 
@@ -211,9 +210,10 @@ public class ParseFamilyXML extends XML_BaseParser {
 
 
    private void parsePeripheral(Element peripheralElement) throws Exception {
-      String baseName = peripheralElement.getAttribute("baseName");
-      String instance = peripheralElement.getAttribute("instance");
-      String version  = peripheralElement.getAttribute("version");
+      String baseName   = peripheralElement.getAttribute("baseName");
+      String instance   = peripheralElement.getAttribute("instance");
+      String version    = peripheralElement.getAttribute("version");
+      String structName = peripheralElement.getAttribute("structName");
 
       Peripheral peripheral = null;
       
@@ -248,9 +248,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             String type  = element.getAttribute("type");
             String value = element.getAttribute("value");
             Variable var = Variable.createConstantWithNamedType(name, key, type, value);
-            PeripheralWithState periph = (PeripheralWithState) peripheral;
-            periph.addVariable(var);
-            periph.addParam(key);
+            peripheral.addVariable(var);
          }
          else {
             throw new Exception("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
@@ -258,6 +256,9 @@ public class ParseFamilyXML extends XML_BaseParser {
       }
       if (!version.isBlank()) {
          peripheral.setPeripheralVersion(version);
+      }
+      if (!structName.isBlank()) {
+         peripheral.setStructName(structName);
       }
    }
 

@@ -38,11 +38,8 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (element instanceof BooleanVariableModel) {
-         return ((BooleanVariableModel)element).getValueAsBoolean();
-      }
       if (element instanceof BaseModel) {
-         return ((BaseModel)element).getEditValueAsString();
+         return ((BaseModel)element).getEditValue();
       }
       return "";
    }

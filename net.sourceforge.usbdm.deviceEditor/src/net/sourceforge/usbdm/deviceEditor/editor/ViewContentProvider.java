@@ -24,9 +24,9 @@ public class ViewContentProvider implements ITreeContentProvider {
       }
       ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
       for (BaseModel child:children) {
-//         if (!child.isHidden()) {
+         if (!child.isHidden()) {
             visibleChildren.add(child);
-//         }
+         }
       }
       return visibleChildren.toArray();
    
@@ -40,9 +40,9 @@ public class ViewContentProvider implements ITreeContentProvider {
       }
       ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
       for (BaseModel child:children) {
-//         if (!child.isHidden()) {
+         if (!child.isHidden()) {
             visibleChildren.add(child);
-//         }
+         }
       }
       return visibleChildren.toArray();
    }
