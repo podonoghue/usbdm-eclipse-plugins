@@ -68,8 +68,22 @@ import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 import net.sourceforge.usbdm.packageParser.ProjectConstant;
 
+/**
+ * Notes
+ * <ul>
+ * <li> Some attributes are treated as immediate expressions e.g. condition="".<br>
+ *      This means they are immediately evaluated (<b>during XML parsing</b>) <br>
+ *      Unless prefixed by '@', variables referenced are only checked for existence:<br>
+ *      - existent => true, nonexistent => false <br>
+ *      Variables prefixed by '@' are fully evaluated and nonexistence is an error.
+ * <li> Attributes prefixed by '=' are treated as expressions.<br>
+ *      They are immediately evaluated (<b>during XML parsing</b>) but variables are fully evaluated and nonexistence is an error.
+ * <li> Attributes starting with \= are escaped to start with = and are treated as a simple string.
+ * <li> Other attributes are treated as a simple string and their purpose depends on context.
+ * </ul>
+ */
 public class ParseMenuXML extends XML_BaseParser {
-
+   
    public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
   
    public static class MenuData {
@@ -339,21 +353,26 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          if (fValues == null) {
             fValues = splitValues(fValueList[iter]);
-         }
-         if (fValues.length != fKeys.length) {
-            throw new ForloopException(
-               "Number of values '" + fValueList[iter]+
-               "' does not match number of keys = "+fKeys.length);
+            if (fValues.length != fKeys.length) {
+               throw new ForloopException(
+                  "Number of values '" + fValueList[iter]+
+                  "' does not match number of keys = "+fKeys.length);
+            }
          }
          for (int index=0; index<fKeys.length; index++) {
-            if (fValues[index].startsWith("=")) {
+            // Do substitutions
+            String value = fValues[index];
+            if (value.startsWith("\\=")) {
+               value = value.substring(1);
+            }
+            else if (value.startsWith("=")) {
                try {
-                  fValues[index] = Expression.getValue(fValues[index].substring(1),fProvider).toString();
+                  value = Expression.getValue(value.substring(1),fProvider).toString();
                } catch (Exception e) {
                   e.printStackTrace();
                }
             }
-            text = text.replace("%("+fKeys[index].trim()+")", fValues[index]);
+            text = text.replace("%("+fKeys[index].trim()+")", value);
          }
          return text;
       }
@@ -972,12 +991,6 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setLocked(otherVariable.isLocked());
          variable.setDerived(otherVariable.getDerived());
          variable.setTypeName(otherVariable.getTypeName());
-         String valueFormat     = otherVariable.getValueFormat();
-         String autoValueFormat = getDefaultValueFormat(otherVariable);
-         if (!autoValueFormat.equals(valueFormat)) {
-            // Copy from other variable only if not default generated one
-            variable.setValueFormat(otherVariable.getValueFormat());
-         }
          Expression enabledBy = otherVariable.getEnabledBy();
          if (enabledBy != null) {
             variable.setEnabledBy(enabledBy);
@@ -993,9 +1006,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("description")) {
          variable.setDescription(getAttributeAsString(varElement, "description"));
       }
-      if (varElement.hasAttribute("toolTip")) {
-         variable.setToolTip(getToolTip(varElement));
-      }
+      variable.setToolTip(getToolTip(varElement));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(getAttributeAsString(varElement, "origin"));
       }
@@ -1073,6 +1084,31 @@ public class ParseMenuXML extends XML_BaseParser {
 //      if (forNodes.getLength() > 0) {
 //         throw new Exception ("<for> no longer supported here "+varElement);
 //      }
+
+      
+      if (otherVariable != null) {
+         do {
+            String currentValueFormat = getAttributeAsString(varElement, "valueFormat");
+            if (currentValueFormat != null) {
+               // valueFormat explicitly set - don't change
+               break;
+            }
+            String otherValueFormat   = otherVariable.getValueFormat();
+            if (otherValueFormat != null) {
+               // no valueFormat to copy
+               break;
+            }
+            String autoValueFormat    = getDefaultValueFormat(otherVariable);
+            if (autoValueFormat.equals(otherValueFormat) ) {
+               // Other valueFormat was auto generated - don't copy
+               break;
+            }
+            // Copy from other variable
+            System.err.println("Copying format '"+otherValueFormat+"' from " + otherVariable.getName() +
+                  " in favour of '" + getDefaultValueFormat(variable));
+            variable.setValueFormat(otherVariable.getValueFormat());
+         } while(false);
+      }
       
       VariableModel model = variable.createModel(parent);
       model.setLocked(getAttributeAsBoolean(varElement, "locked", false));
@@ -1263,28 +1299,16 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Check if condition attached to element
     * 
-    * @param element Element to examing
+    * @param element Element to examine
     * 
     * @return true  Condition is true or <b>not present</b>
-    * @return false Condition id present and false
+    * @return false Condition is present and false
     * 
     * @throws Exception
     */
    boolean checkCondition(Element element) throws Exception {
       
-      Object condition = getAttribute(element, "condition");
-      if (condition == null) {
-         return true;
-      }
-      if (condition instanceof Boolean) {
-         // Already immediately evaluated expression
-         return (Boolean)condition;
-      }
-      if (condition instanceof String) {
-         // Immediately evaluate
-         return Expression.checkCondition(getAttributeAsString(element, "condition"), fProvider);
-      }
-      throw new Exception("Expected boolean expression");
+      return getAttributeAsImmediateBoolean(element, "condition", Boolean.TRUE);
    }
    
    /**
@@ -1649,43 +1673,6 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
-    * Get an attribute and apply usual substitutions
-    *  <li>"$(_NAME)"         => e.g FTM2 => FTM2            (fPeripheral.getName())
-    *  <li>"$(_name)"         => e.g FTM2 => ftm2            (fPeripheral.getClassName())
-    *  <li>"$(_BASENAME)"     => e.g FTM0 => FTM, PTA => PT  (fPeripheral.getBaseName())
-    *  <li>"$(_basename)"     => e.g FTM0 => ftm, PTA => pt  (fPeripheral.getBaseName().tolowercase())
-    *  <li>"$(_Class)"        => e.g FTM2 => Ftm2            (fPeripheral.getClassName())
-    *  <li>"$(_Baseclass)"    => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
-    *  <li>"$(_instance)"     => e.g FTM0 => 0, PTA => A     (fPeripheral.getInstance())
-    *  <li>For loop substitution
-    *  <li>If the attribute starts with '=' it is evaluated as an immediate expression
-    *      otherwise it is returned as a string
-    * 
-    * @param element    Element to obtain attribute from
-    * @param attrName   Name of attribute
-    * 
-    * @return  Attribute as Object or null if attribute doesn't exist
-    * 
-    * @throws Exception If for-loop completed
-    */
-   Object getAttribute(Element element, String attrName) throws Exception {
-      if (!element.hasAttribute(attrName)) {
-         return null;
-      }
-      String attribute = fForStack.doForSubstitutions(element.getAttribute(attrName));
-      attribute = replaceCommonNames(attribute).trim();
-      
-      if (attribute.startsWith("\\=")) {
-         return attribute.substring(2);
-      }
-      Object res = attribute;
-      if (attribute.startsWith("=")) {
-         res = Expression.getValue(attribute.substring(1), fProvider);
-      }
-      return res;
-   }
-   
-   /**
     * Get an attribute and apply usual substitutions {@link #getAttribute(Element, String)}.
     * If the attribute is not present then the default parameter is returned.
     * 
@@ -1701,7 +1688,80 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!element.hasAttribute(attrName)) {
          return defaultValue;
       }
-      return getAttribute(element, attrName);
+      String attribute = fForStack.doForSubstitutions(element.getAttribute(attrName));
+      attribute = replaceCommonNames(attribute).trim();
+      
+      if (attribute.startsWith("\\=")) {
+         return attribute.substring(2);
+      }
+      Object res = attribute;
+      if (attribute.startsWith("=")) {
+         res = Expression.getValue(attribute.substring(1), fProvider);
+      }
+      return res;
+   }
+   
+   /**
+    * Get an attribute and apply usual substitutions
+    *  <li>"$(_NAME)"         => e.g FTM2 => FTM2            (fPeripheral.getName())
+    *  <li>"$(_name)"         => e.g FTM2 => ftm2            (fPeripheral.getClassName())
+    *  <li>"$(_BASENAME)"     => e.g FTM0 => FTM, PTA => PT  (fPeripheral.getBaseName())
+    *  <li>"$(_basename)"     => e.g FTM0 => ftm, PTA => pt  (fPeripheral.getBaseName().tolowercase())
+    *  <li>"$(_Class)"        => e.g FTM2 => Ftm2            (fPeripheral.getClassName())
+    *  <li>"$(_Baseclass)"    => e.g FTM0 => Ftm             (fPeripheral.getClassBaseName())
+    *  <li>"$(_instance)"     => e.g FTM0 => 0, PTA => A     (fPeripheral.getInstance())
+    *  <li>For loop substitution
+    *  <li>If the attribute starts with '=' it is evaluated as an immediate expression
+    *      otherwise it is returned as a string
+    * 
+    * @param element       Element to obtain attribute from
+    * @param attrName      Name of attribute
+    * 
+    * @return  Attribute as Object or null if attribute doesn't exist
+    * 
+    * @throws Exception If for-loop completed
+    */
+   Object getAttribute(Element element, String attrName) throws Exception {
+      
+      return getAttribute(element, attrName, null);
+   }
+   
+   /**
+    * Get an attribute and apply usual substitutions {@link #getAttributeAsString(Element, String)}.
+    * If the attribute is not present then the default parameter is returned.
+    * 
+    * @param element       Element to obtain attribute from
+    * @param attrName      Name of attribute
+    * @param defaultValue  Value to return if attribute is not present
+    * 
+    * @return  Attribute value converted to string or defaultValue if attribute doesn't exist
+    * 
+    * @throws Exception If for-loop completed
+    */
+   String getAttributeAsString(Element element, String attrName, String defaultValue) throws Exception {
+      
+      Object res = getAttribute(element, attrName);
+      if (res == null) {
+         return defaultValue;
+      }
+      if (res instanceof String) {
+         return (String) res;
+      }
+      if (res instanceof Object[]) {
+         Object[] resArray = (Object[]) res;
+         StringBuilder sb = new StringBuilder();
+         boolean needComma = false;
+         for (Object el:resArray) {
+            if (needComma) {
+               sb.append(",");
+            }
+            needComma = true;
+            sb.append((String)el);
+         }
+         return sb.toString();
+      }
+      System.err.println("Warning string expected for " + element.getAttribute(attrName) + "=> " + res);
+      return res.toString().trim();
    }
    
    /**
@@ -1724,63 +1784,16 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception If for-loop completed
     */
    String getAttributeAsString(Element element, String attrName) throws Exception {
-      
-      String attr = element.getAttribute(attrName);
-      if ("=pinMap[%(ch)],pinMap[%(ch)+1]".equals(attr)) {
-         System.err.println("Found it " + element.getAttribute(attrName));
-      }
-      Object res = getAttribute(element, attrName);
-      if (res == null) {
-         return null;
-      }
-      if (res instanceof String) {
-         return (String) res;
-      }
-      if (res instanceof Object[]) {
-         Object[] resArray = (Object[]) res;
-         StringBuilder sb = new StringBuilder();
-         boolean needComma = false;
-         for (Object el:resArray) {
-            if (needComma) {
-               sb.append(",");
-            }
-            needComma = true;
-            sb.append((String)el);
-         }
-         return sb.toString();
-      }
-      System.err.println("Warning string expected for " + element.getAttribute(attrName) + "=> " + res);
-      return res.toString();
-   }
-   
-   /**
-    * Get an attribute and apply usual substitutions {@link #getAttributeAsString(Element, String)}.
-    * If the attribute is not present then the default parameter is returned.
-    * 
-    * @param element       Element to obtain attribute from
-    * @param attrName      Name of attribute
-    * @param defaultValue  Value to return if attribute is not present
-    * 
-    * @return  Attribute value converted to string or defaultValue if attribute doesn't exist
-    * 
-    * @throws Exception If for-loop completed
-    */
-   String getAttributeAsString(Element element, String attrName, String defaultValue) throws Exception {
-      
-      Object res = getAttribute(element, attrName, defaultValue);
-            
-      if (res == null) {
-         return null;
-      }
-      return res.toString().trim();
+      return getAttributeAsString(element, attrName, null);
    }
    
    /**
     * Get an attribute as Boolean after applying usual substitutions see {@link #getAttribute(Element, String)}.
     * If the attribute is not present then the default parameter is returned.
     * 
-    * @param element       Element to obtain attribute from
-    * @param attrName      Name of attribute
+    * @param element       Element to examine
+    * @param attrName      Name of attribute to retrieve
+    * @param defaultValue  Value to return if attribute is not present
     * @param defaultValue  Value to return if attribute is not present
     * 
     * @return  Attribute value converted to Boolean or defaultValue if attribute doesn't exist
@@ -1804,8 +1817,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * Get an attribute as Boolean after applying usual substitutions see {@link #getAttribute(Element, String)}.
     * If the attribute is not present then the default parameter is returned.
     * 
-    * @param element       Element to obtain attribute from
-    * @param attrName      Name of attribute
+    * @param element       Element to examine
+    * @param attrName      Name of attribute to retrieve
     * @param defaultValue  Value to return if attribute is not present
     * 
     * @return  Attribute value converted to Long or defaultValue if attribute doesn't exist
@@ -1845,8 +1858,8 @@ public class ParseMenuXML extends XML_BaseParser {
     *  <li>For loop substitution
     *  <li>If the attribute starts with '=' it is evaluated as an immediate expression and converted to a string
     * 
-    * @param element    Element to obtain attribute from
-    * @param attrName   Name of attribute
+    * @param element       Element to examine
+    * @param attrName      Name of attribute to retrieve
     * 
     * @return  Attribute value converted to Long or null if attribute doesn't exist
     * 
@@ -1869,8 +1882,8 @@ public class ParseMenuXML extends XML_BaseParser {
     * Get an attribute as Boolean after applying usual substitutions see {@link #getAttribute(Element, String)}.
     * If the attribute is not present then the default parameter is returned.
     * 
-    * @param element       Element to obtain attribute from
-    * @param attrName      Name of attribute
+    * @param element       Element to examine
+    * @param attrName      Name of attribute to retrieve
     * @param defaultValue  Value to return if attribute is not present
     * 
     * @return  Attribute value converted to Boolean or defaultValue if attribute doesn't exist
@@ -1897,8 +1910,8 @@ public class ParseMenuXML extends XML_BaseParser {
     *  <li>For loop substitution
     *  <li>fprovider.MakeKey()
     * 
-    * @param element          Element to examine
-    * @param attrName    Name to use for attribute
+    * @param element       Element to examine
+    * @param attrName      Name of attribute to retrieve
     * 
     * @return  Modified key or null if not found
     * 
@@ -1910,6 +1923,37 @@ public class ParseMenuXML extends XML_BaseParser {
          return null;
       }
       return fProvider.makeKey(key);
+   }
+   
+   /**
+    * Get value of attribute as an immediately evaluated expression yielding a Boolean<br>
+    * This constructs an expression from the attribute and immediately evaluates it.<br>
+    * Variable values are <b>not used</b> unless prefixed with <b>@</b>.<br>
+    * If a variable exists then it evaluates as <b>true</b>, otherwise <b>false</b>.<br>
+    * An empty expression evaluates as <b>true</b>;
+    * 
+    * @param element       Element to examine
+    * @param attrName      Name of attribute to retrieve
+    * @param defaultValue  Value to return if attribute is not present
+    * 
+    * @return Evaluated expression as boolean or null if the attribute doesn't exist.
+    * 
+    * @throws Exception
+    */
+   Boolean getAttributeAsImmediateBoolean(Element element, String attrName, Boolean defaultValue) throws Exception {
+      
+      Object attr = getAttribute(element, attrName);
+      if (attr==null) {
+         return defaultValue;
+      }
+      if (attr instanceof Boolean) {
+         // Already immediately evaluated expression
+         return (Boolean)attr;
+      }
+      if (attr instanceof String) {
+         return Expression.checkCondition(attr.toString(), fProvider);
+      }
+      throw new Exception("Expected boolean value for immediate expression");
    }
    
    /**
@@ -1995,8 +2039,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String name = getAttributeAsString(varElement, "name");
       TitleModel model = new TitleModel(parent, name);
-      
-      model.setToolTip(getAttributeAsString(varElement, "toolTip"));
+      model.setToolTip(getToolTip(varElement));
       model.setSimpleDescription(getAttributeAsString(varElement, "description", null));
       model.setHiddenBy(getAttributeAsString(varElement, "hiddenBy", null), fProvider);
    }
@@ -2438,8 +2481,7 @@ public class ParseMenuXML extends XML_BaseParser {
    
    /**
     * Construct template substitutions<br><br>
-    * 
-    * <br><br>
+    * <ul>
     * <li>%paramExpression                Parameters ORed together e.g. adcPretrigger|adcRefSel
     * <li>%valueExpression                Numeric variable value e.g. 0x3
     * <li>%symbolicExpression[index]      Symbolic formatted value e.g. AdcCompare_Disabled
@@ -2455,10 +2497,12 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>%fieldAssignment                Expression of form '%register <= (%register & ~%mask)|%paramExpression
     * <li>%maskingExpression              Based on variable etc. Similar to (%register&%mask)
     * <li>%variable[index]                Variable name from condition
+    * <li>%macro[index]                   From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG"
     * <li>%mask[index]                    From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG_MASK" (_MASK is added)
     * <li>%register[index]                Register associated with variable e.g. adc->APCTL1
-    * <li>%registerName[index]            Name of corresponding register (lowercase for Init()) e.g. apctl1
-    * <li>%registerNAME[index]            Name of corresponding register (uppercase for Init()) e.g. APCTL1 <br><br>
+    * <li>%registerName[index]            Name of corresponding register (lower-case for Init()) e.g. apctl1
+    * <li>%registerNAME[index]            Name of corresponding register (upper-case for Init()) e.g. APCTL1 <br><br>
+    * </ul>
     * 
     * @param element                 Element
     * @param variableAttributeName   Control var to obtain information from
@@ -2484,6 +2528,19 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else {
          paramOverride = new ArrayList<String>();
+      }
+
+      temp = getAttributeAsString(element, "paramTypes");
+      List<String> paramTypesOverride;
+      if (temp != null) {
+         String[] par = temp.split(",");
+         for (int index=0; index<par.length; index++) {
+            par[index] = par[index].trim();
+         }
+         paramTypesOverride = new ArrayList<String>(Arrays.asList(par));
+      }
+      else {
+         paramTypesOverride = new ArrayList<String>();
       }
 
       temp = getAttributeAsString(element, "defaultParamValue");
@@ -2564,6 +2621,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          if (defaultValueOverride.size() > index) {
             defaultValueOverride.remove(index);
+         }
+         if (paramTypesOverride.size() > index) {
+            paramTypesOverride.remove(index);
          }
       }
       if (variableList.isEmpty()) {
@@ -2685,6 +2745,10 @@ public class ParseMenuXML extends XML_BaseParser {
             paramName = paramOverride.get(index);
          }
          
+         if ((paramTypesOverride.size()>index) && !paramTypesOverride.get(index).isBlank()) {
+            paramType = paramTypesOverride.get(index);
+         }
+         
          // $(variableKey)
          String valueExpression = "$("+variableKey+")";
          valueExpressionSb.append(valueExpression);
@@ -2747,8 +2811,8 @@ public class ParseMenuXML extends XML_BaseParser {
          if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
             defaultParamV = defaultValueOverride.get(index);
          }
-         paramExprSb.append(paramName);
-
+         paramExprSb.append(variable.formatParam(paramName));
+         
          String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, tooltip);
          paramDescriptionSb.append(paramDescriptionN);
 
@@ -2983,15 +3047,17 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       TemplateInformation templateInfo = addTemplate(key, namespace, getAttributeAsString(element, "codeGenCondition"));
       
-      for (Node node = element.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
-            String bodyText = getText(node);
-            bodyText = doTemplateSubstitutions(bodyText, substitutions);
-            templateInfo.addText(bodyText);
-         }
-      }
+      String text = doTemplateSubstitutions(getText(element), substitutions);
+      templateInfo.addText(text);
+//      for (Node node = element.getFirstChild();
+//            node != null;
+//            node = node.getNextSibling()) {
+//         if (node.getNodeType() == Node.CDATA_SECTION_NODE) {
+//            String bodyText = getText(node);
+//            bodyText = doTemplateSubstitutions(bodyText, substitutions);
+//            templateInfo.addText(bodyText);
+//         }
+//      }
    }
    
    String getTemplateCaseStatement(Element element, Variable var) throws Exception {
@@ -3325,21 +3391,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "template") {
          parseTemplate(element);
       }
-      else if (tagName == "initialValueTemplate") {
+      else if (tagName == "variableTemplate") {
          if (!element.hasAttribute("variables")) {
-            throw new Exception("<initialValueTemplate> must have 'variables' attribute, key='" + key + "'");
-         }
-         parseTemplate(element);
-      }
-      else if (tagName == "constructorTemplate") {
-         if (!element.hasAttribute("variables")) {
-            throw new Exception("<constructorTemplate> must have 'variables' attribute, key='" + key + "'");
-         }
-         parseTemplate(element);
-      }
-      else if (tagName == "setTemplate") {
-         if (!element.hasAttribute("variables")) {
-            throw new Exception("<setTemplate> must have 'variables' attribute, key='" + key + "'");
+            throw new Exception("<variableTemplate> must have 'variables' attribute, key='" + key + "'");
          }
          parseTemplate(element);
       }
@@ -3434,7 +3488,7 @@ public class ParseMenuXML extends XML_BaseParser {
 //            fProvider.safeGetVariable(getKeyAttribute(element, "var")),
 //            figure);
 //
-//      model.setToolTip(getAttributeAsString(element, "toolTip"));
+//      model.setToolTip(getToolTip(element));
 //      model.setSimpleDescription(getAttributeAsString(element, "description"));
 //
 //      for (Node node = element.getFirstChild();
@@ -3596,7 +3650,7 @@ public class ParseMenuXML extends XML_BaseParser {
             fProvider.safeGetVariable(getKeyAttribute(element, "var")),
             figure);
       
-      model.setToolTip(getAttributeAsString(element, "toolTip"));
+      model.setToolTip(getToolTip(element));
       model.setSimpleDescription(getAttributeAsString(element, "description"));
       
       for (Node node = element.getFirstChild();
@@ -3686,7 +3740,7 @@ public class ParseMenuXML extends XML_BaseParser {
       // Add information for later action
       String  filter    = getAttributeAsString(element, "filter");
       String  enabledBy = getAttributeAsString(element, "enabledBy");
-      Boolean locked    = getAttributeAsBoolean(element, "locked", false);
+      Boolean locked    = getAttributeAsImmediateBoolean(element, "locked", false);
       
       fPeripheral.addSignalsFromPeripheral(peripheral, filter, enabledBy, locked);
    }
@@ -3730,15 +3784,12 @@ public class ParseMenuXML extends XML_BaseParser {
                throw new Exception("<choice> must have name and value attributes "+element);
             }
             // Check if entry has condition to be available for choice to be present
-            Boolean keepChoice = Expression.checkCondition(getAttributeAsString(element, "condition"), fProvider);
+            Boolean keepChoice = getAttributeAsImmediateBoolean(element, "condition", true);
             if (!keepChoice) {
                // Discard choice
                continue;
             }
-            boolean hidden = false;
-            if (element.hasAttribute("hidden")) {
-               hidden = Expression.getValueAsBoolean(getAttributeAsString(element, "hidden"), fProvider);
-            }
+            Boolean hidden = getAttributeAsImmediateBoolean(element, "hidden", false);
             ChoiceData entry = new ChoiceData(
                   getAttributeAsString(element, "name"),
                   getAttributeAsString(element, "value"),

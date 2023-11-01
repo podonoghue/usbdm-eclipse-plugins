@@ -416,14 +416,18 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          documentUtilities.writeAttribute("num", XmlDocumentUtilities.escapeXml(irqNum));
          documentUtilities.closeTag();
       }
-      documentUtilities.writeParam(
-            "_instanceList", "/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
+      documentUtilities.writeParam("/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
 
       if (getIrqCount()>0) {
-         documentUtilities.writeParam(
-               "_irqCount", "/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
+         documentUtilities.writeParam("/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
       }
       
+      if (this instanceof PeripheralWithState) {
+         PeripheralWithState pws = (PeripheralWithState) this;
+         if (pws.isPcrTableNeeded()) {
+            documentUtilities.writeParam("/"+getName()+"/_hasPcrTable", "BooleanVariable", Boolean.TRUE.toString());
+         }
+      }
       writeExtraXMLDefinitions(documentUtilities);
       documentUtilities.closeTag();
    }
@@ -1243,7 +1247,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
    
    /**
-    * Write initPCRs() function
+    * Write initPCRs() functions
     * 
     * @param pinMappingHeaderFile
     * @param indent
@@ -1255,14 +1259,16 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
       final String INIT_PCR_FUNCTION_TEMPLATE =
             indent+"   /**\n"+
-            indent+"    * Initialise pins used by peripheral\n\n"+
+            indent+"    * Initialise pins used by peripheral\n"+
+            indent+"    *\n"+
             indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
             indent+"    */\n"+
             indent+"   static void initPCRs() {\n";
 
       final String CLEAR_PCR_FUNCTION_TEMPLATE =
             indent+"   /**\n"+
-            indent+"    * Resets pins used by peripheral\n\n"+
+            indent+"    * Release pins used by peripheral\n"+
+            indent+"    *\n"+
             indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
             indent+"    */\n"+
             indent+"   static void clearPCRs() {\n";

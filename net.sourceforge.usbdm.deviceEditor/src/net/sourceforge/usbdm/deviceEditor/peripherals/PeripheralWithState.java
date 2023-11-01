@@ -773,6 +773,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
    
+   protected void createPresentKey(String registerName) {
+      String key = makeKey(registerName+"_present");
+      key = key.replace("%s", "");
+      addOrIgnoreParam(key);
+   }
+   
    /**
     * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
     * 
@@ -783,10 +789,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (cluster instanceof Register) {
          Register reg = (Register) cluster;
          if (!reg.isHidden()) {
+            createPresentKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase());
             for (Field field:reg.getFields()) {
-               String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
-               key = key.replace("%s", "");
-               addOrIgnoreParam(key);
+               createPresentKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase());
             }
          }
       }

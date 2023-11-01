@@ -55,7 +55,7 @@ public class BitmaskDialogue extends Dialog {
     * 
     * <b>Examples:</b>
     * <pre>
-    *          bitmask   bitNames      Bit usage               BitMapping        Buttons
+    *          bitmask   bitList       Bit usage               BitMapping        Buttons
     *  case 1: 0x27      Pin%i      => Pin0,Pin1,Pin2,,,Pin5   0,1,2,5           Pin0,Pin1,Pin2,Pin5 (generated as needed)
     *  case 2: 0x27      A,B,C,D    => A,B,C,,,D               0,1,2,5           A,B,C,D
     *  case 3: 0x00      A,,B,,,C   => A,,B,,,C                0,3,5             A,B,C
@@ -69,11 +69,11 @@ public class BitmaskDialogue extends Dialog {
       super(parentShell);
       fVariable = bitmaskVariable;
       
-     String tBitNames     = bitmaskVariable.getBitList();
+     String tBitList      = bitmaskVariable.getBitList();
      long   tBitmask      = bitmaskVariable.getPermittedBits();
      String tDescriptions = bitmaskVariable.getBitDescriptions();
      
-     if  ((tBitmask !=0) && (tBitNames != null) && !tBitNames.isBlank()) {
+     if  ((tBitmask !=0) && (tBitList != null) && !tBitList.isBlank()) {
         // Both supplied - cases 1,2
         
         // Create bit mapping
@@ -89,7 +89,7 @@ public class BitmaskDialogue extends Dialog {
         }
 
         // Create bit names
-        String[] tBitNamesArray = tBitNames.split(",", -1);
+        String[] tBitNamesArray = tBitList.split(",", -1);
         if (tBitNamesArray.length == 1) {
            // Case 1 - template Pin%i + bitmask
            // Create names as needed
@@ -138,10 +138,10 @@ public class BitmaskDialogue extends Dialog {
         fBitMapping = bitMappingList.toArray(new Integer[bitMappingList.size()]);
         fBitmask    = tBitmask;
      }
-     else if  ((tBitmask == 0) && (tBitNames != null) && !tBitNames.isBlank()) {
+     else if  ((tBitmask == 0) && (tBitList != null) && !tBitList.isBlank()) {
         // Case 3 - Bitmask=0, Names provided
         // Determine bitmask and indices from names
-        String[] bitNamesArray     = PinListExpansion.expandPinList(tBitNames, ",");
+        String[] bitNamesArray     = PinListExpansion.expandPinList(tBitList, ",");
         String[] descriptionsArray = PinListExpansion.expandPinList(tDescriptions, ",");
         if ((descriptionsArray != null) && (descriptionsArray.length != bitNamesArray.length)) {
            throw new Exception("# of expanded bit names does not match # of expanded descriptions");
@@ -171,7 +171,7 @@ public class BitmaskDialogue extends Dialog {
         fBitmask      = tBitmask;
 //        System.err.println("Case 3: " + Long.toBinaryString(tBitmask) + " | " +  bitMappingList.toString() + " | " + Arrays.toString(fBitNames) + " | " + Arrays.toString(fDescriptions));
      }
-     else if ((tBitmask != 0) && ((tBitNames == null)||tBitNames.isBlank())) {
+     else if ((tBitmask != 0) && ((tBitList == null)||tBitList.isBlank())) {
         // Case 4 - bitmask only
         // Create default bit names based on bitmask
         ArrayList<Integer> bitMappingList = new ArrayList<Integer>();

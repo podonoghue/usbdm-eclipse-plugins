@@ -523,4 +523,15 @@ public class XML_BaseParser {
       }
       return doc;
    }
+   
+   /**
+    * Checks is string is valid as identifier
+    * 
+    * @param id
+    * 
+    * @return true if OK
+    */
+   public static boolean isValidCIdentifier(String id) {
+      return id.matches("^([a-zA-Z_][a-zA-Z\\d_$]*)$");
+   }
 }

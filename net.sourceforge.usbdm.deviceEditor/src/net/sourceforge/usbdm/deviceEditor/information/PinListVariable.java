@@ -133,12 +133,12 @@ public class PinListVariable extends StringVariable {
          sb.append(s);
       }
       String s = sb.toString();
-      return super.setValue(s);
+      return super.setValueQuietly(s);
    }
 
    @Override
    public boolean setValueQuietly(Object value) {
-      return setValue(value.toString());
+      return setValueQuietly(value.toString());
    }
 
    /**

@@ -37,13 +37,13 @@ public class LongVariableModel extends VariableModel {
 
       @Override
       protected Object doGetValue() {
-         System.err.println("doGetValue() => "+super.doGetValue());
+//         System.err.println("doGetValue() => "+super.doGetValue());
          return super.doGetValue();
       }
 
       @Override
       protected void doSetValue(Object value) {
-         System.err.println("doSetValue() => "+value);
+//         System.err.println("doSetValue() => "+value);
          super.doSetValue(value);
       }
    }

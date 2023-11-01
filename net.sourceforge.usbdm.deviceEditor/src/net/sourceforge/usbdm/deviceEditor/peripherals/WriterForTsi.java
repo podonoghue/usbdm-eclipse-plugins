@@ -19,7 +19,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 public class WriterForTsi extends PeripheralWithState {
    // Number of inputs each comparator multiplexor has
    static final int NUMBER_OF_INPUTS = 15;
-   static final String PIN_FORMAT   = "   %-25s = %-8s %s\n";
+   static final String PIN_FORMAT   = "constexpr TsiInput %-25s = %-14s %s\n";
 
 
    public WriterForTsi(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
@@ -95,13 +95,13 @@ public class WriterForTsi extends PeripheralWithState {
                if (inUse) {
                   pinName = "// "+pinName;
                }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+";", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
                      inputIdentifier = "// "+inputIdentifier;
                   }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
+                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+";", trailingComment));
                }
             }
             else if (mappingInfo.isSelected()) {
@@ -110,13 +110,13 @@ public class WriterForTsi extends PeripheralWithState {
                if (inUse) {
                   pinName = "// "+pinName;
                }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
+               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+";", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
                      inputIdentifier = "// "+inputIdentifier;
                   }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
+                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+";", trailingComment));
                }
             }
          }

@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.IExpressionChangeListener;
+import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -70,8 +71,14 @@ public class ChoiceData {
          fName           = name;
       }
       fValue       = value;
-      if ("*".equals(enumName)) {
-         enumName = name;
+      if ((enumName != null) && !enumName.isBlank()) {
+         if ("*".equals(enumName)) {
+            enumName = name;
+         }
+         enumName = enumName.trim();
+         if (!XML_BaseParser.isValidCIdentifier("X_"+enumName)) {
+            throw new Exception("Enum name must be simple name, name="+enumName);
+         }
       }
       fEnumName    = enumName;
       fCodeValue   = codeValue;
@@ -164,7 +171,6 @@ public class ChoiceData {
          try {
             return fNameExpression.getValueAsString();
          } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
          }
       }

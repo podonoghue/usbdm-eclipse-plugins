@@ -212,6 +212,25 @@ public class XmlDocumentUtilities {
    }
    
    /**
+    * Write XML param e.g.  <b>&lt;param name</b>=<b>"name" key</b>=<b>"key" type</b>=<b>"type" value</b>=<b>"value"  &gt;</b><br>
+    * 
+    * @param key     Key for variable (also used to generate name)
+    * @param type    Type of variable must be e.g. "Long" => "LongVariable: etc
+    * @param value   Initial value and default value for variable
+    *
+    * @throws IOException
+    */
+   public void writeParam(String key, String type, String value) throws IOException {
+      openTag("param");
+      String name = Variable.getNameFromKey(key);
+      writeAttribute("type",  type, 10);
+      writeAttribute("value", value, 5);
+      writeAttribute("name",  name, 18);
+      writeAttribute("key",   key);
+      closeTag();
+   }
+   
+   /**
     * Write variable as param
     * 
     * @param var Variable to write

@@ -89,10 +89,4 @@ public class ChoiceVariableModel extends VariableModel {
       return super.getValueAsString();
    }
 
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
-   }
-
 }

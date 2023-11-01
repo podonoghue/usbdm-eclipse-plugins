@@ -45,10 +45,10 @@ public class CreateHardwareFiles {
       
       Path directory = Paths.get("");
       
-      // Locate data output directory  
+      // Locate data output directory
       Path xmlDirectory = directory.resolve("Hardware");
 
-      // Create output directories if needed  
+      // Create output directories if needed
       if (!xmlDirectory.toFile().exists()) {
          Files.createDirectory(xmlDirectory);
       }

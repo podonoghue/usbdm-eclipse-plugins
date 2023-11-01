@@ -193,11 +193,30 @@ public class LongVariable extends Variable {
     * @return String in appropriate form e.g. 24.56MHz
     */
    public static String formatValueAsString(double value, Units units) {
+      return formatValueAsString(value, units, 10);
+   }
+   
+   /**
+    * Formats the value as a string for GUI
+    * 
+    * @param value Value to format
+    * @param units Units to use for formatting
+    * @param radix Radix to use for simple values
+    * 
+    * @return String in appropriate form e.g. 24.56MHz
+    */
+   public static String formatValueAsString(double value, Units units, int radix) {
       
       int sigDigits = 4;
       switch(units) {
       default:
       case None:
+         if (radix == 16) {
+            return "0x"+Long.toHexString(Math.round(value));
+         }
+         if (radix == 2) {
+            return "0b"+Long.toBinaryString(Math.round(value));
+         }
          return Long.toString(Math.round(value));
       case ticks:
          return Long.toString(Math.round(value))+"_"+units.toString();
@@ -219,6 +238,15 @@ public class LongVariable extends Variable {
       }
    }
 
+   @Override
+   public String formatParam(String paramName) {
+      String valueFormat = getValueFormat();
+      if (valueFormat != null) {
+         paramName = String.format(valueFormat, paramName);
+      }
+      return paramName;
+   }
+   
    /**
     * Converts the given string into a form appropriate for model
     * 
@@ -253,13 +281,17 @@ public class LongVariable extends Variable {
          return formatValueAsString(value, Units.ticks);
       case None:
       default:
-         return Long.toString(value);
+         if (fRadix != 10) {
+            return formatValueAsString(value, fUnits, fRadix) +
+                   " ("+Long.toString(value)+")";
+         }
+         return formatValueAsString(value, fUnits, fRadix);
       }
    }
 
    @Override
    public Object getEditValueAsString() {
-      return formatValueAsString(getValueAsLong(), getUnits());
+      return formatValueAsString(getValueAsLong(), getUnits(), fRadix);
    }
 
    @Override
@@ -303,10 +335,6 @@ public class LongVariable extends Variable {
       if (units != Units.None) {
          return units.append(value);
       }
-//      String format = getValueFormat();
-//      if (format != null) {
-//         value = String.format(format, value);
-//      }
       String typeName = getTypeName();
       if (typeName != null) {
          // Don't provides cast to (signed) int

@@ -34,7 +34,7 @@ public class DoubleVariableModel extends VariableModel {
 
       @Override
       protected void doSetValue(Object value) {
-         System.err.println("doSetValue() => "+value);
+//         System.err.println("doSetValue() => "+value);
          String v = (String) value;
          // The value may contain extra text such as a decimal value for a hex radix field e.g. '0x100 (64)'
          if (v != null) {

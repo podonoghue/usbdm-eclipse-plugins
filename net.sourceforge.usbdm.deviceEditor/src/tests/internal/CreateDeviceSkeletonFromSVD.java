@@ -219,13 +219,12 @@ public class CreateDeviceSkeletonFromSVD {
       final String pre =
          "\n"                                                                                    +
          "   <constant key=\"suppressInstance\"         type=\"Boolean\" value=\"false\"         />\n" +
-         "   <constant key=\"peripheralUsesInterrupts\" type=\"Boolean\" value=\"%s\"          />\n" +
          "   <constant key=\"irq_parameters\"           type=\"String\"  value=\"&quot;&quot;\"  />\n" +
          "   <constant key=\"irq_dummy_parameters\"     type=\"String\"  value=\"&quot;&quot;\"  />\n" +
          "   <constant key=\"irq_call\"                 type=\"String\"  value=\"&quot;&quot;\"  />\n" +
          "   <constant key=\"isGeneratedByDefault\"     type=\"Boolean\" value=\"false\"         />\n"   +
          "   <constant key=\"isSupportedinStartup\"     type=\"Boolean\" value=\"true\"          />\n"    +
-         "   <xi:include href=\"_enablePeripheral.xml\"  />\n"                                    +
+         "   <xi:include href=\"enablePeripheral.xml\"  />\n"                                    +
          "   <title />\n"             +
          "";
 
@@ -259,7 +258,6 @@ public class CreateDeviceSkeletonFromSVD {
             + "    * <li>%paramName[index]           Based on typeName with lower-case first letter adcCompare\n"
             + "    * <li>%fieldAssignment            Expression of form '%register <= (%register & ~%mask)|%paramExpression\n"
             + "    * <li>%maskingExpression          Based on variable etc. Similar to (%register&%mask)\n"
-            + "    * <li>%variable[index]            Variable name\n"
             + "    * <li>%mask[index]                From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. \"SIM_SOPT_REG_MASK\" (_MASK is added)\n"
             + "    * <li>%register[index]            Register associated with variable e.g. adc->APCTL1\n"
             + "    * <li>%registerName[index]        Name of corresponding register (lowercase for Init()) e.g. apctl1\n"
@@ -288,8 +286,8 @@ public class CreateDeviceSkeletonFromSVD {
       String classDecl =
             "\n"+
             "   <!-- ************* Class Declaration ****************** -->\n" +
-            "   <constant key=\"_class_declaration\" type=\"String\" \n" +
-            "      value=\"&quot;$(_Class)Info : public $(_Baseclass)BasicInfo&quot;\" />\n";
+            "   <constant key=\"_class_declaration\" type=\"String\"\n" +
+            "      value=\"&quot;$(_Class)Info : public $(_Class)BasicInfo&quot;\" />\n";
       resultSb.append(classDecl);
    }
    
@@ -334,12 +332,11 @@ public class CreateDeviceSkeletonFromSVD {
                fieldDescription = fieldDescription.substring(0, fieldDescription.length()-1).trim();
             }
             toolTip = padNewline(toolTip, "               ");
-            if (toolTip.isBlank()) {
-               toolTip = null;
-            }
          }
          fieldDescription = padNewline(fieldDescription, "                   ");
-         
+         if (toolTip == null) {
+            toolTip = "";
+         }
          if (enumerations.isEmpty()) {
             resultSb.append("\n   <intOption key=\"" + periphName + "\" " + condition);
             resultSb.append("\n      "+ enabledBy);
@@ -361,10 +358,10 @@ public class CreateDeviceSkeletonFromSVD {
             resultSb.append("\n      "+ enabledBy);
             resultSb.append("\n      typeName=\"" +  enumName +"\"\n");
 
-            resultSb.append("      description=\"" + fieldDescription + "\" >\n");
             if (toolTip != null) {
                resultSb.append("      toolTip=\"" + toolTip + "\"\n");
             }
+            resultSb.append("      description=\"" + fieldDescription + "\" >\n");
 
             int descriptionWidth = 10;
             for (Enumeration enumeration:enumerations) {
@@ -422,8 +419,8 @@ public class CreateDeviceSkeletonFromSVD {
          // No fields!
          return;
       }
-      final String setTemplate =
-          "      <setTemplate variables=\"%(field)\" codeGenCondition=\"enableGettersAndSetters\"\n" +
+      final String variableTemplate =
+          "      <variableTemplate variables=\"%(field)\" codeGenCondition=\"enableGettersAndSetters\"\n" +
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Set %description\n" +
@@ -431,7 +428,7 @@ public class CreateDeviceSkeletonFromSVD {
           "         %paramDescription\n" +
           "         \\t */\n" +
           "         \\tstatic void set%(name)(%params) {\n" +
-          "         \\t   %defaultFieldExpression\n" +
+          "         \\t   %fieldAssignment\n" +
           "         \\t}\n" +
           "         \\t\n" +
           "         \\t/**\n" +
@@ -443,7 +440,7 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t   return %paramType(%register&%mask);\n" +
           "         \\t}\n" +
           "         \\t\\n\n" +
-          "      ]]></setTemplate>\n";
+          "      ]]></variableTemplate>\n";
     
       
       VisitRegisters createFiledList = new VisitRegisters(peripheral) {
@@ -479,7 +476,7 @@ public class CreateDeviceSkeletonFromSVD {
             "\n" +
             "   <for keys=\"field:name\"\n" +
             "        values=\"\n" + createFiledList.getResultAsString() + "\" >\n");
-      resultSb.append(setTemplate);
+      resultSb.append(variableTemplate);
       resultSb.append("   </for>\n");
       
 //      StringBuilder fieldListsb = new StringBuilder();
@@ -497,7 +494,7 @@ public class CreateDeviceSkeletonFromSVD {
 //            "\n" +
 //            "   <for keys=\"field:name\"\n" +
 //            "        values=\"\n" + fieldListsb.toString() + "\" >\n");
-//      resultSb.append(setTemplate);
+//      resultSb.append(variableTemplate);
 //      resultSb.append("   </for>\n");
    }
    
@@ -572,81 +569,32 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    void writeInitClass() {
-
-      final String init_description_template =
-         "\n" +
-         "<!--   ========== %s Init class =============================== -->\n" +
-         "\n" +
-         "   <template key=\"/$(_BASENAME)/init_description\" namespace=\"all\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
-         "   <![CDATA[\n" +
-         "      \\t/**\n" +
-         "      \\t * Class used to do initialisation of the $(_Baseclass)\n" +
-         "      \\t *\n" +
-         "      \\t * This class has a templated constructor that accepts various values.\n" +
-         "      \\t * Parameters available may vary with device - see $(_Class)::DefaultInitValue for relevant example.\n" +
-         "      \\t * Omitted parameters default to zero (disabled) or unchanged if initialiser is provided as last parameter.\n" +
-         "      \\t *\n" +
-         "      \\t * @note This constructor may be used to create a const instance in Flash\n" +
-         "      \\t *\n" +
-         "      \\t * Example:\n" +
-         "      \\t * @code\n" +
-         "      \\t * ///\n" +
-         "      \\t * /// $(_NAME) call-back\n" +
-         "      \\t * ///\n" +
-         "      \\t * /// @param status  Status reflecting active inputs\n" +
-         "      \\t * ///\n" +
-         "      \\t * void $(_name)Callback(ErrorCode ec) {\n" +
-         "      \\t *    ....\n" +
-         "      \\t * }\n" +
-         "      \\t *\n" +
-         "      \\t * static const $(_Class)::Init $(_name)Init {\n" +
-         "      \\t *\n" +
-         "      \\t *   // Setup values\n" +
-         "%s" +
-         "      \\t *\n" +
-         "      \\t *   $(_name)Callback,                 // Call-back to execute on event - call-back function name\n" +
-         "      \\t *   NvicPriority_Low,                 // Priority for interrupt - Low\n" +
-         "      \\t *\n" +
-         "      \\t *   $(_Class)::DefaultInitValue   // Used as base value modified by above\n" +
-         "      \\t * };\n" +
-         "      \\t *\n" +
-         "      \\t * // Initialise $(_Class) from values specified above\n" +
-         "      \\t * $(_Class)::configure($(_name)Init)\n" +
-         "      \\t * @endcode\n" +
-         "      \\t */\n" +
-         "   ]]>\n" +
-         "   </template>\n";
       
-      StringBuilder sb = new StringBuilder();
-      for (String defaultValue:fieldDefaultList) {
-         int index = defaultValue.indexOf("/");
-         String first = defaultValue.substring(0, index);
-         String last  = defaultValue.substring(index);
-         sb.append("      \\t *   "+String.format("%-40s  %s", first, last)+",\n");
-      }
-      resultSb.append(String.format(init_description_template, peripheralBasename, sb.toString()));
+      resultSb.append("\n   <!--   ========== class $(_Class)BasicInfo =============================== -->\n");
       
       String openBasicInfoClass =
             "\n" +
-            "   <template namespace=\"usbdm\" discardRepeats=\"true\" >\n" +
-            "   <![CDATA[\n" +
-            "      class $(_Baseclass)BasicInfo {\n" +
-            "      \\t\n" +
+            "   <template namespace=\"usbdm\" ><![CDATA[\n" +
+            "      class $(_Class)BasicInfo {\n" +
+            "      \n" +
             "      public:\\n\n" +
-            "   ]]>\n" +
-            "   </template>\n";
+            "   ]]></template>\n";
 
+      resultSb.append (openBasicInfoClass);
+      
+      resultSb.append("\n   <!--   ========== Interrupt handling =============================== -->\n");
+      
       String irqDeclaration =
             "\n" +
-            "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
-            "      variables=\"/$(_BASENAME)/irqHandlingMethod\"\n"                                                                             +
+            "   <variableTemplate namespace=\"usbdm\" codeGenCondition=\"enablePeripheralSupport\"\n" +
+            "      variables=\"irqHandlingMethod\"\n"                                                                             +
             "   ><![CDATA[\n"                                                                                                                   +
             "       \\t//! Common class based callback code has been generated for this class of peripheral\n"                                  +
             "       \\tstatic constexpr bool irqHandlerInstalled = %symbolicExpression;\n"                                                 +
             "       \\t\\n\n"                                                                                                                   +
-            "   ]]></initialValueTemplate>\n"                                                                                                   +
+            "   ]]></variableTemplate>\n"                                                                                                   +
             "\n"+
-            "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\" >\n" +
+            "   <template namespace=\"usbdm\" codeGenCondition=\"irqHandlingMethod\" >\n" +
             "   <![CDATA[\n"                                                                                                    +
             "      \\t/**\n"                                                                                                    +
             "      \\t * Type definition for $(_Baseclass) interrupt call back.\n"                                              +
@@ -665,8 +613,7 @@ public class CreateDeviceSkeletonFromSVD {
 
       String irqCallbackFunctionPtrSingle =
            "\n"                                                                                                   +
-           "   <!-- template namespace=\"all\" key=\"/$(_BASENAME)/protected\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\" -->\n" +
-           "   <template codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\" >\n"                                +
+           "   <template codeGenCondition=\"irqHandlingMethod\" >\n"                                              +
            "   <![CDATA[\n"                                                                                       +
            "      \\t/** Callback function for ISR */\n"                                                          +
            "      \\tstatic CallbackFunction sCallback;\n"                                                        +
@@ -757,10 +704,6 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\ttemplate<unsigned channel>\n"                                        +
             "      \\tstatic void irqHandler() {\n"                                        +
             "      \\t\n"                                                                  +
-            "      \\t   //.....IRQ handler code here..........\n"                         +
-            "      \\t\n"                                                                  +
-            "      \\t   // Clear interrupt flag\n"                                        +
-            "      \\t   //.....\n"                                                        +
             "      \\t   // Execute call-back\n"                                           +
             "      \\t   Info::sCallbacks[channel]($(irq_call));\n"                        +
             "      \\t}\n"                                                                 +
@@ -789,8 +732,6 @@ public class CreateDeviceSkeletonFromSVD {
             "\n"                                                                                                                                   +
             "";
       
-      resultSb.append (String.format(openBasicInfoClass, ""));
-      
       if (irqsUsed) {
          int numVectors = peripheral.getInterruptEntries().size();
          resultSb.append (irqDeclaration);
@@ -803,38 +744,74 @@ public class CreateDeviceSkeletonFromSVD {
             resultSb.append (irqStaticDefinitionMultiple);
          }
       }
-      String openInitClass =
-            "\n" +
-            "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
-            "   <![CDATA[\n" +
-            "      $(/$(_BASENAME)/init_description)\n" +
-            "      \\tclass Init {\n" +
-            "      \\t\n" +
-            "      \\tpublic:\n" +
-            "      \\t   /**\n" +
-            "      \\t    * Copy Constructor\n" +
-            "      \\t    */\n" +
-            "      \\t   constexpr Init(const Init &other) = default;\n" +
-            "      \\t\n" +
-            "      \\t   /**\n" +
-            "      \\t    * Default Constructor\n" +
-            "      \\t    */\n" +
-            "      \\t   constexpr Init() = default;\n" +
-            "      \\t\\n\n" +
-            "   ]]>\n" +
-            "   </template>\n" +
-            "\n" +
-            "<!--   Member variables -->\n";
-
-      resultSb.append(openInitClass);
+      
+      final String open_init_class =
+         "\n" +
+         "   <!--   ========== %s Init class =============================== -->\n" +
+         "\n" +
+         "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"enablePeripheralSupport\" >\n" +
+         "   <![CDATA[\n" +
+         "      \\t/**\n" +
+         "      \\t * Class used to do initialisation of the $(_Baseclass)\n" +
+         "      \\t *\n" +
+         "      \\t * This class has a templated constructor that accepts various values.\n" +
+         "      \\t * Parameters available may vary with device - see $(_Class)::DefaultInitValue for relevant example.\n" +
+         "      \\t * Omitted parameters default to zero (disabled) or unchanged if initialiser is provided as last parameter.\n" +
+         "      \\t *\n" +
+         "      \\t * @note This constructor may be used to create a const instance in Flash\n" +
+         "      \\t *\n" +
+         "      \\t * Example:\n" +
+         "      \\t * @code\n" +
+         "      \\t * ///\n" +
+         "      \\t * /// $(_NAME) call-back\n" +
+         "      \\t * ///\n" +
+         "      \\t * /// @param status  Status reflecting active inputs\n" +
+         "      \\t * ///\n" +
+         "      \\t * void $(_name)Callback(ErrorCode ec) {\n" +
+         "      \\t *    ....\n" +
+         "      \\t * }\n" +
+         "      \\t *\n" +
+         "      \\t * static const $(_Class)::Init $(_name)Init {\n" +
+         "      \\t *\n" +
+         "      \\t *   // Setup values\n" +
+         "XXXXXXXXXXXXXXXXXXXXXX" +
+         "      \\t *\n" +
+         "      \\t *   $(_name)Callback,                 // Call-back to execute on event - call-back function name\n" +
+         "      \\t *   NvicPriority_Low,                 // Priority for interrupt - Low\n" +
+         "      \\t *\n" +
+         "      \\t *   $(_Class)::DefaultInitValue   // Used as base value modified by above\n" +
+         "      \\t * };\n" +
+         "      \\t *\n" +
+         "      \\t * // Initialise $(_Class) from values specified above\n" +
+         "      \\t * $(_Class)::configure($(_name)Init)\n" +
+         "      \\t * @endcode\n" +
+         "      \\t */\n" +
+         "      \\tclass Init {\n" +
+         "      \\t\n" +
+         "      \\tpublic:\n" +
+         "      \\t   /**\n" +
+         "      \\t    * Copy Constructor\n" +
+         "      \\t    */\n" +
+         "      \\t   constexpr Init(const Init &other) = default;\n" +
+         "      \\t\n" +
+         "      \\t   /**\n" +
+         "      \\t    * Default Constructor\n" +
+         "      \\t    */\n" +
+         "      \\t   constexpr Init() = default;\n" +
+         "      \\t\\n\n" +
+         "   ]]></template>\n";
+      resultSb.append(String.format(open_init_class, peripheralBasename));
+      
+      resultSb.append("\n   <!--   Member variables -->\n");
 
       String irqEntryTemplate =
             "\n" +
-            "   <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" variables=\"irqHandlingMethod\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
+            "   <variableTemplate namespace=\"usbdm\" codeGenCondition=\"irqHandlingMethod\"\n" +
+            "      variables=\"irqHandlingMethod\"\n" +
             "    ><![CDATA[\n" +
             "      \\t   /// %description\n" +
-            "      \\t   %params = nullptr;\\n\\n\n" +
-            "   ]]></setTemplate>\n";
+            "      \\t   %paramType %paramName = nullptr;\\n\\n\n" +
+            "   ]]></variableTemplate>\n";
       
       if (irqsUsed) {
          resultSb.append(irqEntryTemplate);
@@ -850,12 +827,12 @@ public class CreateDeviceSkeletonFromSVD {
             
             final String memberDeclaration =
                   "\n" +
-                  "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+                  "   <variableTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
                   "      variables=\"%s\"\n" +
                   "   ><![CDATA[\n" +
                   "      \\t   /// %s\n" +
                   "      \\t   %s %%registerName = 0;\\n\\n\n" +
-                  "   ]]></initialValueTemplate>\n";
+                  "   ]]></variableTemplate>\n";
             
 
             if (register.getAccessType() == AccessType.ReadOnly) {
@@ -892,17 +869,285 @@ public class CreateDeviceSkeletonFromSVD {
 
       String irqLevelTemplate =
             "\n" +
-            "   <initialValueTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
+            "   <variableTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
             "      variables=\"/PCR/nvic_irqLevel,irqLevel\"\n" +
             "   ><![CDATA[\n" +
             "      \\t   /// %%description\n" +
-            "      \\t   %%enumClass %%registerName0 = %%symbolicExpression1;\n" +
+            "      \\t   %%paramType %%registerName0 = %%symbolicExpression1;\n" +
             "      \\t\\n\n" +
-            "   ]]></initialValueTemplate>\n";
+            "   ]]></variableTemplate>\n";
             
       if (irqsUsed) {
          resultSb.append(String.format(irqLevelTemplate));
       }
+      
+      /*
+       *   Create Irq Constructors
+       */
+      String constructorTitle =
+          "\n" +
+          "   <!--   Constructors -->\n";
+      
+      boolean constructorTitleDone = false;
+      
+      String irqHandlerConstructorTemplate =
+            "\n" +
+            "   <variableTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
+            "      variables=\"irqHandlingMethod\"\n" +
+            "      linePadding=\"xxx\"\n" +
+            "   ><![CDATA[\n" +
+            "      \\t   /**\n" +
+            "      \\t    * Constructor for %description\n" +
+            "      \\t    *\n" +
+            "      \\t    * @tparam   Types\n" +
+            "      \\t    * @param    rest\n" +
+            "      \\t\n" +
+            "      %paramDescription\n" +
+            "      \\t    */\n" +
+            "      \\t   template <typename... Types>\n" +
+            "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n" +
+            "      \\t\n" +
+            "      \\t      this->%paramName0 = %paramExpression;\n" +
+            "      \\t   }\\n\\n\n" +
+            "   ]]></variableTemplate>\n" +
+            "\n" +
+            "   <variableTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
+            "      variables=\"/PCR/nvic_irqLevel\"\n" +
+            "      linePadding=\"xxx\"\n" +
+            "   ><![CDATA[\n" +
+            "      \\t   /**\n" +
+            "      \\t    * Constructor for %description\n" +
+            "      \\t    *\n" +
+            "      \\t    * @tparam   Types\n" +
+            "      \\t    * @param    rest\n" +
+            "      \\t\n" +
+            "      %paramDescription\n" +
+            "      \\t    */\n" +
+            "      \\t   template <typename... Types>\n" +
+            "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n" +
+            "      \\t\n" +
+            "      \\t      %registerName = %paramExpression;\n" +
+            "      \\t   }\\n\\n\n" +
+            "   ]]></variableTemplate>\n";
+      
+      if (irqsUsed) {
+         resultSb.append(constructorTitle);
+         constructorTitleDone = true;
+         resultSb.append(irqHandlerConstructorTemplate);
+      }
+      
+      /*
+       *   Create Constructors for Enumerated fields
+       */
+      String constructorListTemplateForEnumeratedFields =
+          "\n" +
+          "   <for keys=\"r\"\n" +
+          "      values=\"\n" +
+          "%s\n" +
+          "            \" >\n" +
+          "      <variableTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+          "         variables=\"%%(r)\"\n" +
+          "         linePadding=\"xxx\" >\n" +
+          "      <![CDATA[\n" +
+          "         \\t   /**\n" +
+          "         \\t    * Constructor for %%description\n" +
+          "         \\t    *\n" +
+          "         \\t    * @tparam   Types\n" +
+          "         \\t    * @param    rest\n" +
+          "         \\t    *\n" +
+          "         %%paramDescription\n" +
+          "         \\t    */\n" +
+          "         \\t   template <typename... Types>\n" +
+          "         \\t   constexpr Init(%%params, Types... rest) : Init(rest...) {\n" +
+          "         \\t\n" +
+          "         \\t      %%registerName = (%%registerName&~%%mask) | %%paramExpression;\n" +
+          "         \\t   }\n" +
+          "         \\t\\n\n" +
+          "      ]]>\n" +
+          "      </variableTemplate>\n" +
+          "   </for>\n";
+    
+      VisitRegisters createConstructorsForEnumeratedFields = new VisitRegisters(peripheral) {
+         
+         final StringBuilder resultSb = new StringBuilder();
+         
+         @Override
+         void visitor(Register reg) {
+            if (reg.getAccessType() == AccessType.ReadOnly) {
+               return;
+            }
+            String regName = reg.getName().replace("%s", "");
+            for (Field field:reg.getFields()) {
+               if (field.getAccessType() == AccessType.ReadOnly) {
+                  continue;
+               }
+               ArrayList<Enumeration> enumerations = field.getEnumerations();
+               if (enumerations.isEmpty()) {
+                  // Only process enumerated fields
+                  continue;
+               }
+               String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               if (!resultSb.isEmpty()) {
+                  resultSb.append(";\n");
+               }
+               resultSb.append("            "+registerFieldName);
+            }
+         }
+
+         @Override
+         Object getResult() {
+            return resultSb.toString();
+         }
+         
+      };
+      
+      createConstructorsForEnumeratedFields.visit();
+      if (!createConstructorsForEnumeratedFields.getResultAsString().isBlank()) {
+         if (!constructorTitleDone) {
+            resultSb.append(constructorTitle);
+         }
+         resultSb.append(String.format(constructorListTemplateForEnumeratedFields, createConstructorsForEnumeratedFields.getResultAsString()));
+      }
+      
+      /*
+       *   Create Constructors for Integer fields
+       */
+      String constructorListTemplateForIntegerFields =
+            "\n" +
+            "   <for keys=\"r\"\n" +
+            "      values=\"\n" +
+            "%s\n" +
+            "            \" >\n" +
+            "      <variableTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
+            "         variables=\"%%(r)\"\n" +
+            "         linePadding=\"xxx\" >\n" +
+            "      <![CDATA[\n" +
+            "         \\t   /**\n" +
+            "         \\t    * Constructor for %%description\n" +
+            "         \\t    *\n" +
+            "         \\t    * @tparam   Types\n" +
+            "         \\t    * @param    rest\n" +
+            "         \\t    *\n" +
+            "         \\t    * @param value %%description\n" +
+            "         \\t    */\n" +
+            "         \\t   template <typename... Types>\n" +
+            "         \\t   constexpr Init(%%paramType0 value, Types... rest) : Init(rest...) {\n" +
+            "         \\t\n" +
+            "         \\t      %%registerName = (%%registerName&~%%mask0) | %%macro0(value);\n" +
+            "         \\t   }\n" +
+            "         \\t\\n\n" +
+            "      ]]>\n" +
+            "      </variableTemplate>\n" +
+            "   </for>\n" +
+            "\n";
+      
+      VisitRegisters createConstructorsForIntegerFields = new VisitRegisters(peripheral) {
+         
+         final StringBuilder resultSb = new StringBuilder();
+         
+         @Override
+         void visitor(Register reg) {
+            if (reg.getAccessType() == AccessType.ReadOnly) {
+               return;
+            }
+            String regName = reg.getName().replace("%s", "");
+            for (Field field:reg.getFields()) {
+               if (field.getAccessType() == AccessType.ReadOnly) {
+                  continue;
+               }
+               ArrayList<Enumeration> enumerations = field.getEnumerations();
+               if (!enumerations.isEmpty()) {
+                  // Don't process enumerated fields
+                  continue;
+               }
+               String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               if (!resultSb.isEmpty()) {
+                  resultSb.append(";\n");
+               }
+               resultSb.append("            "+registerFieldName);
+            }
+         }
+
+         @Override
+         Object getResult() {
+            return resultSb.toString();
+         }
+         
+      };
+      
+      createConstructorsForIntegerFields.visit();
+      if (!createConstructorsForIntegerFields.getResultAsString().isBlank()) {
+         if (!constructorTitleDone) {
+            resultSb.append(constructorTitle);
+         }
+         resultSb.append(String.format(constructorListTemplateForIntegerFields, createConstructorsForIntegerFields.getResultAsString()));
+      }
+      
+
+      
+      
+      /*
+       * Create DefaultInitValue
+       */
+      String initValueTemplate =
+            "\n" +
+            "<!--   Default Initialisation value -->\n" +
+            "\n" +
+            "   <variableTemplate codeGenCondition=\"enablePeripheralSupport\"\n" +
+            "      separator=\",\"\n" +
+            "      terminator=\",\"\n" +
+            "      variables=\"\n" +
+            "%s\n" +
+            "         \"\n" +
+            "   ><![CDATA[\n" +
+            "      \\t/**\n" +
+            "      \\t * Default initialisation value for $(_Class)\n" +
+            "      \\t * This value is created from Configure.usbdmProject settings\n" +
+            "      \\t */\n" +
+            "      \\tstatic constexpr Init DefaultInitValue = {%%initExpression\n" +
+            "      \\t};\n" +
+            "      \\t\\n\n" +
+            "   ]]></variableTemplate>\n";
+      
+      VisitRegisters createInitValueFieldList = new VisitRegisters(peripheral) {
+         
+         final StringBuilder resultSb = new StringBuilder();
+         
+         @Override
+         void visitor(Register reg) {
+            if (reg.getAccessType() == AccessType.ReadOnly) {
+               return;
+            }
+            String regName = reg.getName().replace("%s", "");
+            for (Field field:reg.getFields()) {
+               if (field.getAccessType() == AccessType.ReadOnly) {
+                  continue;
+               }
+               String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               if (!resultSb.isEmpty()) {
+                  resultSb.append(",\n");
+               }
+               resultSb.append("            "+registerFieldName);
+            }
+         }
+
+         @Override
+         Object getResult() {
+            return resultSb.toString();
+         }
+      };
+      
+      createInitValueFieldList.visit();
+      
+      resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString(), ""));
+      
+      
+      
+      
+      
+      /*
+       * Create configure methods
+       */
       
       String configureMethod =
             "\n" +
@@ -984,263 +1229,6 @@ public class CreateDeviceSkeletonFromSVD {
       createRegisterAssignments.visit();
       resultSb.append(String.format(configureMethodRegs, createRegisterAssignments.getResultAsString()));
       
-      /*
-       *   Create Irq Constructors
-       */
-      String constructorTitle =
-          "\n" +
-          "   <!--   Constructors -->\n";
-      
-      boolean constructorTitleDone = false;
-      
-      String irqHandlerConstructorTemplate =
-            "\n" +
-            "   <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
-            "      variables=\"irqHandlingMethod\"\n" +
-            "      linePadding=\"xxx\"\n" +
-            "   ><![CDATA[\n" +
-            "      \\t   /**\n" +
-            "      \\t    * Constructor for %description\n" +
-            "      \\t    *\n" +
-            "      \\t    * @tparam   Types\n" +
-            "      \\t    * @param    rest\n" +
-            "      \\t\n" +
-            "      %paramDescription\n" +
-            "      \\t    */\n" +
-            "      \\t   template <typename... Types>\n" +
-            "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n" +
-            "      \\t\n" +
-            "      \\t      this->%paramName0 = %paramExpression;\n" +
-            "      \\t   }\\n\\n\n" +
-            "   ]]></setTemplate>\n" +
-            "\n" +
-            "   <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/irqHandlingMethod\"\n" +
-            "      variables=\"/PCR/nvic_irqLevel\"\n" +
-            "      linePadding=\"xxx\"\n" +
-            "   ><![CDATA[\n" +
-            "      \\t   /**\n" +
-            "      \\t    * Constructor for %description\n" +
-            "      \\t    *\n" +
-            "      \\t    * @tparam   Types\n" +
-            "      \\t    * @param    rest\n" +
-            "      \\t\n" +
-            "      %paramDescription\n" +
-            "      \\t    */\n" +
-            "      \\t   template <typename... Types>\n" +
-            "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n" +
-            "      \\t\n" +
-            "      \\t      %registerName = %paramExpression;\n" +
-            "      \\t   }\\n\\n\n" +
-            "   ]]></setTemplate>\n";
-      
-      if (irqsUsed) {
-         resultSb.append(constructorTitle);
-         constructorTitleDone = true;
-         resultSb.append(irqHandlerConstructorTemplate);
-      }
-      
-      /*
-       *   Create Constructors for Enumerated fields
-       */
-      String constructorListTemplateForEnumeratedFields =
-          "\n" +
-          "   <for keys=\"r\"\n" +
-          "      values=\"\n" +
-          "%s\n" +
-          "            \" >\n" +
-          "      <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
-          "         variables=\"%%(r)\"\n" +
-          "         linePadding=\"xxx\" >\n" +
-          "      <![CDATA[\n" +
-          "         \\t   /**\n" +
-          "         \\t    * Constructor for %%description\n" +
-          "         \\t    *\n" +
-          "         \\t    * @tparam   Types\n" +
-          "         \\t    * @param    rest\n" +
-          "         \\t    *\n" +
-          "         %%paramDescription\n" +
-          "         \\t    */\n" +
-          "         \\t   template <typename... Types>\n" +
-          "         \\t   constexpr Init(%%params, Types... rest) : Init(rest...) {\n" +
-          "         \\t\n" +
-          "         \\t      %%registerName = (%%registerName&~%%mask) | %%paramExpression;\n" +
-          "         \\t   }\n" +
-          "         \\t\\n\n" +
-          "      ]]>\n" +
-          "      </setTemplate>\n" +
-          "   </for>\n";
-    
-      VisitRegisters createConstructorsForEnumeratedFields = new VisitRegisters(peripheral) {
-         
-         final StringBuilder resultSb = new StringBuilder();
-         
-         @Override
-         void visitor(Register reg) {
-            if (reg.getAccessType() == AccessType.ReadOnly) {
-               return;
-            }
-            String regName = reg.getName().replace("%s", "");
-            for (Field field:reg.getFields()) {
-               if (field.getAccessType() == AccessType.ReadOnly) {
-                  continue;
-               }
-               ArrayList<Enumeration> enumerations = field.getEnumerations();
-               if (enumerations.isEmpty()) {
-                  // Only process enumerated fields
-                  continue;
-               }
-               String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
-               if (!resultSb.isEmpty()) {
-                  resultSb.append(";\n");
-               }
-               resultSb.append("            "+registerFieldName);
-            }
-         }
-
-         @Override
-         Object getResult() {
-            return resultSb.toString();
-         }
-         
-      };
-      
-      createConstructorsForEnumeratedFields.visit();
-      if (!createConstructorsForEnumeratedFields.getResultAsString().isBlank()) {
-         if (!constructorTitleDone) {
-            resultSb.append(constructorTitle);
-         }
-         resultSb.append(String.format(constructorListTemplateForEnumeratedFields, createConstructorsForEnumeratedFields.getResultAsString()));
-      }
-      
-      /*
-       *   Create Constructors for Integer fields
-       */
-      String constructorListTemplateForIntegerFields =
-            "\n" +
-            "   <for keys=\"r\"\n" +
-            "      values=\"\n" +
-            "%s\n" +
-            "            \" >\n" +
-            "      <setTemplate namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\"\n" +
-            "         variables=\"%%(r)\"\n" +
-            "         linePadding=\"xxx\" >\n" +
-            "      <![CDATA[\n" +
-            "         \\t   /**\n" +
-            "         \\t    * Constructor for %%description\n" +
-            "         \\t    *\n" +
-            "         \\t    * @tparam   Types\n" +
-            "         \\t    * @param    rest\n" +
-            "         \\t    *\n" +
-            "         \\t    * @param value %%description\n" +
-            "         \\t    */\n" +
-            "         \\t   template <typename... Types>\n" +
-            "         \\t   constexpr Init(%%paramType0 value, Types... rest) : Init(rest...) {\n" +
-            "         \\t\n" +
-            "         \\t      %%registerName = (%%registerName&~%%mask0) | %%macro0(value);\n" +
-            "         \\t   }\n" +
-            "         \\t\\n\n" +
-            "      ]]>\n" +
-            "      </setTemplate>\n" +
-            "   </for>\n" +
-            "\n";
-      
-      VisitRegisters createConstructorsForIntegerFields = new VisitRegisters(peripheral) {
-         
-         final StringBuilder resultSb = new StringBuilder();
-         
-         @Override
-         void visitor(Register reg) {
-            if (reg.getAccessType() == AccessType.ReadOnly) {
-               return;
-            }
-            String regName = reg.getName().replace("%s", "");
-            for (Field field:reg.getFields()) {
-               if (field.getAccessType() == AccessType.ReadOnly) {
-                  continue;
-               }
-               ArrayList<Enumeration> enumerations = field.getEnumerations();
-               if (!enumerations.isEmpty()) {
-                  // Don't process enumerated fields
-                  continue;
-               }
-               String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
-               if (!resultSb.isEmpty()) {
-                  resultSb.append(";\n");
-               }
-               resultSb.append("            "+registerFieldName);
-            }
-         }
-
-         @Override
-         Object getResult() {
-            return resultSb.toString();
-         }
-         
-      };
-      
-      createConstructorsForIntegerFields.visit();
-      if (!createConstructorsForIntegerFields.getResultAsString().isBlank()) {
-         if (!constructorTitleDone) {
-            resultSb.append(constructorTitle);
-         }
-         resultSb.append(String.format(constructorListTemplateForIntegerFields, createConstructorsForIntegerFields.getResultAsString()));
-      }
-      
-      /*
-       * Create DefaultInitValue
-       */
-      String initValueTemplate =
-            "\n" +
-            "<!--   Default Initialisation value -->\n" +
-            "\n" +
-            "   <initialValueTemplate codeGenCondition=\"enablePeripheralSupport\"\n" +
-            "      separator=\",\"\n" +
-            "      terminator=\",\"\n" +
-            "      variables=\"\n" +
-            "%s\n" +
-            "         \"\n" +
-            "   ><![CDATA[\n" +
-            "      \\t/**\n" +
-            "      \\t * Default initialisation value for $(_Class)\n" +
-            "      \\t * This value is created from Configure.usbdmProject settings\n" +
-            "      \\t */\n" +
-            "      \\tstatic constexpr Init DefaultInitValue = {%%initExpression\n" +
-            "      \\t};\n" +
-            "      \\t\\n\n" +
-            "   ]]></initialValueTemplate>\n";
-      
-      VisitRegisters createInitValueFieldList = new VisitRegisters(peripheral) {
-         
-         final StringBuilder resultSb = new StringBuilder();
-         
-         @Override
-         void visitor(Register reg) {
-            if (reg.getAccessType() == AccessType.ReadOnly) {
-               return;
-            }
-            String regName = reg.getName().replace("%s", "");
-            for (Field field:reg.getFields()) {
-               if (field.getAccessType() == AccessType.ReadOnly) {
-                  continue;
-               }
-               String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
-               if (!resultSb.isEmpty()) {
-                  resultSb.append(",\n");
-               }
-               resultSb.append("            "+registerFieldName);
-            }
-         }
-
-         @Override
-         Object getResult() {
-            return resultSb.toString();
-         }
-      };
-      
-      createInitValueFieldList.visit();
-      
-      resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString(), ""));
-      
       String closeInitClass =
             "\n" +
             "   <template namespace=\"usbdm\" discardRepeats=\"true\" codeGenCondition=\"/$(_BASENAME)/enablePeripheralSupport\" >\n" +
@@ -1285,7 +1273,7 @@ public class CreateDeviceSkeletonFromSVD {
       
       String fileInclude =
             "\n" +
-                  "   <projectActionList id = \"%s_files\" >\n" +
+                  "   <projectActionList id=\"%s_files\" >\n" +
                   "      <copy source=\"Project_Headers/%s.h\"  target=\"Project_Headers/%s.h\"  overwrite=\"true\"  derived=\"true\" />\n" +
                   "   </projectActionList>\n";
       String filename = peripheralBasename.toLowerCase();
@@ -1321,7 +1309,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      <aliasOption key=\"/SIM/sim_pinsel1_$(_name)ps\" constant=\"false\" optional=\"true\" />\n" +
             "   </category>\n" +
             "\n" +
-            "   <signals enabledBy=\"enablePeripheralSupport\" />\n");
+            "   <signals enabledBy=\"enablePeripheralSupport\" locked=\"!/PCR/_present\" />\n");
       
       resultSb.append("\n</peripheralPage>\n");
    }
@@ -1331,34 +1319,37 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ADC",
 //         "CAN"
 //         "CMP",
+//         "CMT",
 //         "CRC",
 //         "DAC",
 //         "DMA",
+//         "FTM",
+//         "FMC",
+//         "FGPIO",
+//         "ICS",
 //         "IRQ",
 //         "I2C",
 //         "KBI",
+//         "LPTMR",
+//         "LLWU",
+//         "MCM",
+//         "OSC",
+//         "PIT",
 //         "PMC",
+//         "PORT",
 //         "PWT",
+//         "PDB",
 //         "RTC",
 //         "RCM",
 //         "SIM"
 //         "SMC",
 //         "SPI",
-//            "UART",
-//         "LPTMR",
-//         "LLWU",
-//       "OSC",
-//       "PIT",
-
-//         "FTM",
-//         "FGPIO",
-//         "PORT",
 //         "SIM",
          "TSI",
+//         "UART",
+
 //         "VREF"
 //         "WDOG",
-//         "UART",
-//         "ICS",
    };
    
    static boolean doThisPeripheral(String name) {
@@ -1370,7 +1361,7 @@ public class CreateDeviceSkeletonFromSVD {
       return false;
    }
    
-   static void doAllPeripherals(String deviceName) throws Exception {
+   static void doAllPeripherals(String deviceName, String suffix) throws Exception {
       DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
       DevicePeripherals peripherals = factory.getDevicePeripherals(deviceName);
       if (peripherals == null) {
@@ -1385,7 +1376,7 @@ public class CreateDeviceSkeletonFromSVD {
             continue;
          }
          System.out.println("Processing " + peripheral.getSourceFilename());
-         CreateDeviceSkeletonFromSVD instance = new CreateDeviceSkeletonFromSVD("mke", peripherals, peripheral);
+         CreateDeviceSkeletonFromSVD instance = new CreateDeviceSkeletonFromSVD(suffix, peripherals, peripheral);
          instance.writePreamble();
          instance.processRegisters();
          instance.writeSetters();
@@ -1401,7 +1392,8 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
-    doAllPeripherals("FRDM_KL25Z");
+//      doAllPeripherals("FRDM_KL25Z", "mkl");
+      doAllPeripherals("FRDM_K20D50M", "mk");
    }
 
 }

@@ -1714,4 +1714,15 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       }
    }
 
+   /**
+    * Formats parameter appropriately for use in expression
+    * 
+    * @param paramName Name of parameter
+    * 
+    * @return Formatted parameter e.g.<li> LongVariable => SIM_SOPT0_DELAY(<b>paramName</b>),<li> ChoiceVariable (unchanged) => <b>paramName</b>
+    */
+   public String formatParam(String paramName) {
+      return paramName;
+   }
+
 }

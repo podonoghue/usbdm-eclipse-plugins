@@ -116,7 +116,7 @@ public class EngineeringNotation {
       }
       Matcher matcher = NUMBER_PATTERN.matcher(num);
       if (!matcher.matches()) {
-         System.err.println("Illegal number "+num);
+//         System.err.println("Illegal number "+num);
          return null;
 //         throw new NumberFormatException("Illegal number: "+num);
       }

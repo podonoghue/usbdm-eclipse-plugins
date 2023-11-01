@@ -120,17 +120,17 @@ public class BooleanVariable extends VariableWithChoices {
    @Override
    public String getValueAsString() {
       if (getValueAsBoolean()) {
-         return (fTrue==null)?"TTTT":fTrue.getName();
+         return (fTrue==null)?"true":fTrue.getName();
       }
-      return (fFalse==null)?"FFFF":fFalse.getName();
+      return (fFalse==null)?"talse":fFalse.getName();
    }
    
    @Override
    public String getSubstitutionValue() {
       if (getValueAsBoolean()) {
-         return (fTrue==null)?"TTTT":fTrue.getValue();
+         return (fTrue==null)?"true":fTrue.getValue();
       }
-      return (fFalse==null)?"FFFF":fFalse.getValue();
+      return (fFalse==null)?"false":fFalse.getValue();
    }
 
    @Override

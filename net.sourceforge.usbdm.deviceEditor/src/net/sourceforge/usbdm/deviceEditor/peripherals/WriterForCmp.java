@@ -101,7 +101,7 @@ public class WriterForCmp extends PeripheralWithState {
             if (!pin.isAvailableInPackage()) {
                continue;
             }
-            
+            String instanceIfUsed = ""; //getInstance();
             String trailingComment  = pin.getNameWithLocation();
             String description = signal.getUserDescription();
             String pinNameP = enumNameP+prettyPinName(pin.getName());
@@ -109,12 +109,12 @@ public class WriterForCmp extends PeripheralWithState {
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
 //            String inputIdentifierP = "";
 //            String inputIdentifierM = "";
-            String mapNameP = "Cmp"+getInstance()+"InputPlus_"+index;
-            String mapNameM = "Cmp"+getInstance()+"InputMinus_"+index;
+            String mapNameP = "Cmp"+instanceIfUsed+"InputPlus_"+index;
+            String mapNameM = "Cmp"+instanceIfUsed+"InputMinus_"+index;
             if (!cIdentifier.isBlank()) {
-//               inputIdentifierP =  "constexpr Cmp"+getInstance()+"InputPlus  "+ enumNameP+cIdentifier;
-//               inputIdentifierM =  "constexpr Cmp"+getInstance()+"InputMinus "+ enumNameM+cIdentifier;
-//               String typeP = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinNameP);
+//               inputIdentifierP =  "constexpr Cmp"+instanceIfUsed+"InputPlus  "+ enumNameP+cIdentifier;
+//               inputIdentifierM =  "constexpr Cmp"+instanceIfUsed+"InputMinus "+ enumNameM+cIdentifier;
+//               String typeP = String.format("%s<%s>", getClassBaseName()+instanceIfUsed+"::"+"Pin", pinNameP);
                String typeM = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinNameM);
 //               String constTypeP = "const "+ typeP;
                String constTypeM = "const "+ typeM;
@@ -128,12 +128,12 @@ public class WriterForCmp extends PeripheralWithState {
                }
             }
             boolean inUse = !usedIdentifiers.add(pinNameP);
-            pinNameP = "constexpr Cmp"+getInstance()+"InputPlus  "+ pinNameP;
+            pinNameP = "constexpr Cmp"+instanceIfUsed+"InputPlus  "+ pinNameP;
             if (inUse) {
                pinNameP = "// "+pinNameP;
             }
             inUse = !usedIdentifiers.add(pinNameM);
-            pinNameM = "constexpr Cmp"+getInstance()+"InputMinus "+ pinNameM;
+            pinNameM = "constexpr Cmp"+instanceIfUsed+"InputMinus "+ pinNameM;
             if (inUse) {
                pinNameM = "// "+pinNameM;
             }

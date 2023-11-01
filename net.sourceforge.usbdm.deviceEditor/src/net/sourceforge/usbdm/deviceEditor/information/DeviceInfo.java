@@ -387,7 +387,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          // Add device sub-family as variable
          addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
          
-         fMenuData = ParseMenuXML.parseMenuFile("_common_settings", fVariableProvider);
+         fMenuData = ParseMenuXML.parseMenuFile("common_settings", fVariableProvider);
          
          ArrayList<PeripheralWithState> peripheralWithStateList = new ArrayList<PeripheralWithState>();
          
@@ -1300,7 +1300,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForSpi.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
+               "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d|TRIG\\d|FAULT\\d)",
                getDeviceFamily(),
                WriterForFtm.class);
          createPeripheralTemplateInformation(
@@ -1940,7 +1940,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          try {
             var.addInternalListeners();
          } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
          }
       }
@@ -1988,7 +1987,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                lv.getMin();
                lv.getMax();
             } catch (Exception e) {
-               // TODO Auto-generated catch block
                e.printStackTrace();
             }
          }
@@ -2446,7 +2444,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (isNewProject) {
          // Actions for new project
          VariableProvider variableProvider = new VariableProvider("Common Settings", this);
-         MenuData initialMenuData = ParseMenuXML.parseMenuFile("_new_project_actions", variableProvider);
+         MenuData initialMenuData = ParseMenuXML.parseMenuFile("new_project_actions", variableProvider);
          processProjectActions.process(actionRecord, project, initialMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
       }
       
