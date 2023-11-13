@@ -905,7 +905,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @param padding  This is the padding string to apply to start of additional comment lines e.g. " * "
     * 
-    * @return tool-tip modified or empty string if none
+    * @return modified tool-tip or empty string if none
     */
    public String getToolTipAsCode(String padding) {
       String tooltip = XML_BaseParser.escapeString(getToolTip());

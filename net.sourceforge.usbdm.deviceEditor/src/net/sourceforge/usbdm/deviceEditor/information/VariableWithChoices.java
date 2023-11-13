@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
 
 public abstract class VariableWithChoices extends Variable {
 
@@ -450,5 +451,16 @@ public abstract class VariableWithChoices extends Variable {
       }
       return tooltip;
    }
+
+   @Override
+   public String getToolTipAsCode(String padding) {
+      String tooltip = XML_BaseParser.escapeString(super.getToolTip());
+      if (tooltip == null) {
+         return "";
+      }
+      tooltip = tooltip.replace("\n", "\n"+padding);
+      return tooltip;
+   }
    
+
 }

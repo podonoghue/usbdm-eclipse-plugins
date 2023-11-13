@@ -203,6 +203,9 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public String getSubstitutionValue() {
+      if (fValue == null) {
+         return null;
+      }
       return fData[fValue].getValue();
    }
 

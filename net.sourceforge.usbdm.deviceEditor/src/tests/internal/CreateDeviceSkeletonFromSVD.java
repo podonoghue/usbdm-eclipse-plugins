@@ -306,8 +306,9 @@ public class CreateDeviceSkeletonFromSVD {
       String regName = reg.getName().replace("%s", "");
       resultSb.append(String.format(header, regName));
       for (Field field:reg.getFields()) {
+         String hidden = "";
          if (field.getAccessType() == AccessType.ReadOnly) {
-            continue;
+            hidden = "hidden=\"true\"";
          }
          String periphName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
          String condition = "condition=\""+periphName+"_present\"";
@@ -340,6 +341,7 @@ public class CreateDeviceSkeletonFromSVD {
          if (enumerations.isEmpty()) {
             resultSb.append("\n   <intOption key=\"" + periphName + "\" " + condition);
             resultSb.append("\n      "+ enabledBy);
+            resultSb.append("\n      "+ hidden);
             resultSb.append("\n      typeName=\""+ getRegisterCType(reg.getElementSizeInBytes()) + "\"\n");
             resultSb.append("      description=\"" + fieldDescription + "\"\n");
             if (toolTip != null) {
@@ -356,6 +358,7 @@ public class CreateDeviceSkeletonFromSVD {
             }
             resultSb.append("\n   <"+typeName+" key=\"" + periphName + "\" " + condition);
             resultSb.append("\n      "+ enabledBy);
+            resultSb.append("\n      "+ hidden);
             resultSb.append("\n      typeName=\"" +  enumName +"\"\n");
 
             if (toolTip != null) {
@@ -410,7 +413,7 @@ public class CreateDeviceSkeletonFromSVD {
       }
    }
    
-   void writeSetters() {
+   void writeSettersAndGetters() {
       resultSb.append(
             "\n" +
             "<!-- Graphic here -->\n");
@@ -420,7 +423,7 @@ public class CreateDeviceSkeletonFromSVD {
          return;
       }
       final String variableTemplate =
-          "      <variableTemplate variables=\"%(field)\" codeGenCondition=\"enableGettersAndSetters\"\n" +
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n" +
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Set %description\n" +
@@ -430,7 +433,10 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\tstatic void set%(name)(%params) {\n" +
           "         \\t   %fieldAssignment\n" +
           "         \\t}\n" +
-          "         \\t\n" +
+          "         \\t\\n\n" +
+          "      ]]></variableTemplate>\n"+
+          "      <variableTemplate variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\"\n" +
+          "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Get %description\n" +
           "         \\t *\n" +
@@ -443,7 +449,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      ]]></variableTemplate>\n";
     
       
-      VisitRegisters createFiledList = new VisitRegisters(peripheral) {
+      VisitRegisters createFieldList = new VisitRegisters(peripheral) {
 
          final StringBuilder resultSb = new StringBuilder();
          Boolean firstField = true;
@@ -461,8 +467,13 @@ public class CreateDeviceSkeletonFromSVD {
                }
                String fieldName  = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
                String methodName = regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               String get = "true";
+               String set = "true";
+               if (field.getAccessType() == AccessType.ReadOnly) {
+                  set = "false";
+               }
                firstField = false;
-               resultSb.append(String.format("         %-20s : %s", fieldName, prettyName(methodName)));
+               resultSb.append(String.format("         %-20s : %-5s : %-5s : enableGettersAndSetters : %s", fieldName, get, set, prettyName(methodName)));
             }
          }
          @Override
@@ -471,31 +482,14 @@ public class CreateDeviceSkeletonFromSVD {
          }
       };
 
-      createFiledList.visit();
+      createFieldList.visit();
       resultSb.append(
             "\n" +
-            "   <for keys=\"field:name\"\n" +
-            "        values=\"\n" + createFiledList.getResultAsString() + "\" >\n");
+            "   <for keys=\"field           : get   : set   : genCode                 : name\"\n" +
+            "        values=\"\n" + createFieldList.getResultAsString() + "\" >\n");
       resultSb.append(variableTemplate);
       resultSb.append("   </for>\n");
       
-//      StringBuilder fieldListsb = new StringBuilder();
-//      boolean firstField = true;
-//      for (String field:fieldNameList) {
-//         if (!firstField) {
-//            fieldListsb.append(";\n");
-//         }
-//         String fieldName = peripheralBasename.toLowerCase()+"_"+field;
-//         firstField = false;
-//         fieldListsb.append("      "+fieldName);
-//         fieldListsb.append(":"+prettyName(field));
-//      }
-//      resultSb.append(
-//            "\n" +
-//            "   <for keys=\"field:name\"\n" +
-//            "        values=\"\n" + fieldListsb.toString() + "\" >\n");
-//      resultSb.append(variableTemplate);
-//      resultSb.append("   </for>\n");
    }
    
    String getRegisterCType(long size) {
@@ -1323,12 +1317,13 @@ public class CreateDeviceSkeletonFromSVD {
 //         "CRC",
 //         "DAC",
 //         "DMA",
+//         "DMAMUX",
 //         "FTM",
 //         "FMC",
 //         "FGPIO",
 //         "ICS",
 //         "IRQ",
-//         "I2C",
+         "I2C",
 //         "KBI",
 //         "LPTMR",
 //         "LLWU",
@@ -1345,7 +1340,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SMC",
 //         "SPI",
 //         "SIM",
-         "TSI",
+//         "TSI",
 //         "UART",
 
 //         "VREF"
@@ -1379,7 +1374,7 @@ public class CreateDeviceSkeletonFromSVD {
          CreateDeviceSkeletonFromSVD instance = new CreateDeviceSkeletonFromSVD(suffix, peripherals, peripheral);
          instance.writePreamble();
          instance.processRegisters();
-         instance.writeSetters();
+         instance.writeSettersAndGetters();
          instance.writeInitClass();
          instance.writeCommon();
          instance.savePeripheralFiles();

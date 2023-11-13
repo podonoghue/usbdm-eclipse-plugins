@@ -217,7 +217,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
    }
    
-   private static class ForLoop {
+   public static class ForLoop {
       
       static private class ForloopException extends RuntimeException {
          private static final long serialVersionUID = 1L;
@@ -594,7 +594,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       String keys       = getAttributeAsString(element, "keys");
       Object values     = getAttribute(element, "values");
-      String dim        = getAttributeAsString(element, "dim");
       String delimiter  = getAttributeAsString(element, "delimiter", ";");
       
 //      if (delimiter != ";") {
@@ -603,35 +602,28 @@ public class ParseMenuXML extends XML_BaseParser {
       if (keys.isBlank()) {
          throw new Exception("<for> requires keys = '"+keys+"', values = '"+values+"'");
       }
-
-      if (dim != null) {
+      
+      
+      Integer[] dims = getAttributeAsListOfInteger(element, "dim");
+      if (dims != null) {
          if (values != null) {
             throw new Exception("Both values and dim attribute given in <for> '" + keys +"'");
          }
-         String dims[] = dim.split(",");
-         long start;
-         long end;
+         int start;
+         int end;
          if (dims.length == 1) {
             start = 0;
-            end   = getLongWithVariableSubstitution(dims[0]).intValue();
+            end   = dims[0].intValue();
          }
          else if (dims.length == 2) {
-            Object s = Expression.getValue(dims[0], fProvider);
-            if (s instanceof String) {
-               s = Expression.getValueAsLong((String) s, fProvider);
-            }
-            start = (long) s;
-            Object e = Expression.getValue(dims[1], fProvider);
-            if (e instanceof String) {
-               e = Expression.getValueAsLong((String) s, fProvider);
-            }
-            end = (long) e;
+            start = dims[0];
+            end   = dims[1]; // +1 fix!
          }
          else {
-            throw new Exception("Illegal dim value '"+dim+"' for <for> '"+keys+"'");
+            throw new Exception("Illegal dim value '"+dims+"' for <for> '"+keys+"'");
          }
          StringBuilder sb = new StringBuilder();
-         for (int index=(int)start; index<(int)end; index++) {
+         for (int index=start; index<end; index++) {
             sb.append(index+";");
          }
          values=sb.toString();
@@ -1760,7 +1752,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return sb.toString();
       }
-      System.err.println("Warning string expected for " + element.getAttribute(attrName) + "=> " + res);
+      System.err.println("Warning string expected for " + element.getAttribute(attrName) + " => " + res);
       return res.toString().trim();
    }
    
@@ -3758,6 +3750,92 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * Evaluate as list of long values
+    * 
+    * @param value   Object. May be Long or Long[] or String
+    * 
+    * @return           Long[]
+    * 
+    * @throws Exception
+    */
+   Long[] convertToListOfLong(Object value) throws Exception {
+      
+      Long[] res = null;
+      try {
+         if (value instanceof String) {
+            // Break up and convert to long
+            String dim = (String) value;
+            String dims[] = dim.split(",");
+            res = new Long[dims.length];
+            for (int index=0; index<dims.length; index++) {
+               res[index] = Long.parseLong(dims[index]);
+            }
+         }
+         else if (value instanceof Object[]) {
+            // Each element should be Long
+            Object[] dims = (Object[])value;
+            res = new Long[dims.length];
+            for (int index=0; index<dims.length; index++) {
+               res[index] = (Long)dims[index];
+            }
+         }
+         else if (value instanceof Long) {
+            // Single value
+            res = new Long[1];
+            res[0] = (Long) value;
+         }
+         else {
+            throw new Exception("Expected list of Long values found '"+ value + "'");
+         }
+      } catch (NumberFormatException e) {
+         throw new Exception("Expected list of Long values found '"+ value + "'", e);
+      }
+      return res;
+   }
+   
+   /**
+    * Get attribute as a list of long values
+    * 
+    * @param element    Element to examine
+    * @param name       Name of attribute to retrieve
+    * 
+    * @return           Long[] or null if missing
+    * 
+    * @throws Exception
+    */
+   Long[] getAttributeAsListOfLong(Element element, String name) throws Exception {
+      
+      Object value = getAttribute(element, name);
+      if (value == null) {
+         return null;
+      }
+      return convertToListOfLong(value);
+   }
+   
+   /**
+    * Get attribute as a list of long values
+    * 
+    * @param element    Element to examine
+    * @param name       Name of attribute to retrieve
+    * 
+    * @return           Long[] or null if missing
+    * 
+    * @throws Exception
+    */
+   Integer[] getAttributeAsListOfInteger(Element element, String name) throws Exception {
+      
+      Long[] vals = getAttributeAsListOfLong(element, name);
+      if (vals == null) {
+         return null;
+      }
+      Integer[] res = new Integer[(vals.length)];
+      for (int index=0; index<vals.length; index++) {
+         res[index] = vals[index].intValue();
+      }
+      return res;
+   }
+   
+   /**
     * Parse choice from an element
     * 
     * @param menuElement Element to parse
@@ -3824,30 +3902,31 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName().equals("choiceExpansion")) {
             if (!element.hasAttribute("keys") || !element.hasAttribute("dim") ||
-                !element.hasAttribute("value") || !element.hasAttribute("name") || !element.hasAttribute("enum")) {
+                !element.hasAttribute("value") || !element.hasAttribute("name")) {
                throw new Exception("<choiceExpansion> must have keys, dim, name and value attributes "+element);
             }
+            int start=0;
+            int end;
+            
+            Integer[] dims = getAttributeAsListOfInteger(element, "dim");
+            if (dims.length==1) {
+               end = dims[0].intValue();
+            }
+            else if (dims.length==2) {
+               start = dims[0];
+               end   = dims[1]+1;
+            }
+            else {
+               throw new Exception("Illegal dim attribute '"+dims+"'");
+            }
             String key           = getAttributeAsString(element, "keys",   null);
-            String dim           = getAttributeAsString(element, "dim",   "");
             String valuePattern  = getAttributeAsString(element, "value", null);
             String namePattern   = getAttributeAsString(element, "name",  null);
-            String enumPattern   = getAttributeAsString(element, "enum",  null);
+            String enumPattern   = getAttributeAsString(element, "enum",  "");
             
             // Get condition for choice to be retained
             String condition = getAttributeAsString(element, "condition",  null);
             
-            int start=0,end;
-            String dims[] = dim.split(",");
-            if (dims.length==1) {
-               end = Integer.parseInt(dims[0]);
-            }
-            else if (dims.length==2) {
-               start = Integer.parseInt(dims[0]);
-               end   = Integer.parseInt(dims[1]);
-            }
-            else {
-               throw new Exception("Illegal dim attribute '"+dim+"'");
-            }
             for (int index=start; index<end; index++) {
                if ((condition != null) && !condition.isBlank()) {
                   // Evaluate condition to retain choice
@@ -3858,9 +3937,9 @@ public class ParseMenuXML extends XML_BaseParser {
                   }
                }
                ChoiceData entry = new ChoiceData(
-                     namePattern.replace("%("+key+")",  Integer.toString(index)),
+                     namePattern.replace("%("+key+")",   Integer.toString(index)),
                      valuePattern.replace("%("+key+")",  Integer.toString(index)),
-                     enumPattern.replace("%("+key+")",  Integer.toString(index)),
+                     enumPattern.replace("%("+key+")",   Integer.toString(index)),
                      null,
                      null,
                      null,
@@ -4027,7 +4106,7 @@ public class ParseMenuXML extends XML_BaseParser {
       //         System.err.println(k + " => " + paramMap.get(k));
       //      }
       //      System.err.println("================================");
-      long dimension = getLongAttributeWithVariableSubstitution(validateElement, "dim");
+      long dimension = getAttributeAsLong(validateElement, "dim");
       ValidatorInformation validator = new ValidatorInformation(getAttributeAsString(validateElement, "class"), (int)dimension);
       
       for (Node node = validateElement.getFirstChild();
