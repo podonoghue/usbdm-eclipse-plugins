@@ -17,6 +17,9 @@ public abstract class VariableWithChoices extends Variable {
    /** List of choice names */
    private String[] fChoices = null;
 
+   /** Name of table to produce in C code */
+   private String fTableName;
+   
    public VariableWithChoices(String name, String key) {
       super(name, key);
    }
@@ -462,5 +465,24 @@ public abstract class VariableWithChoices extends Variable {
       return tooltip;
    }
    
+   /**
+    * Set name of table to produce in C code
+    * 
+    * @param tableName
+    */
+   public void setTableName(String tableName) {
+      fTableName = tableName;
+   }
+
+   /**
+    * Get name of table to produce in C code
+    * 
+    * @param tableName (may be null)
+    * @return
+    */
+   public String getTableName() {
+      return fTableName;
+   }
+
 
 }

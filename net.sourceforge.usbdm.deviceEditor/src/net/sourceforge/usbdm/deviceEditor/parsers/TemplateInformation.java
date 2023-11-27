@@ -119,6 +119,7 @@ public class TemplateInformation {
       return fKey;
    }
 
+   
    /**
     * Get expanded text contents of template.
     * 
@@ -130,6 +131,12 @@ public class TemplateInformation {
          fText = fBuilder.toString();
          fBuilder = null;
       }
+//      if (varProvider.getName().contains("MCM") && (fCodeGenerationCondition!=null) && fCodeGenerationCondition.contains("generateSharedIrqInfo")) {
+//         System.err.println("Found it "+varProvider.getName()+", '"+fCodeGenerationCondition+"'");
+//      }
+//      if (fText.contains("Flash0K_eeprom32K")) {
+//         System.err.println("Found it");
+//      }
       if (fCodeGenerationCondition != null) {
          try {
             Boolean condition = Expression.getValueAsBoolean(fCodeGenerationCondition, varProvider);

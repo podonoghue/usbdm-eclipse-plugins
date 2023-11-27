@@ -4,6 +4,7 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of TSI
@@ -22,5 +23,10 @@ public class WriterForUsbdcd extends PeripheralWithState {
    @Override
    public int getSignalIndex(Signal function) {
       return -1;
+   }
+
+   @Override
+   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      extractAllRegisterFields(dbPortPeripheral);
    }
 }

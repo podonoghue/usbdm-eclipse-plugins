@@ -650,18 +650,18 @@ public class ParseFamilyCSV {
 		// Attach information from device database
 		for (Entry<String, Peripheral> entry:fDeviceInfo.getPeripherals().entrySet()) {
 			Peripheral peripheral = entry.getValue();
-
-         // Count instance
-         String baseName = entry.getValue().getBaseName();
-         String instanceList = instanceLists.get(baseName);
-         if (instanceList == null) {
-            instanceList = entry.getValue().getName();
-         }
-         else {
-            instanceList = instanceList + ";" + entry.getValue().getName();
-         }
-         instanceLists.put(baseName, instanceList);
-
+			if (!peripheral.isSynthetic()) {
+	         // Collect instance name
+	         String baseName = entry.getValue().getBaseName();
+	         String instanceList = instanceLists.get(baseName);
+	         if (instanceList == null) {
+	            instanceList = entry.getValue().getName();
+	         }
+	         else {
+	            instanceList = instanceList + ";" + entry.getValue().getName();
+	         }
+	         instanceLists.put(baseName, instanceList);
+			}
 			// Get database peripheral entry
 			net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral = fPeripheralMap.get(entry.getKey());
 			if ((dbPeripheral == null)) {
@@ -755,21 +755,23 @@ public class ParseFamilyCSV {
 					for (InterruptEntry interruptEntry:interruptEntries) {
 //					   if (peripheral instanceof WriterForGpio) {
 //					      System.err.println("Found it "+peripheral.getName());
-//					   }
 						peripheral.addIrqNum(interruptEntry.getName()+"_IRQn");
 					}
 				}
 			}
 		}
-      for (Entry<String, Peripheral> peripheral:fDeviceInfo.getPeripherals().entrySet()) {
-         String baseName = peripheral.getValue().getBaseName();
-         String instanceList = instanceLists.get(baseName);
-         if (instanceList == null) {
-           System.err.println("No instances found for " + baseName);
-           instanceList = "";
-         }
-         peripheral.getValue().setInstanceList(instanceList);
-      }
+		for (Entry<String, Peripheral> entry:fDeviceInfo.getPeripherals().entrySet()) {
+		   Peripheral peripheral = entry.getValue();
+		   String baseName = peripheral.getBaseName();
+		   String instanceList = instanceLists.get(baseName);
+		   if (instanceList == null) {
+            instanceList = "";
+		      if (!peripheral.isSynthetic()) {
+		         System.err.println("No instances found for " + baseName);
+		      }
+		   }
+		   entry.getValue().setInstanceList(instanceList);
+		}
 		
 		fDeviceInfo.consistencyCheck();
 	}

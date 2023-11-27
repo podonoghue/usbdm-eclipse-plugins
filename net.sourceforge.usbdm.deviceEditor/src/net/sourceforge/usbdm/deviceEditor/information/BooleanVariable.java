@@ -122,7 +122,7 @@ public class BooleanVariable extends VariableWithChoices {
       if (getValueAsBoolean()) {
          return (fTrue==null)?"true":fTrue.getName();
       }
-      return (fFalse==null)?"talse":fFalse.getName();
+      return (fFalse==null)?"false":fFalse.getName();
    }
    
    @Override

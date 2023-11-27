@@ -692,6 +692,28 @@ public class Expression implements IModelChangeListener {
       }
    }
    
+   static class PrettyNode extends UnaryExpressionNode {
+
+      /**
+       * Prettify a string e.g. cmd => Cmd
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      PrettyNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+         if (arg.fType != Expression.Type.String) {
+            throw new Exception("Expression cannot be prettified");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         String s = (String) fArg.eval();
+         return Character.toUpperCase(s.charAt(0))+s.substring(1);
+      }
+   }
+   
    static class CastToCharacterStringNode extends UnaryExpressionNode {
 
       /**
@@ -1571,9 +1593,9 @@ public class Expression implements IModelChangeListener {
          if (!primaryVarStr.isBlank()) {
             fPrimaryVar = fVarProvider.getVariable(primaryVarStr);
          }
-      }
-      if (parts.length>2) {
-         fMessage = parts[2].trim();
+         if (parts.length>2) {
+            fMessage = parts[2].trim();
+         }
       }
       
       // Parse expression

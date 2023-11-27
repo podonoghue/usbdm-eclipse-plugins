@@ -447,7 +447,7 @@ public class ChoiceVariable extends VariableWithChoices {
    }
 
    private String displayValue = null;
-   
+
    public void setDisplayValue(String value) {
       displayValue = value;
    }

@@ -235,7 +235,22 @@ public class WriterForGpio extends PeripheralWithState {
       }
       
       StringVariable gpioPatternVar      = (StringVariable) safeGetVariable("/SYSTEM/$gpioPattern");
+      final String gpioPattern;
+      if (gpioPatternVar != null) {
+         gpioPattern = gpioPatternVar.getValueAsString();
+      }
+      else {
+         gpioPattern = "Gpio%i<%b,%p>";
+      }
+      
       StringVariable gpioFieldPatternVar = (StringVariable) safeGetVariable("/SYSTEM/$gpioFieldPattern");
+      final String gpioFieldPattern;
+      if (gpioFieldPatternVar != null) {
+         gpioFieldPattern = gpioFieldPatternVar.getValueAsString();
+      }
+      else {
+         gpioFieldPattern = "Gpio%iField<%l,%r,%p>";
+      }
       
       // Process the identifiers
       for (String mainIdentifier:variablesToCreate.keySet()) {
@@ -252,19 +267,13 @@ public class WriterForGpio extends PeripheralWithState {
             String polarity         = isActiveLow(signal)?"ActiveLow":"ActiveHigh";
             String pinDescription   = gpioPinInformation.getDescription();
 
-            String type;
-            if (gpioPatternVar != null) {
-               // Gpio%i<%n,%p>;
-               String gpioPattern = gpioPatternVar.getValueAsString();
-               type = gpioPattern.replace("%i", pin.getPortInstance());  // port instance e.g."A"
-               type = type.replace("%n", pin.getGpioBitNum()); // bit number
-               type = type.replace("%p", polarity);  // polarity
-            }
-            else {
-               type = String.format("Gpio%s<%s, %s>", pin.getPortInstance(), pin.getGpioBitNum(), polarity);
-            }
-//            String type = String.format("Gpio%s<%s, %s>", pin.getPortInstance(), pin.getGpioBitNum(), polarity);
-//            String type = String.format("GpioTable_T<%sInfo, %d, %s>", getClassName(), bitNum, polarity);
+            /*
+             * %i = port instance e.g."A"
+             * %b = bit number
+             * %p = polarity
+             * e.g. Gpio%i<%b,%p>
+             */
+            String type = expandTypePattern(gpioPattern, pin, 0, polarity);
             String constType = "const "+ type;
             if (signal.getCreateInstance()) {
                writeVariableDeclaration("", pinDescription, mainIdentifier, constType, trailingComment);
@@ -309,19 +318,18 @@ public class WriterForGpio extends PeripheralWithState {
             else {
                polarity = "ActiveHigh";
             }
-            String type;
-            if (gpioFieldPatternVar != null) {
-               // GpioField%i<%l,%r,%p>;
-               String gpioPattern = gpioFieldPatternVar.getValueAsString();
-               type = gpioPattern.replace("%i", getInstance());  // port instance e.g."A"
-               type = type.replace("%l", bitNums.get(bitNums.size()-1).toString()); // bit number
-               type = type.replace("%r", bitNums.get(0).toString()); // bit number
-               type = type.replace("%p", polarity);  // polarity
-            }
-            else {
-            // GpioFieldTable_T<GpioEInfo, 7, 0, ActiveHigh>
-               type = String.format("GpioFieldTable_T<%s, %d, %d,%s>", getClassName()+"Info", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
-            }
+            /*
+             * %i = port instance e.g."A"
+             * %l = left bit number
+             * %r = right bit number
+             * %p = polarity
+             * e.g. Gpio%iField<%l,%r,%p>
+             */
+            String type = gpioFieldPattern;
+            type = type.replace("%i", getInstance());                            // port instance e.g."A"
+            type = type.replace("%l", bitNums.get(bitNums.size()-1).toString()); // left bit number
+            type = type.replace("%r", bitNums.get(0).toString());                // right bit number
+            type = type.replace("%p", polarity);                                 // polarity
             String constType = "const "+ type;
             if (gpioPinInformation.getCreateInstance()) {
                writeVariableDeclaration(error, fieldDescription, mainIdentifier, constType, trailingComment);
@@ -467,29 +475,33 @@ public class WriterForGpio extends PeripheralWithState {
    
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      boolean pcrFound = false;
-      for(Cluster cl:dbPortPeripheral.getRegisters()) {
-         if (!(cl instanceof Register)) {
-            continue;
-         }
-         Register reg = (Register) cl;
-         if (reg.getName().startsWith("PCR")) {
-            pcrFound = true;
-            for (Field field:reg.getFields()) {
-               String key = "/PCR/"+field.getName().toLowerCase()+"_present";
-               addOrIgnoreParam(key);
+      try {
+         boolean pcrFound = false;
+         for(Cluster cl:dbPortPeripheral.getRegisters()) {
+            if (!(cl instanceof Register)) {
+               continue;
             }
-         } else if (reg.getName().equalsIgnoreCase("DFER")) {
-            String key = "dfer_register_present";
-            addOrIgnoreParam("/PCR/"+key);
-            addOrIgnoreParam(key);
-            break;
+            Register reg = (Register) cl;
+            if (reg.getName().startsWith("PCR")) {
+               pcrFound = true;
+               for (Field field:reg.getFields()) {
+                  String key = "/PCR/"+field.getName().toLowerCase()+"_present";
+                  addOrIgnoreParam(key, null);
+               }
+            } else if (reg.getName().equalsIgnoreCase("DFER")) {
+               String key = "dfer_register_present";
+               addOrIgnoreParam("/PCR/"+key, null);
+               addOrIgnoreParam(key, null);
+               break;
+            }
          }
-      }
-      addOrIgnoreParam("/"+getName()+"/_present");
-      if (pcrFound) {
-         String key = "/PCR/_present";
-         addOrIgnoreParam(key);
+         addOrIgnoreParam("/"+getName()+"/_present", null);
+         if (pcrFound) {
+            String key = "/PCR/_present";
+            addOrIgnoreParam(key, null);
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
       }
    }
    

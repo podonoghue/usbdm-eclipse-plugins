@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralSignalsVariable;
@@ -168,39 +169,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Patterns available <br>
-    *  <li> "%i" => pin.getPortInstance());     => port instance e.g."A"
-    *  <li> "%n" => pin.getGpioBitNum());       => bit number within associated GPIO
-    *  <li> "%p" => polarity);                  => polarity of GPIO
-    *  <li> "%c" => getClassName());            => class name e.g.  FTM2 => Ftm2
-    *  <li> "%b" => getClassBaseName());        => base class name e.g. FTM2 => Ftm
-    *  <li> "%t" => infoTableIndex.toString()); => index in infotable
-    * 
-    * @param pattern          Path to do substitutions in
-    * @param pin              bit number within associated GPIO
-    * @param infoTableIndex   index in infotable
-    * @param polarity         polarity of GPIO
-    * 
-    * @return Expanded pattern
-    */
-   public String expandTypePattern(String pattern, String defaultPattern, Pin pin, Integer infoTableIndex, String polarity) {
-      String type;
-      if (pattern == null) {
-         pattern = defaultPattern;
-      }
-      // Pattern explicitly given
-      type = pattern;
-      type = type.replace("%i", pin.getPortInstance());     // port instance e.g."A"
-      type = type.replace("%n", pin.getGpioBitNum());       // bit number within associated GPIO
-      type = type.replace("%p", polarity);                  // polarity polarity
-      type = type.replace("%c", getClassName());            // class name e.g.  FTM2 => Ftm2
-      type = type.replace("%b", getClassBaseName());        // base class name e.g. FTM2 => Ftm
-      type = type.replace("%t", infoTableIndex.toString()); // index in infotable
-      
-      return type;
-   }
-   
-   /**
     * Write pin instances for peripheral pins.
     * This is useful for some devices such as I2C or SPI as it allows the pin levels or mapping to be
     * manually changed. (MK, MKL devices only)
@@ -210,7 +178,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void writeDefaultPinInstances(final DocumentUtilities pinMappingHeaderFile) throws IOException {
 
-      String pattern = null;
+      final String pattern;
 
       // Check for explicit pattern form peripheral XML
       StringVariable patternVar = (StringVariable) safeGetVariable("/SYSTEM/$pcrPattern");
@@ -220,6 +188,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (pattern.isBlank()) {
             return;
          }
+      }
+      else {
+         pattern = "PcrTable_T<%cInfo,%t>";
       }
       for (int infoTableIndex=0; infoTableIndex<fInfoTable.table.size(); infoTableIndex++) {
          
@@ -241,7 +212,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             continue;
          }
          Pin pin = pinMapping.getPin();
-         String type = expandTypePattern(pattern, "PcrTable_T<%cInfo,%t>", pin, infoTableIndex, "ActiveHigh");
+         String type = expandTypePattern(pattern, pin, infoTableIndex, "ActiveHigh");
          pinMappingHeaderFile.write(String.format("using %-20s = %s;\n", signal.getName()+"_pin", type));
 //         pinMappingHeaderFile.write(String.format("using %-20s = PcrTable_T<"+getClassName()+"Info,"+infoTableIndex+">;\n", signal.getName()+"_pin", infoTableIndex));
       }
@@ -726,13 +697,31 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * If the constant already exists no action if taken
     * 
     * @param key Key for new variable
+    * @throws Exception
     */
-   public void addOrIgnoreParam(String key) {
+   public void addOrIgnoreParam(String key, Object value) throws Exception {
       key = makeKey(key);
       Variable var = safeGetVariable(key);
       if (var == null) {
-         var = new BooleanVariable(null, key);
-         var.setValue(true);
+         if (value == null) {
+            var = new BooleanVariable(null, key);
+            var.setValue(true);
+         }
+         else if (value instanceof Boolean) {
+            var = new BooleanVariable(null, key);
+            var.setValue(value);
+         }
+         else if ((value instanceof Long)||(value instanceof Integer)) {
+            var = new LongVariable(null, key);
+            var.setValue(value);
+         }
+         else if (value instanceof String) {
+            var = new StringVariable(null, key);
+            var.setValue(value);
+         }
+         else {
+            throw new Exception("Unexpected type");
+         }
          addVariable(var);
          fParamList.add(key);
       }
@@ -758,44 +747,60 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       fParamList.add(key);
    }
    
-   public void extractRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral, String registerName) {
+   public void extractRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral, String registerName) throws Exception {
       for(Cluster cl:dbPortPeripheral.getRegisters()) {
          if (!(cl instanceof Register)) {
             continue;
          }
          Register reg = (Register) cl;
+         if (reg.getDimension()>0) {
+            String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_dim");
+            addParam(null, key, "String", reg.getDimension());
+         }
          if (reg.getName().equalsIgnoreCase(registerName)) {
             for (Field field:reg.getFields()) {
                String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase()+"_present");
-               addOrIgnoreParam(key);
+               addOrIgnoreParam(key, true);
             }
          }
       }
    }
    
-   protected void createPresentKey(String registerName) {
+   protected void createPresentKey(String registerName) throws Exception {
       String key = makeKey(registerName+"_present");
       key = key.replace("%s", "");
-      addOrIgnoreParam(key);
+      addOrIgnoreParam(key, true);
    }
    
    /**
     * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
     * 
     * @param dbPortPeripheral Associated database peripheral
+    * @throws Exception
     */
-   protected void extractClusterRegisterFields(Cluster cluster) {
+   protected void extractClusterRegisterFields(Cluster cluster) throws Exception {
 
       if (cluster instanceof Register) {
          Register reg = (Register) cluster;
          if (!reg.isHidden()) {
             createPresentKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase());
+            if (reg.getDimension()>0) {
+               String key = makeKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_dim");
+               key = key.replace("%s", "");
+               addOrIgnoreParam(key, reg.getDimension());
+            }
             for (Field field:reg.getFields()) {
                createPresentKey(getBaseName().toLowerCase()+"_"+reg.getName().toLowerCase()+"_"+field.getName().toLowerCase());
             }
          }
       }
       else {
+         if (cluster.getDimension()>0) {
+            String name = cluster.getName().split(",")[0].replace("%s", "");
+            String key = makeKey(getBaseName().toLowerCase()+"_"+name.toLowerCase()+"_dim");
+            addOrIgnoreParam(key, cluster.getDimension());
+            System.err.println("Cluster = "+ name+"["+cluster.getDimension()+"]");
+         }
          for(Cluster cl:cluster.getRegisters()) {
             extractClusterRegisterFields(cl);
          }
@@ -806,15 +811,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
     * 
     * @param dbPortPeripheral Associated database peripheral
+    * @throws Exception
     */
    protected void extractAllRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
 
-      String key = makeKey("_present");
-      addOrIgnoreParam(key);
+      try {
+         String key = makeKey("_present");
+         addOrIgnoreParam(key, null);
 
-      // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
-      for(Cluster cl:dbPortPeripheral.getRegisters()) {
-         extractClusterRegisterFields(cl);
+         // Create present variables for each register field e.g. /SMC/smc_pmctrl_runm_present
+         for(Cluster cl:dbPortPeripheral.getRegisters()) {
+            extractClusterRegisterFields(cl);
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
       }
    }
    

@@ -186,8 +186,8 @@ public class WriterForSpi extends PeripheralWithState {
       for (InfoTable signalTable:signalTables) {
          int index = -1;
          FormatInfo format = new FormatInfo(
-               "SpiPeripheralSelectPolarity SpiPeripheralSelectPolarity_%s_ActiveLow",
-               "SpiPeripheralSelectPolarity_%s_ActiveLow"
+               "SpiPcsPolarity SpiPcsPolarity_%s_ActiveLow",
+               "SpiPcsPolarity_%s_ActiveLow"
                );
          for (Signal signal:signalTable.table) {
             index++;
@@ -196,7 +196,7 @@ public class WriterForSpi extends PeripheralWithState {
                if (!firstValue) {
                   pcsSb.append(",\n      ");
                }
-               pcsSb.append("SpiPeripheralSelectPolarity_"+(index-PCS_FIRST_INDEX)+"_ActiveLow");
+               pcsSb.append("SpiPcsPolarity_"+(index-PCS_FIRST_INDEX)+"_ActiveLow");
                firstValue=false;
             }
          }
@@ -204,7 +204,7 @@ public class WriterForSpi extends PeripheralWithState {
       String key = "/"+getName()+"/spi_mcr_pcsisValue";
       Variable spi_mcr_pcsisValueVar = safeGetVariable(key);
       if (spi_mcr_pcsisValueVar != null) {
-         String pcsPolarity = "SpiPeripheralSelectPolarity_All_ActiveHigh";
+         String pcsPolarity = "SpiPcsPolarity_All_ActiveHigh";
          if (!pcsSb.isEmpty()) {
             pcsPolarity = pcsSb.toString();
          }

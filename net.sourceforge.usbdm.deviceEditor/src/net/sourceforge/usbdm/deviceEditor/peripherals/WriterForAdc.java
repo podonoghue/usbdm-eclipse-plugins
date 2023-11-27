@@ -84,7 +84,7 @@ public class WriterForAdc extends PeripheralWithState {
             type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaChannel");
          }
          else {
-            type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel", "AdcChannelNum_"+index);
          }
          String constType = "const "+ type;
          String[] cIdentifiers = cIdentifier.split("/");
@@ -154,7 +154,7 @@ public class WriterForAdc extends PeripheralWithState {
          }
          else {
             description = description + " (Differential)";
-            type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"DiffChannel", index);
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"DiffChannel", "AdcChannelNum_"+index);
          }
          String constType = "const "+ type;
          if (dpSignal.getCreateInstance() || dmSignal.getCreateInstance()) {

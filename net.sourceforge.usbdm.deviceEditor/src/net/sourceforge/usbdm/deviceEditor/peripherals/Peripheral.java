@@ -393,9 +393,14 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       documentUtilities.openTag("peripheral");
       documentUtilities.writeAttribute("baseName",       fBaseName);
       documentUtilities.writeAttribute("instance",       fInstance);
-      documentUtilities.writeAttribute("instanceList",   fInstanceList);
+      if (!isSynthetic()) {
+         documentUtilities.writeAttribute("instanceList",   fInstanceList);
+      }
+      else {
+         documentUtilities.writeAttribute("instanceList",   "");
+      }
       documentUtilities.writeAttribute("version",        fVersion);
-      documentUtilities.writeAttribute("structName",     fheaderStructName);
+      documentUtilities.writeAttribute("_structName",    fheaderStructName);
 
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());
@@ -771,11 +776,28 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (description.isBlank()) {
          description = getDescription();
       }
-      if (getCreateInstance()) {
-         writeVariableDeclaration("", description, cIdentifier, cConstType, "");
-      }
-      else {
-         writeTypeDeclaration("", description, cIdentifier, cType, "");
+      String desc[] = description.split("/");
+      int index = 0;
+      for (String cId:cIdentifier.split("/")) {
+         if (desc.length==1) {
+            // Use single description provided
+            description = desc[0];
+         }
+         else if (index>=desc.length) {
+            // Run out of descriptions
+            description = "";
+         }
+         else {
+            // Description provided
+            description = desc[index];
+         }
+         if (getCreateInstance()) {
+            writeVariableDeclaration("", description, cId, cConstType, "");
+         }
+         else {
+            writeTypeDeclaration("", description, cId, cType, "");
+         }
+         index++;
       }
    }
 
@@ -794,6 +816,35 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       setHardwareIncludeFile();
       fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"constexpr "+cType, cIdentifier+" = "+cValue+";", trailingComment));
    }
+   
+   /**
+    * Patterns available <br>
+    *  <li> "%i" => pin.getPortInstance());     => port instance e.g."A"
+    *  <li> "%n" => pin.getGpioBitNum());       => bit number within associated GPIO
+    *  <li> "%p" => polarity);                  => polarity of GPIO
+    *  <li> "%c" => getClassName());            => class name e.g.  FTM2 => Ftm2
+    *  <li> "%b" => getClassBaseName());        => base class name e.g. FTM2 => Ftm
+    *  <li> "%t" => infoTableIndex.toString()); => index in infotable
+    * 
+    * @param pattern          Path to do substitutions in
+    * @param pin              pin
+    * @param infoTableIndex   index in infotable
+    * @param polarity         polarity of GPIO
+    * 
+    * @return Expanded pattern
+    */
+   public String expandTypePattern(String pattern, Pin pin, Integer infoTableIndex, String polarity) {
+      String type = pattern;
+      type = type.replace("%i", pin.getPortInstance());     // port instance e.g."A"
+      type = type.replace("%n", pin.getGpioBitNum());       // bit number within associated GPIO
+      type = type.replace("%p", polarity);                  // polarity polarity
+      type = type.replace("%c", getClassName());            // class name e.g.  FTM2 => Ftm2
+      type = type.replace("%b", getClassBaseName());        // base class name e.g. FTM2 => Ftm
+      type = type.replace("%t", infoTableIndex.toString()); // index in infotable
+      
+      return type;
+   }
+   
    /**
     * Write PCR style type declarations for all named and mapped signals in peripheral<br>
     * 
@@ -834,17 +885,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             String trailingComment  = pin.getNameWithLocation();
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             if (!cIdentifier.isBlank()) {
-               String type;
-               if (pattern != null) {
-                  // Pattern explicitly given
-                  type = pattern.replace("%i", pin.getPortInstance());  // port instance e.g."A"
-                  type = type.replace("%n", pin.getGpioBitNum()); // bit number
-                  type = type.replace("%p", "ActiveHigh");  // polarity
-               }
-               else {
-                  // Default (MK,MKL devices)
-                  type = String.format("PcrTable_T<%sInfo,%d>", getClassName(), infoTableIndex);
-               }
+               String type = expandTypePattern(pattern, pin, infoTableIndex, "ActiveHigh");
                writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
          }
@@ -879,7 +920,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    StringBuilder fHardwareDefinitions  = null;
    
    // Collects declarations of user objects for hardware.cpp
-   StringBuilder fHardwareDeclarations          = null;
+   StringBuilder fHardwareDeclarations = null;
    
    // Indicates that user objects were created for this peripheral
    boolean fCreatedUserDeclarations = false;
@@ -971,13 +1012,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * 
     * <i><b>Example:</b></i>
     * <pre>
-    *
-    *    //! Number of IRQs for hardware
-    *    static constexpr uint32_t irqCount  = 1;
     * 
     *    //! IRQ numbers for hardware
-    *    static constexpr IRQn_Type irqNums[]  = {
-    *       USB0_IRQn, };
+    *    static constexpr IRQn_Type irqNums[]  = ADC0_IRQS;
+    *
+    *    //! Number of IRQs for hardware
+    *    static constexpr uint32_t irqCount  = sizeofArray(irqNums);
     * </pre>
     * 
     * @param pinMappingHeaderFile   Where to write definitions

@@ -409,7 +409,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          for (PeripheralWithState p:peripheralWithStateList) {
             p.loadModels();
          }
-         repeatedItemMap.clear();
+         repeatedItemSet.clear();
          for (PeripheralWithState p:peripheralWithStateList) {
             p.instantiateAliases();
          }
@@ -2527,14 +2527,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /** Map used to prevent repeated items for iterated enums, templates etc */
-   private final HashSet<String> repeatedItemMap = new HashSet<String>();
+   private final HashSet<String> repeatedItemSet = new HashSet<String>();
 
    private int fActiveClockSelection;
 
    private ModelFactory fModelFactory;
    
    /**
-    * Check if item has already been generated in the C code.
+    * Check if item has already been generated in the C code.<br>
     * It is immediately added to the list of repeated items.
     * 
     * @param key Key used to identify item
@@ -2543,16 +2543,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return false if not already generated
     */
    public boolean addAndCheckIfRepeatedItem(String key) {
-      if (repeatedItemMap.contains(key)) {
+      if (repeatedItemSet.contains(key)) {
          return true;
       }
-      repeatedItemMap.add(key);
+      repeatedItemSet.add(key);
       return false;
    }
 
    /**
-    * Check if item has already been generated in the C code
-    * It is not added to the list of repeated items.
+    * Check if item has already been generated in the C code<br>
+    * It is <b>not</b> added to the list of repeated items.
     * 
     * @param key Key used to identify item
     * 
@@ -2560,7 +2560,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @return false if not already generated
     */
    public boolean checkIfRepeatedItem(String key) {
-      return repeatedItemMap.contains(key);
+      return repeatedItemSet.contains(key);
    }
 
    public void setActiveClockSelection(int index) {

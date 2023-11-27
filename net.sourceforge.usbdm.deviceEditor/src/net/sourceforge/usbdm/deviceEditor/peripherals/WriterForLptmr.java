@@ -37,14 +37,14 @@ public class WriterForLptmr extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
-      super.writeDeclarations();
-      writeSignalPcrDeclarations();
+   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      extractAllRegisterFields(dbPortPeripheral);
    }
 
    @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
+   protected void writeDeclarations() {
+      super.writeDeclarations();
+      writeSignalPcrDeclarations();
    }
 
 }

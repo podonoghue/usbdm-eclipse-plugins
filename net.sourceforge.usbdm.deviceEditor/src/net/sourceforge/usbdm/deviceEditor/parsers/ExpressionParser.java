@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
@@ -69,6 +70,18 @@ public class ExpressionParser {
    private Expression fListener;
 
    /**
+    * Peek at next character without advancing
+    * 
+    * @return Next character or null if at end of expression
+    */
+   private Character peek() {
+      if ((fIndex+1)>=fExpressionString.length()) {
+         return null;
+      }
+      return fExpressionString.charAt(fIndex+1);
+   }
+
+   /**
     * Get next character<br>
     * This first advances the character pointer.
     * 
@@ -80,6 +93,28 @@ public class ExpressionParser {
          return null;
       }
       return fExpressionString.charAt(fIndex);
+   }
+   
+   /**
+    * Unget character<br>
+    * 
+    * @return Character found or null if at end of buffer
+    * 
+    * @throws Exception
+    */
+   /**
+    * Unget character
+    * 
+    * @param ch   Character to return
+    * 
+    * @throws Exception on trying to unget too many characters
+    */
+   @SuppressWarnings("unused")
+   private void unGetCh() throws Exception {
+      if (fIndex == 0) {
+         throw new Exception("Ungetting too many characters");
+      }
+      fIndex--;
    }
    
    /**
@@ -143,18 +178,6 @@ public class ExpressionParser {
       return fIndex;
    }
    
-   /**
-    * Peek at next character without advancing
-    * 
-    * @return Next character or null if at end of expression
-    */
-   private Character peek() {
-      if ((fIndex+1)>=fExpressionString.length()) {
-         return null;
-      }
-      return fExpressionString.charAt(fIndex+1);
-   }
-
    /**
     * Parse a function argument from the opening '(' to closing ')
     * 
@@ -231,6 +254,13 @@ public class ExpressionParser {
          Pin pin = fProvider.getDeviceInfo().findPin(sArg.toString());
          return new BooleanNode(pin!=null);
       }
+      if ("Prettify".equalsIgnoreCase(functionName)) {
+         if (!(arg instanceof StringNode)) {
+            throw new Exception("Expected name to prettify (a string)");
+         }
+         StringNode sArg = (StringNode) arg;
+         return new PrettyNode(sArg);
+      }
       throw new Exception("Function not supported");
    }
    
@@ -254,14 +284,24 @@ public class ExpressionParser {
          forceEvaluate = true;
          ch = getNextCh();
       }
-      while(fIndex<fExpressionString.length()) {
-         ch = fExpressionString.charAt(fIndex);
-         if ((ch == '/') || Character.isJavaIdentifierPart(ch)) {
-            sb.append(ch);
-            getNextCh();;
-            continue;
+      if ((ch != null) && (Character.isJavaIdentifierStart(ch) || (ch == '/'))) {
+         // Valid start character
+         
+         while (ch != null) {
+            Character lookAhead = peek();
+            if ((ch == '/') && (lookAhead != null) && Character.isJavaIdentifierStart(lookAhead)) {
+               // Valid separator within name
+               sb.append(ch);
+            }
+            else if (Character.isJavaIdentifierPart(ch)) {
+               // Valid name character
+               sb.append(ch);
+            }
+            else {
+               break;
+            }
+            ch = getNextCh();
          }
-         break;
       }
       if (sb.length() == 0) {
          return null;
