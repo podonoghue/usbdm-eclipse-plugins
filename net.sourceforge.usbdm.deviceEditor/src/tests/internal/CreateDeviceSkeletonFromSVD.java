@@ -451,7 +451,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      <variableTemplate variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
-          "         \\t * Set %description\n" +
+          "         \\t * Clear %description\n" +
           "         \\t *\n" +
           "         \\tstatic void clear%(name)() {\n" +
           "         \\t   %register = %register|%mask;\n" +
@@ -673,31 +673,32 @@ public class CreateDeviceSkeletonFromSVD {
       
       String irqCallbackFunctionPtrMultiple =
             "\n"+
-            "   <template codeGenCondition=\"irqHandlingMethod\" >\n"                                                       +
-            "   <![CDATA[\n"                                                                                                +
+            "   <variableTemplate codeGenCondition=\"irqHandlingMethod\"\n"                                                +
+            "      variables=\"irq_enum\"\n"                                                                                +
+            "   ><![CDATA[\n"                                                                                                +
             "      \\t/** Callback function for ISR */\n"                                                                   +
             "      \\tstatic CallbackFunction sCallbacks[irqCount];\n"                                                      +
             "      \\t\n"                                                                                                   +
             "      \\t/**\n"                                                                                                +
             "      \\t * Set interrupt callback function.\n"                                                                +
             "      \\t *\n"                                                                                                 +
-            "      \\t * @param[in]  irqNum          Interrupt to configure\n"                                              +
-            "      \\t * @param[in]  $(_basename)Callback Callback function to execute on interrupt\n"                      +
+            "      %paramDescription\n"                                                                                     +
+            "      \\t * @param      $(_basename)Callback Callback function to execute on interrupt\n"                      +
             "      \\t *                             Use nullptr to remove callback.\n"                                     +
             "      \\t */\n"                                                                                                +
-            "      \\tstatic void setCallback(int irqNum, CallbackFunction $(_basename)Callback) {\n"                       +
+            "      \\tstatic void setCallback(%param0, CallbackFunction $(_basename)Callback) {\n"                          +
             "      \\t   if ($(_basename)Callback == nullptr) {\n"                                                          +
             "      \\t      $(_basename)Callback = unhandledCallback;\n"                                                    +
             "      \\t   }\n"                                                                                               +
             "      \\t   // Allow either no handler set yet or removing handler\n"                                          +
             "      \\t   usbdm_assert(\n"                                                                                   +
-            "      \\t         (sCallbacks[irqNum] == unhandledCallback) || ($(_basename)Callback == unhandledCallback),\n" +
+            "      \\t         (sCallbacks[%paramName0] == unhandledCallback) || ($(_basename)Callback == unhandledCallback),\n" +
             "      \\t         \"Handler already set\");\n"                                                                 +
-            "      \\t   sCallbacks[irqNum] = $(_basename)Callback;\n"                                                      +
+            "      \\t   sCallbacks[%paramName0] = $(_basename)Callback;\n"                                                 +
             "      \\t}\n"                                                                                                  +
             "      \\t\\n\n"                                                                                                +
             "   ]]>\n"                                                                                                      +
-            "   </template>\n"                                                                                              +
+            "   </variableTemplate>\n"                                                                                              +
             "\n"+
             "   <template key=\"/$(_BASENAME)/InitMethod\" discardRepeats=\"true\" codeGenCondition=\"irqHandlingMethod\" >\n"  +
             "   <![CDATA[\n"                                                               +
@@ -726,7 +727,8 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t */\n"                                                                                      +
             "      \\t$(_Class)Info::CallbackFunction $(_Class)Info::sCallbacks[] = {\\n\n"                       +
             "   ]]></template>\n"                                                                                 +
-            "   <for keys=\"ch\" dim=\"NumChannels\" >\n"                                                         +
+            "\n"+
+            "   <for keys=\"ch\" dim=\"=_irqCount\" >\n"                                                          +
             "      <template key=\"/HARDWARE/StaticObjects\" codeGenCondition=\"irqHandlingMethod\" ><![CDATA[\n" +
             "         \\t   $(_Class)Info::unhandledCallback,\\n\n"                                               +
             "      ]]></template>\n"                                                                              +
@@ -752,7 +754,6 @@ public class CreateDeviceSkeletonFromSVD {
       }
       
       final String open_init_class =
-         "\n" +
          "   <!--   ========== %s Init class =============================== -->\n" +
          "\n" +
          "   <template namespace=\"baseClass\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\" >\n" +
@@ -780,7 +781,7 @@ public class CreateDeviceSkeletonFromSVD {
          "      \\t * static const $(_Class)::Init $(_name)Init {\n" +
          "      \\t *\n" +
          "      \\t *   // Setup values\n" +
-         "XXXXXXXXXXXXXXXXXXXXXX" +
+         "XXXXXXXXXXXXXXXXXXXXXX\n" +
          "      \\t *\n" +
          "      \\t *   $(_name)Callback,                 // Call-back to execute on event - call-back function name\n" +
          "      \\t *   NvicPriority_Low,                 // Priority for interrupt - Low\n" +
@@ -909,7 +910,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t    *\n" +
             "      \\t    * @tparam   Types\n" +
             "      \\t    * @param    rest\n" +
-            "      \\t    * \n" +
+            "      \\t    *\n" +
             "      %paramDescription\n" +
             "      \\t    */\n" +
             "      \\t   template <typename... Types>\n" +
@@ -928,7 +929,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t    *\n" +
             "      \\t    * @tparam   Types\n" +
             "      \\t    * @param    rest\n" +
-            "      \\t    * \n" +
+            "      \\t    *\n" +
             "      %paramDescription\n" +
             "      \\t    */\n" +
             "      \\t   template <typename... Types>\n" +
@@ -1338,6 +1339,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ICS",
 //         "IRQ",
 //         "I2C",
+         "I2S",
 //         "KBI",
 //         "LPTMR",
 //         "LLWU",
@@ -1360,7 +1362,7 @@ public class CreateDeviceSkeletonFromSVD {
 
 //         "VREF",
 //         "USB",
-         "USBDCD",
+//         "USBDCD",
 //         "WDOG",
    };
    

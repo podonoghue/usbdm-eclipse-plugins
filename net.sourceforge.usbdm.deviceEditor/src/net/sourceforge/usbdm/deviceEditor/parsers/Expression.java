@@ -1548,6 +1548,9 @@ public class Expression implements IModelChangeListener {
       fExpressionStr = expression;
       fVarProvider   = provider;
       fMode          = mode;
+//      if (expression.contains("_irqCount+1")) {
+//         System.err.println("Found it "+toString());
+//      }
    }
 
    /**
@@ -1909,6 +1912,9 @@ public class Expression implements IModelChangeListener {
       if (expression == null) {
          return true;
       }
+//      if (expression.contains("/I2S0/_irqCount")) {
+//         System.err.println("Found it "+expression);
+//      }
       Expression exp = new Expression(expression, provider, Mode.CheckIdentifierExistance);
       try {
          return (Boolean) exp.getValue();
@@ -2010,7 +2016,7 @@ public class Expression implements IModelChangeListener {
 
    @Override
    public String toString() {
-      return "Expression("+fExpressionStr+")";
+      return "Expression("+fExpressionStr+", "+fMode+", "+fVarProvider+")";
    }
 
 }

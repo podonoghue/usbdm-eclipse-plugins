@@ -367,15 +367,19 @@ public class ExpressionParser {
       }
       key = fProvider.makeKey(key);
       
-      if (fMode == Mode.CheckIdentifierExistance) {
-         if (!forceEvaluate) {
-            String varKey = key;
-            if (index != null) {
-               varKey = varKey + "[0]";
-            }
-            Variable var = fProvider.safeGetVariable(varKey);
-            return new BooleanNode(var != null);
+//      if (key.contains("/I2S0/_irqCount")) {
+//         System.err.println("Found it "+key);
+//      }
+      if (!forceEvaluate) {
+         String varKey = key;
+         if (index != null) {
+            varKey = varKey + "[0]";
          }
+         Variable var = fProvider.safeGetVariable(varKey);
+//         if (key.contains("_irqCount")) {
+//            System.err.println("Found it "+key);
+//         }
+         return new BooleanNode(var != null);
       }
       return Expression.VariableNode.create(fListener, key, modifier, index);
 //      switch(fMode) {
