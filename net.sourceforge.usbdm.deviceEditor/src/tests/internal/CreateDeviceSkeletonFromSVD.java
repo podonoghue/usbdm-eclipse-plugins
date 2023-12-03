@@ -1339,7 +1339,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ICS",
 //         "IRQ",
 //         "I2C",
-         "I2S",
+//         "I2S",
 //         "KBI",
 //         "LPTMR",
 //         "LLWU",
@@ -1363,7 +1363,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "VREF",
 //         "USB",
 //         "USBDCD",
-//         "WDOG",
+         "WDOG",
    };
    
    static boolean doThisPeripheral(String name) {
@@ -1401,7 +1401,7 @@ public class CreateDeviceSkeletonFromSVD {
    }
 
    public static void main(String[] args) throws Exception {
-//      doAllPeripherals("FRDM_KE04Z");
+//      doAllPeripherals("FRDM_KE04Z", "mke");
 //      doAllPeripherals("FRDM_KE06Z");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");

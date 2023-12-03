@@ -54,11 +54,16 @@ public class ObservableModel implements ObservableModelInterface {
    
    @Override
    public void notifyListeners(Object origin) {
-      for (IModelChangeListener listener:fListeners) {
+      ArrayList<IModelChangeListener> cp = new ArrayList<IModelChangeListener>();
+      cp.addAll(fListeners);
+      for (IModelChangeListener listener:cp) {
          if (listener != origin) {
             listener.modelElementChanged(this);
          }
       }
+//      if (cp.size() != fListeners.size()) {
+//         System.err.println("List changed");
+//      }
       fRefreshPending = false;
    }
    

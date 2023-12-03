@@ -182,7 +182,7 @@ public class AddTargetFiles {
    }
 
    /**
-    * Create link to file.  
+    * Create link to file.
     * Attempts to make it relative to usbdm_resource_path or usbdm_kds_path path variables
     * 
     * @param sourcePath    Path of source. May start with path variable
@@ -253,7 +253,7 @@ public class AddTargetFiles {
          target = varPlugin.getStringVariableManager().performStringSubstitution(target, false);
       }
       /*
-       * Make source path absolute if necessary 
+       * Make source path absolute if necessary
        */
       Path sourcePath = Paths.get(source);
       if (fileInfo.getSourcePathType() == PathType.RELATIVE) {
