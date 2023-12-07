@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -46,9 +47,9 @@ public class WriterForFtm extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       
       for (int index=0; index<fInfoTable.table.size(); index++) {
          if (index>7) {
@@ -74,10 +75,10 @@ public class WriterForFtm extends PeripheralWithState {
          String type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          String constType = "const "+ type;
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, constType, trailingComment);
+            writeVariableDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, constType, trailingComment);
          }
          else {
-            writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
+            writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
          }
       }
       
@@ -102,9 +103,9 @@ public class WriterForFtm extends PeripheralWithState {
          String cIdentifier = makeCIdentifier(cIdentifierPhaseA);
          String type = String.format("FtmQuadDecoder"+getInstance());
          String constType = "const "+ type;
-         writeTypeDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, trailingComment);
+         writeTypeDeclaration(hardwareDeclarationInfo, "", signalPhaseA.getUserDescription(), cIdentifier, type, trailingComment);
          if (signalPhaseA.getCreateInstance() || signalPhaseB.getCreateInstance()) {
-            writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, constType, trailingComment);
+            writeVariableDeclaration(hardwareDeclarationInfo, "", signalPhaseA.getUserDescription(), cIdentifier, constType, trailingComment);
          }
          } while (false);
       }

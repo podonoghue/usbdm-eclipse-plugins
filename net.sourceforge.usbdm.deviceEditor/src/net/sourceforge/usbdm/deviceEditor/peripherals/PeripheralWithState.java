@@ -800,7 +800,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             String name = cluster.getName().split(",")[0].replace("%s", "");
             String key = makeKey(getBaseName().toLowerCase()+"_"+name.toLowerCase()+"_dim");
             addOrIgnoreParam(key, cluster.getDimension());
-            System.err.println("Cluster = "+ name+"["+cluster.getDimension()+"]");
+//            System.err.println("Cluster = "+ name+"["+cluster.getDimension()+"]");
          }
          for(Cluster cl:cluster.getRegisters()) {
             extractClusterRegisterFields(cl);

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -42,9 +43,9 @@ public class WriterForLptmr extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
-      super.writeDeclarations();
-      writeSignalPcrDeclarations();
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
+      super.writeDeclarations(hardwareDeclarationInfo);
+      writeSignalPcrDeclarations(hardwareDeclarationInfo);
    }
 
 }

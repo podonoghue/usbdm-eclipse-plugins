@@ -10,6 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -46,9 +47,9 @@ public class WriterForTsi extends PeripheralWithState {
     * @throws IOException
     */
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
 
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       
       String enumName    = "TsiInput_";
       String commentRoot = "///< ";
@@ -86,7 +87,7 @@ public class WriterForTsi extends PeripheralWithState {
             if (!cIdentifier.isBlank()) {
                inputIdentifier =  enumName+cIdentifier;
                String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
-               writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
+               writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping

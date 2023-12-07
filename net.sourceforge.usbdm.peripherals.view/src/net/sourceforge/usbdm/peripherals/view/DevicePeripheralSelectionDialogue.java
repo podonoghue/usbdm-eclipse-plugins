@@ -1,6 +1,6 @@
 /*
 ===============================================================================================================
-| History                                                                                                      
+| History
 ---------------------------------------------------------------------------------------------------------------
 | 19 Jan 2015 | New format device selection                                                       | V4.10.6.250
 ===============================================================================================================
@@ -101,7 +101,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       Image image = imageCache.get(imageId);
       if ((Activator.getDefault() != null) && (image == null)) {
          ImageDescriptor imageDescriptor  = Activator.getImageDescriptor(imageId);
-         image = resManager.createImage(imageDescriptor);
+         image = resManager.create(imageDescriptor);
          imageCache.put(imageId, image);
       }
       return image;
@@ -188,7 +188,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       /*
        * Create Internal group
        */
-      grpInternal = new Group(container, SWT.NONE);     
+      grpInternal = new Group(container, SWT.NONE);
       grpInternal.setText("Internal SVD Files");
       grpInternal.setLayout(new GridLayout(3, false));
       grpInternal.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -304,7 +304,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       btnFileBrowse.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
-            final String[] filterExts = {"*.svd;*.xml"}; 
+            final String[] filterExts = {"*.svd;*.xml"};
             FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
             fd.setText("Locate SVD file describing device");
             fd.setFilterPath(txtFilePath.getText());
@@ -433,4 +433,4 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
    public SVDIdentifier getSVDId() {
       return fSvdIdentifier;
    }
-} 
+}

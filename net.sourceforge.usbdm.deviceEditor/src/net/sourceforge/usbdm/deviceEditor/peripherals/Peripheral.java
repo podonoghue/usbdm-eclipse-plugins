@@ -2,9 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -29,6 +27,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -426,7 +425,18 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (getIrqCount()>0) {
          documentUtilities.writeParam("/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
       }
-      
+      if (getIrqNums() != null) {
+         StringBuilder sb = new StringBuilder();
+         boolean needSeparator = false;
+         for (String irqNum:getIrqNums()) {
+            if (needSeparator) {
+               sb.append(";");
+            }
+            sb.append(irqNum);
+            needSeparator = true;
+         }
+         documentUtilities.writeParam("/"+getName()+"/_irqNums", "StringVariable", sb.toString());
+      }
       if (this instanceof PeripheralWithState) {
          PeripheralWithState pws = (PeripheralWithState) this;
          if (pws.isPcrTableNeeded()) {
@@ -655,7 +665,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
    
    /**
-    *  Write variable declaration
+    *  Write variable declaration to hardwareDeclarationInfo.hardwareDeclarations
     * 
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>}
@@ -669,19 +679,19 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param args             Arguments for declaration
     * @param trailingComment  Trailing comment
     */
-   protected void writeVariableDeclaration(String error, String description, String cIdentifier, String cType, String args, String trailingComment) {
+   protected void writeVariableDeclaration(HardwareDeclarationInfo hardwareDeclarationInfo, String error, String description, String cIdentifier, String cType, String args, String trailingComment) {
       cIdentifier = makeCVariableIdentifier(cIdentifier);
-      boolean isRepeated = !fUsedNames.add(cIdentifier);
-      fHardwareDeclarations.append("\n");
+      boolean isRepeated = !hardwareDeclarationInfo.usedIdentifiers.add(cIdentifier);
+      hardwareDeclarationInfo.hardwareDeclarations.append("\n");
       if (!description.isBlank()) {
-         fHardwareDeclarations.append("/// " + description + "\n");
+         hardwareDeclarationInfo.hardwareDeclarations.append("/// " + description + "\n");
          if (error.isBlank()) {
-            fHardwareDefinitions.append("/// " + description + "\n");
+            hardwareDeclarationInfo.hardwareDeclarations.append("/// " + description + "\n");
          }
       }
       
       if (!error.isBlank()) {
-         fHardwareDeclarations.append("#error \"" + error + "\"\n");
+         hardwareDeclarationInfo.hardwareDeclarations.append("#error \"" + error + "\"\n");
       }
       
       if (!trailingComment.isBlank()) {
@@ -691,14 +701,14 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          args = "{"+args+"}";
       }
       setHardwareIncludeFile();
-      fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"extern " + cType, cIdentifier+";", trailingComment));
+      hardwareDeclarationInfo.hardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"extern " + cType, cIdentifier+";", trailingComment));
       if (error.isBlank()) {
-         fHardwareDefinitions.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+args+";", trailingComment));
+         hardwareDeclarationInfo.hardwareDefinitions.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+cType, cIdentifier+args+";", trailingComment));
       }
    }
    
    /**
-    *  Write variable declaration
+    *  Write variable declaration to hardwareDeclarationInfo.hardwareDeclarations
     * 
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>}
@@ -711,12 +721,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param cType            C Type to use
     * @param trailingComment  Trailing comment
     */
-   protected void writeVariableDeclaration(String error, String description, String cIdentifier, String cType, String trailingComment) {
-      writeVariableDeclaration(error, description, cIdentifier, cType, "",  trailingComment);
+   protected void writeVariableDeclaration(HardwareDeclarationInfo hardwareDeclarationInfo, String error, String description, String cIdentifier, String cType, String trailingComment) {
+      writeVariableDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, cType, "",  trailingComment);
    }
    
    /**
-    *  Write type declaration
+    *  Write type declaration to hardwareDeclarationInfo.hardwareDeclarations
     * 
     *  <pre> {} = optional
     *  {/// <i><b>description</b></i>}
@@ -729,28 +739,28 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param cType            C Type to use
     * @param trailingComment  Trailing comment
     */
-   protected void writeTypeDeclaration(String error, String description, String cIdentifier, String cType, String trailingComment) {
+   protected void writeTypeDeclaration(HardwareDeclarationInfo hardwareDeclarationInfo, String error, String description, String cIdentifier, String cType, String trailingComment) {
       cIdentifier = makeCTypeIdentifier(cIdentifier);
-      boolean isRepeated = !fUsedNames.add(cIdentifier);
+      boolean isRepeated = !hardwareDeclarationInfo.usedIdentifiers.add(cIdentifier);
       
-      fHardwareDeclarations.append("\n");
+      hardwareDeclarationInfo.hardwareDeclarations.append("\n");
       if (!description.isBlank()) {
-         fHardwareDeclarations.append("/// " + description + "\n");
+         hardwareDeclarationInfo.hardwareDeclarations.append("/// " + description + "\n");
       }
       
       if (!error.isBlank()) {
-         fHardwareDeclarations.append("#error \"" + error + "\"\n");
+         hardwareDeclarationInfo.hardwareDeclarations.append("#error \"" + error + "\"\n");
       }
       
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
       setHardwareIncludeFile();
-      fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"typedef "+cType, cIdentifier+";", trailingComment));
+      hardwareDeclarationInfo.hardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"typedef "+cType, cIdentifier+";", trailingComment));
    }
    
    /**
-    * Write declarations for this peripheral e.g.
+    * Write declarations to hardwareDeclarationInfo.hardwareDeclarations for this peripheral e.g.
     * <pre>
     * // UserDescription
     * extern const <i><b>className</b></i> codeIdentifier;
@@ -760,10 +770,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * 
     * @param className  Class name to use in creating declarations and definitions
+    * @param hardwareDeclarationInfo
     * 
     * @return true if a declaration or definition was created
     */
-   protected void writeDefaultPeripheralDeclaration(String className) {
+   protected void writeDefaultPeripheralDeclaration(HardwareDeclarationInfo hardwareDeclarationInfo, String className) {
       // Default action is to create a declaration for the device itself
       if (getCodeIdentifier().isBlank()) {
          return;
@@ -792,29 +803,29 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             description = desc[index];
          }
          if (getCreateInstance()) {
-            writeVariableDeclaration("", description, cId, cConstType, "");
+            writeVariableDeclaration(hardwareDeclarationInfo, "", description, cId, cConstType, "");
          }
          else {
-            writeTypeDeclaration("", description, cId, cType, "");
+            writeTypeDeclaration(hardwareDeclarationInfo, "", description, cId, cType, "");
          }
          index++;
       }
    }
 
-   protected void writeConstexprValue(String description, String cIdentifier, String cType, String cValue, String trailingComment) {
+   protected void writeConstexprValue(HardwareDeclarationInfo hardwareDeclarationInfo, String description, String cIdentifier, String cType, String cValue, String trailingComment) {
       cIdentifier = makeCTypeIdentifier(cIdentifier);
-      boolean isRepeated = !fUsedNames.add(cIdentifier);
+      boolean isRepeated = !hardwareDeclarationInfo.usedIdentifiers.add(cIdentifier);
       
-      fHardwareDeclarations.append("\n");
+      hardwareDeclarationInfo.hardwareDeclarations.append("\n");
       if (!description.isBlank()) {
-         fHardwareDeclarations.append("/// " + description + "\n");
+         hardwareDeclarationInfo.hardwareDeclarations.append("/// " + description + "\n");
       }
       
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
       setHardwareIncludeFile();
-      fHardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"constexpr "+cType, cIdentifier+" = "+cValue+";", trailingComment));
+      hardwareDeclarationInfo.hardwareDeclarations.append(String.format("%-60s %-45s %s\n", (isRepeated?"// ":"")+"constexpr "+cType, cIdentifier+" = "+cValue+";", trailingComment));
    }
    
    /**
@@ -853,7 +864,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * using Clkout  = PcrTable_T&lt;ControlInfo,10&gt;;  // PTC3 ()
     * </pre>
     */
-   protected void writeSignalPcrDeclarations() {
+   protected void writeSignalPcrDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       String pattern = null;
 
       // Check for explicit pattern from peripheral XML
@@ -886,14 +897,14 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
             if (!cIdentifier.isBlank()) {
                String type = expandTypePattern(pattern, pin, infoTableIndex, "ActiveHigh");
-               writeTypeDeclaration("", signal.getUserDescription(), cIdentifier, type, trailingComment);
+               writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
             }
          }
       }
    }
 
    /**
-    * Write declarations for variables and types associated with this peripheral e.g.
+    * Write declarations to hardwareDeclarationInfo.hardwareDeclarations for variables and types associated with this peripheral e.g.
     * <pre>
     * // An example peripheral
     * using MyAdc = <i><b>Adc1</b></i>;
@@ -905,28 +916,29 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * Default action is to create a declaration for the device itself.<br>
     * Overridden in some peripherals to add declarations for signals
+    * @param hardwareDeclarationInfo
     * @throws Exception
     */
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       // Default action is to create a declaration for the device itself
-      writeDefaultPeripheralDeclaration(getClassName());
+      writeDefaultPeripheralDeclaration(hardwareDeclarationInfo, getClassName());
    }
 
-   // Used by by peripheral to record shared information when generating user objects
-   // Prevent re-use of C identifiers
-   Set<String>   fUsedNames            = null;
-   
-   // Collects definitions of user objects for hardware.cpp
-   StringBuilder fHardwareDefinitions  = null;
-   
-   // Collects declarations of user objects for hardware.cpp
-   StringBuilder fHardwareDeclarations = null;
-   
-   // Indicates that user objects were created for this peripheral
+//   // Used by by peripheral to record shared information when generating user objects
+//   // Prevent re-use of C identifiers
+//   Set<String>   hardwareDeclarationInfo.usedIdentifiers            = null;
+//
+//   // Collects definitions of user objects for hardware.cpp
+//   StringBuilder hardwareDeclarationInfo.hardwareDeclarations  = null;
+//
+//   // Collects declarations of user objects for hardware.cpp
+//   StringBuilder hardwareDeclarationInfo.hardwareDeclarations = null;
+//
+//   // Indicates that user objects were created for this peripheral
    boolean fCreatedUserDeclarations = false;
    
    /**
-    * Create declarations for variables and types associated with this peripheral e.g.
+    * Create declarations in hardware.h file for variables and types associated with this peripheral e.g.
     * <pre>
     * // An example peripheral
     * using MyAdc = const <i><b>Adc1</b></i>;
@@ -944,26 +956,23 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @throws Exception
     */
    final synchronized void createDeclarations(
-         Set<String>       usedIdentifiers,
-         HashSet<String>   hardwareIncludeFiles,
-         StringBuilder     hardwareDeclarations,
-         StringBuilder     hardwareDefinitions) {
+         HardwareDeclarationInfo hardwareDeclarationInfo) {
       
       // Used by by peripheral to record shared information for hardware file
-      fUsedNames                 = usedIdentifiers;
-      fHardwareDeclarations      = hardwareDeclarations;
-      fHardwareDefinitions       = hardwareDefinitions;
+//      hardwareDeclarationInfo.usedIdentifiers                 = hardwareDeclarationInfo.usedIdentifiers;
+//      hardwareDeclarationInfo.hardwareDeclarations      = hardwareDeclarationInfo.hardwareDeclarations;
+//      hardwareDeclarationInfo.hardwareDeclarations       = hardwareDeclarationInfo.hardwareDefinitions;
       fCreatedUserDeclarations   = false;
       
       Variable signalVar = safeGetVariable(makeKey("_signals"));
       if ((signalVar != null) &&  !signalVar.isEnabled()) {
          return;
       }
-      writeDeclarations();
+      writeDeclarations(hardwareDeclarationInfo);
       
       if (fCreatedUserDeclarations) {
          // Need include file in hardware.cpp since peripheral is referenced in generated code
-         hardwareIncludeFiles.add("#include \"" + getBaseName().toLowerCase()+".h\"");
+         hardwareDeclarationInfo.hardwareIncludeFiles.add("#include \"" + getBaseName().toLowerCase()+".h\"");
       }
    }
    

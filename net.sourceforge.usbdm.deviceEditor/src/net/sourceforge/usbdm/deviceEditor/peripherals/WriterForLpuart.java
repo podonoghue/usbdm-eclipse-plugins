@@ -23,12 +23,6 @@ public class WriterForLpuart extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
-      
-      super.writeDeclarations();
-   }
-   
-   @Override
    public String getTitle() {
       return "Low Power Universal Asynchronous Receiver/Transmitter";
    }

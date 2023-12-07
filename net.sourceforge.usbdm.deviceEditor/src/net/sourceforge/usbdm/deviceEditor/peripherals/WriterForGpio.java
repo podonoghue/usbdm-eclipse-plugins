@@ -19,6 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Cluster;
 import net.sourceforge.usbdm.peripheralDatabase.Field;
@@ -188,10 +189,10 @@ public class WriterForGpio extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
 
       if (!getCodeIdentifier().isBlank()) {
-         writeDefaultPeripheralDeclaration("Port"+getInstance());
+         writeDefaultPeripheralDeclaration(hardwareDeclarationInfo, "Port"+getInstance());
       }
 
       // Information about each unique identifier in GPIO
@@ -276,10 +277,10 @@ public class WriterForGpio extends PeripheralWithState {
             String type = expandTypePattern(gpioPattern, pin, 0, polarity);
             String constType = "const "+ type;
             if (signal.getCreateInstance()) {
-               writeVariableDeclaration("", pinDescription, mainIdentifier, constType, trailingComment);
+               writeVariableDeclaration(hardwareDeclarationInfo, "", pinDescription, mainIdentifier, constType, trailingComment);
             }
             else {
-               writeTypeDeclaration("", pinDescription, mainIdentifier, type, trailingComment);
+               writeTypeDeclaration(hardwareDeclarationInfo, "", pinDescription, mainIdentifier, type, trailingComment);
             }
          }
          else {
@@ -332,10 +333,10 @@ public class WriterForGpio extends PeripheralWithState {
             type = type.replace("%p", polarity);                                 // polarity
             String constType = "const "+ type;
             if (gpioPinInformation.getCreateInstance()) {
-               writeVariableDeclaration(error, fieldDescription, mainIdentifier, constType, trailingComment);
+               writeVariableDeclaration(hardwareDeclarationInfo, error, fieldDescription, mainIdentifier, constType, trailingComment);
             }
             else {
-               writeTypeDeclaration(error, fieldDescription, mainIdentifier, type, trailingComment);
+               writeTypeDeclaration(hardwareDeclarationInfo, error, fieldDescription, mainIdentifier, type, trailingComment);
             }
          }
       }

@@ -26,6 +26,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -113,9 +114,9 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
     * @throws IOException
     */
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       
       String enumName    = getClassName()+"Pin";
       String commentRoot = "///< ";
@@ -163,10 +164,10 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
             String constType = "const "+ type;
             if (signal.getCreateInstance()) {
-               writeVariableDeclaration("", description, cIdentifier, constType, getPinMode(signal).toString(), pin.getNameWithLocation());
+               writeVariableDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, constType, getPinMode(signal).toString(), pin.getNameWithLocation());
             }
             else {
-               writeTypeDeclaration("", description, cIdentifier, type, pin.getNameWithLocation());
+               writeTypeDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, type, pin.getNameWithLocation());
             }
             String enumIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
             boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);

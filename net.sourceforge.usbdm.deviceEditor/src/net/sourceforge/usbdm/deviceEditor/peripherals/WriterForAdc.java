@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -57,7 +58,7 @@ public class WriterForAdc extends PeripheralWithState {
     * 
     * @param infoTable
     */
-   private void writeSingleEndedDeclarations(InfoTable infoTable) {
+   private void writeSingleEndedDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo, InfoTable infoTable) {
 
       // Single-ended channels
       for (int index=0; index<infoTable.table.size(); index++) {
@@ -90,10 +91,10 @@ public class WriterForAdc extends PeripheralWithState {
          String[] cIdentifiers = cIdentifier.split("/");
          for (String cIdent:cIdentifiers) {
             if (signal.getCreateInstance()) {
-               writeVariableDeclaration("", description, cIdent, constType, trailingComment);
+               writeVariableDeclaration(hardwareDeclarationInfo, "", description, cIdent, constType, trailingComment);
             }
             else {
-               writeTypeDeclaration("", description, cIdent, type, trailingComment);
+               writeTypeDeclaration(hardwareDeclarationInfo, "", description, cIdent, type, trailingComment);
             }
          }
       }
@@ -104,7 +105,7 @@ public class WriterForAdc extends PeripheralWithState {
     * 
     * @param infoTable
     */
-   private void writeDifferentialDeclarations(InfoTable dpInfoTable, InfoTable dmInfoTable) {
+   private void writeDifferentialDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo, InfoTable dpInfoTable, InfoTable dmInfoTable) {
 
       // Differential channels (including Pga) - recognised by having the same code name for DP and DM
       for (int index=0; index<dpInfoTable.table.size(); index++) {
@@ -158,24 +159,24 @@ public class WriterForAdc extends PeripheralWithState {
          }
          String constType = "const "+ type;
          if (dpSignal.getCreateInstance() || dmSignal.getCreateInstance()) {
-            writeVariableDeclaration(error, description, cIdentifier, constType, trailingComment);
+            writeVariableDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, constType, trailingComment);
          }
          else {
-            writeTypeDeclaration(error, description, cIdentifier, type, trailingComment);
+            writeTypeDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, type, trailingComment);
          }
       }
    }
 
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
 
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
 
       // Single-ended channels (including Pga recognised by having no code name DM)
-      writeSingleEndedDeclarations(fInfoTable);
+      writeSingleEndedDeclarations(hardwareDeclarationInfo, fInfoTable);
 
       // Differential channels (including Pga recognised by having the same code name for DP and DM)
-      writeDifferentialDeclarations(fDpFunctions, fDmFunctions);
+      writeDifferentialDeclarations(hardwareDeclarationInfo, fDpFunctions, fDmFunctions);
    }
 
    @Override

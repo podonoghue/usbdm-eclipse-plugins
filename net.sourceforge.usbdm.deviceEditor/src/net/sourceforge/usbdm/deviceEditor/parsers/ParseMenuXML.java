@@ -900,7 +900,10 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          // Existing variable to be modified - must be same class
          if (!existingVariable.getClass().equals(clazz)) {
-            throw new Exception("Overridden variable\n   "+existingVariable.toString()+" has wrong type");
+            throw new Exception(
+                  "Overridden variable\n"
+                  + "   "+existingVariable.toString()+" is has different type to \n"
+                  + "     new type = " + clazz.getSimpleName());
          }
          if (!modify) {
             throw new Exception("Overriding variable without 'modify' attribute '" + existingVariable.getKey() +"'");

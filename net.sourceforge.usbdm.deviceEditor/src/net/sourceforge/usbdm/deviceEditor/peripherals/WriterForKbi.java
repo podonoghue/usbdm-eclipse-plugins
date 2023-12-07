@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -47,9 +48,9 @@ public class WriterForKbi extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       
       for (int index=0; index<fInfoTable.table.size(); index++) {
          Signal signal = fInfoTable.table.get(index);
@@ -69,7 +70,7 @@ public class WriterForKbi extends PeripheralWithState {
          }
          String trailingComment  = pin.getNameWithLocation();
          String type = "Kbi"+getInstance()+"PinIndex";
-         writeConstexprValue(signal.getUserDescription(), cIdentifier, type, type+"("+index+")", trailingComment);
+         writeConstexprValue(hardwareDeclarationInfo, signal.getUserDescription(), cIdentifier, type, type+"("+index+")", trailingComment);
       }
    }
 

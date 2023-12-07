@@ -1,6 +1,6 @@
 /*
 ===============================================================================================================
-| History                                                                                                      
+| History
 ---------------------------------------------------------------------------------------------------------------
 | 19 Jan 2015 | Moved byte sex code to gdbInterface                                               | V4.10.6.250
 ===============================================================================================================
@@ -44,7 +44,7 @@ import org.eclipse.swt.widgets.Text;
  * @author podonoghue
  *
  */
-public class FaultDialogue extends TitleAreaDialog {  
+public class FaultDialogue extends TitleAreaDialog {
 
    private final long CFSR_ADDRESS  = 0xE000ED28L;
    private final long HFSR_ADDRESS  = 0xE000ED2CL;
@@ -69,10 +69,10 @@ public class FaultDialogue extends TitleAreaDialog {
    private long icsr;
    private long stackedPC;
    private long stackedLR;
-   private long stackedR0; 
-   private long stackedR1; 
-   private long stackedR2; 
-   private long stackedR3; 
+   private long stackedR0;
+   private long stackedR1;
+   private long stackedR2;
+   private long stackedR3;
    private long stackedR12;
    private long R4;
    private long R5;
@@ -127,7 +127,7 @@ public class FaultDialogue extends TitleAreaDialog {
       Image image = imageCache.get(imageId);
       if ((Activator.getDefault() != null) && (image == null)) {
          ImageDescriptor imageDescriptor  = Activator.getImageDescriptor(imageId);
-         image = resManager.createImage(imageDescriptor);
+         image = resManager.create(imageDescriptor);
          imageCache.put(imageId, image);
       }
       return image;
@@ -138,7 +138,7 @@ public class FaultDialogue extends TitleAreaDialog {
       IDMContext idmContext = null;
       IAdaptable debugContext = DebugUITools.getDebugContext();
       if (debugContext != null) {
-         idmContext = (IDMContext)debugContext.getAdapter(IDMContext.class);
+         idmContext = debugContext.getAdapter(IDMContext.class);
       }
       return idmContext;
    }
@@ -174,7 +174,7 @@ public class FaultDialogue extends TitleAreaDialog {
 //
 //      fGdb.queueCommand(factory.createMIThreadInfo(commandControlDMContext, "1"),
 //            new DataRequestMonitor<MIThreadInfoInfo>(fGdb.getExecutor(), drm));
-//      
+//
 //      MIThreadInfoInfo data = drm.getData();
 //      MIThread[] threads = data.getThreadList();
 //      for (MIThread thread:threads) {
@@ -188,9 +188,9 @@ public class FaultDialogue extends TitleAreaDialog {
       try {
          // Get hardware registers
          cfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(CFSR_ADDRESS,  4, 32));
-         hfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(HFSR_ADDRESS,  4, 32)); 
+         hfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(HFSR_ADDRESS,  4, 32));
          dfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(DFSR_ADDRESS,  4, 32));
-         mmfar = gdbInterface.getValue32bit(gdbInterface.readMemory(MMFAR_ADDRESS, 4, 32)); 
+         mmfar = gdbInterface.getValue32bit(gdbInterface.readMemory(MMFAR_ADDRESS, 4, 32));
          bfar  = gdbInterface.getValue32bit(gdbInterface.readMemory(BFAR_ADDRESS,  4, 32));
          icsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(ICSR_ADDRESS,  4, 32));
 
@@ -209,7 +209,7 @@ public class FaultDialogue extends TitleAreaDialog {
                   floatingFrameValid  = true;
                   break;
                case 0xF1: // Handler mode, Main
-               case 0xF9: // Thread mode, Main 
+               case 0xF9: // Thread mode, Main
                   exceptionFrameValid = true;
                   break;
                case 0xED: // Thread mode, Process + FP Extended frame
@@ -351,7 +351,7 @@ public class FaultDialogue extends TitleAreaDialog {
 
    /**
     * Creates a pair of labels which are added to the given parent:
-    *   - text 
+    *   - text
     *   - value as 8-digit hex value
     * 
     * @param parent
@@ -372,7 +372,7 @@ public class FaultDialogue extends TitleAreaDialog {
    /**
     * @param parent
     * 
-    * @return 
+    * @return
     */
    protected Composite createRegistersGroup(Composite parent) {
       
@@ -394,7 +394,7 @@ public class FaultDialogue extends TitleAreaDialog {
       if (!exceptionFrameValid) {
          Label label = new Label(registersGroup, SWT.NONE);
          label.setText("No exception active");
-         return container; 
+         return container;
       }
       
       Control control = null;
@@ -604,7 +604,7 @@ public class FaultDialogue extends TitleAreaDialog {
    
    /**
     *  Usage faults
-    *  
+    * 
     * @param container
     * @return
     */
@@ -792,7 +792,7 @@ public class FaultDialogue extends TitleAreaDialog {
    }
    
    /**
-    * Faults group 
+    * Faults group
     * 
     * @param parent
     * @return
@@ -800,7 +800,7 @@ public class FaultDialogue extends TitleAreaDialog {
    protected Composite createFaultGroups(Composite parent) {
       
       Composite container = new Composite(parent, SWT.FILL);
-//      
+//
       GridLayout gridLayout = new GridLayout(2, false);
       container.setLayout(gridLayout);
       

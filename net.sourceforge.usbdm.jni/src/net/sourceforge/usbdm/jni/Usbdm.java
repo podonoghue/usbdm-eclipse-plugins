@@ -45,8 +45,9 @@ public class Usbdm {
          jtagBufferSize     = jtag;
       }
       
+      @Override
       public String toString() {
-         return 
+         return
          String.format("  bdmSWVer     = 0x%02X,\n", BDMsoftwareVersion)+
          String.format("  bdmHWVer     = 0x%02X,\n", BDMhardwareVersion)+
          String.format("  icpSWVer     = 0x%02X,\n", ICPsoftwareVersion)+
@@ -123,6 +124,7 @@ public class Usbdm {
          }
          return BDM_TARGET_VDD_OFF;
       }
+      @Override
       public String toString() {
          return legibleName;
       }
@@ -143,7 +145,7 @@ public class Usbdm {
       ;
       private final int    mask;          // Value used by USBDM interface
       private final String optionName;    // Name of option - also used in XML
-      private final String legibleName;   // Visible name of option 
+      private final String legibleName;   // Visible name of option
 
       /**
        * @param mask          // Value used by USBDM JNI interface
@@ -228,6 +230,7 @@ public class Usbdm {
       /**
        * Get Legible name for Erase method
        */
+      @Override
       public String toString() {
          return legibleName;
       }
@@ -382,6 +385,7 @@ public class Usbdm {
       /**
        * Get Legible name for Erase method
        */
+      @Override
       public String toString() {
          return legibleName;
       }
@@ -502,6 +506,7 @@ public class Usbdm {
       public String getLegibleName() {
          return legibleName;
       }
+      @Override
       public String toString() {
          return legibleName;
       }
@@ -545,7 +550,7 @@ public class Usbdm {
    };
    
    /**
-    * Used to report connection status 
+    * Used to report connection status
     */
    public static enum ConnectMode {
       SPEED_NO_INFO      ,   //!< Not connected
@@ -564,7 +569,7 @@ public class Usbdm {
    };
    
    /**
-    * Determines when automatic re-connection will be done 
+    * Determines when automatic re-connection will be done
     */
    public static enum AutoConnect {
       AUTOCONNECT_NEVER    ("Never", 0),  // Only connect explicitly
@@ -622,7 +627,7 @@ public class Usbdm {
       }
    };
    
-   /** 
+   /**
     * Identifies the memory space and access size
     */
    public static class MemorySpace {
@@ -684,7 +689,7 @@ public class Usbdm {
          int mask;
          Mode(int mode) {
             this.mask = mode;
-         } 
+         }
       };
       public enum Method {
          // Methods
@@ -716,8 +721,9 @@ public class Usbdm {
       public int getMask() {
          return mask;
       }
-      private static final String modes[]   = {"Special", "Normal"}; 
-      private static final String methods[] = {"All", "Hardware", "Software", "Power", "Invalid", "Invalid", "Invalid", "Default"}; 
+      private static final String modes[]   = {"Special", "Normal"};
+      private static final String methods[] = {"All", "Hardware", "Software", "Power", "Invalid", "Invalid", "Invalid", "Default"};
+      @Override
       public String toString() {
          if ((mask&~(MODE_MASK|METHOD_MASK)) != 0) {
             return "Invalid";
@@ -775,15 +781,19 @@ public class Usbdm {
          this.space = RegSpace.NO_REG_SPACE;
          this.name  = "";
       }
+      @Override
       public int getNo() {
          return regNo;
       }
+      @Override
       public RegSpace getSpace() {
          return space;
       }
+      @Override
       public String name() {
          return name;
       }
+      @Override
       public String toString() {
          return "("+name+":"+space+"."+regNo+")";
       }
@@ -804,7 +814,7 @@ public class Usbdm {
       HCS12_RegCCR       (0xFF06,RegSpace.D_REG_SPACE), //!< Saved Target CCR
       HCS12_RegBDMINR    (0xFF07,RegSpace.D_REG_SPACE), //!< BDM Internal Register Position Register
                          
-      // HCS08           
+      // HCS08
       HCS08_RegPC        (0xB),    //!< PC  reg
       HCS08_RegSP        (0xF),    //!< SP  reg
       HCS08_RegHX        (0xC),    //!< HX  reg
@@ -813,12 +823,12 @@ public class Usbdm {
                          
       HCS08_RegBKPT      (0x0,RegSpace.D_REG_SPACE), //!< Breakpoint register
                          
-      //RS08             
+      //RS08
       RS08_RegCCR_PC     (0xB),    //!< Combined CCR/PC register
       RS08_RegSPC        (0xF),    //!< Shadow PC
       RS08_RegA          (8),      //!< A reg
                          
-      // CFV1            
+      // CFV1
       CFV1_RegD0         (0),               //!< D0
       CFV1_RegD1         (1),               //!< D1
       CFV1_RegD2         (2),               //!< D2
@@ -906,19 +916,19 @@ public class Usbdm {
       CFV1_RegFLASHBAR   (0xC04,RegSpace.C_REG_SPACE), //!< Flash Base register
       CFV1_RegRAMBAR     (0xC05,RegSpace.C_REG_SPACE), //!< RAM Base register
       
-      CFVx_RegCSR        (0x00,RegSpace.D_REG_SPACE),  //!< CSR                        
-      CFVx_RegBAAR       (0x05,RegSpace.D_REG_SPACE),  //!< BAAR   
+      CFVx_RegCSR        (0x00,RegSpace.D_REG_SPACE),  //!< CSR
+      CFVx_RegBAAR       (0x05,RegSpace.D_REG_SPACE),  //!< BAAR
       CFVx_RegAATR       (0x06,RegSpace.D_REG_SPACE),  //!< AATR
-      CFVx_RegTDR        (0x07,RegSpace.D_REG_SPACE),  //!< TDR 
+      CFVx_RegTDR        (0x07,RegSpace.D_REG_SPACE),  //!< TDR
       CFVx_RegPBR0       (0x08,RegSpace.D_REG_SPACE),  //!< PBR0
       CFVx_RegPBMR       (0x09,RegSpace.D_REG_SPACE),  //!< PBMR
-      CFVx_RegABHR       (0x0C,RegSpace.D_REG_SPACE),  //!< ABHR        
-      CFVx_RegABLR       (0x0D,RegSpace.D_REG_SPACE),  //!< ABLR        
-      CFVx_RegDBR        (0x0E,RegSpace.D_REG_SPACE),  //!< DBR         
+      CFVx_RegABHR       (0x0C,RegSpace.D_REG_SPACE),  //!< ABHR
+      CFVx_RegABLR       (0x0D,RegSpace.D_REG_SPACE),  //!< ABLR
+      CFVx_RegDBR        (0x0E,RegSpace.D_REG_SPACE),  //!< DBR
       CFVx_RegBDMR       (0x0F,RegSpace.D_REG_SPACE),  //!< DBMR
-      CFVx_RegPBR1       (0x18,RegSpace.D_REG_SPACE),  //!< PBR1       
-      CFVx_RegPBR2       (0x1A,RegSpace.D_REG_SPACE),  //!< PBR2       
-      CFVx_RegPBR3       (0x1B,RegSpace.D_REG_SPACE),  //!< PBR3       
+      CFVx_RegPBR1       (0x18,RegSpace.D_REG_SPACE),  //!< PBR1
+      CFVx_RegPBR2       (0x1A,RegSpace.D_REG_SPACE),  //!< PBR2
+      CFVx_RegPBR3       (0x1B,RegSpace.D_REG_SPACE),  //!< PBR3
       
       // Kinetis ARM
       ARM_RegR0          (0),      //!< R0
@@ -941,7 +951,7 @@ public class Usbdm {
       ARM_RegMSP         (17),     //!< Main Stack Ptr
       ARM_RegPSP         (18),     //!< Process Stack Ptr
       ARM_RegMISC        (20),     // [31:24]=CONTROL,[23:16]=FAULTMASK,[15:8]=BASEPRI,[7:0]=PRIMASK.
-      //                           
+      //
       ARM_RegFPSCR       (0x21),   //!<
       ARM_RegFPS0        (0x40),   //!<
 
@@ -983,12 +993,15 @@ public class Usbdm {
          this.regNo = regNo;
          this.space = RegSpace.NO_REG_SPACE;
       }
+      @Override
       public int getNo() {
          return regNo;
       }
+      @Override
       public RegSpace getSpace() {
          return space;
       }
+      @Override
       public String toString() {
          return "("+this.name()+":"+space+"."+regNo+")";
       }
@@ -1072,23 +1085,23 @@ public class Usbdm {
       };
          
       public ExtendedOptions_(ExtendedOptions options) {
-         targetType               = options.targetType.getMask();           
-         targetVdd                = options.targetVdd.getMask();  
-         cycleVddOnReset          = options.cycleVddOnReset;  
-         cycleVddOnConnect        = options.cycleVddOnConnect;  
-         leaveTargetPowered       = options.leaveTargetPowered;  
-         autoReconnect            = options.autoReconnect.getMask();  
-         guessSpeed               = options.guessSpeed;  
-         bdmClockSource           = options.bdmClockSource.getMask();  
-         useResetSignal           = options.useResetSignal;  
-         maskInterrupts           = options.maskInterrupts;  
-         interfaceFrequency       = options.interfaceFrequency;  
-         usePSTSignals            = options.usePstSignals;  
-         powerOffDuration         = options.powerOffDuration;  
-         powerOnRecoveryInterval  = options.powerOnRecoveryInterval;  
-         resetDuration            = options.resetDuration;  
-         resetReleaseInterval     = options.resetReleaseInterval ;  
-         resetRecoveryInterval    = options.resetRecoveryInterval;  
+         targetType               = options.targetType.getMask();
+         targetVdd                = options.targetVdd.getMask();
+         cycleVddOnReset          = options.cycleVddOnReset;
+         cycleVddOnConnect        = options.cycleVddOnConnect;
+         leaveTargetPowered       = options.leaveTargetPowered;
+         autoReconnect            = options.autoReconnect.getMask();
+         guessSpeed               = options.guessSpeed;
+         bdmClockSource           = options.bdmClockSource.getMask();
+         useResetSignal           = options.useResetSignal;
+         maskInterrupts           = options.maskInterrupts;
+         interfaceFrequency       = options.interfaceFrequency;
+         usePSTSignals            = options.usePstSignals;
+         powerOffDuration         = options.powerOffDuration;
+         powerOnRecoveryInterval  = options.powerOnRecoveryInterval;
+         resetDuration            = options.resetDuration;
+         resetReleaseInterval     = options.resetReleaseInterval ;
+         resetRecoveryInterval    = options.resetRecoveryInterval;
       }
    };
 
@@ -1122,43 +1135,44 @@ public class Usbdm {
          bdmClockSource  = ClkSwValues.CLKSW_DEFAULT;
       }
       public ExtendedOptions(ExtendedOptions_ options_) {
-         targetType               = TargetType.valueOf(options_.targetType);           
-         targetVdd                = TargetVddSelect.valueOf(options_.targetVdd);  
-         cycleVddOnReset          = options_.cycleVddOnReset;  
-         cycleVddOnConnect        = options_.cycleVddOnConnect;  
-         leaveTargetPowered       = options_.leaveTargetPowered;  
-         autoReconnect            = AutoConnect.valueOf(options_.autoReconnect);  
-         guessSpeed               = options_.guessSpeed;  
-         bdmClockSource           = ClkSwValues.valueOf(options_.bdmClockSource);  
-         useResetSignal           = options_.useResetSignal;  
-         maskInterrupts           = options_.maskInterrupts;  
-         interfaceFrequency       = options_.interfaceFrequency;  
-         usePstSignals            = options_.usePSTSignals;  
-         powerOffDuration         = options_.powerOffDuration;  
-         powerOnRecoveryInterval  = options_.powerOnRecoveryInterval;  
-         resetDuration            = options_.resetDuration;  
-         resetReleaseInterval     = options_.resetReleaseInterval ;  
+         targetType               = TargetType.valueOf(options_.targetType);
+         targetVdd                = TargetVddSelect.valueOf(options_.targetVdd);
+         cycleVddOnReset          = options_.cycleVddOnReset;
+         cycleVddOnConnect        = options_.cycleVddOnConnect;
+         leaveTargetPowered       = options_.leaveTargetPowered;
+         autoReconnect            = AutoConnect.valueOf(options_.autoReconnect);
+         guessSpeed               = options_.guessSpeed;
+         bdmClockSource           = ClkSwValues.valueOf(options_.bdmClockSource);
+         useResetSignal           = options_.useResetSignal;
+         maskInterrupts           = options_.maskInterrupts;
+         interfaceFrequency       = options_.interfaceFrequency;
+         usePstSignals            = options_.usePSTSignals;
+         powerOffDuration         = options_.powerOffDuration;
+         powerOnRecoveryInterval  = options_.powerOnRecoveryInterval;
+         resetDuration            = options_.resetDuration;
+         resetReleaseInterval     = options_.resetReleaseInterval ;
          resetRecoveryInterval    = options_.resetRecoveryInterval;
       }
+      @Override
       public String toString() {
-         return 
-         "\n targetType              = " + targetType +             
-         "\n targetVdd               = " + targetVdd +              
-         "\n cycleVddOnReset         = " + cycleVddOnReset +        
-         "\n cycleVddOnConnect       = " + cycleVddOnConnect +      
-         "\n leaveTargetPowered      = " + leaveTargetPowered +     
-         "\n autoReconnect           = " + autoReconnect +          
-         "\n guessSpeed              = " + guessSpeed +             
-         "\n bdmClockSource          = " + bdmClockSource +         
-         "\n useResetSignal          = " + useResetSignal +         
-         "\n maskInterrupts          = " + maskInterrupts +         
-         "\n interfaceFrequency      = " + interfaceFrequency +     
-         "\n usePSTSignals           = " + usePstSignals +          
-         "\n powerOffDuration        = " + powerOffDuration +       
+         return
+         "\n targetType              = " + targetType +
+         "\n targetVdd               = " + targetVdd +
+         "\n cycleVddOnReset         = " + cycleVddOnReset +
+         "\n cycleVddOnConnect       = " + cycleVddOnConnect +
+         "\n leaveTargetPowered      = " + leaveTargetPowered +
+         "\n autoReconnect           = " + autoReconnect +
+         "\n guessSpeed              = " + guessSpeed +
+         "\n bdmClockSource          = " + bdmClockSource +
+         "\n useResetSignal          = " + useResetSignal +
+         "\n maskInterrupts          = " + maskInterrupts +
+         "\n interfaceFrequency      = " + interfaceFrequency +
+         "\n usePSTSignals           = " + usePstSignals +
+         "\n powerOffDuration        = " + powerOffDuration +
          "\n powerOnRecoveryInterval = " + powerOnRecoveryInterval +
-         "\n resetDuration           = " + resetDuration +          
-         "\n resetReleaseInterval    = " + resetReleaseInterval +   
-         "\n resetRecoveryInterval   = " + resetRecoveryInterval +  
+         "\n resetDuration           = " + resetDuration +
+         "\n resetReleaseInterval    = " + resetReleaseInterval +
+         "\n resetRecoveryInterval   = " + resetRecoveryInterval +
          "\n";
       }
    };
@@ -1168,14 +1182,14 @@ public class Usbdm {
     *  Internal JNI use
     */
    private static class Status_ {
-      public int  acknState;      
+      public int  acknState;
       public int  connectionState;
-      public int  resetState;     
-      public int  resetRecent;    
-      public int  haltState;      
-      public int  powerState;     
+      public int  resetState;
+      public int  resetRecent;
+      public int  haltState;
+      public int  powerState;
       @SuppressWarnings("unused")
-      public int  flashState;     
+      public int  flashState;
    };
 
    /**
@@ -1196,8 +1210,9 @@ public class Usbdm {
         halted          = status.haltState   != 0;
         powerState      = TargetVddState.valueOf(status.powerState);
       }
+      @Override
       public String toString() {
-         return "  acknState       = " + acknState +   
+         return "  acknState       = " + acknState +
                 "\n  connectionState = " + connectionState +
                 "\n  resetState      = " + resetState +
                 "\n  resetRecent     = " + resetRecent +
@@ -1340,7 +1355,7 @@ public class Usbdm {
     }
 
     /**
-     * Set target Vpp 
+     * Set target Vpp
      * 
      * @param vppSelect Target Vpp to set
      * 
@@ -1369,7 +1384,7 @@ public class Usbdm {
 
    /**
    *  Connect to target
-   *  
+   * 
    * @throws UsbdmException
    */
    public static void targetConnect() throws UsbdmException {
@@ -1381,7 +1396,7 @@ public class Usbdm {
 
    /**
    *  Start target execution
-   *  
+   * 
    * @throws UsbdmException
    */
    public static void targetGo() throws UsbdmException {
@@ -1393,7 +1408,7 @@ public class Usbdm {
 
    /**
    *  Step target
-   *  
+   * 
    * @throws UsbdmException
    */
    public static void targetStep() throws UsbdmException {
@@ -1405,7 +1420,7 @@ public class Usbdm {
 
    /**
    *  Halt target
-   *  
+   * 
    * @throws UsbdmException
    */
    public static void targetHalt() throws UsbdmException {
@@ -1417,7 +1432,7 @@ public class Usbdm {
 
    /**
    *  Control interface pins
-   *  
+   * 
    * @throws UsbdmException
    */
    public static int controlPins(int value) throws UsbdmException {
@@ -1431,7 +1446,7 @@ public class Usbdm {
    
    /**
    *  Control interface pins
-   *  
+   * 
    * @throws UsbdmException
    */
    public static void setSpeed(int speed) throws UsbdmException {
@@ -1443,7 +1458,7 @@ public class Usbdm {
    
    /**
    *  Control interface pins
-   *  
+   * 
    * @throws UsbdmException
    */
    public static int getSpeed() throws UsbdmException {
@@ -1599,7 +1614,7 @@ public class Usbdm {
     * Get error string for given erro number
     * 
     * @param errorNum Error number to determine message
-    *  
+    * 
     * @return String describing the error
     */
    public static String getErrorString(int errorNum) {
@@ -1614,7 +1629,7 @@ public class Usbdm {
     * @throws UsbdmException
     * 
     * @note No devices being present is not considered an error
-    * @note An internal device list is created and not released until 
+    * @note An internal device list is created and not released until
     *       open(deviceNum,true) or releaseDevices() is called.
     */
    public static int findDevices() throws UsbdmException {
@@ -1674,7 +1689,7 @@ public class Usbdm {
       String serial = null;
       try {
          if (rc == BDM_RC_OK) {
-            int len = (desc[0]<<8)+(((int)desc[1])&0xFF);
+            int len = (desc[0]<<8)+((desc[1])&0xFF);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(desc, 2, len);
             buff.rewind();
@@ -1705,7 +1720,7 @@ public class Usbdm {
       String serial = null;
       try {
          if (rc == BDM_RC_OK) {
-            int len = (serialNum[0]<<8)+(((int)serialNum[1])&0xFF);
+            int len = (serialNum[0]<<8)+((serialNum[1])&0xFF);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(serialNum, 2, len);
             buff.rewind();
@@ -1745,13 +1760,14 @@ public class Usbdm {
          bdmInfo            = bdmI;
 //         Activator.log("BdmInformation.USBDMDeviceInfo()");
       }
+      @Override
       public String toString() {
          return "  Description   = "+deviceDescription+";\n" +
          	    "  Serial Number = "+deviceSerialNumber+";\n" +
          		 "  Information   = \n"+bdmInfo.toString();
       }
       public boolean isNullDevice() {
-         return this == nullDevice; 
+         return this == nullDevice;
       }
    };
 
@@ -1796,7 +1812,7 @@ public class Usbdm {
     * Load the USBDM JNI library
     * 
     * @param debug True to load debug version of DLLs
-    * @throws Exception 
+    * @throws Exception
     */
    public static void loadUsbdmLibraries(final Boolean debug) throws Exception {
       if (libraryLoaded) {
@@ -1804,8 +1820,8 @@ public class Usbdm {
       }
       StringBuilder sb = new StringBuilder();
       try {
-         String os    = System.getProperty("os.name");            
-         String arch  = System.getProperty("os.arch");            
+         String os    = System.getProperty("os.name");
+         String arch  = System.getProperty("os.arch");
          String jvm   = System.getProperty("java.vm.name");
          sb.append("os.name      => " + os   + "\n");
          sb.append("java.vm.name => " + jvm  + "\n" );
@@ -1890,7 +1906,7 @@ public class Usbdm {
    }
    
    /*
-    * Load USBDM DLLs 
+    * Load USBDM DLLs
     */
    static {
       // TO DO - change to non-debug version
@@ -1906,8 +1922,8 @@ public class Usbdm {
     * 
     * @return empty list if no devices found
     * 
-    * @throws UsbdmException 
-    * @throws CharacterCodingException 
+    * @throws UsbdmException
+    * @throws CharacterCodingException
     */
    public static ArrayList<USBDMDeviceInfo> getDeviceList() {
       //      Activator.log("Usbdm.getDeviceList()");
@@ -1942,11 +1958,11 @@ public class Usbdm {
             close();
          }
          // Release device list
-         releaseDevices(); 
+         releaseDevices();
       } catch (UsbdmException e) {
       }
       return deviceList;
-   } 
+   }
 
    /**
     *  Obtain USBDM Application path
@@ -1963,7 +1979,7 @@ public class Usbdm {
       try {
          int rc = Usbdm.usbdmGetUsbdmApplicationPath(pathArray);
          if (rc == BDM_RC_OK) {
-            int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
+            int len = (pathArray[0]<<8)+((pathArray[1])&0xFF);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(pathArray, 2, len);
             buff.rewind();
@@ -2005,7 +2021,7 @@ public class Usbdm {
       try {
          int rc = Usbdm.usbdmGetUsbdmResourcePath(pathArray);
          if (rc == BDM_RC_OK) {
-            int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
+            int len = (pathArray[0]<<8)+((pathArray[1])&0xFF);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(pathArray, 2, len);
             buff.rewind();
@@ -2047,7 +2063,7 @@ public class Usbdm {
       try {
          int rc = Usbdm.usbdmGetUsbdmDataPath(pathArray);
          if (rc == BDM_RC_OK) {
-            int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
+            int len = (pathArray[0]<<8)+((pathArray[1])&0xFF);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(pathArray, 2, len);
             buff.rewind();
@@ -2075,7 +2091,7 @@ public class Usbdm {
    }
    
    /**
-    * Read string value from windows registry 
+    * Read string value from windows registry
     * 
     * @param path REgistry path e.g. "SOFTWARE\pgo\USBDM"
     * 

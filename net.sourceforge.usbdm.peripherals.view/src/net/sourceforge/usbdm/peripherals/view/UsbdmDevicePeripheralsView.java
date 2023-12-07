@@ -1,6 +1,6 @@
 /*
 ===============================================================================================================
-| History                                                                                                      
+| History
 ---------------------------------------------------------------------------------------------------------------
 | 19 Jan 2015 | Changes related to new device selection interface                                 | V4.10.6.250
 ===============================================================================================================
@@ -173,9 +173,10 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          this.lastWidth  = defaultWidth;
       }
 
-      /**   
+      /**
        *  Hide/Show Location column
        */
+      @Override
       public void run() {
          TreeColumn column = fPeripheralsTreeViewer.getTree().getColumn(columnNum);
          if (this.isChecked()) {
@@ -207,6 +208,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          super(text, toolTip, IAction.AS_PUSH_BUTTON, Activator.ID_REFRESH_IMAGE);
       }
 
+      @Override
       public void run() {
          Object[] visibleObjects = fPeripheralsTreeViewer.getVisibleExpandedElements();
          for (Object object : visibleObjects) {
@@ -224,6 +226,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          super(text, toolTip, IAction.AS_PUSH_BUTTON, Activator.ID_REFRESH_SELECTION_IMAGE);
       }
 
+      @Override
       public void run() {
          ISelection selection = fPeripheralsTreeViewer.getSelection();
          Object obj = ((IStructuredSelection) selection).getFirstElement();
@@ -280,7 +283,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       Image image = imageCache.get(imageId);
       if ((Activator.getDefault() != null) && (image == null)) {
          ImageDescriptor imageDescriptor  = Activator.getImageDescriptor(imageId);
-         image = resManager.createImage(imageDescriptor);
+         image = resManager.create(imageDescriptor);
          imageCache.put(imageId, image);
       }
       return image;
@@ -288,7 +291,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
    //   /**
    //    * Provides the editor for the tree elements
-   //    * 
+   //    *
    //    * Does minor modifications to the default editor.
    //    */
    //   private class PeripheralsViewTextCellEditor extends TextCellEditor {
@@ -319,6 +322,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
     * 
     * The View consists of a tree and a information panel
     */
+   @Override
    public void createPartControl(Composite parent) {
       // Create the manager and bind to main composite
       resManager = new LocalResourceManager(JFaceResources.getResources(), parent);
@@ -363,6 +367,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
       // Add listener to column so peripherals are sorted by name when clicked
       column.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             fPeripheralsTreeViewer.setComparator(new PeripheralsViewSorter(PeripheralsViewSorter.SortCriteria.PeripheralNameOrder));
          }
@@ -402,6 +407,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
       // Add listener to column so peripheral are sorted by address when clicked
       column.addSelectionListener(new SelectionAdapter() {
+         @Override
          public void widgetSelected(SelectionEvent e) {
             fPeripheralsTreeViewer.setComparator(new PeripheralsViewSorter(PeripheralsViewSorter.SortCriteria.AddressOrder));
          }
@@ -466,6 +472,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       });
       // When user checks a checkbox in the tree, check all its children
       fPeripheralsTreeViewer.addCheckStateListener(new ICheckStateListener() {
+         @Override
          public void checkStateChanged(CheckStateChangedEvent event) {
             //            peripheralsTreeViewer.expandToLevel(event.getElement(), 1);
             fPeripheralsTreeViewer.setSubtreeChecked(event.getElement(), event.getChecked());
@@ -486,6 +493,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       MenuManager menuMgr = new MenuManager("#PopupMenu");
       menuMgr.setRemoveAllWhenShown(true);
       menuMgr.addMenuListener(new IMenuListener() {
+         @Override
          public void menuAboutToShow(IMenuManager manager) {
             UsbdmDevicePeripheralsView.this.fillContextMenu(manager);
          }
@@ -566,6 +574,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
        * Refresh current selection action
        */
       openFaultDialogue = new Action() {
+         @Override
          public void run() {
             if (peripheralsModel == null) {
                return;
@@ -587,6 +596,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
        * Filter Registers action
        */
       fFilterPeripheralAction = new Action(null, IAction.AS_CHECK_BOX) {
+         @Override
          public void run() {
             fPeripheralsTreeViewer.setFilters(new ViewerFilter[] { new MyViewerFilter(fFilterPeripheralAction.isChecked()) });
          }
@@ -602,13 +612,14 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
        * Select Device
        */
       fSetDeviceAction = new Action(null, IAction.AS_PUSH_BUTTON) {
+         @Override
          public void run() {
             //            TargetType interfaceType = TargetType.T_UNKNOWN;
             //            if ((peripheralsModel != null) && (peripheralsModel.getModel() != null)) {
             //               // Choose the same device class as existing
             //               interfaceType = peripheralsModel.getModel().getInterfaceType().toTargetType();
             //            }
-            DevicePeripheralSelectionDialogue dialogue = 
+            DevicePeripheralSelectionDialogue dialogue =
                   new DevicePeripheralSelectionDialogue(getSite().getShell(), fManuallySelectedSvdId);
             if (dialogue.open() != Window.OK) {
                // Cancelled etc
@@ -699,6 +710,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    public void sessionStarted(final UsbdmDevicePeripheralsModel model) {
       //      System.err.println(String.format("UsbdmDevicePeripheralsView.sessionStarted(%s)", (aPeripheralsModel == null) ? "null" : aPeripheralsModel.getDeviceName()));
       Display.getDefault().asyncExec(new Runnable() {
+         @Override
          public void run() {
             if ((fPeripheralsTreeViewer == null) || fPeripheralsTreeViewer.getControl().isDisposed()) {
                //               System.err.println("UsbdmDevicePeripheralsView.SessionCreate() - no peripheral view or already disposed()");
@@ -747,6 +759,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
       //       System.err.println("UsbdmDevicePeripheralsView.SessionTerminate()");
       Display.getDefault().asyncExec(new Runnable() {
+         @Override
          public void run() {
             if ((fPeripheralsTreeViewer == null) || fPeripheralsTreeViewer.getControl().isDisposed()) {
                //                System.err.println("UsbdmDevicePeripheralsView.SessionTerminate() - no peripheral view or already disposed()");
@@ -791,6 +804,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       }
       //      System.err.println("UsbdmDevicePeripheralsView.SessionSuspend() - reason = " + reason);
       Display.getDefault().asyncExec(new Runnable() {
+         @Override
          public void run() {
             if ((fPeripheralsTreeViewer == null) || fPeripheralsTreeViewer.getControl().isDisposed()) {
                //                System.err.println("UsbdmDevicePeripheralsView.SessionTerminate() - no peripheral view or already disposed()");

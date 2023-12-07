@@ -33,7 +33,7 @@ public class PeripheralSignalsVariable extends Variable {
    }
 
    @Override
-   public void setPersistentValue(String value) throws Exception {
+   public void setPersistentValue(String value) {
       throw new RuntimeException("This method should never be called");
    }
 

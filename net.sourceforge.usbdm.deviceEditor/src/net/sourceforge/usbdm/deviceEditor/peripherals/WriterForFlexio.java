@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -55,15 +56,15 @@ public class WriterForFlexio extends PeripheralWithState {
     *       Input_VrefOut    = 5,       ///< Fixed pin  VREF_OUT
     *       Input_Bandgap    = 6,       ///< Fixed pin  BANDGAP
     *       Input_CmpDac     = 7,       ///< Fixed pin  CMP_DAC
-    * </pre> 
+    * </pre>
     * 
     * @param documentUtilities
     * @throws IOException
     */
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       
       String enumName    = "FlexioPinSel_";
       String commentRoot = "///< ";
@@ -104,13 +105,13 @@ public class WriterForFlexio extends PeripheralWithState {
                trailingComment = commentRoot+"Fixed pin  "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
-                  pinName = "// "+pinName; 
+                  pinName = "// "+pinName;
                }
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier; 
+                     inputIdentifier = "// "+inputIdentifier;
                   }
                   inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }
@@ -119,13 +120,13 @@ public class WriterForFlexio extends PeripheralWithState {
                trailingComment = commentRoot+"Mapped pin "+trailingComment;
                boolean inUse = !usedIdentifiers.add(pinName);
                if (inUse) {
-                  pinName = "// "+pinName; 
+                  pinName = "// "+pinName;
                }
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+",", trailingComment));
                if (!inputIdentifier.isBlank()) {
                   inUse = !usedIdentifiers.add(inputIdentifier);
                   if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier; 
+                     inputIdentifier = "// "+inputIdentifier;
                   }
                   inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
                }

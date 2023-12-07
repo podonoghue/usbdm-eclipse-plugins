@@ -19,6 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -158,9 +159,9 @@ public class WriterForSpi extends PeripheralWithState {
     * @throws IOException
     */
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
 
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
 
       if (fDeviceInfo.getDeviceFamily() != DeviceFamily.mk) {
          return;

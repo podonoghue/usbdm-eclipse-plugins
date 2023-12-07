@@ -282,27 +282,21 @@ public class WriteFamilyCpp {
       }
    }
 
-   /**
-    * Writes #includes for classes that have simple signal declarations e.g.
-    * ADC, GPIO etc.<br>
-    * 
-    * Example:
-    * 
-    * <pre>
-    *    #include "gpio.h"
-    *    #include "adc.h"
-    *    #include "ftm.h"
-    * </pre>
-    * 
-    * @param writer
-    * @throws IOException
-    */
-   private void writeIncludes(DocumentUtilities writer) throws IOException {
-      writer.write("// GPIO definitions are needed generally\n");
-      writer.writeHeaderFileInclude("gpio.h");
-      writer.write("\n");
-   }
+   class HardwareDeclarationInfo {
+      
+      // Prevent repeated use of the same C identifier
+      public HashSet<String> usedIdentifiers = new HashSet<String>();
 
+      // Contains peripheral include files needed to initialise the user objects in hardware.cpp
+      public HashSet<String> hardwareIncludeFiles = new HashSet<String>();
+
+      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
+      public StringBuilder hardwareDefinitions = new StringBuilder();
+      
+      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
+      public StringBuilder hardwareDeclarations = new StringBuilder();
+   };
+   
    /**
     * Create variables for peripheral declarations e.g.
     * <pre>
@@ -321,32 +315,22 @@ public class WriteFamilyCpp {
     */
    private void createSignalDeclarationVariables() throws IOException {
 
-      // Prevent repeated use of the same C identifier
-      HashSet<String> usedIdentifiers = new HashSet<String>();
-
-      // Contains peripheral include files needed to initialise the user objects in hardware.cpp
-      HashSet<String> hardwareIncludeFiles = new HashSet<String>();
-
-      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
-      StringBuilder hardwareDefinitions = new StringBuilder();
-      
-      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
-      StringBuilder hardwareDeclarations = new StringBuilder();
+      HardwareDeclarationInfo hardwareDeclarationInfo = new HardwareDeclarationInfo();
       
       for (String key : fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         peripheral.createDeclarations(usedIdentifiers, hardwareIncludeFiles, hardwareDeclarations, hardwareDefinitions);
+         peripheral.createDeclarations(hardwareDeclarationInfo);
       }
 
       // Save #include files for any user objects needed by peripherals in hardware.h
-      if (hardwareIncludeFiles.isEmpty()) {
+      if (hardwareDeclarationInfo.hardwareIncludeFiles.isEmpty()) {
          // None - delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_INCLUDES_FILE_KEY);
       }
       else {
          // Append found #includes
          StringBuilder sb = new StringBuilder();
-         Iterator<String> i = hardwareIncludeFiles.iterator();
+         Iterator<String> i = hardwareDeclarationInfo.hardwareIncludeFiles.iterator();
          while(i.hasNext()) {
             sb.append("" + i.next() + "\n");
          }
@@ -355,23 +339,23 @@ public class WriteFamilyCpp {
       }
 
       // Save declarations for any user objects needed by peripherals in hardware.h
-      if (hardwareDeclarations.toString().isBlank()) {
+      if (hardwareDeclarationInfo.hardwareDeclarations.toString().isBlank()) {
          // None - delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DECLARATIONS_KEY);
       }
       else {
          // Create or replace variable
-         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DECLARATIONS_KEY, hardwareDeclarations.toString(), true);
+         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DECLARATIONS_KEY, hardwareDeclarationInfo.hardwareDeclarations.toString(), true);
       }
       
       // Save actual definitions for any user objects needed by peripherals in hardware.cpp
-      if (hardwareDefinitions.toString().isBlank()) {
+      if (hardwareDeclarationInfo.hardwareDefinitions.toString().isBlank()) {
          // None - delete variable
          fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DEFINITIONS_KEY);
       }
       else {
          // Create or replace variable
-         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitions.toString(), true);
+         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDeclarationInfo.hardwareDefinitions.toString(), true);
       }
    }
 
@@ -640,8 +624,6 @@ public class WriteFamilyCpp {
       createSignalDeclarationVariables();
 
       writePeripheralInformationClasses(writer);
-
-      writeIncludes(writer);
 
       writeDocumentation(writer);
 

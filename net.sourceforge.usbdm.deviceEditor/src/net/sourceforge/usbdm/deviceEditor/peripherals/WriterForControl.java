@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -54,9 +55,9 @@ public class WriterForControl extends PeripheralWithState {
    }
    
    @Override
-   protected void writeDeclarations() {
-      super.writeDeclarations();
-      writeSignalPcrDeclarations();
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
+      super.writeDeclarations(hardwareDeclarationInfo);
+      writeSignalPcrDeclarations(hardwareDeclarationInfo);
    }
 
 }

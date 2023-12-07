@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -65,9 +66,9 @@ public class WriterForCmp extends PeripheralWithState {
     * @throws IOException
     */
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       
       String enumNameP   = "Cmp"+getInstance()+"InputPlus_";
       String enumNameM   = "Cmp"+getInstance()+"InputMinus_";
@@ -120,11 +121,11 @@ public class WriterForCmp extends PeripheralWithState {
                String constTypeM = "const "+ typeM;
                if (signal.getCreateInstance()) {
 //                  writeVariableDeclaration("", description, cIdentifier, constTypeP, trailingComment);
-                  writeVariableDeclaration("", description, cIdentifier, constTypeM, trailingComment);
+                  writeVariableDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, constTypeM, trailingComment);
                }
                else {
 //                  writeTypeDeclaration("", description, cIdentifier, typeP, trailingComment);
-                  writeTypeDeclaration("", description, cIdentifier, typeM, trailingComment);
+                  writeTypeDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, typeM, trailingComment);
                }
             }
             boolean inUse = !usedIdentifiers.add(pinNameP);

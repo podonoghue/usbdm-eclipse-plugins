@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
@@ -38,9 +39,9 @@ public class WriterForPit extends PeripheralWithState {
    }
 
    @Override
-   protected void writeDeclarations() {
+   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
       
-      super.writeDeclarations();
+      super.writeDeclarations(hardwareDeclarationInfo);
       for (int index=0; index<fInfoTable.table.size(); index++) {
          Signal signal = fInfoTable.table.get(index);
          if (signal == null) {
@@ -59,10 +60,10 @@ public class WriterForPit extends PeripheralWithState {
          String type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          String constType = "const "+ type;
          if (signal.getCreateInstance()) {
-            writeVariableDeclaration("", description, cIdentifier, constType, trailingComment);
+            writeVariableDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, constType, trailingComment);
          }
          else {
-            writeTypeDeclaration("", description, cIdentifier, type, trailingComment);
+            writeTypeDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, type, trailingComment);
          }
       }
    }
