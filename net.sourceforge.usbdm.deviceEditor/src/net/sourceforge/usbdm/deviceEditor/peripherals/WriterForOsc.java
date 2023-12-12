@@ -5,7 +5,6 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of OSC
@@ -53,10 +52,5 @@ public class WriterForOsc extends PeripheralWithState {
       }
       // Warn if EXTAL and XTAL signals not mapped
       validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
-   }
-
-   @Override
-   public void extractHardwareInformation(Peripheral dbPeripheral) {
-      extractAllRegisterFields(dbPeripheral);
    }
 }

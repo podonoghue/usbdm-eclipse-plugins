@@ -21,7 +21,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of SPI
@@ -234,11 +233,6 @@ public class WriterForSpi extends PeripheralWithState {
       return index;
    }
    
-   @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
-   }
-
    boolean isActiveLow(Signal signal) {
       int index = getPcsPinIndex(signal);
       if (index<0) {

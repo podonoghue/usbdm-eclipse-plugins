@@ -1678,7 +1678,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Used to create arbitrary variable from strings
+    * Used to create arbitrary variable from strings<br>
     * 
     * @param name    Name of variable (may be null to use name derived from key)
     * @param key     Key for variable
@@ -1689,11 +1689,14 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @throws Exception
     */
-   public static Variable createConstantWithNamedType(String name, String key, String type, Object value) throws Exception {
+   public static Variable createVariableWithNamedType(String name, String key, String type, Object value) throws Exception {
 //      System.err.println("createConstantWithNamedType("+name+", "+key+", "+type+", '"+value+"')");
 
-      Variable var = null;
       type = "net.sourceforge.usbdm.deviceEditor.information."+type;
+      if (name == null) {
+         name = getNameFromKey(key);
+      }
+      Variable var = null;
       try {
          Class<?> varClass = Class.forName(type);
          Constructor<?> constructor = varClass.getConstructor(String.class, String.class, Object.class);
@@ -1702,8 +1705,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          // Most likely reason
          throw new Exception("Failed to create variable with type '" + type + "'", e);
       }
-      var.setDerived(true);
-      var.setConstant();
+//      var.setDerived(true);
+//      var.setConstant();
       return var;
    }
 

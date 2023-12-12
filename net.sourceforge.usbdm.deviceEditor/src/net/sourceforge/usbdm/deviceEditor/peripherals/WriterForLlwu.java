@@ -488,10 +488,4 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       }
       fMenuData.prune();
    }
-
-   @Override
-   public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
-   }
-   
 }

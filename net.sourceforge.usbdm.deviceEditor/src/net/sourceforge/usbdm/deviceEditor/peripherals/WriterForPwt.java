@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of OSC
@@ -35,18 +34,4 @@ public class WriterForPwt extends PeripheralWithState {
       }
       throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
    }
-   
-   @Override
-   public void extractHardwareInformation(Peripheral dbPeripheral) {
-      extractAllRegisterFields(dbPeripheral);
-   }
-
-//   @Override
-//   public String getPcrDefinition() {
-//      return String.format(
-//            "   //! Base value for PCR (excluding MUX value)\n"+
-//            "   static constexpr uint32_t %s  = 0;\n\n", DEFAULT_PCR_VALUE_NAME
-//            );
-//   }
-
 }

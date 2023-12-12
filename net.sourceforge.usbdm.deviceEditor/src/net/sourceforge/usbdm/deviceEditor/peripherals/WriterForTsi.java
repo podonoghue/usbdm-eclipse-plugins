@@ -12,7 +12,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of TSI
@@ -140,10 +139,4 @@ public class WriterForTsi extends PeripheralWithState {
       }
       throw new RuntimeException("Signal does not match expected pattern " + function.getSignalName());
    }
-
-   @Override
-   public void extractHardwareInformation(Peripheral dbPeripheral) {
-      extractAllRegisterFields(dbPeripheral);
-   }
-   
 }

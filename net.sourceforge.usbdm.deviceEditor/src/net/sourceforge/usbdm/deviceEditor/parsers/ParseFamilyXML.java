@@ -208,12 +208,11 @@ public class ParseFamilyXML extends XML_BaseParser {
       fDeviceInfo.findOrCreateSignal(signalName);
    }
 
-
    private void parsePeripheral(Element peripheralElement) throws Exception {
       String baseName   = peripheralElement.getAttribute("baseName");
       String instance   = peripheralElement.getAttribute("instance");
       String version    = peripheralElement.getAttribute("version");
-      String structName = peripheralElement.getAttribute("structName");
+//      String structName = peripheralElement.getAttribute("structName");
 
       Peripheral peripheral = null;
       
@@ -247,8 +246,10 @@ public class ParseFamilyXML extends XML_BaseParser {
             String key   = element.getAttribute("key");
             String type  = element.getAttribute("type");
             String value = element.getAttribute("value");
-            Variable var = Variable.createConstantWithNamedType(name, key, type, value);
+            Variable var = Variable.createVariableWithNamedType(name, key, type, value);
             peripheral.addVariable(var);
+            var.setDerived(true);
+            var.setConstant();
          }
          else {
             throw new Exception("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
@@ -257,9 +258,10 @@ public class ParseFamilyXML extends XML_BaseParser {
       if (!version.isBlank()) {
          peripheral.setPeripheralVersion(version);
       }
-      if (!structName.isBlank()) {
-         peripheral.setStructName(structName);
-      }
+//      if (!structName.isBlank()) {
+//         System.err.println("Unexpected use of setStructName()");
+//         peripheral.setStructName(structName);
+//      }
    }
 
    /**

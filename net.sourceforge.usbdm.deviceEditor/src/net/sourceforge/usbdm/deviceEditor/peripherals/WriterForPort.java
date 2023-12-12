@@ -1,10 +1,9 @@
-package net.sourceforge.usbdm.deviceEditor.information;
+package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 
-import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 public class WriterForPort extends PeripheralWithState {
 
@@ -25,10 +24,4 @@ public class WriterForPort extends PeripheralWithState {
    public String getTitle() {
       return "PORT";
    }
-   
-   @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
-   }
-
 }

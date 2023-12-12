@@ -84,6 +84,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPcc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPort;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwt;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForQspi;

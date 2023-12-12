@@ -10,7 +10,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
@@ -289,11 +288,5 @@ public class WriterForAdc extends PeripheralWithState {
         System.err.println("There is more than one signal table");
         return fInfoTable;
       }
-
-      @Override
-      public void extractHardwareInformation(Peripheral dbPeripheral) {
-         extractAllRegisterFields(dbPeripheral);
-      }
-     
 
    }

@@ -11,9 +11,11 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LowercaseNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.UppercaseNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
@@ -201,7 +203,7 @@ public class ExpressionParser {
       
       ch = skipSpace();
       
-      if (ch != ')') {
+      if ((ch==null) || (ch != ')')) {
          throw new Exception("Expected ')' after function arguments");
       }
       // Discard ')'
@@ -258,8 +260,19 @@ public class ExpressionParser {
          if (!(arg instanceof StringNode)) {
             throw new Exception("Expected name to prettify (a string)");
          }
-         StringNode sArg = (StringNode) arg;
-         return new PrettyNode(sArg);
+         return new PrettyNode(arg);
+      }
+      if ("ToLowerCase".equalsIgnoreCase(functionName)) {
+         if (arg.fType != Type.String) {
+            throw new Exception("Expected name to ToLowerCase (a string)");
+         }
+         return new LowercaseNode(arg);
+      }
+      if ("ToUpperCase".equalsIgnoreCase(functionName)) {
+         if (arg.fType != Type.String) {
+            throw new Exception("Expected name to ToUpperCase (a string)");
+         }
+         return new UppercaseNode(arg);
       }
       throw new Exception("Function not supported");
    }

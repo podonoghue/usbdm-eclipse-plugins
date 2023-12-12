@@ -129,8 +129,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Can create instances for signals belonging to this peripheral - Most can't */
    protected boolean fCanCreateSignalInstance = false;
 
-   /** Name of C struct associated with this peripheral */
-   private String fheaderStructName = null;
+//   /** Name of C struct associated with this peripheral */
+//   private String fheaderStructName = null;
 
    /**
     * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM
@@ -399,7 +399,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          documentUtilities.writeAttribute("instanceList",   "");
       }
       documentUtilities.writeAttribute("version",        fVersion);
-      documentUtilities.writeAttribute("_structName",    fheaderStructName);
+//      documentUtilities.writeAttribute("_structName",    fheaderStructName);
 
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());
@@ -1224,6 +1224,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /**
     * Write Peripheral Information Class<br>
+    * along with related classes and definitions
     * 
     * <pre>
     *  class Lpuart0Info {
@@ -1249,8 +1250,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
       writeNamespaceInfo(pinMappingHeaderFile);
       
-      String classDecl = getClassName()+"Info";
+      String className = getClassName()+"Info";
       
+      String classDecl = className;
       Variable classDeclaration = safeGetVariable(makeKey("_class_declaration"));
       if (classDeclaration != null) {
          // Custom Open class
@@ -1262,10 +1264,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             "public:\n",
                classDecl
             ));
+      
       // Additional, peripheral specific, information
       writeInfoConstants(pinMappingHeaderFile);
       
-      addClassTemplates();
+      writeClassTemplate(pinMappingHeaderFile);
       
       // Write PCR Table
       writeInfoTables(pinMappingHeaderFile);
@@ -1274,10 +1277,25 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       writeExtraInfo(pinMappingHeaderFile);
       
       // Close class
-      pinMappingHeaderFile.write(String.format("};\n\n"));
+      pinMappingHeaderFile.write(String.format("}; // class %s\n\n", className));
    }
 
-   public abstract void addClassTemplates();
+   /**
+    * Writes the main template describing the class to pin_mapping.h<br>
+    * 
+    * <b>Example:</b>
+    * <pre>
+    * 
+    *   //! Map all allocated pins on a peripheral when enabled
+    *   static constexpr bool mapPinsOnEnable = true;
+    *    ...
+    * </pre>
+    * 
+    * @throws IOException
+    * @throws Exception
+    */
+   public void writeClassTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
+   }
 
    /**
     * Indicate if the peripheral has some pins that <i><b>may be</b></i> mapped to a package location<br>
@@ -1712,23 +1730,23 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return fInstanceList;
    }
    
-   /**
-    * Set name of C struct associated with this peripheral
-    * 
-    * @param headerStructName
-    */
-   public void setStructName(String headerStructName) {
-      fheaderStructName = headerStructName;
-   }
-
-   /**
-    * Get name of C struct associated with this peripheral
-    * 
-    * @return name of struct
-    */
-   public String getStructName() {
-      return fheaderStructName;
-   }
+//   /**
+//    * Set name of C struct associated with this peripheral
+//    *
+//    * @param headerStructName
+//    */
+//   public void setStructName(String headerStructName) {
+//      fheaderStructName = headerStructName;
+//   }
+//
+//   /**
+//    * Get name of C struct associated with this peripheral
+//    *
+//    * @return name of struct
+//    */
+//   public String getStructName() {
+//      return fheaderStructName;
+//   }
 
 
 }

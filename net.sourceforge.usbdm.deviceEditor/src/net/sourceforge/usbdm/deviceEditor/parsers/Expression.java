@@ -230,7 +230,7 @@ public class Expression implements IModelChangeListener {
          }
          // Get variable to determine type
          Variable var = owner.fVarProvider.safeGetVariable(name);
-//         if (name.contains("ftm_combine_decap0_present")) {
+//         if (name.contains("ftm_sc_clks")) {
 //            System.err.println("Found it");
 //         }
 //         if (var == null) {
@@ -711,6 +711,50 @@ public class Expression implements IModelChangeListener {
       Object eval() throws Exception {
          String s = (String) fArg.eval();
          return Character.toUpperCase(s.charAt(0))+s.substring(1);
+      }
+   }
+   
+   static class UppercaseNode extends UnaryExpressionNode {
+
+      /**
+       * Uppercase a string e.g. cmd => CMD
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      UppercaseNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+         if (arg.fType != Expression.Type.String) {
+            throw new Exception("Expression cannot be Uppercased");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         String s = (String) fArg.eval();
+         return s.toUpperCase();
+      }
+   }
+   
+   static class LowercaseNode extends UnaryExpressionNode {
+
+      /**
+       * LowercaseNode a string e.g. cMd => cmd
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      LowercaseNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+         if (arg.fType != Expression.Type.String) {
+            throw new Exception("Expression cannot be Lowercased");
+         }
+      }
+
+      @Override
+      Object eval() throws Exception {
+         String s = (String) fArg.eval();
+         return s.toLowerCase();
       }
    }
    

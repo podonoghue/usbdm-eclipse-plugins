@@ -6,7 +6,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of I2C
@@ -64,12 +63,6 @@ public class WriterForI2c extends PeripheralWithState {
       int index = fInfoTable.indexOf(signal);
       return ((index>=0) && (index<2))?MappingInfo.PORT_PCR_ODE_MASK:0;
    }
-   
-   @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
-   }
-
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);

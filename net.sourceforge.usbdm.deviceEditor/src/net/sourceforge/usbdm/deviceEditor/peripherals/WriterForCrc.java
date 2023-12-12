@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of CRC
@@ -19,10 +18,4 @@ public class WriterForCrc extends PeripheralWithState {
    public String getTitle() {
       return "Cyclic Redundancy Check";
    }
-   
-   @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
-   }
-
 }

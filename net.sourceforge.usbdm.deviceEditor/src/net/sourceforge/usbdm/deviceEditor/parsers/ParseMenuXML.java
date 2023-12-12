@@ -2432,6 +2432,31 @@ public class ParseMenuXML extends XML_BaseParser {
    //   }
 
    /**
+    * Parse an variable &lt;variable key="name" expression="=1+12" type="Boolean" /&gt;
+    * 
+    * @param element
+    * @throws Exception
+    */
+   private void parseVariable(Element element) throws Exception {
+
+      if (!checkCondition(element)) {
+         return;
+      }
+      String key         = getKeyAttribute(element);
+      String name        = getAttributeAsString(element, "name");
+      String type        = getAttributeAsString(element, "type", "Boolean");
+      String expression  = getAttributeAsString(element, "expression");
+      
+      Variable var = Variable.createVariableWithNamedType(name, key, type+"Variable", 0);
+      fProvider.addVariable(var);
+      
+      var.setReference(expression);
+      var.setDerived(true);
+      var.setLocked(true);
+      
+   }
+
+   /**
     * @param parentModel
     * @param element
     * @throws Exception
@@ -2505,9 +2530,11 @@ public class ParseMenuXML extends XML_BaseParser {
                System.err.println("Warning: Old style 'Integer' type for '" + key + "'");
                type = "Long";
             }
-            var = Variable.createConstantWithNamedType(indexedName, indexedKey, type+"Variable", results[index]);
+            var = Variable.createVariableWithNamedType(indexedName, indexedKey, type+"Variable", results[index]);
             var.setDescription(description);
             var.setHidden(isHidden);
+            var.setDerived(true);
+            var.setConstant();
             fProvider.addVariable(var);
          }
       }
@@ -3157,16 +3184,72 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseClockCodeTemplate(Element element) throws Exception {
       
-      String discardRepeats = getAttributeAsString(element, "discardRepeats", "false");
-      String key            = getKeyAttribute(element);
-      String namespace      = getAttributeAsString(element, "namespace", "info");
+      String discardRepeats   = getAttributeAsString(element, "discardRepeats", "false");
+      String key              = getKeyAttribute(element);
+      String namespace        = getAttributeAsString(element, "namespace", "info");
+      String codeGenCondition = getAttributeAsString(element, "codeGenCondition");
+      /*
+      <!-- Where to place generated code -->
+      <!ATTLIST clockCodeTemplate where                     (info|basicInfo|commonInfo)  #IMPLIED >
+      
+      info  - Within peripheral info class in pinmapping.h (default if not provided)<br>
+      usbdm - Before peripheral class in pinmapping.h  (USBDM namespace)<br>
+      all   - Explicitly available anywhere controlled by key substitution<br>
+      forceInfo - forces Info namespace and clears key and discardRepeats
+      baseClass - In base class for peripheral (causes discard repeats using StructName as key)
+      
+      */
+      String where       = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
+      if (where != null) {
+         if ((key != null) && !"all".equalsIgnoreCase(where)) {
+            throw new Exception("Attribute 'key' used with wrong 'where' attribute");
+         }
+         if (("usbdm".equals(where))) {
+            // Before peripheral class in pinmapping.h
+            // Usually enums etc.
+            key            = null;
+            namespace      = "usbdm"; // Before peripheral class in pinmapping.h
+            // discardRepeats is individual ?
+         }
+         else if (("commonInfo".equals(where))) {
+            // One for each type of peripheral
+            // e.g. FtmCommonInfo  ($(_Baseclass)CommonInfo)
+            key            = null;
+            namespace      = "commonInfo"; // Within peripheral info class in pinmapping.h
+            discardRepeats = fPeripheral.getBaseName();
+         }
+         else if (("basicInfo".equals(where))) {
+            // e.g. FtmBasicInfo ($(_Structname)BasicInfo)
+            // One for each variant (structure type) of a peripheral
+            key            =  null;
+            namespace      = "basicInfo"; // Before peripheral class in pinmapping.h
+            discardRepeats = fProvider.getVariable("structName").getValueAsString();
+         }
+         else if (("info".equals(where))) {
+            // e.g. Ftm0Info ($(_Class)Info)
+            // One for each instance of a peripheral
+            key            = null;     // No key
+            namespace      = "info";   // Within peripheral info class in pinmapping.h
+            discardRepeats = "false";  // Can't repeat anyway as unique to peripheral
+         }
+         else if (("all".equals(where))) {
+            // Arbitrary location
+            // Key necessary
+            namespace      = "all"; // Arbitrary location
+            // discardRepeats unmodified
+         }
+         else if (key != null) {
+            namespace="all";
+         }
+      }
+      
       if (key != null) {
          namespace = "all";
       }
       if (("baseClass".equals(namespace))) {
          key = null;
          namespace="usbdm";
-         discardRepeats=replaceCommonNames("$(_STRUCTNAME)");
+         discardRepeats = fProvider.getVariable("structName").getValueAsString();
       }
       if (!checkTemplateConditions(element, discardRepeats)) {
          return;
@@ -3201,7 +3284,7 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("<clockCodeTemplate> must have 'variable' or 'variables' attribute, key='" + key + "'");
       }
          
-      TemplateInformation templateInfo = addTemplate(key, namespace, getAttributeAsString(element, "codeGenCondition"));
+      TemplateInformation templateInfo = addTemplate(key, namespace, codeGenCondition);
       
       for (Node node = element.getFirstChild();
             node != null;
@@ -3239,26 +3322,82 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseTemplate(Element element) throws Exception {
 
-      String discardRepeats  = getAttributeAsString(element, "discardRepeats", "false");
-      String key             = getKeyAttribute(element);
-      String namespace       = getAttributeAsString(element, "namespace", "info"); // info|usbdm|class|all
+      String discardRepeats   = getAttributeAsString(element, "discardRepeats", "false");
+      String key              = getKeyAttribute(element);
+      String namespace        = getAttributeAsString(element, "namespace", "info");
+      String codeGenCondition = getAttributeAsString(element, "codeGenCondition");
+      /*
+      <!-- Where to place generated code -->
+      <!ATTLIST clockCodeTemplate where                     (info|basicInfo|commonInfo)  #IMPLIED >
       
-      if (("forceInfo".equals(namespace))) {
-         key = null;
-         namespace="info";
-         discardRepeats = "false";
+      info  - Within peripheral info class in pinmapping.h (default if not provided)<br>
+      usbdm - Before peripheral class in pinmapping.h  (USBDM namespace)<br>
+      all   - Explicitly available anywhere controlled by key substitution<br>
+      forceInfo - forces Info namespace and clears key and discardRepeats
+      baseClass - In base class for peripheral (causes discard repeats using StructName as key)
+      
+      */
+      String where       = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
+      if (where != null) {
+         if ((key != null) && !"all".equalsIgnoreCase(where)) {
+            throw new Exception("Attribute 'key' used with wrong 'where' attribute");
+         }
+         if (("usbdm".equals(where))) {
+            // Before peripheral class in pinmapping.h
+            // Usually enums etc.
+            key            = null;
+            namespace      = "usbdm"; // Before peripheral class in pinmapping.h
+            // discardRepeats is individual ?
+         }
+         else if (("commonInfo".equals(where))) {
+            // One for each type of peripheral
+            // e.g. FtmCommonInfo  ($(_Baseclass)CommonInfo)
+            key            = null;
+            namespace      = "commonInfo"; // Within peripheral info class in pinmapping.h
+            discardRepeats = fPeripheral.getBaseName();
+         }
+         else if (("basicInfo".equals(where))) {
+            // e.g. FtmBasicInfo ($(_Structname)BasicInfo)
+            // One for each variant (structure type) of a peripheral
+            key            =  null;
+            namespace      = "basicInfo"; // Before peripheral class in pinmapping.h
+            discardRepeats = fProvider.getVariable("structName").getValueAsString();
+         }
+         else if (("info".equals(where))) {
+            // e.g. Ftm0Info ($(_Class)Info)
+            // One for each instance of a peripheral
+            key            = null;     // No key
+            namespace      = "info";   // Within peripheral info class in pinmapping.h
+            discardRepeats = "false";  // Can't repeat anyway as unique to peripheral
+         }
+         else if (("all".equals(where))) {
+            // Arbitrary location
+            // Key necessary
+            namespace      = "all"; // Arbitrary location
+            // discardRepeats unmodified
+         }
+         else {
+            throw new Exception("Unexpected 'where' attribute value '" + where + "'");
+         }
       }
-      if (("forceUsbdm".equals(namespace))) {
-         key = null;
-         namespace="usbdm";
-      }
-      if (("baseClass".equals(namespace))) {
-         key = null;
-         namespace="usbdm";
-         discardRepeats=replaceCommonNames("$(_STRUCTNAME)");
-      }
-      if (key != null) {
-         namespace="all";
+      else {
+         if (("forceInfo".equals(namespace))) {
+            key = null;
+            namespace="info";
+            discardRepeats = "false";
+         }
+         if (("forceUsbdm".equals(namespace))) {
+            key = null;
+            namespace="usbdm";
+         }
+         if (("baseClass".equals(namespace))) {
+            key = null;
+            namespace="usbdm";
+            discardRepeats = fProvider.getVariable("structName").getValueAsString();
+         }
+         if (key != null) {
+            namespace="all";
+         }
       }
       if (!checkTemplateConditions(element, discardRepeats)) {
          return;
@@ -3279,7 +3418,7 @@ public class ParseMenuXML extends XML_BaseParser {
          // Non-empty variable list and variables not found
          return;
       }
-      TemplateInformation templateInfo = addTemplate(key, namespace, getAttributeAsString(element, "codeGenCondition"));
+      TemplateInformation templateInfo = addTemplate(key, namespace, codeGenCondition);
 
       String text = doTemplateSubstitutions(getText(element), substitutions);
       templateInfo.addText(text);
@@ -3314,7 +3453,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
       StringBuilder caseBodySb = new StringBuilder();
       String typeName = choiceVar.getTypeName();
-      if (typeName.isBlank()) {
+      if ((typeName==null)||typeName.isBlank()) {
          return caseBody + "(No typeName)";
       }
       ChoiceData[] choiceData = choiceVar.getChoiceData();
@@ -3361,8 +3500,11 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean mustExist  = getAttributeAsBoolean(element, "mustExist", true);
       boolean wasDeleted = fProvider.removeVariableByName(key);
 
-      if (mustExist  && !wasDeleted) {
-         throw new Exception("Variable '" + key + "' was not found to delete in deleteVariable");
+      if (!wasDeleted) {
+//         System.err.println("Variable '" + key + "' was not found to delete in deleteVariable");
+         if (mustExist) {
+            throw new Exception("Variable '" + key + "' was not found to delete in deleteVariable");
+         }
       }
    }
 
@@ -3433,6 +3575,15 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseChildModel(BaseModel parentModel, Element element) throws Exception {
 
       String tagName     = element.getTagName();
+      // Check for IF before condition check
+      if (tagName == "if") {
+         parseIfThen(parentModel, element);
+         return;
+      }
+      if (!checkCondition(element)) {
+         return;
+      }
+
       String key         = getKeyAttribute(element);
       String toolTip     = getToolTip(element);
 
@@ -3518,9 +3669,6 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "continue") {
          parseContinue(parentModel, element);
       }
-      else if (tagName == "if") {
-         parseIfThen(parentModel, element);
-      }
       else if (tagName == "section") {
          BaseModel model = new ParametersModel(parentModel, key, toolTip);
          parseChildModels(model, element);
@@ -3555,6 +3703,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (tagName == "equation") {
          parseEquation(element);
+      }
+      else if (tagName == "variable") {
+         parseVariable(element);
       }
       else if (tagName == "projectActionList") {
          if (checkCondition(element)) {
@@ -3596,14 +3747,11 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!checkCondition(element)) {
          return;
       }
-      String key        = getKeyAttribute(element);
-      Object expression = getAttribute(element, "value");
+      String key         = getKeyAttribute(element);
+      Object expression  = getAttribute(element, "value");
       boolean isConstant = getAttributeAsBoolean(element, "constant", false);
       Variable var = fProvider.safeGetVariable(key);
 
-      if (key.contains("basicMode")) {
-         System.err.println("parseEquation("+key+")");
-      }
       if (var == null) {
          if (expression instanceof Long) {
             var = new LongVariable(expression.toString(), key);
@@ -3856,9 +4004,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       TemplateInformation templateInfo = new TemplateInformation(key, namespace, codeGenerationCondition);
 
-      if (namespace.equalsIgnoreCase("baseClass")) {
-         namespace = "usbdm";
-      }
+//      if (namespace.equalsIgnoreCase("baseClass")) {
+//         namespace = "usbdm";
+//      }
       String templateKey = MenuData.makeKey(key, namespace);
 
       ArrayList<TemplateInformation> templateList = fTemplateInfos.get(templateKey);
@@ -4566,10 +4714,12 @@ public class ParseMenuXML extends XML_BaseParser {
                   deletedChildren.add(model);
                }
                boolean allHidden = true;
-               for (BaseModel m : model.getChildren()) {
-                  if (!m.isHidden()) {
-                     allHidden = false;
-                     break;
+               if (model.getChildren() != null) {
+                  for (BaseModel m : model.getChildren()) {
+                     if (!m.isHidden()) {
+                        allHidden = false;
+                        break;
+                     }
                   }
                }
                if (allHidden) {

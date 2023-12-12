@@ -265,17 +265,16 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception
     */
    @Override
-   public void addClassTemplates() {
+   public void writeClassTemplate(DocumentUtilities documentUtilities) throws IOException {
+      super.writeClassTemplate(documentUtilities);
+      
       if (fMenuData == null) {
-//         System.err.println("No fData for " + getName());
          return;
       }
-//      System.err.println("fData for " + getName());
       // Get default template for info class
       String template = fMenuData.getTemplate("class", "", this);
       if (!template.isBlank()) {
-         // Create or replace variable
-         fDeviceInfo.addOrUpdateStringVariable("Class Info", "/"+getBaseName()+"/classInfo", substitute(template), true);
+         documentUtilities.write(substitute(template));
       }
    }
    
@@ -285,8 +284,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return;
       }
-      String template = fMenuData.getTemplate("usbdm", "", this);
-      if ((template != null) && (!template.isEmpty())) {
+      String template;
+      template = fMenuData.getTemplate("usbdm", "", this);
+      if (!template.isBlank()) {
+//         documentUtilities.write("// usbdm\n");
+         documentUtilities.write(substitute(template));
+      }
+      template = fMenuData.getTemplate("commonInfo", "", this);
+      if (!template.isBlank()) {
+//         documentUtilities.write("// commonInfo\n");
+         documentUtilities.write(substitute(template));
+      }
+      template = fMenuData.getTemplate("basicInfo", "", this);
+      if (!template.isBlank()) {
+//         documentUtilities.write("// basicInfo\n");
          documentUtilities.write(substitute(template));
       }
    }
@@ -743,9 +754,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void addParam(String name, String key, String type, Object value) throws Exception {
       key = makeKey(key);
-      Variable var = Variable.createConstantWithNamedType(name, key, type, value);
+      Variable var = Variable.createVariableWithNamedType(name, key, type, value);
       addVariable(var);
       fParamList.add(key);
+      var.setDerived(true);
+      var.setConstant();
    }
    
    public void extractRegisterFields(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPortPeripheral, String registerName) throws Exception {
@@ -780,6 +793,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception
     */
    protected void extractClusterRegisterFields(Cluster cluster) throws Exception {
+//      System.err.println(cluster.getName()+"_X");
 
       if (cluster instanceof Register) {
          Register reg = (Register) cluster;
@@ -835,6 +849,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param dbPeripheral Database peripheral
     */
    public void extractHardwareInformation(net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral) {
+      extractAllRegisterFields(dbPeripheral);
    }
 
 //   public void addFigure(ClockSelectionFigure figure) {

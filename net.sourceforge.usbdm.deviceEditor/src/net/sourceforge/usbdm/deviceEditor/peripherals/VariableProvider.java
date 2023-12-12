@@ -114,6 +114,7 @@ public class VariableProvider {
     */
    public void addVariable(Variable variable) {
       fDeviceInfo.addVariable(variable);
+      variable.setProvider(this);
    }
 
    /**

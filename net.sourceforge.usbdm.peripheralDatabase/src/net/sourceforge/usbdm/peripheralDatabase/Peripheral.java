@@ -136,6 +136,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    public Peripheral(DevicePeripherals owner) {
+      fOwner = owner;
       if (owner != null) {
          fWidth          = owner.getWidth();
          fAccessType     = owner.getAccessType();
@@ -2307,6 +2308,16 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public void setOwner(DevicePeripherals device) {
       fOwner = device;
+   }
+
+   /**
+    * Get current owner of peripheral<br>
+    * Used during header file writing
+    * 
+    * @param device
+    */
+   public DevicePeripherals getOwner() {
+      return fOwner;
    }
 
    /**

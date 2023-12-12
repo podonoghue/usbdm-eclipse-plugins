@@ -6,7 +6,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of LPTMR
@@ -35,11 +34,6 @@ public class WriterForLptmr extends PeripheralWithState {
    public int getSignalIndex(Signal function) {
       final String signalNames[] = {"ALT0", "ALT1", "ALT2", "ALT3"};
       return getSignalIndex(function, signalNames);
-   }
-
-   @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
    }
 
    @Override

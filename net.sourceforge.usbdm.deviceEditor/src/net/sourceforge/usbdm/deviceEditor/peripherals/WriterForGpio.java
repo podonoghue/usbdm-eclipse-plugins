@@ -476,6 +476,7 @@ public class WriterForGpio extends PeripheralWithState {
    
    @Override
    public void extractHardwareInformation(Peripheral dbPortPeripheral) {
+      super.extractHardwareInformation(dbPortPeripheral);
       try {
          boolean pcrFound = false;
          for(Cluster cl:dbPortPeripheral.getRegisters()) {

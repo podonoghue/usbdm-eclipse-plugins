@@ -13,7 +13,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of CMP
@@ -185,11 +184,6 @@ public class WriterForCmp extends PeripheralWithState {
          }
          fDeviceInfo.addOrUpdateStringVariable("InputMapping", makeKey("/CMP/InputMapping"), mappings, true);
       }
-   }
-
-   @Override
-   public void extractHardwareInformation(Peripheral dbPortPeripheral) {
-      extractAllRegisterFields(dbPortPeripheral);
    }
 
 }

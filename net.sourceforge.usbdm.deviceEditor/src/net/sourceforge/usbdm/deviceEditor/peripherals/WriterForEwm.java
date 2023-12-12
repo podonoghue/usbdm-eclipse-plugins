@@ -5,7 +5,6 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 
 /**
  * Class encapsulating the code for writing an instance of VREF
@@ -25,10 +24,5 @@ public class WriterForEwm extends PeripheralWithState {
    public int getSignalIndex(Signal function) {
       final String signalNames[] = {"IN", "OUT(_b)?"};
       return getSignalIndex(function, signalNames);
-   }
-   
-   @Override
-   public void extractHardwareInformation(Peripheral dbPeripheral) {
-      extractAllRegisterFields(dbPeripheral);
    }
 }
