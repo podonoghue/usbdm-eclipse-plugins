@@ -6,7 +6,6 @@ Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.utilities.Activator
 Bundle-Vendor: USBDM
 Require-Bundle: net.sourceforge.usbdm.cdt.ui,
- javax.inject,
  org.eclipse.osgi,
  org.eclipse.jface,
  org.eclipse.e4.ui.services,

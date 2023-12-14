@@ -1332,7 +1332,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
-
+      
       if (!checkCondition(varElement)) {
          return;
       }
@@ -2196,7 +2196,38 @@ public class ParseMenuXML extends XML_BaseParser {
       parseCommonAttributes(parent, varElement, variable);
 
    }
+   /**
+    * Parse &lt;StringOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception
+    */
+   private void parsePrintVar(BaseModel parent, Element varElement) throws Exception {
 
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      String key = getKeyAttribute(varElement);
+      Variable var = fProvider.safeGetVariable(key);
+      System.out.print("<printVar> key ='"+key+"' ");
+      if (var == null) {
+         System.err.println("Not found");
+      }
+      else {
+         String split = getAttributeAsString(varElement, "split");
+         if (split != null) {
+            String[] ar = var.getValueAsString().split(split);
+            System.out.println("\nvalue = ");
+            for (String s:ar) {
+               System.out.println(s);
+            }
+         }
+         else {
+            System.out.println(" = " + var.getValueAsString());
+         }
+      }
+   }
+   
    private void parseCategory(BaseModel parent, Element varElement) throws Exception {
 
       CategoryModel model = new CategoryModel(parent, getAttributeAsString(varElement, "name"));
@@ -2660,7 +2691,7 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean isConstructor = (element.getTagName().equalsIgnoreCase("constructorTemplate"));
 
       boolean useDefinitions = Boolean.valueOf(getAttributeAsString(element, "useDefinitions", "false"));
-
+      
       String temp = getAttributeAsString(element, "params");
       List<String> paramOverride;
       if (temp != null) {
@@ -2700,400 +2731,429 @@ public class ParseMenuXML extends XML_BaseParser {
          defaultValueOverride = new ArrayList<String>();
       }
 
-      if (variableAttributeName == null) {
-         // Returns empty list to indicate template should still be processed
-         return new ArrayList<StringPair>();
-      }
-
-      String variables = getAttributeAsString(element, variableAttributeName);
-      if (variables == null) {
-         // Returns empty list to indicate template should still be processed
-         return new ArrayList<StringPair>();
-      }
-
-      ArrayList<StringPair> substitutions = new ArrayList<StringPair>();
-
-      StringBuilder maskSb               = new StringBuilder();  // Combined mask e.g. MASK1|MASK2
-      StringBuilder valueExpressionSb    = new StringBuilder();  // Combined values $(var1)|$(var2)
-      StringBuilder symbolicExpressionSb = new StringBuilder();  // Combined values $(var1.enum[])|$(var2.enum[])
-      StringBuilder initExpressionSb     = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
-      StringBuilder paramExprSb          = new StringBuilder();  // Combined expression param1|param2
-      StringBuilder paramsSb             = new StringBuilder();  // Parameter list with defaults etc.
-      StringBuilder paramDescriptionSb   = new StringBuilder();  // @param style comments for parameters
-
-      // Padding applied to comments (before * @param)
-      String linePadding    = getAttributeAsString(element, "linePadding",    "").replace("x", " ");
-      String tooltipPadding = getAttributeAsString(element, "tooltipPadding", "x*xxxxxxxx").replace("x", " ");
-
-      // Terminator for initExpression
-      String terminator     = getAttributeAsString(element, "terminator"    , ";");
-
-      // Separator for initExpression
-      String separator     = getAttributeAsString(element, "separator"    , "|");
-
-      // No newline before initExpression (suitable for a single initialisation value)
-      boolean initExpressionOnSameLine = getAttributeAsBoolean(element, "initExpressionOnSameLine", false);
-
-      String varNames[] = variables.split(",");
-
+      // List of variables to process - may be trimmed if variable doesn't exist
+      ArrayList<Variable> variableList = null;
+      
+      // Number of non-default params - may be trimmed if some variables don't exist
       Long numberOfNonDefaultParams = getLongAttribute(element, "nonDefaultParams", 1);
-
-      ArrayList<Variable> variableList = new ArrayList<Variable>();
-      ArrayList<Integer>  deletedParams = new ArrayList<Integer>();
-      int paramCount=0;
-      for (String varName:varNames) {
-         String variableKey = fProvider.makeKey(varName.trim());
-         Variable var = safeGetVariable(variableKey);
-         if (var==null) {
-            // Reduce numberOfDefaultParams if related parameter is missing
-            // but keep at least 1 non-default
-            if ((numberOfNonDefaultParams>1) && (paramCount < numberOfNonDefaultParams)) {
-               numberOfNonDefaultParams--;
+      
+      // Check for variable list to process
+      String variablesAttribute = null;
+      if (variableAttributeName != null) {
+         variablesAttribute = getAttributeAsString(element, variableAttributeName);
+      }
+      
+      if (variablesAttribute != null) {
+         
+         // Create variable list
+         String varNames[] = variablesAttribute.split(",");
+   
+         // List of variables to actually process
+         variableList  = new ArrayList<Variable>();
+         
+         ArrayList<Integer>  deletedParams = new ArrayList<Integer>();
+         
+         int paramCount=0;
+         for (String varName:varNames) {
+            String variableKey = fProvider.makeKey(varName.trim());
+            Variable var = safeGetVariable(variableKey);
+            if (var==null) {
+               // Reduce numberOfDefaultParams if related parameter is missing
+               // but keep at least 1 non-default
+               if ((numberOfNonDefaultParams>1) && (paramCount < numberOfNonDefaultParams)) {
+                  numberOfNonDefaultParams--;
+               }
+               // Remove corresponding override
+               deletedParams.add(0, paramCount);
+               paramCount++;
+               continue;
             }
-            // Remove corresponding override
-            deletedParams.add(0, paramCount);
+            variableList.add(var);
             paramCount++;
-            continue;
          }
-         variableList.add(var);
-         paramCount++;
+         // Fix lists for missing parameters
+         for(int index:deletedParams) {
+            if (paramOverride.size() > index) {
+               paramOverride.remove(index);
+            }
+            if (defaultValueOverride.size() > index) {
+               defaultValueOverride.remove(index);
+            }
+            if (paramTypesOverride.size() > index) {
+               paramTypesOverride.remove(index);
+            }
+         }
+         if (variableList.isEmpty()) {
+            // No requested variables exist - don't generate method at all
+            return null;
+         }
       }
-      // Fix lists for missing parameters
-      for(int index:deletedParams) {
-         if (paramOverride.size() > index) {
-            paramOverride.remove(index);
-         }
-         if (defaultValueOverride.size() > index) {
-            defaultValueOverride.remove(index);
-         }
-         if (paramTypesOverride.size() > index) {
-            paramTypesOverride.remove(index);
-         }
-      }
-      if (variableList.isEmpty()) {
-         // No variables exist - don't generate method
-         return null;
-      }
-      // Find maximum name length
-      int maxNameLength = 4;
-      for (int index=0; index<variableList.size(); index++) {
-         String typeName = variableList.get(index).getTypeName();
-         if (typeName == null) {
-            continue;
-         }
-         maxNameLength = Math.max(maxNameLength, typeName.length());
-      }
-      String  register           = null;
-      String  registerName       = null;
-      boolean registeNameChanged = false;
+      
+      ArrayList<StringPair> substitutions = new ArrayList<StringPair>();
+      
+      if (variableList != null) {
+         
+         // Process variables found
+         StringBuilder maskSb               = new StringBuilder();  // Combined mask e.g. MASK1|MASK2
+         StringBuilder valueExpressionSb    = new StringBuilder();  // Combined values $(var1)|$(var2)
+         StringBuilder symbolicExpressionSb = new StringBuilder();  // Combined values $(var1.enum[])|$(var2.enum[])
+         StringBuilder initExpressionSb     = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
+         StringBuilder paramExprSb          = new StringBuilder();  // Combined expression param1|param2
+         StringBuilder paramsSb             = new StringBuilder();  // Parameter list with defaults etc.
+         StringBuilder paramDescriptionSb   = new StringBuilder();  // @param style comments for parameters
 
-      // To differentiate 'nameless' params
-      int valueSuffix = 0;
-      for (int index=0; index<variableList.size(); index++) {
+         // Padding applied to comments (before * @param)
+         String linePadding    = getAttributeAsString(element, "linePadding",    "").replace("x", " ");
+         String tooltipPadding = getAttributeAsString(element, "tooltipPadding", "x*xxxxxxxx").replace("x", " ");
 
-         Variable variable    = variableList.get(index);
-         String   variableKey = variable.getKey();
+         // Terminator for initExpression
+         String terminator     = getAttributeAsString(element, "terminator"    , ";");
 
-         if (index > 0) {
-            maskSb.append('|');
-            valueExpressionSb.append(separator);
-            symbolicExpressionSb.append(separator);
-            initExpressionSb.append("\n");
-            paramExprSb.append(separator);
-            paramsSb.append(",\n");
-            paramDescriptionSb.append("\n");
+         // Separator for initExpression
+         String separator     = getAttributeAsString(element, "separator"    , "|");
+
+         // No newline before initExpression (suitable for a single initialisation value)
+         boolean initExpressionOnSameLine = getAttributeAsBoolean(element, "initExpressionOnSameLine", false);
+
+         if (variableAttributeName == null) {
+            // Returns empty list to indicate template should still be processed
+            return new ArrayList<StringPair>();
          }
 
-         // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
-         String mask;
-         String macro;
-
-         // Value format string
-         String valueFormat  = variable.getValueFormat();
-
-         if (valueFormat != null) {
-            macro  = valueFormat.replace("(%s)", "").replace(",", "|");
-            mask  = valueFormat.replace(",(%s)", "").replace(",", "|").replace("(%s)", "_MASK");
+         // Find maximum name length
+         int maxNameLength = 4;
+         for (int index=0; index<variableList.size(); index++) {
+            String typeName = variableList.get(index).getTypeName();
+            if (typeName == null) {
+               continue;
+            }
+            maxNameLength = Math.max(maxNameLength, typeName.length());
          }
-         else {
-            macro  = Variable.getBaseNameFromKey(variableKey).toUpperCase();
-            mask   = macro+"_MASK";
-            valueFormat = mask+"(%s)";
-         }
-         maskSb.append(mask);
+         String  register           = null;
+         String  registerName       = null;
+         boolean registeNameChanged = false;
 
-         if (mask.length() > 0) {
+         // To differentiate 'nameless' params
+         int valueSuffix = 0;
+         for (int index=0; index<variableList.size(); index++) {
+
+            Variable variable    = variableList.get(index);
+            String   variableKey = variable.getKey();
+
+            if (index > 0) {
+               maskSb.append('|');
+               valueExpressionSb.append(separator);
+               symbolicExpressionSb.append(separator);
+               initExpressionSb.append("\n");
+               paramExprSb.append(separator);
+               paramsSb.append(",\n");
+               paramDescriptionSb.append("\n");
+            }
+
+            // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
+            String mask;
+            String macro;
+
+            // Value format string
+            String valueFormat  = variable.getValueFormat();
+
+            if (valueFormat != null) {
+               macro  = valueFormat.replace("(%s)", "").replace(",", "|");
+               mask  = valueFormat.replace(",(%s)", "").replace(",", "|").replace("(%s)", "_MASK");
+            }
+            else {
+               macro  = Variable.getBaseNameFromKey(variableKey).toUpperCase();
+               mask   = macro+"_MASK";
+               valueFormat = mask+"(%s)";
+            }
+            maskSb.append(mask);
+
+            if (mask.length() > 0) {
+               boolean bracketsRequired = !mask.matches("[a-zA-Z0-9_]*");
+               if (bracketsRequired) {
+                  mask = '('+mask+')';
+               }
+            }
+
+            // Type from variable with upper-case 1st letter
+            String paramName = "'%paramName' is not valid here";
+
+            String paramType = variable.getTypeName();
+            if (paramType == null) {
+               if (variable instanceof LongVariable) {
+                  LongVariable var = (LongVariable) variable;
+                  paramType = var.getUnits().getType();
+                  if (var.getUnits() == Units.ticks) {
+                     paramName = "ticks";
+                  }
+                  else {
+                     paramName = "value";
+                  }
+               }
+               else if (variable instanceof DoubleVariable) {
+                  DoubleVariable var = (DoubleVariable) variable;
+                  paramType = var.getUnits().getType();
+                  if (var.getUnits() == Units.ticks) {
+                     paramName = "ticks";
+                  }
+                  else {
+                     paramName = "value";
+                  }
+               }
+               if (paramType == null) {
+                  paramType = "'%paramType' is not valid here";
+               }
+               else {
+
+               }
+            }
+            else {
+               paramType = paramType.strip();
+               Pattern p = Pattern.compile("(const\\s)?\\s*([a-zA-Z0-9_]+)\\s*(&)?");
+               Matcher m = p.matcher(paramType);
+               if (!m.matches()) {
+                  throw new Exception("Failed to match '" + paramType + "'");
+               }
+               String constPrefix = m.group(1);
+               String type        = m.group(2);
+               String reference   = m.group(3);
+               if (constPrefix == null) {
+                  constPrefix = "";
+               }
+               if (reference == null) {
+                  reference = "";
+               }
+               if (!isConstructor) {
+                  // Strip references from type unless it is a constexpr constructor
+                  constPrefix = "";
+                  reference   = "";
+               }
+               paramType  = constPrefix + Character.toUpperCase(type.charAt(0)) + type.substring(1) + reference;
+               paramName  = Character.toLowerCase(type.charAt(0)) + type.substring(1);
+
+            }
+            // Special cases pattern
+            // This is used to identify C integers
+            Pattern pSpecial = Pattern.compile("(u?int[0-9]+_t)|((un)?signed(\\sint)?)|(int)");
+
+            Matcher mSpecial = pSpecial.matcher(paramName);
+            boolean integerType = mSpecial.matches();
+            if (integerType) {
+               // Integer parameters get a name of 'value' by default
+               paramType = paramName;
+               paramName = "value";
+               if (valueSuffix != 0) {
+                  paramName = paramName+valueSuffix;
+               }
+               valueSuffix++;
+            }
+
+            if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
+               paramName = paramOverride.get(index);
+            }
+
+            if ((paramTypesOverride.size()>index) && !paramTypesOverride.get(index).isBlank()) {
+               paramType = paramTypesOverride.get(index);
+            }
+
+            // $(variableKey)
+            String valueExpression = "$("+variableKey+")";
+            valueExpressionSb.append(valueExpression);
+
+            String symbolicExpression;
+            if (useDefinitions) {
+               symbolicExpression = "$("+variableKey+".definition)";
+            }
+            else {
+               symbolicExpression = "$("+variableKey+".usageValue)";
+            }
+            symbolicExpressionSb.append(symbolicExpression);
+
+            // Description from variable
+            String description = "'%description' not available in this template";
+            temp = variable.getDescription();
+            if (temp != null) {
+               description = temp;
+            }
+            if (temp == null) {
+               System.err.println("Warning: no description for '"+variable.getName()+"'");
+            }
+
+            // Short description from variable
+            String shortDescription = "'%shortDescription' not available in this template";
+            temp = variable.getShortDescription();
+            if (temp != null) {
+               shortDescription = temp;
+            }
+
+            // Tool-tip from variable
+            String tooltip = "'%tooltip' not available in this template";
+            temp = variable.getToolTipAsCode("\\t"+linePadding+tooltipPadding);
+            if (temp != null) {
+               tooltip = temp;
+            }
+            if (index == 0) {
+               if (!initExpressionOnSameLine) {
+                  initExpressionSb.append("\n\\t   "+linePadding);
+               }
+            }
+            else {
+               initExpressionSb.append("\\t   "+linePadding);
+            }
+
+            initExpressionSb.append(symbolicExpression);
+            if (index+1 == variableList.size()) {
+               initExpressionSb.append(terminator+"  // ");
+            }
+            else {
+               initExpressionSb.append(" "+separator+" // ");
+            }
+
+            initExpressionSb.append("$("+variableKey+".shortDescription)");
+            if (variable instanceof VariableWithChoices) {
+               initExpressionSb.append(" - $("+variableKey+".name[])");
+            }
+
+            String defaultParamV = variable.getDefaultParameterValue();
+            if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
+               defaultParamV = defaultValueOverride.get(index);
+            }
+            paramExprSb.append(variable.formatParam(paramName));
+
+            String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, tooltip);
+            paramDescriptionSb.append(paramDescriptionN);
+
+            // Padding applied to parameters
+            String paramPadding = (variableList.size()<=1)?"":"\\t      "+linePadding;
+
+            String param;
+            if (index<numberOfNonDefaultParams) {
+               param = String.format("%"+(-maxNameLength)+"s %s", paramType, paramName);
+            }
+            else {
+               param = String.format("%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, paramName, defaultParamV);
+            }
+            paramsSb.append(paramPadding + param);
+
+            String registerN     = "'register' is not valid here";
+            String registerNameN = "'registerName' is not valid here";
+            String registerNAMEN = "'registerNAME' is not valid here";
+
+            // Try to deduce register
+            temp = deduceRegister(variable);
+            if (temp != null) {
+               registerN     = temp;
+               registerNameN = temp.replaceAll("([a-zA-Z0-9]*)->", "").toLowerCase();
+               registerNAMEN = registerNameN.toUpperCase();
+               if (!registeNameChanged) {
+                  if (register == null) {
+                     register     = registerN;
+                     registerName = registerNameN;
+                  }
+                  else if (!temp.equals(register)) {
+                     registeNameChanged = true;
+                     register     = "'register' is conflicted";
+                     registerName = "'registerName' is conflicted";
+                  }
+               }
+            }
+            substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
+            substitutions.add(0, new StringPair("%symbolicExpression"+index, symbolicExpression));
+
+            substitutions.add(0, new StringPair("%variable"+index,                variableKey));
+            substitutions.add(0, new StringPair("%description"+index,             description));
+            substitutions.add(0, new StringPair("%shortDescription"+index,        shortDescription));
+            substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
+            substitutions.add(0, new StringPair("%macro"+index,                   macro));
+            substitutions.add(0, new StringPair("%mask"+index,                    mask));
+            substitutions.add(0, new StringPair("%paramName"+index,               paramName));
+            substitutions.add(0, new StringPair("%paramType"+index,               paramType));
+            substitutions.add(0, new StringPair("%registerName"+index,            registerNameN));
+            substitutions.add(0, new StringPair("%registerNAME"+index,            registerNAMEN));
+            substitutions.add(0, new StringPair("%register"+index,                registerN));
+            substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
+            substitutions.add(0, new StringPair("%param"+index,                   param));
+
+            if (index == 0) {
+               substitutions.add(new StringPair("%variable",                variableKey));
+               substitutions.add(new StringPair("%description",             description));
+               substitutions.add(new StringPair("%shortDescription",        shortDescription));
+               substitutions.add(new StringPair("%tooltip",                 tooltip));
+               substitutions.add(new StringPair("%paramName",               paramName));
+               substitutions.add(new StringPair("%paramType",               paramType));
+               substitutions.add(new StringPair("%registerName",            registerNameN));
+               substitutions.add(new StringPair("%registerNAME",            registerNAMEN));
+            }
+         }
+
+         String mask = null;
+         if (maskSb.length() > 0) {
+            mask = maskSb.toString();
+            // If not a simple name/number add brackets
             boolean bracketsRequired = !mask.matches("[a-zA-Z0-9_]*");
             if (bracketsRequired) {
                mask = '('+mask+')';
             }
          }
+         String paramExpr = "'paramExpr' is not valid here";
+         if (paramExprSb.length()>0) {
+            paramExpr = paramExprSb.toString();
+         }
 
-         // Type from variable with upper-case 1st letter
-         String paramName = "'%paramName' is not valid here";
+         String maskingExpression   = "'maskingExpression' is not valid here";
+         String fieldAssignment     = "'fieldAssignment' is not valid here";
+         if ((register != null) && (mask != null)) {
+            maskingExpression = register+"&"+mask;
+            fieldAssignment   = register+" = ("+register+"&~"+mask+") | "+paramExpr+";";
+         }
+         if (register == null) {
+            register     = "'register' is not valid here";
+            registerName = "'registerName' is not valid here";
+         }
+         if (mask == null) {
+            mask = "'mask' not available in this template";
+         }
+         String params = "'params' is not valid here";
+         if (paramsSb.length()>0) {
+            params = paramsSb.toString();
+         }
+         String paramDescription = "'comments' is not valid here";
+         if (paramDescriptionSb.length()>0) {
+            paramDescription = paramDescriptionSb.toString();
+         }
 
-         String paramType = variable.getTypeName();
-         if (paramType == null) {
-            if (variable instanceof LongVariable) {
-               LongVariable var = (LongVariable) variable;
-               paramType = var.getUnits().getType();
-               if (var.getUnits() == Units.ticks) {
-                  paramName = "ticks";
-               }
-               else {
-                  paramName = "value";
-               }
+         String initExpression = "'initExpression' is not valid here";
+         if (initExpressionSb.length()>0) {
+            initExpression = initExpressionSb.toString();
+         }
+
+         substitutions.add(new StringPair("%initExpression",            initExpression));
+         substitutions.add(new StringPair("%valueExpression",           valueExpressionSb.toString()));
+         substitutions.add(new StringPair("%symbolicExpression",        symbolicExpressionSb.toString()));
+         substitutions.add(new StringPair("%paramExpression",           paramExpr));
+
+         substitutions.add(new StringPair("%fieldAssignment",           fieldAssignment));
+         substitutions.add(new StringPair("%maskingExpression",         maskingExpression));
+         substitutions.add(new StringPair("%mask",                      mask));
+         substitutions.add(new StringPair("%register",                  register));
+         substitutions.add(new StringPair("%registerName",              registerName));
+         substitutions.add(new StringPair("%params",                    params));
+         substitutions.add(new StringPair("%paramDescription",          paramDescription));
+      }
+      
+      String immediateVariables  = getAttributeAsString(element, "immediateVariables");
+      
+      if (immediateVariables != null) {
+         for (String immediateVariable:immediateVariables.split(",")) {
+            Variable var = safeGetVariable(immediateVariable);
+            if (var == null) {
+               throw new Exception("Variable not found for immediateVariables, var='" + immediateVariable + "'");
             }
-            else if (variable instanceof DoubleVariable) {
-               DoubleVariable var = (DoubleVariable) variable;
-               paramType = var.getUnits().getType();
-               if (var.getUnits() == Units.ticks) {
-                  paramName = "ticks";
-               }
-               else {
-                  paramName = "value";
-               }
-            }
-            if (paramType == null) {
-               paramType = "'%paramType' is not valid here";
-            }
-            else {
-
-            }
-         }
-         else {
-            paramType = paramType.strip();
-            Pattern p = Pattern.compile("(const\\s)?\\s*([a-zA-Z0-9_]+)\\s*(&)?");
-            Matcher m = p.matcher(paramType);
-            if (!m.matches()) {
-               throw new Exception("Failed to match '" + paramType + "'");
-            }
-            String constPrefix = m.group(1);
-            String type        = m.group(2);
-            String reference   = m.group(3);
-            if (constPrefix == null) {
-               constPrefix = "";
-            }
-            if (reference == null) {
-               reference = "";
-            }
-            if (!isConstructor) {
-               // Strip references from type unless it is a constexpr constructor
-               constPrefix = "";
-               reference   = "";
-            }
-            paramType  = constPrefix + Character.toUpperCase(type.charAt(0)) + type.substring(1) + reference;
-            paramName  = Character.toLowerCase(type.charAt(0)) + type.substring(1);
-
-         }
-         // Special cases pattern
-         // This is used to identify C integers
-         Pattern pSpecial = Pattern.compile("(u?int[0-9]+_t)|((un)?signed(\\sint)?)|(int)");
-
-         Matcher mSpecial = pSpecial.matcher(paramName);
-         boolean integerType = mSpecial.matches();
-         if (integerType) {
-            // Integer parameters get a name of 'value' by default
-            paramType = paramName;
-            paramName = "value";
-            if (valueSuffix != 0) {
-               paramName = paramName+valueSuffix;
-            }
-            valueSuffix++;
-         }
-
-         if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
-            paramName = paramOverride.get(index);
-         }
-
-         if ((paramTypesOverride.size()>index) && !paramTypesOverride.get(index).isBlank()) {
-            paramType = paramTypesOverride.get(index);
-         }
-
-         // $(variableKey)
-         String valueExpression = "$("+variableKey+")";
-         valueExpressionSb.append(valueExpression);
-
-         String symbolicExpression;
-         if (useDefinitions) {
-            symbolicExpression = "$("+variableKey+".definition)";
-         }
-         else {
-            symbolicExpression = "$("+variableKey+".usageValue)";
-         }
-         symbolicExpressionSb.append(symbolicExpression);
-
-         // Description from variable
-         String description = "'%description' not available in this template";
-         temp = variable.getDescription();
-         if (temp != null) {
-            description = temp;
-         }
-         if (temp == null) {
-            System.err.println("Warning: no description for '"+variable.getName()+"'");
-         }
-
-         // Short description from variable
-         String shortDescription = "'%shortDescription' not available in this template";
-         temp = variable.getShortDescription();
-         if (temp != null) {
-            shortDescription = temp;
-         }
-
-         // Tool-tip from variable
-         String tooltip = "'%tooltip' not available in this template";
-         temp = variable.getToolTipAsCode("\\t"+linePadding+tooltipPadding);
-         if (temp != null) {
-            tooltip = temp;
-         }
-         if (index == 0) {
-            if (!initExpressionOnSameLine) {
-               initExpressionSb.append("\n\\t   "+linePadding);
-            }
-         }
-         else {
-            initExpressionSb.append("\\t   "+linePadding);
-         }
-
-         initExpressionSb.append(symbolicExpression);
-         if (index+1 == variableList.size()) {
-            initExpressionSb.append(terminator+"  // ");
-         }
-         else {
-            initExpressionSb.append(" "+separator+" // ");
-         }
-
-         initExpressionSb.append("$("+variableKey+".shortDescription)");
-         if (variable instanceof VariableWithChoices) {
-            initExpressionSb.append(" - $("+variableKey+".name[])");
-         }
-
-         String defaultParamV = variable.getDefaultParameterValue();
-         if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
-            defaultParamV = defaultValueOverride.get(index);
-         }
-         paramExprSb.append(variable.formatParam(paramName));
-
-         String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, tooltip);
-         paramDescriptionSb.append(paramDescriptionN);
-
-         // Padding applied to parameters
-         String paramPadding = (varNames.length<=1)?"":"\\t      "+linePadding;
-
-         String param;
-         if (index<numberOfNonDefaultParams) {
-            param = String.format("%"+(-maxNameLength)+"s %s", paramType, paramName);
-         }
-         else {
-            param = String.format("%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, paramName, defaultParamV);
-         }
-         paramsSb.append(paramPadding + param);
-
-         String registerN     = "'register' is not valid here";
-         String registerNameN = "'registerName' is not valid here";
-         String registerNAMEN = "'registerNAME' is not valid here";
-
-         // Try to deduce register
-         temp = deduceRegister(variable);
-         if (temp != null) {
-            registerN     = temp;
-            registerNameN = temp.replaceAll("([a-zA-Z0-9]*)->", "").toLowerCase();
-            registerNAMEN = registerNameN.toUpperCase();
-            if (!registeNameChanged) {
-               if (register == null) {
-                  register     = registerN;
-                  registerName = registerNameN;
-               }
-               else if (!temp.equals(register)) {
-                  registeNameChanged = true;
-                  register     = "'register' is conflicted";
-                  registerName = "'registerName' is conflicted";
-               }
-            }
-         }
-         substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
-         substitutions.add(0, new StringPair("%symbolicExpression"+index, symbolicExpression));
-
-         substitutions.add(0, new StringPair("%variable"+index,                variableKey));
-         substitutions.add(0, new StringPair("%description"+index,             description));
-         substitutions.add(0, new StringPair("%shortDescription"+index,        shortDescription));
-         substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
-         substitutions.add(0, new StringPair("%macro"+index,                   macro));
-         substitutions.add(0, new StringPair("%mask"+index,                    mask));
-         substitutions.add(0, new StringPair("%paramName"+index,               paramName));
-         substitutions.add(0, new StringPair("%paramType"+index,               paramType));
-         substitutions.add(0, new StringPair("%registerName"+index,            registerNameN));
-         substitutions.add(0, new StringPair("%registerNAME"+index,            registerNAMEN));
-         substitutions.add(0, new StringPair("%register"+index,                registerN));
-         substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
-         substitutions.add(0, new StringPair("%param"+index,                   param));
-
-         if (index == 0) {
-            substitutions.add(new StringPair("%variable",                variableKey));
-            substitutions.add(new StringPair("%description",             description));
-            substitutions.add(new StringPair("%shortDescription",        shortDescription));
-            substitutions.add(new StringPair("%tooltip",                 tooltip));
-            substitutions.add(new StringPair("%paramName",               paramName));
-            substitutions.add(new StringPair("%paramType",               paramType));
-            substitutions.add(new StringPair("%registerName",            registerNameN));
-            substitutions.add(new StringPair("%registerNAME",            registerNAMEN));
+            String from = "$("+immediateVariable+")";
+            String to   = var.getSubstitutionValue();
+            substitutions.add(new StringPair(from , to));
          }
       }
-
-      String mask = null;
-      if (maskSb.length() > 0) {
-         mask = maskSb.toString();
-         // If not a simple name/number add brackets
-         boolean bracketsRequired = !mask.matches("[a-zA-Z0-9_]*");
-         if (bracketsRequired) {
-            mask = '('+mask+')';
-         }
-      }
-      String paramExpr = "'paramExpr' is not valid here";
-      if (paramExprSb.length()>0) {
-         paramExpr = paramExprSb.toString();
-      }
-
-      String maskingExpression   = "'maskingExpression' is not valid here";
-      String fieldAssignment     = "'fieldAssignment' is not valid here";
-      if ((register != null) && (mask != null)) {
-         maskingExpression = register+"&"+mask;
-         fieldAssignment   = register+" = ("+register+"&~"+mask+") | "+paramExpr+";";
-      }
-      if (register == null) {
-         register     = "'register' is not valid here";
-         registerName = "'registerName' is not valid here";
-      }
-      if (mask == null) {
-         mask = "'mask' not available in this template";
-      }
-      String params = "'params' is not valid here";
-      if (paramsSb.length()>0) {
-         params = paramsSb.toString();
-      }
-      String paramDescription = "'comments' is not valid here";
-      if (paramDescriptionSb.length()>0) {
-         paramDescription = paramDescriptionSb.toString();
-      }
-
-      String initExpression = "'initExpression' is not valid here";
-      if (initExpressionSb.length()>0) {
-         initExpression = initExpressionSb.toString();
-      }
-
-      substitutions.add(new StringPair("%initExpression",            initExpression));
-      substitutions.add(new StringPair("%valueExpression",           valueExpressionSb.toString()));
-      substitutions.add(new StringPair("%symbolicExpression",        symbolicExpressionSb.toString()));
-      substitutions.add(new StringPair("%paramExpression",           paramExpr));
-
-      substitutions.add(new StringPair("%fieldAssignment",           fieldAssignment));
-      substitutions.add(new StringPair("%maskingExpression",         maskingExpression));
-      substitutions.add(new StringPair("%mask",                      mask));
-      substitutions.add(new StringPair("%register",                  register));
-      substitutions.add(new StringPair("%registerName",              registerName));
-      substitutions.add(new StringPair("%params",                    params));
-      substitutions.add(new StringPair("%paramDescription",          paramDescription));
-
       return substitutions;
    }
 
@@ -3322,10 +3382,11 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseTemplate(Element element) throws Exception {
 
-      String discardRepeats   = getAttributeAsString(element, "discardRepeats", "false");
-      String key              = getKeyAttribute(element);
-      String namespace        = getAttributeAsString(element, "namespace", "info");
-      String codeGenCondition = getAttributeAsString(element, "codeGenCondition");
+      String discardRepeats      = getAttributeAsString(element, "discardRepeats", "false");
+      String key                 = getKeyAttribute(element);
+      String namespace           = getAttributeAsString(element, "namespace", "info");
+      String codeGenCondition    = getAttributeAsString(element, "codeGenCondition");
+      
       /*
       <!-- Where to place generated code -->
       <!ATTLIST clockCodeTemplate where                     (info|basicInfo|commonInfo)  #IMPLIED >
@@ -3486,24 +3547,28 @@ public class ParseMenuXML extends XML_BaseParser {
       return caseBodySb.toString();
    }
 
-   private void parseDeleteVariable(Element element) throws Exception {
+   private void parseDeleteVariables(Element element) throws Exception {
 
       if (!checkCondition(element)) {
          return;
       }
-      String key = getKeyAttribute(element);
-      if (key.isBlank()) {
-         throw new Exception("<deleteVariable> must have key attribute");
+      boolean mustExist = getAttributeAsBoolean(element, "mustExist", true);
+      
+      String variables = getAttributeAsString(element, "variables", null);
+      if (variables == null) {
+         throw new Exception("<deleteVariables> must have 'variables' attribute");
       }
-      fPeripheral.removeMonitoredVariable(safeGetVariable(key));
+      for (String variable:variables.split(",")) {
+         
+         fPeripheral.removeMonitoredVariable(safeGetVariable(variable));
 
-      boolean mustExist  = getAttributeAsBoolean(element, "mustExist", true);
-      boolean wasDeleted = fProvider.removeVariableByName(key);
+         boolean wasDeleted = fProvider.removeVariableByName(variable);
 
-      if (!wasDeleted) {
-//         System.err.println("Variable '" + key + "' was not found to delete in deleteVariable");
-         if (mustExist) {
-            throw new Exception("Variable '" + key + "' was not found to delete in deleteVariable");
+         if (!wasDeleted) {
+//            System.err.println("Variable '" + variable + "' was not found to delete in deleteVariables");
+            if (mustExist) {
+               throw new Exception("Variable '" + variable + "' was not found to delete in deleteVariables");
+            }
          }
       }
    }
@@ -3645,6 +3710,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "stringOption") {
          parseStringOption(parentModel, element);
       }
+      else if (tagName == "printVar") {
+         parsePrintVar(parentModel, element);
+      }
       else if (tagName == "title") {
          parseTitle(parentModel, element);
       }
@@ -3698,8 +3766,8 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          parseTemplate(element);
       }
-      else if (tagName == "deleteVariable") {
-         parseDeleteVariable(element);
+      else if (tagName == "deleteVariables") {
+         parseDeleteVariables(element);
       }
       else if (tagName == "equation") {
          parseEquation(element);
@@ -3732,7 +3800,7 @@ public class ParseMenuXML extends XML_BaseParser {
       //         parseDialogue(parentModel, element);
       //      }
       else {
-         throw new Exception("Unexpected tag in parseControlItem(), \'"+tagName+"\'");
+         throw new Exception("Unexpected tag in parseChildModel(), \'"+tagName+"\'");
       }
    }
 
@@ -4202,7 +4270,7 @@ public class ParseMenuXML extends XML_BaseParser {
                defaultValue = 0;
             }
             if (element.hasAttribute("isDefault")) {
-               if (Expression.checkCondition(getAttributeAsString(element, "isDefault"), fProvider)) {
+               if (getAttributeAsBoolean(element, "isDefault", true)) {
                   // Explicit default set
                   if (defaultExplicitlySet) {
                      throw new Exception("Multiple default choices set in <"+menuElement.getTagName() + " name=\""+menuElement.getAttribute("name")+"\"> <choice name=\"" + getAttributeAsString(element, "name")+ "\">");
@@ -4598,8 +4666,8 @@ public class ParseMenuXML extends XML_BaseParser {
             fRootModel = new ListModel(null, name);
             parseSectionsOrOtherContents(fRootModel, element);
          }
-         else if (tagName == "deleteVariable") {
-            parseDeleteVariable(element);
+         else if (tagName == "deleteVariables") {
+            parseDeleteVariables(element);
          }
          else if (tagName == "constant") {
             parseConstant(element);

@@ -791,15 +791,15 @@ public class Expression implements IModelChangeListener {
        */
       ToStringNode(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
-         if (arg.fType != Expression.Type.Long) {
+         if ((arg.fType != Expression.Type.Long)&&(arg.fType != Expression.Type.Boolean)) {
             throw new Exception("Expression cannot be converted to String");
          }
       }
 
       @Override
       Object eval() throws Exception {
-         long l = (long) fArg.eval();
-         return Long.toString(l);
+         Object res = fArg.eval();
+         return res.toString();
       }
    }
 

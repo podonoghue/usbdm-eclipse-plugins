@@ -75,13 +75,11 @@ public class PeripheralParametersEditorTab implements IEditor {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                   final TreeColumnInformation[] columnInformation1 = {
-                        new TreeColumnInformation("Description",     350, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
+                        new TreeColumnInformation("Description",     300, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer),
                               DescriptionColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Value",           300, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer),
                               "Value of property"),
-                        new TreeColumnInformation("Code Identifier", 200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer),
-                              "C Identifier for code generation\n"+
-                              "If not blank code will be generated for the signal or peripheral"),
+                        new TreeColumnInformation("Code Identifier", 160, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer), ""),
                         new TreeColumnInformation("Modifier",        100, new ModifierColumnLabelProvider(),       new ModifierEditingSupport(viewer),
                               ModifierColumnLabelProvider.getColumnToolTipText()),
                         new TreeColumnInformation("Instance",         80,  new InstanceColumnLabelProvider(),      new InstanceEditingSupport(viewer),

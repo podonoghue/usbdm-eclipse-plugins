@@ -242,13 +242,14 @@ public class CreateDeviceSkeletonFromSVD {
    //================================================
    void writePreamble() {
 
+      final String suppress = "\n"
+         + "   <constant key=\"suppressInstance\"          type=\"Boolean\" value=\"false\"         />\n";
       final String pre = "\n"
-         + "   <constant key=\"suppressInstance\"         type=\"Boolean\" value=\"false\"         />\n"
-         + "   <constant key=\"irq_parameters\"           type=\"String\"  value=\"&quot;&quot;\"  />\n"
-         + "   <constant key=\"irq_dummy_parameters\"     type=\"String\"  value=\"&quot;&quot;\"  />\n"
-         + "   <constant key=\"irq_call\"                 type=\"String\"  value=\"&quot;&quot;\"  />\n"
-         + "   <constant key=\"isGeneratedByDefault\"     type=\"Boolean\" value=\"false\"         />\n"
-         + "   <constant key=\"isSupportedinStartup\"     type=\"Boolean\" value=\"true\"          />\n"
+         + "   <constant key=\"irq_parameters\"            type=\"String\"  value=\"&quot;&quot;\"  />\n"
+         + "   <constant key=\"irq_dummy_parameters\"      type=\"String\"  value=\"&quot;&quot;\"  />\n"
+         + "   <constant key=\"irq_call\"                  type=\"String\"  value=\"&quot;&quot;\"  />\n"
+         + "   <constant key=\"generateDefault\"           type=\"Boolean\" value=\"false\"         />\n"
+         + "   <constant key=\"configureInStartupDefault\" type=\"Boolean\" value=\"false\"         />\n"
          + "   <xi:include href=\"enablePeripheral.xml\"  />\n"
          + "   <title />\n"
          + "";
@@ -293,6 +294,9 @@ public class CreateDeviceSkeletonFromSVD {
       String filename = peripheral.getSourceFilename().toLowerCase();
       isSim = filename.startsWith("sim");
       
+      if (peripheral.getName().startsWith("GPIO")) {
+         resultSb.append(suppress);
+      }
       resultSb.append(String.format(pre, Boolean.toString(irqsUsed)));
 
       resultSb.append(usefulInfo);
@@ -1360,7 +1364,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      <aliasOption key=\"/SIM/sim_pinsel0_$(_name)ps\" locked=\"false\" optional=\"true\" />\n"
             + "      <aliasOption key=\"/SIM/sim_pinsel1_$(_name)ps\" locked=\"false\" optional=\"true\" />\n"
             + "   </category>\n"
-            + "   <deleteVariable key=\"_scgc_clock\"  mustExist=\"false\" />\n"
+            + "   <deleteVariables variables=\"_scgc_clock\"  mustExist=\"false\" />\n"
             + "\n"
             + "   <!-- ************* Signal mapping ****************** -->\n"
             + "   <signals enabledBy=\"enablePeripheralSupport\" locked=\"!/PCR/_present\" />\n");
@@ -1505,7 +1509,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      description=\"$(_Class) Interrupt indices\"\n"
             + "      toolTip=\"Used to identify peripheral interrupt\" >\n";
       final String enumTemplate        = ""
-/* V E N */  + "      <choice value=%-4s enum=%-10s name=\"%s\" />\n";
+/* V E N */  + "      <choice value=%-4s enum=%-15s name=\"%s\" />\n";
       final String enumClosingTemplate = ""
             + "   </choiceOption>\n";
       
@@ -1541,7 +1545,10 @@ public class CreateDeviceSkeletonFromSVD {
          String description      = entry.getCDescription();
          String irqVectorName    = entry.getName();
          
-         if (irqVectorName.startsWith(pName)) {
+         if (irqVectorName.startsWith(pName+"_")) {
+            irqVectorName = irqVectorName.substring(pName.length()+1);
+         }
+         else if (irqVectorName.startsWith(pName)) {
             irqVectorName = irqVectorName.substring(pName.length());
          }
          else if (irqVectorName.startsWith("DMA_")) {
@@ -1633,7 +1640,7 @@ public class CreateDeviceSkeletonFromSVD {
    static String peripheralsToDo[] = {
 //         "ACMP",
 //         "ADC",
-//         "CAN"
+         "CAN",
 //         "CMP",
 //         "CMT",
 //         "CRC",
@@ -1651,7 +1658,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "I2S",
 //         "KBI",
 //         "LPTMR",
-         "LPUART",
+//         "LPUART",
 //         "LLWU",
 //         "MCM",
 //         "OSC",
@@ -1721,7 +1728,7 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL05Z");
 //      doAllPeripherals("FRDM_KL25Z", "mkl");
 //      doAllPeripherals("FRDM_K20D50M", "mk");
-      doAllPeripherals("FRDM_K28F", "mk");
+      doAllPeripherals("FRDM_K66F", "mk");
    }
 
 }

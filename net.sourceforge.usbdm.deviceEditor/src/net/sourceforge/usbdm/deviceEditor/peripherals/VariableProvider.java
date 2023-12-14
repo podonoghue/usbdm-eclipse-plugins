@@ -136,11 +136,12 @@ public class VariableProvider {
     * @return true if variable existed and removed, false otherwise
     */
    public boolean removeVariableByName(String variableName) {
-      boolean present = safeGetVariable(variableName) != null;
+      String key = makeKey(variableName);
+      boolean present = safeGetVariable(key) != null;
       if (!present) {
          return false;
       }
-      fDeviceInfo.removeVariable(variableName);
+      fDeviceInfo.removeVariable(key);
       return true;
    }
 
