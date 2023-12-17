@@ -831,6 +831,53 @@ public class ParseMenuXML extends XML_BaseParser {
       return null;
    }
 
+   static String wrapText(String text, final int maxColumn) {
+      int column = 0;
+      StringBuilder lineBuffer = new StringBuilder();
+      StringBuilder wordBuffer = new StringBuilder();
+      
+      boolean newLine = true;
+      
+      for (int chIndex=0; chIndex<text.length(); chIndex++) {
+         char ch = text.charAt(chIndex);
+         if (column>maxColumn) {
+            lineBuffer.append("\n");
+            column = wordBuffer.length();
+            newLine = true;
+         }
+         else if (Character.isWhitespace(ch)) {
+            if (wordBuffer.length()>0) {
+               if (!newLine) {
+                  lineBuffer.append(" ");
+               }
+               lineBuffer.append(wordBuffer);
+               newLine = false;
+               wordBuffer = new StringBuilder();
+            }
+            if (ch=='\n') {
+               lineBuffer.append("\n");
+               column = 0;
+               newLine = true;
+               continue;
+            }
+            if ((ch=='\t') && newLine) {
+               lineBuffer.append("    ");
+               continue;
+            }
+            continue;
+         }
+         wordBuffer.append(ch);
+         column++;
+      }
+      if (wordBuffer != null) {
+         if (!newLine) {
+            lineBuffer.append(" ");
+         }
+         lineBuffer.append(wordBuffer);
+      }
+      return lineBuffer.toString();
+   }
+   
    /**
     * Gets the toolTip attribute from the element and applies some simple transformations
     * 
@@ -841,11 +888,14 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private String getToolTip(Element element) throws Exception {
+      final int MAX_COLUMN = 100;
       String text = doForSubstitutions(getAttributeAsString(element, "toolTip"));
       if (text == null) {
          return text;
       }
-      return text.replaceAll("\\\\n( +)", "\n").replaceAll("\\\\t", "  ");
+      text = text.replaceAll("\\\\n( +)", "\n").replaceAll("\\\\t", "  ");
+      text = wrapText(text, MAX_COLUMN);
+      return text;
    }
 
    /**
@@ -2865,6 +2915,12 @@ public class ParseMenuXML extends XML_BaseParser {
                macro  = Variable.getBaseNameFromKey(variableKey).toUpperCase();
                mask   = macro+"_MASK";
                valueFormat = mask+"(%s)";
+               if (valueFormat.contains("[")) {
+                  System.err.println("Found it "+valueFormat);
+               }
+            }
+            if (mask.contains("[")) {
+               System.err.println("Found it "+valueFormat);
             }
             maskSb.append(mask);
 
@@ -3189,6 +3245,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private boolean checkTemplateConditions(Element element, String discardRepeats) throws Exception {
+      String condition = getAttributeAsString(element,"condition","");
+      if (condition.contains("dmamux_chcfg_low_source[21]")) {
+         System.err.println("Found it "+condition);
+      }
       if (!checkCondition(element)) {
          return false;
       }

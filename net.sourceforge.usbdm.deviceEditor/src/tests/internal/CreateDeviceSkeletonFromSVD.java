@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
@@ -189,6 +190,15 @@ public class CreateDeviceSkeletonFromSVD {
     */
    static abstract class VisitRegisters {
 
+      static String stripRegisteName(String name) {
+         if (name.contains("RXIMR")) {
+            System.err.println("FOund it "+name);
+         }
+         name = name.replaceAll("^([^,]*).*", "$1");
+         name = name.replace("%s", "");
+         return name;
+      }
+      
       final Peripheral fPeripheral;
 
       VisitRegisters(Peripheral peripheral) {
@@ -200,7 +210,7 @@ public class CreateDeviceSkeletonFromSVD {
        * 
        * @param reg Register being visited
        */
-      abstract void visitor(Register reg);
+      abstract void visitor(Register reg, String context);
 
       /**
        * Get result from visitation
@@ -214,15 +224,21 @@ public class CreateDeviceSkeletonFromSVD {
          return (String)getResult();
       }
       
-      void getRegisterNames_Cluster(Cluster cluster) {
+      void getRegisterNames_Cluster(Cluster cluster, String context) {
 
          if (cluster instanceof Register) {
             Register reg = (Register)cluster;
-            visitor(reg);
+            visitor(reg, context+stripRegisteName(cluster.getName()));
          }
          else {
+            if (cluster.getDimension()>0) {
+               context = context+stripRegisteName(cluster.getName())+"[index].";
+            }
+            else {
+               context = context+stripRegisteName(cluster.getName())+".";
+            }
             for (Cluster cl:cluster.getRegisters()) {
-               getRegisterNames_Cluster(cl);
+               getRegisterNames_Cluster(cl, context);
             }
          }
       }
@@ -234,7 +250,7 @@ public class CreateDeviceSkeletonFromSVD {
        */
       void visit() {
          for (Cluster cluster:fPeripheral.getRegisters()) {
-            getRegisterNames_Cluster(cluster);
+            getRegisterNames_Cluster(cluster, "");
          }
       }
    };
@@ -311,25 +327,40 @@ public class CreateDeviceSkeletonFromSVD {
             "      value=\"&quot;$(_Class)Info : public $(_Structname)BasicInfo&quot;\" />\n";
       resultSb.append(classDecl);
    }
-   
+
+   HashSet<String> usedFieldNames = null;
+
    void processRegister(Register cluster) {
-      String header =
-            "\n" +
-            "   <!-- ************* %s ****************** -->\n" +
-            "";
+      String header = ""
+            + "\n"
+            + "   <!-- ************* %s ****************** -->\n";
+      String title = ""
+            + "   <title description=\"%s\" />\n";
       Register reg = cluster;
       System.out.println("Processing " + reg.toString());
       boolean readOnlyRegister = (reg.getAccessType() == AccessType.ReadOnly);
       String regName = reg.getName().replace("%s", "");
       resultSb.append(String.format(header, regName));
+      boolean titleDone = false;
       for (Field field:reg.getFields()) {
+         
+         String fieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+         
+         if (usedFieldNames == null) {
+            usedFieldNames = new HashSet<String>();
+         }
+         if (!usedFieldNames.add(fieldName)) {
+            // Repeated filed name - delete
+            resultSb.append("<!-- Repeated filed name '"+fieldName+"' -->\n");
+            continue;
+         }
+         
          String hidden = "";
          boolean readOnlyField = readOnlyRegister || (field.getAccessType() == AccessType.ReadOnly);
          
          if (readOnlyField) {
             hidden = "\n      hidden=\"true\"";
          }
-         String fieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
          String condition = "condition=\""+fieldName+"_present\"";
          String enabledBy = "\n      enabledBy=\"enablePeripheralSupport\"";
          if (readOnlyField) {
@@ -365,6 +396,10 @@ public class CreateDeviceSkeletonFromSVD {
             toolTip = "";
          }
          int fieldWidth= (int) field.getBitwidth();
+         if (!titleDone) {
+            resultSb.append(String.format(title, reg.getDescription()));
+            titleDone = true;
+         }
          if (enumerations.isEmpty() && (fieldWidth>MAX_FIELD_WIDTH_FOR_AUTO_ENUM)) {
             // Assume intOption
             resultSb.append("\n   <intOption key=\"" + fieldName + "\" " + condition);
@@ -378,7 +413,7 @@ public class CreateDeviceSkeletonFromSVD {
             else {
                // Read/Write so create enum wrapper
                resultSb.append("\n      typeName=\""+ enumName + "\"\n");
-               resultSb.append("      enumType=\""+ getRegisterCType(reg.getElementSizeInBytes()) + "\"\n");
+               resultSb.append("      enumType=\""+ getRegisterCType((field.getBitwidth()+7)/8) + "\"\n");
             }
             resultSb.append("      description=\"" + fieldDescription + "\"\n");
             if (toolTip != null) {
@@ -386,6 +421,9 @@ public class CreateDeviceSkeletonFromSVD {
             }
             if (!readOnlyField) {
                resultSb.append("      value=\"0\"\n");
+            }
+            if (!readOnlyField) {
+               resultSb.append(String.format("      min=\"%d\" max=\"%d\"\n", 0, (1<<fieldWidth)-1));
             }
             resultSb.append("   />\n");
             fieldDefaultList.add("0, // "+fieldDescription);
@@ -412,7 +450,7 @@ public class CreateDeviceSkeletonFromSVD {
                // Generate dummy choiceOption
                for (int enumValue = 0; enumValue<(1<<fieldWidth); enumValue++) {
                   String enumDescription = "Choice "+enumValue;
-                  resultSb.append(String.format("      <choice %-10s %10s %s/>\n",
+                  resultSb.append(String.format("      <choice %-10s %10s %s />\n",
                         "name=\"" + enumDescription + "\"",
                         "value=\"" + enumValue + "\"",
                         "enum=\""+makeEnumName(enumDescription)+"\""));
@@ -430,7 +468,7 @@ public class CreateDeviceSkeletonFromSVD {
                for (Enumeration enumeration:field.getEnumerations()) {
                   String enumDescription = XML_BaseParser.escapeString(truncateAtNewlineOrTab(enumeration.getDescription()));
 
-                  resultSb.append(String.format("      <choice %-"+descriptionWidth+"s %10s %s/>\n",
+                  resultSb.append(String.format("      <choice %-"+descriptionWidth+"s %10s %s />\n",
                         "name=\"" + enumDescription + "\"",
                         "value=\"" + enumeration.getValue() + "\"",
                         "enum=\""+makeEnumName(enumDescription)+"\""));
@@ -474,7 +512,7 @@ public class CreateDeviceSkeletonFromSVD {
          // No fields!
          return;
       }
-      final String variableTemplate =
+      final String simpleVariableTemplate =
           "      <variableTemplate variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n" +
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
@@ -483,7 +521,7 @@ public class CreateDeviceSkeletonFromSVD {
           "         %paramDescription\n" +
           "         \\t */\n" +
           "         \\tstatic void set%(name)(%params) {\n" +
-          "         \\t   %fieldAssignment\n" +
+          "         \\t   $(_basename)->%(context) = ($(_basename)->%(context) & ~%mask)|%paramExpression;\n" +
           "         \\t}\n" +
           "         \\t\\n\n" +
           "      ]]></variableTemplate>\n"+
@@ -495,7 +533,7 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t * @return %tooltip\n" +
           "         \\t */\n" +
           "         \\tstatic %paramType get%(name)() {\n" +
-          "         \\t   return %paramType(%register&%mask);\n" +
+          "         \\t   return %paramType($(_basename)->%(context)&%mask);\n" +
           "         \\t}\n" +
           "         \\t\\n\n" +
           "      ]]></variableTemplate>\n"+
@@ -505,23 +543,60 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t * Clear %description\n" +
           "         \\t *\n" +
           "         \\tstatic void clear%(name)() {\n" +
-          "         \\t   %register = %register|%mask;\n" +
+          "         \\t   $(_basename)->%(context) = $(_basename)->%(context)|%mask;\n" +
           "         \\t}\n" +
           "         \\t\\n\n" +
           "      ]]></variableTemplate>\n";
       
-      VisitRegisters createFieldList = new VisitRegisters(peripheral) {
+      final String indexedVariableTemplate =
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n" +
+            "      ><![CDATA[\n" +
+            "         \\t/**\n" +
+            "         \\t * Set %description\n" +
+            "         \\t *\n" +
+            "         %paramDescription\n" +
+            "         \\t */\n" +
+            "         \\tstatic void set%(name)(int index, %params) {\n" +
+            "         \\t   $(_basename)->%(context) = ($(_basename)->%(context) & ~%mask)|%paramExpression;\n" +
+            "         \\t}\n" +
+            "         \\t\\n\n" +
+            "      ]]></variableTemplate>\n"+
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\"\n" +
+            "      ><![CDATA[\n" +
+            "         \\t/**\n" +
+            "         \\t * Get %description\n" +
+            "         \\t *\n" +
+            "         \\t * @return %tooltip\n" +
+            "         \\t */\n" +
+            "         \\tstatic %paramType get%(name)(int index) {\n" +
+            "         \\t   return %paramType($(_basename)->%(context)&%mask);\n" +
+            "         \\t}\n" +
+            "         \\t\\n\n" +
+            "      ]]></variableTemplate>\n"+
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
+            "      ><![CDATA[\n" +
+            "         \\t/**\n" +
+            "         \\t * Clear %description\n" +
+            "         \\t *\n" +
+            "         \\tstatic void clear%(name)(int index) {\n" +
+            "         \\t   $(_basename)->%(context) = $(_basename)->%(context)|%mask;\n" +
+            "         \\t}\n" +
+            "         \\t\\n\n" +
+            "      ]]></variableTemplate>\n";
+        
+      VisitRegisters createSimpleFieldList = new VisitRegisters(peripheral) {
 
          final StringBuilder resultSb = new StringBuilder();
          Boolean firstField = true;
 
          @Override
-         void visitor(Register register) {
+         void visitor(Register register, String context) {
 
-//            if (register.getAccessType() == AccessType.ReadOnly) {
-//               return;
-//            }
-            String regName = register.getName().replace("%s", "");
+            if ((register.getDimension()>0)||(context.contains("[index]"))) {
+               return;
+            }
+            System.err.println("Context = '"+context+"'");
+            String regName = stripRegisteName(register.getName());
             for (Field field:register.getFields()) {
                if (!firstField) {
                   resultSb.append(";\n");
@@ -535,7 +610,8 @@ public class CreateDeviceSkeletonFromSVD {
                   set = "false";
                }
                firstField = false;
-               resultSb.append(String.format("         %-30s : %-5s : %-5s : %-5s : enableGettersAndSetters : %s", fieldName, set, get, clear, prettyName(methodName)));
+               resultSb.append(String.format("         %-30s : %-5s : %-5s : %-5s : enableGettersAndSetters : %-12s : %s", fieldName, set, get, clear, context,
+                     prettyName(methodName)));
             }
          }
          @Override
@@ -544,16 +620,67 @@ public class CreateDeviceSkeletonFromSVD {
          }
       };
 
-      createFieldList.visit();
+      VisitRegisters createIndexedFieldList = new VisitRegisters(peripheral) {
+
+         final StringBuilder resultSb = new StringBuilder();
+         Boolean firstField = true;
+
+         @Override
+         void visitor(Register register, String context) {
+
+            if ((register.getDimension()==0)&&(!context.contains("[index]"))) {
+               return;
+            }
+            if (register.getDimension()>0) {
+               context = context+"[index]";
+            }
+            String regName = stripRegisteName(register.getName());
+            for (Field field:register.getFields()) {
+               if (!firstField) {
+                  resultSb.append(";\n");
+               }
+               String fieldName  = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               String methodName = regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               String get   = "true";
+               String set   = "true";
+               String clear = "false";
+               if (field.getAccessType() == AccessType.ReadOnly) {
+                  set = "false";
+               }
+               firstField = false;
+               resultSb.append(String.format("         %-30s : %-5s : %-5s : %-5s : enableGettersAndSetters : %-20s : %s", fieldName, set, get, clear, context, prettyName(methodName)));
+            }
+         }
+         @Override
+         Object getResult() {
+            return resultSb.toString();
+         }
+      };
+
+      createSimpleFieldList.visit();
       resultSb.append(
             "\n" +
-            "   <for keys=\"field           : set   : get   : clear : genCode                 : name\"\n" +
-            "        values=\"\n" + createFieldList.getResultAsString() + "\" >\n");
-      resultSb.append(variableTemplate);
+            "   <for keys=\"field                     : set   : get   : clear : genCode                 : context      : name\"\n" +
+            "        values=\"\n" + createSimpleFieldList.getResultAsString() + "\" >\n");
+      resultSb.append(simpleVariableTemplate);
       resultSb.append("   </for>\n");
       
+      createIndexedFieldList.visit();
+      resultSb.append(
+            "\n" +
+            "   <for keys=\"field                     : set   : get   : clear : genCode                 : context                 : name\"\n" +
+            "        values=\"\n" + createIndexedFieldList.getResultAsString() + "\" >\n");
+      resultSb.append(indexedVariableTemplate);
+      resultSb.append("   </for>\n");
    }
    
+   /**
+    * Gets C integer type appropriate for size e.g. uint8_t etc
+    * 
+    * @param size Size in bytes
+    * 
+    * @return C type as string
+    */
    String getRegisterCType(long size) {
       if (size == 1) {
          return "uint8_t";
@@ -884,9 +1011,10 @@ public class CreateDeviceSkeletonFromSVD {
       VisitRegisters createInitRegisters = new VisitRegisters(peripheral) {
          
          final StringBuilder resultSb = new StringBuilder();
+         HashSet<String> usedFieldNames = new HashSet<String>();
 
          @Override
-         void visitor(Register register) {
+         void visitor(Register register, String context) {
             
             final String memberDeclaration =
                   "\n" +
@@ -908,6 +1036,9 @@ public class CreateDeviceSkeletonFromSVD {
                   continue;
                }
                String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               if (!usedFieldNames.add(registerFieldName)) {
+                  continue;
+               }
                if (!sb.isEmpty()) {
                   sb.append(",");
                }
@@ -1034,9 +1165,10 @@ public class CreateDeviceSkeletonFromSVD {
       VisitRegisters createConstructorsForEnumeratedFields = new VisitRegisters(peripheral) {
          
          final StringBuilder resultSb = new StringBuilder();
+         HashSet<String> usedFieldNames = new HashSet<String>();
          
          @Override
-         void visitor(Register reg) {
+         void visitor(Register reg, String context) {
             if (reg.getAccessType() == AccessType.ReadOnly) {
                return;
             }
@@ -1052,6 +1184,9 @@ public class CreateDeviceSkeletonFromSVD {
 //                  continue;
 //               }
                String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               if (!usedFieldNames.add(registerFieldName)) {
+                  continue;
+               }
                if (!resultSb.isEmpty()) {
                   resultSb.append(";\n");
                }
@@ -1168,9 +1303,10 @@ public class CreateDeviceSkeletonFromSVD {
       VisitRegisters createInitValueFieldList = new VisitRegisters(peripheral) {
          
          final StringBuilder resultSb = new StringBuilder();
+         HashSet<String> usedFieldNames = new HashSet<String>();
          
          @Override
-         void visitor(Register reg) {
+         void visitor(Register reg, String context) {
             if (reg.getAccessType() == AccessType.ReadOnly) {
                return;
             }
@@ -1180,6 +1316,9 @@ public class CreateDeviceSkeletonFromSVD {
                   continue;
                }
                String registerFieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               if (!usedFieldNames.add(registerFieldName)) {
+                  continue;
+               }
                if (!resultSb.isEmpty()) {
                   resultSb.append(",\n");
                }
@@ -1261,19 +1400,22 @@ public class CreateDeviceSkeletonFromSVD {
       VisitRegisters createRegisterAssignments = new VisitRegisters(peripheral) {
          
          final StringBuilder resultSb = new StringBuilder();
+         HashSet<String> usedRegisterNames = new HashSet<String>();
          
          @Override
-         void visitor(Register register) {
+         void visitor(Register register, String context) {
             boolean readOnlyRegister = (register.getAccessType() == AccessType.ReadOnly);
             if (readOnlyRegister) {
                // Skip register
                return;
             }
             String registername = register.getName();
-            String line = String.format(
-                  "      \\t   %-25s = init.%s;\n",
-                  peripheralBasename.toLowerCase()+"->"+registername.toUpperCase(),registername.toLowerCase());
-            resultSb.append(line);
+            if (usedRegisterNames.add(registername)) {
+               String line = String.format(
+                     "      \\t   %-25s = init.%s;\n",
+                     peripheralBasename.toLowerCase()+"->"+registername.toUpperCase(),registername.toLowerCase());
+               resultSb.append(line);
+            }
          }
 
          @Override
@@ -1340,11 +1482,11 @@ public class CreateDeviceSkeletonFromSVD {
             "\n" +
             "   <!-- ************* Startup ****************** -->\n" +
             "\n" +
-            "   <template key=\"/SYSTEM/Includes\" condition=\"@isSupportedinStartup\" codeGenCondition=\"configurePeripheralInStartUp\" >\n" +
+            "   <template key=\"/SYSTEM/Includes\" condition=\"configurePeripheralInStartUp\" codeGenCondition=\"configurePeripheralInStartUp\" >\n" +
             "      <![CDATA[#include \"$(_basename).h\"\\n\n" +
             "   ]]></template>\n" +
             "\n" +
-            "   <template key=\"/SYSTEM/Startup\" condition=\"@isSupportedinStartup\" codeGenCondition=\"configurePeripheralInStartUp\" >\n" +
+            "   <template key=\"/SYSTEM/Startup\" condition=\"configurePeripheralInStartUp\" codeGenCondition=\"configurePeripheralInStartUp\" >\n" +
             "   <![CDATA[\n" +
             "      \\t/*  Initialise $(_Class) */\n" +
             "      \\tUSBDM::$(_Class)::defaultConfigure();\\n\n" +
@@ -1640,13 +1782,14 @@ public class CreateDeviceSkeletonFromSVD {
    static String peripheralsToDo[] = {
 //         "ACMP",
 //         "ADC",
-         "CAN",
+//         "CAN",
 //         "CMP",
 //         "CMT",
 //         "CRC",
 //         "DAC",
 //         "DMA",
 //         "DMAMUX",
+         "ENET",
 //         "EWM",
 //         "FTF",
 //         "FTM",
@@ -1728,7 +1871,8 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL05Z");
 //      doAllPeripherals("FRDM_KL25Z", "mkl");
 //      doAllPeripherals("FRDM_K20D50M", "mk");
-      doAllPeripherals("FRDM_K66F", "mk");
+//      doAllPeripherals("FRDM_K66F", "mk");
+      doAllPeripherals("FRDM_K64F", "mk");
    }
 
 }

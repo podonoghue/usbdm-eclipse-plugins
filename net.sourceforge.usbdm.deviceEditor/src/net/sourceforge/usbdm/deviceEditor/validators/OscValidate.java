@@ -71,6 +71,8 @@ public class OscValidate extends PeripheralValidator {
 
    private long OscMode_NotConfigured;
 
+   private long OscMode_ExternalClock;
+   
    private long OscMode_RTC_Controlled;
 
    public OscValidate(PeripheralWithState peripheral) {
@@ -108,8 +110,22 @@ public class OscValidate extends PeripheralValidator {
 
       long    oscMode          = oscModeVar.getValueAsLong();
       long    osc_input_freq   = osc_input_freqVar.getValueAsLong();
-      
+
       if (oscMode == OscMode_NotConfigured) {
+      }
+      else if (oscMode == OscMode_ExternalClock) {
+         // Using external clock
+         osc_input_freqVar.setMin(EXTERNAL_CLOCK_MIN);
+         osc_input_freqVar.setMax(EXTERNAL_CLOCK_MAX);
+
+         // Range has no effect on Oscillator
+         oscillatorRange = UNCONSTRAINED_RANGE;
+
+         // Check suitable clock range
+         if (osc_input_freq>EXTERNAL_CLOCK_MAX) {
+            // Not suitable as external clock
+            osc_clockStatus = EXTERNAL_CLOCK_RANGE_ERROR_MSG;
+         }
       }
       else if (oscMode == OscMode_RTC_Controlled) {
          // RTC controlling XTAL pins
@@ -130,52 +146,35 @@ public class OscValidate extends PeripheralValidator {
       }
       else {
          // OSC controlling XTAL pins
+         // - Low power mode
+         // - High gain mode
 
-         boolean oscillatorInUse = oscModeVar.getValueAsLong() != 0L;
-         
-         if (oscillatorInUse) {
-            
-            // Complicated constraints
-            osc_input_freqVar.setMin(EXTERNAL_EXTAL_RANGE1_MIN);
-            osc_input_freqVar.setMax(EXTERNAL_EXTAL_RANGE3_MAX);
-            
-            oscillatorRangeEnable = true;
-            
-            // Using oscillator - range is chosen to suit crystal frequency (or forced by RTC)
-            if (onlyLowFrequencySupported && !inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE1_MIN, EXTERNAL_EXTAL_RANGE1_MAX)) {
-               osc_clockStatus  = OSCCLK32K_RANGE_ERROR_CLOCK_MSG;
-            }
-            if (onlyLowFrequencySupported || inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE1_MIN, EXTERNAL_EXTAL_RANGE1_MAX)) {
-               oscillatorRangeOrigin      = "Determined by Crystal Frequency";
-               oscillatorRange  = 0;
-            }
-            else if (inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE2_MIN, EXTERNAL_EXTAL_RANGE2_MAX)) {
-               oscillatorRangeOrigin      = "Determined by Crystal Frequency";
-               oscillatorRange  = 1;
-            }
-            else if (inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE3_MIN, EXTERNAL_EXTAL_RANGE3_MAX)) {
-               oscillatorRangeOrigin      = "Determined by Crystal Frequency";
-               oscillatorRange  = 2;
-            }
-            else {
-               // Not suitable as OSC Crystal frequency
-               osc_clockStatus  = XTAL_CLOCK_RANGE_ERROR_MSG;
-               oscillatorRange  = UNCONSTRAINED_RANGE;
-            }
+         // Complicated constraints
+         osc_input_freqVar.setMin(EXTERNAL_EXTAL_RANGE1_MIN);
+         osc_input_freqVar.setMax(EXTERNAL_EXTAL_RANGE3_MAX);
+
+         oscillatorRangeEnable = true;
+
+         // Using oscillator - range is chosen to suit crystal frequency (or forced by RTC)
+         if (onlyLowFrequencySupported && !inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE1_MIN, EXTERNAL_EXTAL_RANGE1_MAX)) {
+            osc_clockStatus  = OSCCLK32K_RANGE_ERROR_CLOCK_MSG;
+         }
+         if (onlyLowFrequencySupported || inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE1_MIN, EXTERNAL_EXTAL_RANGE1_MAX)) {
+            oscillatorRangeOrigin      = "Determined by Crystal Frequency";
+            oscillatorRange  = 0;
+         }
+         else if (inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE2_MIN, EXTERNAL_EXTAL_RANGE2_MAX)) {
+            oscillatorRangeOrigin      = "Determined by Crystal Frequency";
+            oscillatorRange  = 1;
+         }
+         else if (inRange(osc_input_freq, EXTERNAL_EXTAL_RANGE3_MIN, EXTERNAL_EXTAL_RANGE3_MAX)) {
+            oscillatorRangeOrigin      = "Determined by Crystal Frequency";
+            oscillatorRange  = 2;
          }
          else {
-            // Using external clock
-            osc_input_freqVar.setMin(EXTERNAL_CLOCK_MIN);
-            osc_input_freqVar.setMax(EXTERNAL_CLOCK_MAX);
-
-            // Range has no effect on Oscillator
-            oscillatorRange = UNCONSTRAINED_RANGE;
-
-            // Check suitable clock range
-            if (osc_input_freq>EXTERNAL_CLOCK_MAX) {
-               // Not suitable as external clock
-               osc_clockStatus = EXTERNAL_CLOCK_RANGE_ERROR_MSG;
-            }
+            // Not suitable as OSC Crystal frequency
+            osc_clockStatus  = XTAL_CLOCK_RANGE_ERROR_MSG;
+            oscillatorRange  = UNCONSTRAINED_RANGE;
          }
       }
 
@@ -201,6 +200,7 @@ public class OscValidate extends PeripheralValidator {
 
       // Constants
       OscMode_NotConfigured          =  getLongVariable("/OscMode_NotConfigured").getValueAsLong();
+      OscMode_ExternalClock          =  getLongVariable("/OscMode_ExternalClock").getValueAsLong();
       OscMode_RTC_Controlled         =  getLongVariable("/OscMode_RTC_Controlled").getValueAsLong();
       
       // Inputs

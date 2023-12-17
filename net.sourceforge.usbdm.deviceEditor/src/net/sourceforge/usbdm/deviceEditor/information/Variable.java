@@ -1163,6 +1163,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @param valueFormat
     */
    public void setValueFormat(String valueFormat) {
+      if (valueFormat.contains("[")) {
+         System.err.println("Found it "+valueFormat);
+      }
       fValueFormat = valueFormat;
    }
 
@@ -1219,8 +1222,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public static String getBaseNameFromKey(String key) {
       key = getNameFromKey(key);
-      if (key.matches(".*\\[\\d\\]$")) {
-         key = key.substring(0, key.length()-3);
+      Pattern p = Pattern.compile("^([^\\[]*)\\[\\d*\\]?(.*)?$");
+      Matcher m = p.matcher(key);
+      if (m.matches()) {
+         key = m.group(1)+m.group(2);
       }
       return key;
    }

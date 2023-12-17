@@ -230,7 +230,7 @@ public class Expression implements IModelChangeListener {
          }
          // Get variable to determine type
          Variable var = owner.fVarProvider.safeGetVariable(name);
-//         if (name.contains("ftm_sc_clks")) {
+//         if (name.contains("tsi_pen_pen")) {
 //            System.err.println("Found it");
 //         }
 //         if (var == null) {

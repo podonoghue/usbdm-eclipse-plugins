@@ -352,7 +352,6 @@ public class ExpressionParser {
             
             // Parse sub-expression
             index = new Expression(fExpressionString.substring(startOfIndex, endOfIndex), fProvider, fMode);
-            
             // Check type is correct for index
             Object ind = index.getValue();
             if (!(ind instanceof Long)) {
@@ -380,45 +379,20 @@ public class ExpressionParser {
       }
       key = fProvider.makeKey(key);
       
-//      if (key.contains("/I2S0/_irqCount")) {
-//         System.err.println("Found it "+key);
-//      }
       if (!forceEvaluate) {
          String varKey = key;
          if (index != null) {
-            varKey = varKey + "[0]";
+            if (!index.isConstant()) {
+               varKey = varKey + "[0]";
+            }
+            else {
+               varKey = varKey + "["+index.getValueAsLong()+"]";
+            }
          }
          Variable var = fProvider.safeGetVariable(varKey);
-//         if (key.contains("_irqCount")) {
-//            System.err.println("Found it "+key);
-//         }
          return new BooleanNode(var != null);
       }
       return Expression.VariableNode.create(fListener, key, modifier, index);
-//      switch(fMode) {
-//      case CheckIdentifierExistance:
-//         if (!forceEvaluate) {
-//            String varKey = key;
-//            if (index != null) {
-//               varKey = varKey + "[0]";
-//            }
-//            Variable var = fProvider.safeGetVariable(varKey);
-//            return new BooleanNode(var != null);
-//         }
-//      default:
-//      case Construct:
-//         if (var == null) {
-//            throw new Exception("Failed to find variable '" + key + "'");
-//         }
-//         if (!var.isConstant()) {
-//            var.addListener(fListener);
-//         }
-//      case EvaluateFully:
-//         if ((var == null)&&(index == null)) {
-//            throw new Exception("Failed to find variable '" + key + "'");
-//         }
-//         return Expression.VariableNode.create(fListener, key, modifier, index);
-//      }
    }
    
    /**
