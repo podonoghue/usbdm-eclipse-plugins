@@ -147,9 +147,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    @Override
-   public void getModels(BaseModel parent) {
+   public BaseModel getModels(BaseModel parent) {
       if (fMenuData == null) {
-         return;
+         return null;
       }
       BaseModel rootModel = fMenuData.getRootModel();
       if (rootModel != null) {
@@ -161,6 +161,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          rootModel.removeChild(fSignalsModel);
       }
       fSignalsModel = createPeripheralSignalsModel(rootModel);
+      return rootModel;
 }
 
    @Override
@@ -852,11 +853,4 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       extractAllRegisterFields(dbPeripheral);
    }
 
-//   public void addFigure(ClockSelectionFigure figure) {
-//      fFigure = figure;
-//   }
-//
-//   public ClockSelectionFigure getFigure() {
-//      return fFigure;
-//   }
 }

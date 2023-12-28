@@ -548,23 +548,37 @@ public class DoubleVariable extends Variable {
       return super.clone();
    }
    
+   /**
+    * {@inheritDoc}<br>
+    * <br>
+    * Adds handling changes in:
+    * <li> fMin
+    * <li> fMax<br><br>
+    */
    @Override
-   public boolean update(Expression expression) {
+   public void update(VariableUpdateInfo info, Expression expression) {
       
-      boolean changed = false;
-      
+      boolean updateLimits = false;
       if (expression == fMinExpression) {
          fMin = null;
-         changed = setStatusQuietly(isValid());
+         updateLimits = true;
       }
       if (expression == fMaxExpression) {
          fMax = null;
-         changed = setStatusQuietly(isValid());
+         updateLimits = true;
       }
-      changed = super.update(expression) || changed;
-      return changed;
+      if (updateLimits && setStatusQuietly(isValid())) {
+         info.properties.add(PROP_STATUS[0]);
+      }
+      super.update(info, expression);
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * <li>fMinExpression
+    * <li>fMaxExpression
+    */
    @Override
    public void addInternalListeners() throws Exception {
       if (fMinExpression != null) {
@@ -577,9 +591,8 @@ public class DoubleVariable extends Variable {
    }
 
    @Override
-   boolean update(VariableUpdateInfo info) throws Exception {
-      // TODO Auto-generated method stub
-      return super.update(info);
+   void update(VariableUpdateInfo info) throws Exception {
+      super.update(info);
    }
 
    

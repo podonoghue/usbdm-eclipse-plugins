@@ -35,6 +35,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.SignalPinMapping;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseFamilyXML;
@@ -2068,7 +2069,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void setDirty(boolean dirty) {
       fIsDirty = dirty;
-      notifyListeners();
+      notifyListeners(this);
    }
 
    /**
@@ -2388,8 +2389,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    @Override
-   public void getModels(BaseModel parent) {
-      new DeviceInformationModel(parent, this);
+   public BaseModel getModels(BaseModel parent) {
+      return new DeviceInformationModel(parent, this);
    }
 
    /**
@@ -2453,18 +2454,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    @Override
-   public void modelElementChanged(ObservableModel observableModel) {
-      setDirty(true);
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-      setDirty(true);
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-      setDirty(true);
+   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
+      for (String prop:properties) {
+         if (PROP_VALUE[0].equals(prop)) {
+            setDirty(true);
+         }
+      }
    }
 
    /**

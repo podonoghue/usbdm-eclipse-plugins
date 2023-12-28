@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.FormatNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LowercaseNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
@@ -248,6 +249,14 @@ public class ExpressionParser {
          Signal signal = fProvider.getDeviceInfo().safeFindSignal(sArg.toString());
          return new BooleanNode(signal!=null);
       }
+      if ("SignalMapped".equalsIgnoreCase(functionName)) {
+         if (!(arg instanceof StringNode)) {
+            throw new Exception("Expected name of signal (a string)");
+         }
+         StringNode sArg = (StringNode) arg;
+         Signal signal = fProvider.getDeviceInfo().safeFindSignal(sArg.toString());
+         return new BooleanNode(signal.getMappedPin() == Pin.UNASSIGNED_PIN);
+      }
       if ("PinExists".equalsIgnoreCase(functionName)) {
          if (!(arg instanceof StringNode)) {
             throw new Exception("Expected name of pin (a string)");
@@ -273,6 +282,9 @@ public class ExpressionParser {
             throw new Exception("Expected name to ToUpperCase (a string)");
          }
          return new UppercaseNode(arg);
+      }
+      if ("Format".equalsIgnoreCase(functionName)) {
+         return new FormatNode(arg);
       }
       throw new Exception("Function not supported");
    }
@@ -855,7 +867,9 @@ public class ExpressionParser {
             rightOp.forEach(checkType);
          }
          else if (leftOperand.fType != rightOperand.fType) {
-            throw new Exception("Incompatible operands in Equality");
+            throw new Exception("Incompatible operand types in Equality\n"
+                  + "Left  = '" + leftOperand.eval()+"'\n"
+                  + "Right = '" + rightOperand.eval() + "'");
          }
          if (ch == '=') {
             leftOperand = new Expression.EqualNode(leftOperand,rightOperand);

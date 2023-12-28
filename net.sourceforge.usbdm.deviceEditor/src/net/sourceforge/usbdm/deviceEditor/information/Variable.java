@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
@@ -216,28 +217,31 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (!setValueQuietly(value)) {
          return false;
       }
+      if ((fDeviceInfo != null) && fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended)) {
+         updateAndNotify();
+      }
       notifyListeners();
       return true;
    }
 
-   /**
-    * Sets variable value and origin<br>
-    * Listeners are informed if the variable changes
-    * 
-    * @param value  Value to set
-    * @param origin Origin of change
-    * 
-    * @return True if variable actually changed value
-    */
-   public final boolean setValueAndOrigin(Object value, String origin) {
-      Boolean modified = false;
-      modified = setValueQuietly(value);
-      modified = setOriginQuietly(origin) || modified;
-      if (modified) {
-         notifyListeners();
-      }
-      return modified;
-   }
+//   /**
+//    * Sets variable value and origin<br>
+//    * Listeners are informed if the variable changes
+//    *
+//    * @param value  Value to set
+//    * @param origin Origin of change
+//    *
+//    * @return True if variable actually changed value
+//    */
+//   public final boolean setValueAndOrigin(Object value, String origin) {
+//      Boolean modified = false;
+//      modified = setValueQuietly(value);
+//      modified = setOriginQuietly(origin) || modified;
+//      if (modified) {
+//         notifyListeners();
+//      }
+//      return modified;
+//   }
 
    /**
     * Sets variable value without affecting listeners
@@ -872,7 +876,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public boolean setHidden(boolean isHidden) {
       if (setHiddenQuietly(isHidden)) {
-         notifyStructureChangeListeners();
+         notifyListeners(PROP_HIDDEN);
          return true;
       }
       return false;
@@ -1373,6 +1377,17 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       return Integer.parseInt(m.group(1));
    }
 
+   /**
+    * Add listeners for
+    * <li>fReference
+    * <li>fEnabledBy
+    * <li>fErrorIf
+    * <li>fUnlockedBy
+    * <li>fpinMapEnable
+    * <li>fHiddenBy
+    * 
+    * @throws Exception
+    */
    public void addInternalListeners() throws Exception {
       
 //      if (getKey().contains("osc_cr_range")) {
@@ -1407,17 +1422,16 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @throws Exception
     */
-   boolean update(VariableUpdateInfo info) throws Exception {
+   void update(VariableUpdateInfo info) throws Exception {
 
-      boolean changed = false;
-
-      if (fUnlockedBy != null) {
-         changed = setLockedQuietly(!fUnlockedBy.getValueAsBoolean()) || changed;
+      if ((fUnlockedBy != null) && setLockedQuietly(!fUnlockedBy.getValueAsBoolean())) {
+         info.properties.add(PROP_STATUS[0]);
       }
       if (fHiddenBy != null) {
          Boolean hidden = fHiddenBy.getValueAsBoolean();
-         setHidden(hidden);
-
+         if (setHiddenQuietly(hidden)) {
+            info.properties.add(PROP_HIDDEN[0]);
+         }
          // Cumulative enable
          info.enable = info.enable && !hidden;
       }
@@ -1429,15 +1443,20 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
             info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
          }
       }
-      changed = enableQuietly(info.enable) || changed;
-      
+      if (enableQuietly(info.enable)) {
+         info.properties.add(PROP_STATUS[0]);
+      }
+   
       if (info.value != null) {
-         changed = setValueQuietly(info.value) || changed;
+         if (setValueQuietly(info.value)) {
+            info.properties.add(PROP_VALUE[0]);
+         }
       }
       if (fErrorIf != null) {
          if  (fErrorIf.getValueAsBoolean()) {
             // Forced error status
             info.status = new Status(fErrorIf.getMessage("Error "));
+            info.properties.add(PROP_STATUS[0]);
          }
       }
       else {
@@ -1446,35 +1465,35 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
             info.status = new Status(validCheck);
          }
       }
-      changed = setStatusQuietly(info.status) || changed;
+      if (setStatusQuietly(info.status)) {
+         info.properties.add(PROP_STATUS[0]);
+      }
 
       if ((info.origin != null) && !info.origin.isBlank()) {
-         changed = setOriginQuietly(info.origin) || changed;
+         if (setOriginQuietly(info.origin)) {
+            info.properties.add(PROP_STATUS[0]);
+         }
       }
-      return changed;
    }
    
    /**
     * Update state based upon a changing expression that is affecting this variable
     * 
-    * @param expression Expression causing update or null to force update
-    * 
-    * @return True if notification needed i.e. change in state occurred
+    * @param info       [IN/OUT] Information about the changes made (if any)
+    * @param expression [IN] Expression causing update or null to force update
+    * <br><br>
+    * Handles changes in:
+    * <li> fReference
+    * <li> fEnabledBy
+    * <li> fErrorIf
+    * <li> fUnlockedBy
+    * <li> fpinMapEnable
+    * <li> fHiddenBy
     */
-   public boolean update(Expression expression) {
-      
-      // Only handles changes in:
-      // - fReference
-      // - fEnabledBy
-      // - fErrorIf
-      // - fUnlockedBy
-      // - fpinMapEnable
-      // - fHiddenBy
-
-      // Force update if expression is null
-      boolean changed = (expression == null);
+   public void update(VariableUpdateInfo info, Expression expression) {
       
       boolean checkUpdate =
+          (expression == null) ||
           (expression == fReference)||
           (expression == fEnabledBy)||
           (expression == fErrorIf)||
@@ -1484,13 +1503,14 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       
       if (checkUpdate) {
          try {
-            VariableUpdateInfo info = determineUpdateInformation(fReference);
-            changed = update(info) | changed;
+            if (expression == fReference) {
+               determineUpdateInformation(info, expression);
+            }
+            update(info);
          } catch (Exception e) {
             e.printStackTrace();
          }
       }
-      return changed;
    }
    
    /**
@@ -1501,8 +1521,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public void updateAndNotify(Expression expression) {
       try {
-         if (update(expression)) {
-            notifyListeners(this);
+         
+         VariableUpdateInfo info = new VariableUpdateInfo();
+         update(info, expression);
+         if (info.properties.size()>0) {
+            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
+            notifyListeners(properties);
          }
       } catch (Exception e) {
          Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
@@ -1534,7 +1558,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Determine updates from the controlling expression.  This includes:
+    * Determine updates from a <b>controlling expression</b>.<br>
+    * A controlling expression will be from a ref=... either directly or through a choice selection<br>
+    *   This includes:
     *  <li> .value  = The value of expression provided (null if not set)
     *  <li> .origin = Origin from expression (empty if not set)
     *  <li> .status = Status from primary variable in expression (null if not set) ??
@@ -1546,17 +1572,16 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @throws Exception
     */
-   protected VariableUpdateInfo determineUpdateInformation(Expression expression) throws Exception {
+   protected VariableUpdateInfo determineUpdateInformation(VariableUpdateInfo info, Expression expression) throws Exception {
 
-      VariableUpdateInfo info = new VariableUpdateInfo();
-      
       // Assume enabled (may be later disabled by enabledBy etc.)
       info.enable = true;
       info.origin = "";
       
       if (expression != null) {
          info.value = expression.getValue();
-
+         info.properties.add(PROP_VALUE[0]);
+         
 //         Variable primaryVariableInExpression = expression.getPrimaryVar();
 
 //         if (primaryVariableInExpression != null) {
@@ -1564,7 +1589,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 //            info.status   = primaryVariableInExpression.getStatus();
 //            info.enable   = primaryVariableInExpression.isEnabled();
 //         }
-         info.origin   = expression.getOriginMessage();
+         info.origin = expression.getOriginMessage();
       }
       return info;
    }
@@ -1716,12 +1741,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    @Override
-   public void notifyListeners() {
-      if (fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended)) {
-         super.notifyListeners();
+   public void notifyListeners(IModelChangeListener exclude, String[] properties) {
+      if ((fDeviceInfo != null) && fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended)) {
+         super.notifyListeners(exclude, properties);
       }
    }
-
+   
    /**
     * Formats parameter appropriately for use in expression
     * 

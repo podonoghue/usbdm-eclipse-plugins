@@ -87,8 +87,12 @@ public class SignalPinMapping implements IExpressionChangeListener {
    
    public void activate() {
       for( Mapping mapping:mappings) {
-         mapping.expression.addListener(this);
-//         System.err.println("Watching '"+mapping.expression.getExpressionStr()+"'");
+         try {
+            mapping.expression.addListener(this);
+         } catch (Exception e) {
+            System.err.println("Failed to add mapping change listener for " + signal );
+            System.err.println("Reason "+e.getMessage() );
+         }
       }
       expressionChanged(null);
    }

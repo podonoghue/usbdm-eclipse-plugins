@@ -132,7 +132,6 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    private PeripheralParametersEditor createPeripheralParameterTab() {
       Boolean hasPCR = fDeviceInfo.safeGetVariable("/PCR/_present") != null;
       fParameterModels = new PeripheralParametersEditor(hasPCR);
-      
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
          if (peripheral instanceof IModelEntryProvider) {
@@ -414,7 +413,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    }
 
    @Override
-   public void modelElementChanged(ObservableModel model) {
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
       if (underConstruction) {
          return;
       }
@@ -432,10 +431,6 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       }
    }
    
-   @Override
-   public void modelStructureChanged(ObservableModel model) {
-   }
-
    public void setHardwareFile(String value) {
    }
 
@@ -485,9 +480,5 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             viewer.refresh();
          };
       }
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
    }
 }

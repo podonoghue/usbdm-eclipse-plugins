@@ -97,9 +97,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** C identifier used for this peripheral */
    private String fCodeIdentifier = "";
    
-   /** Proxy used to support ObservableModel interface */
-   private final ObservableModel fProxy;
-   
    /** String showing instances of this peripheral class e.g. "0,1" or "A,B,C" */
    private String fInstanceList;
    
@@ -1323,22 +1320,22 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @throws IOException
     */
    public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
-
+      indent += "   ";
       final String INIT_PCR_FUNCTION_TEMPLATE =
-            indent+"   /**\n"+
-            indent+"    * Initialise pins used by peripheral\n"+
-            indent+"    *\n"+
-            indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
-            indent+"    */\n"+
-            indent+"   static void initPCRs() {\n";
+            indent+"/**\n"+
+            indent+" * Initialise pins used by peripheral\n"+
+            indent+" *\n"+
+            indent+" * @note Only the lower 16-bits of the PCR registers are affected\n" +
+            indent+" */\n"+
+            indent+"static void initPCRs() {\n";
 
       final String CLEAR_PCR_FUNCTION_TEMPLATE =
-            indent+"   /**\n"+
-            indent+"    * Release pins used by peripheral\n"+
-            indent+"    *\n"+
-            indent+"    * @note Only the lower 16-bits of the PCR registers are affected\n" +
-            indent+"    */\n"+
-            indent+"   static void clearPCRs() {\n";
+            indent+"/**\n"+
+            indent+" * Release pins used by peripheral\n"+
+            indent+" *\n"+
+            indent+" * @note Only the lower 16-bits of the PCR registers are affected\n" +
+            indent+" */\n"+
+            indent+"static void clearPCRs() {\n";
 
       PcrInitialiser pcrInitialiser = new PcrInitialiser();
       
@@ -1356,12 +1353,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       pinMappingHeaderFile.write(initClocksBuffer);
       String pcrInitStatements = pcrInitialiser.getPcrInitStatements(indent+"   ");
       pinMappingHeaderFile.write(pcrInitStatements);
-      pinMappingHeaderFile.write(indent+"   }\n\n");
+      pinMappingHeaderFile.write(indent+"}\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
       pinMappingHeaderFile.write(pcrInitialiser.getPcrClearStatements(indent+"   "));
-      pinMappingHeaderFile.write(indent+"   }\n\n");
+      pinMappingHeaderFile.write(indent+"}\n\n");
    }
      
    /**
@@ -1535,7 +1532,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
       fCodeIdentifier = codeIdentifier;
       setDirty(true);
-      notifyListeners();
+      fProxy.notifyListeners();
    }
 
    /**
@@ -1547,56 +1544,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return null;
    }
 
-   @Override
-   public boolean addListener(IModelChangeListener listener) {
-      return fProxy.addListener(listener);
-   }
-
-   @Override
-   public void removeAllListeners() {
-      fProxy.removeAllListeners();
-   }
-
-   @Override
-   public void removeListener(IModelChangeListener listener) {
-      fProxy.removeListener(listener);
-   }
-
-   @Override
-   public void notifyModelListeners() {
-      fProxy.notifyModelListeners();
-   }
-   
-   @Override
-   public void notifyListeners() {
-      fProxy.notifyListeners();
-   }
-
-   @Override
-   public void notifyListeners(Object obj) {
-      fProxy.notifyListeners(obj);
-   }
-
-   @Override
-   public void notifyStatusListeners() {
-      fProxy.notifyStatusListeners();
-   }
-
-   @Override
-   public void notifyStructureChangeListeners() {
-      fProxy.notifyStructureChangeListeners();
-   }
-
-   @Override
-   public boolean isRefreshPending() {
-      return fProxy.isRefreshPending();
-   }
-
-   @Override
-   public void setRefreshPending(boolean refreshPending) {
-      fProxy.setRefreshPending(refreshPending);
-   }
-
    /**
     * Set description of pin use
     */
@@ -1606,7 +1553,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
       fUserDescription = userDescription;
       setDirty(true);
-      notifyListeners();
+      fProxy.notifyListeners();
    }
 
    /**
@@ -1628,7 +1575,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (fCreateInstance != value) {
          fCreateInstance = value;
          setDirty(true);
-         notifyListeners();
+         fProxy.notifyListeners();
       }
    }
 
@@ -1730,23 +1677,62 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return fInstanceList;
    }
    
-//   /**
-//    * Set name of C struct associated with this peripheral
-//    *
-//    * @param headerStructName
-//    */
-//   public void setStructName(String headerStructName) {
-//      fheaderStructName = headerStructName;
-//   }
-//
-//   /**
-//    * Get name of C struct associated with this peripheral
-//    *
-//    * @return name of struct
-//    */
-//   public String getStructName() {
-//      return fheaderStructName;
-//   }
+   // ================= IModelChangeListener ==========================
 
+   /** Proxy used to support ObservableModel interface */
+   private final ObservableModel fProxy;
+   
+   @Override
+   public boolean addListener(IModelChangeListener listener) {
+      return fProxy.addListener(listener);
+   }
 
+   @Override
+   public void removeAllListeners() {
+      fProxy.removeAllListeners();
+   }
+
+   @Override
+   public void removeListener(IModelChangeListener listener) {
+      fProxy.removeListener(listener);
+   }
+
+   @Override
+   public void notifyModelListeners() {
+      fProxy.notifyModelListeners();
+   }
+   
+   @Override
+   public void notifyStatusListeners() {
+      fProxy.notifyStatusListeners();
+   }
+
+   @Override
+   public void notifyStructureChangeListeners() {
+      fProxy.notifyStructureChangeListeners();
+   }
+
+   @Override
+   public boolean isRefreshPending() {
+      return fProxy.isRefreshPending();
+   }
+
+   @Override
+   public void setRefreshPending(boolean refreshPending) {
+      fProxy.setRefreshPending(refreshPending);
+   }
+
+   @Override
+   public void notifyListeners(IModelChangeListener exclude, String[] properties) {
+      fProxy.notifyListeners(exclude, properties);
+   }
+   
+   @Override
+   public void notifyListeners(String[] properties) {
+      fProxy.notifyListeners(null, properties);
+   }
+
+   public void notifyListeners() {
+      fProxy.notifyListeners();
+   }
 }

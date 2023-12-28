@@ -64,6 +64,7 @@ public class InstanceColumnLabelProvider extends BaseLabelProvider {
       if (value == null) {
          return null;
       }
+//      return warningImage;
       return value?checkedImage:uncheckedImage;
    }
 

@@ -10,21 +10,8 @@ public interface IModelChangeListener {
     * Called when the model changes.
     * 
     * @param observableModel - The model element that has changed
+    * @param properties      - Indicates properties changed "Value", "Structure" or "Status"
     */
-   void modelElementChanged(ObservableModel observableModel);
-   
-   /**
-    * Called when the model changes structure.
-    * 
-    * @param observableModel - The model element that has changed
-    */
-   void modelStructureChanged(ObservableModel observableModel);
-
-   /**
-    * Called when the model changes status.
-    * 
-    * @param observableModel - The model element that has changed
-    */
-   void elementStatusChanged(ObservableModel observableModel);
+   void modelElementChanged(ObservableModelInterface observableModel, String[] properties);
    
 }

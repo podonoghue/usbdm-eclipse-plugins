@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
  * Simple model that only provides a passive holder in the tree
@@ -14,10 +13,7 @@ public class CategoryVariableModel extends StringVariableModel {
     * Create model
     * 
     * @param parent        Parent model
-    * @param name          Display name
-    * @param description   Display description
-    * 
-    * @note Added as child of parent if not null
+    * @param variable      Variable associated with this model
     */
    public CategoryVariableModel(BaseModel parent, Variable variable) {
       super(parent, variable);
@@ -28,12 +24,7 @@ public class CategoryVariableModel extends StringVariableModel {
    }
 
    @Override
-   public CategoryVariableModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
-      return (CategoryVariableModel)super.clone(parentModel, provider, index);
-   }
-
-   @Override
-   public void modelElementChanged(ObservableModel observableModel) {
+   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
 
       ArrayList<BaseModel> children = getChildren();
       if (children != null) {
@@ -50,7 +41,13 @@ public class CategoryVariableModel extends StringVariableModel {
             }
          }
       }
-      super.modelElementChanged(observableModel);
+      super.modelElementChanged(observableModel, properties);
+   }
+
+   @Override
+   public boolean showAsLocked() {
+//      return false;
+      return !canEdit() && (fVariable.getValueAsString() != null);
    }
 
 }

@@ -28,7 +28,7 @@ public class DoubleVariableModel extends VariableModel {
       
       @Override
       protected Object doGetValue() {
-         System.err.println("doGetValue() => "+super.doGetValue());
+//         System.err.println("doGetValue() => "+super.doGetValue());
          return super.doGetValue();
       }
 

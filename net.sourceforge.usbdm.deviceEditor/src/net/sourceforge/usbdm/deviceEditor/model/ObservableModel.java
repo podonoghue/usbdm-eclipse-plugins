@@ -36,41 +36,55 @@ public class ObservableModel implements ObservableModelInterface {
 
    @Override
    public void notifyModelListeners() {
+      
       for (IModelChangeListener listener:fListeners) {
          if (listener instanceof BaseModel) {
-            listener.modelElementChanged(this);
+            listener.modelElementChanged(this, PROP_VALUE);
          }
       }
       fRefreshPending = false;
    }
    
    @Override
-   public void notifyListeners() {
-      for (IModelChangeListener listener:fListeners) {
-         listener.modelElementChanged(this);
-      }
-      fRefreshPending = false;
-   }
-   
-   @Override
-   public void notifyListeners(Object origin) {
+   public void notifyListeners(IModelChangeListener exclude, String[] properties) {
+      
       ArrayList<IModelChangeListener> cp = new ArrayList<IModelChangeListener>();
       cp.addAll(fListeners);
       for (IModelChangeListener listener:cp) {
-         if (listener != origin) {
-            listener.modelElementChanged(this);
+         if (listener != exclude) {
+            listener.modelElementChanged(this, properties);
          }
       }
-//      if (cp.size() != fListeners.size()) {
-//         System.err.println("List changed");
-//      }
       fRefreshPending = false;
+   }
+   
+   @Override
+   final public void notifyListeners(String[] properties) {
+      notifyListeners(null, properties);
+   }
+   
+   /**
+    * Notify all listeners apart from exclude (properties = "value")
+    * 
+    * @param origin Listener to exclude
+    */
+   final public void notifyListeners(IModelChangeListener exclude) {
+      notifyListeners(exclude, PROP_VALUE);
+   }
+   
+   /**
+    * Notify all listeners (properties = "value")
+    * 
+    * @param origin Listener to exclude
+    */
+   final public void notifyListeners() {
+      notifyListeners(PROP_VALUE);
    }
    
    @Override
    public void notifyStatusListeners() {
       for (IModelChangeListener listener:fListeners) {
-         listener.elementStatusChanged(this);
+         listener.modelElementChanged(this, new String[] {"Status"} );
       }
       fRefreshPending = false;
    }
@@ -78,7 +92,7 @@ public class ObservableModel implements ObservableModelInterface {
    @Override
    public void notifyStructureChangeListeners() {
       for (IModelChangeListener listener:fListeners) {
-         listener.modelStructureChanged(this);
+         listener.modelElementChanged(this, new String[] {"Structure"} );
       }
    }
 
@@ -91,4 +105,5 @@ public class ObservableModel implements ObservableModelInterface {
    public void setRefreshPending(boolean refreshPending) {
       fRefreshPending = refreshPending;
    }
+
 }

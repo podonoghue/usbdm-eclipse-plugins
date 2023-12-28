@@ -297,12 +297,24 @@ public abstract class VariableWithChoices extends Variable {
       return rv;
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * <li>choice[].enableBy
+    * <li>choice[].nameExpression
+    * <li>choice[].reference
+    */
    @Override
    public void addInternalListeners() throws Exception {
       // Listen to choice expressions
       ChoiceData[] data = getChoiceData();
       for (ChoiceData choiceData:data) {
-         choiceData.addListener(this);
+         try {
+            choiceData.addListener(this);
+         } catch (Exception e) {
+            System.err.println("Failed to add internal listener to choice variable '" + this.getName() + "'");
+            System.err.println("Choice '" + choiceData.getName() + "', ref= '" + choiceData.getReference() + "'");
+         }
       }
       super.addInternalListeners();
 
@@ -352,14 +364,14 @@ public abstract class VariableWithChoices extends Variable {
          e.printStackTrace();
       }
 
+      // Target affected?
+      String target = getTarget();
+      if (target == null) {
+         return;
+      }
+      
+      String multiRef = choiceData.getMultiValueReference();
       try {
-         // Target affected?
-         String target = getTarget();
-         if (target == null) {
-            return;
-         }
-
-         String multiRef = choiceData.getMultiValueReference();
          if (multiRef != null) {
             String refs[]    = multiRef.split(";",-1);
             String targets[] = getTarget().split(";",-1);
@@ -377,31 +389,47 @@ public abstract class VariableWithChoices extends Variable {
             }
             return;
          }
-
+      } catch (Exception e) {
+         Exception t = new Exception("Failed to update from Expression '"+multiRef+"'", e);
+         t.printStackTrace();
+      }
+      
+      Expression expression = choiceData.getReference();
+      try {
          // Update choice.ref => target
          Variable targetVar = getProvider().getVariable(target);
-         VariableUpdateInfo info = targetVar.determineUpdateInformation(choiceData.getReference());
-         if (targetVar.update(info)) {
-            targetVar.notifyListeners();
+         
+         VariableUpdateInfo info = new VariableUpdateInfo();
+         targetVar.determineUpdateInformation(info, expression);
+         targetVar.update(info);
+         if (info.properties.size()>0) {
+            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
+            targetVar.notifyListeners(properties);
          }
       } catch (Exception e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
+         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
+         t.printStackTrace();
       }
       updateChoices();
    }
-   
+
+   /**
+    * {@inheritDoc}<br>
+    * <br>
+    * Adds handling changes in:
+    * <li> fRef from choices<br><br>
+    */
    @Override
-   public boolean update(Expression expression) {
+   public void update(VariableUpdateInfo info, Expression expression) {
       
-      boolean changed = super.update(expression);
+      super.update(info, expression);
       
       // Check if expression is from active choice and process if so
       ChoiceData choice = getCurrentChoice();
       
       if (choice != null) {
          // If change or choice expression changed
-         if (changed||(choice.getReference() == expression)) {
+         if ((expression == null) || (choice.getReference() == expression)) {
             try {
                updateTargets(choice);
             } catch (Exception e) {
@@ -409,7 +437,6 @@ public abstract class VariableWithChoices extends Variable {
             }
          }
       }
-      return changed;
    }
 
    @Override

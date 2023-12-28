@@ -62,18 +62,18 @@ public class BooleanVariableModel extends VariableModel {
       getVariable().setValue(bValue);
       
       // Refresh children in case boolean category
-      refreshChildren();
+      refreshChildren(new String[] {"Value"} );
    }
    
    /**
     * Refreshes children
     */
-   private void refreshChildren() {
+   private void refreshChildren(String[] properties) {
       if (fChildren != null) {
          for (Object obj:fChildren) {
             if (obj instanceof VariableModel) {
                VariableModel child = (VariableModel) obj;
-               child.update();
+               child.update(properties);
             }
          }
       }

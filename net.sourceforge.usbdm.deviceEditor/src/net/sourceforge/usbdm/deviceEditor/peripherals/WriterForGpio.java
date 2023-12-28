@@ -451,6 +451,7 @@ public class WriterForGpio extends PeripheralWithState {
 
       @Override
       public Image getImage(SignalModel model) {
+//       return BaseLabelProvider.warningImage;
        return isActiveLow(model.getSignal())?BaseLabelProvider.checkedImage:BaseLabelProvider.uncheckedImage;
       }
       

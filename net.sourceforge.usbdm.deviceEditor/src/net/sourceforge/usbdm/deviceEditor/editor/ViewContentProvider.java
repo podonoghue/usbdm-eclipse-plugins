@@ -18,15 +18,14 @@ public class ViewContentProvider implements ITreeContentProvider {
 
    @Override
    public Object[] getElements(Object inputElement) {
+//      System.err.println("getElements - " + inputElement);
       ArrayList<BaseModel> children = ((BaseModel) inputElement).getChildren();
       if (children == null) {
          return new Object[0];
       }
       ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
       for (BaseModel child:children) {
-         if (!child.isHidden()) {
-            visibleChildren.add(child);
-         }
+         visibleChildren.add(child);
       }
       return visibleChildren.toArray();
    
@@ -34,15 +33,14 @@ public class ViewContentProvider implements ITreeContentProvider {
 
    @Override
    public Object[] getChildren(Object parentElement) {
+//      System.err.println("getChildren - " + parentElement);
       ArrayList<BaseModel> children = ((BaseModel) parentElement).getChildren();
       if (children == null) {
          return new Object[0];
       }
       ArrayList<BaseModel> visibleChildren = new ArrayList<BaseModel>();
       for (BaseModel child:children) {
-         if (!child.isHidden()) {
-            visibleChildren.add(child);
-         }
+         visibleChildren.add(child);
       }
       return visibleChildren.toArray();
    }

@@ -194,7 +194,7 @@ public final class PinViewPageModel extends TreeViewModel implements IPage {
 
    @Override
    public void updatePage() {
-      update();
+      update(null);
    }
 
    @Override

@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +8,6 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.parsers.ListModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -92,33 +90,32 @@ public abstract class BaseModel implements Cloneable {
      });
    }
 
-   final List<BaseModel> fModelsToRefresh = Collections.synchronizedList(new ArrayList<BaseModel>());
-
+   static class UpdateRunnable implements Runnable {
+      private StructuredViewer viewer;
+      private BaseModel        model;
+      private String[]         property;
+      
+      public UpdateRunnable(StructuredViewer viewer, BaseModel model, String[] property) {
+         this.viewer   = viewer;
+         this.model    = model;
+         this.property = property;
+      }
+      
+      @Override
+      public void run() {
+         
+         // Do the refresh
+         if (!viewer.getControl().isDisposed()) {
+            viewer.update(model, property);
+         }
+      }
+   }
+   
    /**
     * Updates the model's presentation when one or more of its properties change
     */
-   public synchronized void update() {
-      BaseModel        origin = this;
-      StructuredViewer viewer = getViewer();
-
-      if (!fModelsToRefresh.contains(origin)) {
-         fModelsToRefresh.add(origin);
-
-         Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-               fModelsToRefresh.remove(origin);
-               if ((viewer != null) && (!viewer.getControl().isDisposed())) {
-                  //                  viewer.refresh();
-                  BaseModel model = origin;
-                  while (model != null) {
-                     viewer.update(model, null);
-                     model = model.getParent();
-                  }
-               }
-            }
-         });
-      }
+   public synchronized void update(String[] properties) {
+      Display.getDefault().asyncExec(new UpdateRunnable(getViewer(), this, properties));
    }
    
    /**
@@ -173,23 +170,13 @@ public abstract class BaseModel implements Cloneable {
     * Add child node (unless hidden)<br>
     * The parent of the child is not changed
     * 
-    * @param model
+    * @param newChild
     */
-   public void addChild(BaseModel model) {
-      if (model.isHidden()) {
-         return;
+   public void addChild(BaseModel newChild) {
+      if (fChildren == null) {
+         fChildren = new ArrayList<BaseModel>();
       }
-      if (model instanceof ListModel) {
-         // List model's children become direct children of this model
-         ListModel listModel = (ListModel) model;
-         listModel.addChildrenToParent(this);
-      }
-      else {
-         if (fChildren == null) {
-            fChildren = new ArrayList<BaseModel>();
-         }
-         fChildren.add(model);
-      }
+      fChildren.add(newChild);
    }
 
    /**
@@ -597,6 +584,10 @@ public abstract class BaseModel implements Cloneable {
 
    public void setHidden(boolean hide) {
       fHidden = hide;
+      StructuredViewer viewer = getViewer();
+      if (viewer != null) {
+         viewer.update(this.getParent(), ObservableModel.PROP_HIDDEN);
+      }
    }
 
    public boolean isHidden() {
@@ -632,6 +623,24 @@ public abstract class BaseModel implements Cloneable {
       for (BaseModel bm:childrenToRemove) {
          removeChild(bm);
       }
+   }
+
+   /**
+    * Replace nominated child with new model
+    * 
+    * @param oldChild  Child model to be replaced
+    * @param newChild  Child model to replace with
+    * 
+    * @throws Exception
+    */
+   public void replaceChild(AliasPlaceholderModel oldChild, BaseModel newChild) throws Exception {
+      
+      int index = fChildren.indexOf(oldChild);
+      if (index < 0) {
+         throw new Exception("Failed to find child to replace '" + oldChild + "'");
+      }
+      fChildren.set(index, newChild);
+      newChild.setParentOnly(this);
    }
 
 }

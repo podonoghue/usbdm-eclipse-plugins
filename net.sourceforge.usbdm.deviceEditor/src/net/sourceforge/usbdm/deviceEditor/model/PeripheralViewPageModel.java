@@ -135,7 +135,7 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
 
    @Override
    public void updatePage() {
-      update();
+      update(null);
    }
    
    @Override

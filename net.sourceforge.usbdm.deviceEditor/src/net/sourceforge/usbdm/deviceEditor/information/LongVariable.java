@@ -8,6 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 
 public class LongVariable extends Variable {
    
@@ -741,10 +742,15 @@ public class LongVariable extends Variable {
       return getValueAsLong();
    }
    
+   /**
+    * {@inheritDoc}<br>
+    * <br>
+    * Adds handling changes in:
+    * <li> fMin
+    * <li> fMax<br><br>
+    */
    @Override
-   public boolean update(Expression expression) {
-      
-      boolean changed = super.update(expression);
+   public void update(VariableUpdateInfo info, Expression expression) {
       
       boolean updateLimits = false;
       if (expression == fMinExpression) {
@@ -755,12 +761,18 @@ public class LongVariable extends Variable {
          fMax = null;
          updateLimits = true;
       }
-      if (changed||updateLimits) {
-         changed = setStatusQuietly(isValid()) || changed;
+      if (updateLimits && setStatusQuietly(isValid())) {
+            info.properties.add(PROP_STATUS[0]);
       }
-      return changed;
+      super.update(info, expression);
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * <li>fMinExpression
+    * <li>fMaxExpression
+    */
    @Override
    public void addInternalListeners() throws Exception {
       if (fMinExpression != null) {

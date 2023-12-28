@@ -35,11 +35,12 @@ public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLab
    }
 
    @Override
-   public Image getImage(BaseModel baseModel) {      
+   public Image getImage(BaseModel baseModel) {
       Long value = getValue(baseModel);
       if (value == null) {
          return null;
       }
+//      return warningImage;
       return (value!=0)?checkedImage:uncheckedImage;
    }
 

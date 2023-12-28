@@ -9,7 +9,7 @@ public interface IModelEntryProvider {
     * 
     * @param parent  Parent to add models to
     */
-   public void getModels(BaseModel parent);
+   public BaseModel getModels(BaseModel parent);
    
    /**
     * Get top-level model contributed by this object

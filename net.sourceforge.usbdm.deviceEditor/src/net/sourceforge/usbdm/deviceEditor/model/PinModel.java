@@ -115,11 +115,11 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    }
 
    @Override
-   public void modelElementChanged(ObservableModel model) {
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
       
       // Update status
       setStatus(fPin.getStatus());
-      update();
+      update(null);
    }
 
    @Override
@@ -185,13 +185,4 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       return sb.toString();
    }
 
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-      updateAncestors();
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel model) {
-      // Not used
-   }
 }

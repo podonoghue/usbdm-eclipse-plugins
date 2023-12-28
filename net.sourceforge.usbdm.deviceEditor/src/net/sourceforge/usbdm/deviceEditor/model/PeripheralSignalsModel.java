@@ -72,7 +72,7 @@ public final class PeripheralSignalsModel extends VariableModel implements IMode
    }
 
    @Override
-   public void modelElementChanged(ObservableModel observableModel) {
+   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
       setStatus(fPeripheral.getStatus());
       if (fChildren == null) {
          return;
@@ -81,19 +81,11 @@ public final class PeripheralSignalsModel extends VariableModel implements IMode
          if (child instanceof SignalModel ) {
             SignalModel s = (SignalModel)child;
             s.enable(isEnabled());
-            s.update();
+            s.update(null);
          }
       }
 //      fVariable.enable(isEnabled());
-      update();
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
+      update(null);
    }
 
    @Override

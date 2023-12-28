@@ -22,8 +22,8 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
     * Constructor
     * 
     * @param columnLabels  Labels to use for columns
-    * @param title 
-    * @param toolTip 
+    * @param title
+    * @param toolTip
     */
    public DeviceInformationModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Project", "Project Settings");
@@ -67,7 +67,7 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
 
    @Override
    public void updatePage() {
-      update();
+      update(null);
    }
 
    @Override

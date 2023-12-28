@@ -22,6 +22,9 @@ public class WriterForAdc extends PeripheralWithState {
    /** Signals that use this writer */
    protected InfoTable fDpFunctions = new InfoTable("InfoDP");
 
+   /** Signals that use this writer */
+   protected InfoTable fBChannelFunctions = new InfoTable("InfoBChannels");
+
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
 
@@ -76,6 +79,8 @@ public class WriterForAdc extends PeripheralWithState {
          if (cIdentifier.isBlank()) {
             continue;
          }
+         boolean bChannel = (infoTable == fBChannelFunctions);
+         
          String trailingComment  = pin.getNameWithLocation();
          String description = signal.getUserDescription();
          String type;
@@ -84,7 +89,8 @@ public class WriterForAdc extends PeripheralWithState {
             type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaChannel");
          }
          else {
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel", "AdcChannelNum_"+index);
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel"+(bChannel?"B":""),
+                  "AdcChannelNum_"+(index&0x1F)+((index>0x1F)?"b":""));
          }
          String constType = "const "+ type;
          String[] cIdentifiers = cIdentifier.split("/");
@@ -174,6 +180,9 @@ public class WriterForAdc extends PeripheralWithState {
       // Single-ended channels (including Pga recognised by having no code name DM)
       writeSingleEndedDeclarations(hardwareDeclarationInfo, fInfoTable);
 
+      // Single-ended B channels
+      writeSingleEndedDeclarations(hardwareDeclarationInfo, fBChannelFunctions);
+
       // Differential channels (including Pga recognised by having the same code name for DP and DM)
       writeDifferentialDeclarations(hardwareDeclarationInfo, fDpFunctions, fDmFunctions);
    }
@@ -182,13 +191,15 @@ public class WriterForAdc extends PeripheralWithState {
    public int getSignalIndex(Signal function) {
       final Pattern pUsual = Pattern.compile("^(SE|DM|DP)(\\d+)(a|b)?$");
       final Pattern pPga   = Pattern.compile("^PGA(\\d+)_DP$");
-      Matcher m = pUsual.matcher(function.getSignalName());
+      String signalName = function.getSignalName();
+      Matcher m = pUsual.matcher(signalName);
       int index = 0;
       if (m.matches()) {
          index = Integer.parseInt(m.group(2));
-         if ((m.group(3) != null) && m.group(3).equalsIgnoreCase("a")) {
-            index += 32;
-         }
+//         String suffix = m.group(3);
+//         if ((suffix != null) && suffix.equalsIgnoreCase("b")) {
+//            index += 32;
+//         }
       }
       else {
          Matcher mPga = pPga.matcher(function.getSignalName());
@@ -205,7 +216,8 @@ public class WriterForAdc extends PeripheralWithState {
       boolean required =
             (fInfoTable.table.size() +
                   fDpFunctions.table.size() +
-                  fDmFunctions.table.size() ) > 0;
+                  fDmFunctions.table.size() +
+                  fBChannelFunctions.table.size()) > 0;
                   return required;
    }
 
@@ -245,15 +257,21 @@ public class WriterForAdc extends PeripheralWithState {
          return;
       }
       
-      p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
+      p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b|A|B)?");
       m = p.matcher(function.getSignalName());
       if (!m.matches()) {
          throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
       }
       int signalIndex = getSignalIndex(function);
       String signalType = m.group(1);
+      String suffix = m.group(3);
       if (signalType.equalsIgnoreCase("SE")) {
-         fFunctions = super.fInfoTable;
+         if ((suffix != null) && (suffix.equalsIgnoreCase("b"))) {
+            fFunctions = fBChannelFunctions;
+         }
+         else {
+            fFunctions = super.fInfoTable;
+         }
       }
       else if (signalType.equalsIgnoreCase("DM")) {
          fFunctions = fDmFunctions;
@@ -280,6 +298,7 @@ public class WriterForAdc extends PeripheralWithState {
          rv.add(fInfoTable);
          rv.add(fDpFunctions);
          rv.add(fDmFunctions);
+         rv.add(fBChannelFunctions);
          return rv;
       }
       

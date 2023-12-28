@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
@@ -9,10 +10,11 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.ExpressionParser.Mode;
@@ -52,8 +54,9 @@ public class Expression implements IModelChangeListener {
        * Collect a list of the variables used in expression
        * 
        * @param variablesFound  List to add found variables to
+       * @throws Exception
        */
-      public void collectVars(ArrayList<Variable> variablesFound) {
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
       }
       
       @Override
@@ -85,7 +88,7 @@ public class Expression implements IModelChangeListener {
       }
       
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          fLeft.collectVars(variablesFound);
          fRight.collectVars(variablesFound);
       }
@@ -121,7 +124,7 @@ public class Expression implements IModelChangeListener {
       }
 
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          fArg.collectVars(variablesFound);
       }
       
@@ -141,7 +144,7 @@ public class Expression implements IModelChangeListener {
       }
       
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          fArg.collectVars(variablesFound);
       }
       
@@ -190,7 +193,12 @@ public class Expression implements IModelChangeListener {
          fIndex      = index;
          fModifier   = modifier;
          if (index != null) {
-            index.addListener(this);
+            try {
+               index.addListener(this);
+            } catch (Exception e) {
+               System.err.println("Failed to add listeners for index changes to expresssion");
+               e.printStackTrace();
+            }
          }
       }
 
@@ -221,14 +229,16 @@ public class Expression implements IModelChangeListener {
 //         }
          String name = varName;
          if (index != null) {
+            // Use zero index to allow safe access to array variable
             int ind = 0;
+            // Use constant index if provided in preference
             if (index.isConstant()) {
                ind = index.getValueAsLong().intValue();
             }
-            // Use zero index to allow safe access to array variable
             name = name+"["+ind+"]";
          }
          // Get variable to determine type
+         // This may fail if the variable does not exist yet
          Variable var = owner.fVarProvider.safeGetVariable(name);
 //         if (name.contains("tsi_pen_pen")) {
 //            System.err.println("Found it");
@@ -270,6 +280,14 @@ public class Expression implements IModelChangeListener {
          if (var instanceof DoubleVariable) {
             return new VariableNode(owner, varName, Type.Double, null, index);
          }
+         if (var instanceof StringVariable) {
+            return new VariableNode(owner, varName, Type.String, null, index);
+         }
+         if (var != null) {
+            // Can't happen!!
+            throw new Exception("Did not find type for " + var);
+         }
+         System.err.println("Warning, using default String type for non-existent variable '" + name + "'");
          return new VariableNode(owner, varName, Type.String, null, index);
       }
       
@@ -312,14 +330,10 @@ public class Expression implements IModelChangeListener {
       }
 
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
-         try {
-            Variable var = getVar();
-            if (!variablesFound.contains(var))
-               variablesFound.add(var);
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
+         Variable var = getVar();
+         if (!variablesFound.contains(var))
+            variablesFound.add(var);
       }
 
       @Override
@@ -733,6 +747,32 @@ public class Expression implements IModelChangeListener {
       Object eval() throws Exception {
          String s = (String) fArg.eval();
          return s.toUpperCase();
+      }
+   }
+   
+   static class FormatNode extends UnaryExpressionNode {
+
+      /**
+       * Uppercase a string e.g. cmd => CMD
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      FormatNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+      }
+
+      @Override
+      Object eval() throws Exception {
+         Object res = fArg.eval();
+         if (!(res instanceof Object[])) {
+            throw new Exception("Wrong argument type to FormatNode, arg = " + fArg);
+         }
+         Object resArray[] = (Object[]) res;
+         if (!(resArray[0] instanceof String)) {
+            throw new Exception("Wrong argument[0] type to FormatNode, arg = " + resArray[0]);
+         }
+         return String.format(resArray[0].toString(), resArray[1]);
       }
    }
    
@@ -1370,7 +1410,7 @@ public class Expression implements IModelChangeListener {
       }
 
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          super.collectVars(variablesFound);
          fCondition.collectVars(variablesFound);
       }
@@ -1459,7 +1499,7 @@ public class Expression implements IModelChangeListener {
       }
 
       @Override
-      public void collectVars(ArrayList<Variable> variablesFound) {
+      public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          for (ExpressionNode exp:fList) {
             exp.collectVars(variablesFound);
          }
@@ -1520,10 +1560,11 @@ public class Expression implements IModelChangeListener {
     * Class to accumulate variable changes
     */
    public static class VariableUpdateInfo {
-      public Object  value   = null;
-      public Status  status  = null;
-      public String  origin  = null;
-      public boolean enable  = true;
+      public Object   value   = null;
+      public Status   status  = null;
+      public String   origin  = null;
+      public boolean  enable  = true;
+      public HashSet<String> properties = new HashSet<String>();
    };
 
    /** Variable provider for variable in expression */
@@ -1678,12 +1719,15 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    private Object evaluate() throws Exception {
-      if (fExpression == null) {
-         
-         // Parse expression
-         prelim();
+      try {
+         if (fExpression == null) {
+            // Parse expression
+            prelim();
+         }
+         return fExpression.eval();
+      } catch (Exception e) {
+         throw new Exception("Failed to evaluate expression '" + fExpressionStr + "'", e);
       }
-      return fExpression.eval();
    }
 
    /**
@@ -1982,7 +2026,7 @@ public class Expression implements IModelChangeListener {
    }
 
    @Override
-   public void modelElementChanged(ObservableModel observableModel) {
+   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
       
 //      if (fExpressionStr.matches(".*ftm_cnsc_mode\\[0.*")) {
 //         System.err.println("Found it modelElementChanged"+fExpressionStr+")");
@@ -2018,14 +2062,6 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-   }
-   
    /**
     * Add listener for expression changes<br>
     * Only adds listener if the expression is not constant
@@ -2035,7 +2071,7 @@ public class Expression implements IModelChangeListener {
     * 
     * @return <b>true</b> if listener added
     */
-   public boolean addListener(IExpressionChangeListener listener) {
+   public boolean addListener(IExpressionChangeListener listener) throws Exception {
       try {
          if (!isConstant()) {
             if (!fListeners.contains(listener)) {
@@ -2044,7 +2080,7 @@ public class Expression implements IModelChangeListener {
             }
          }
       } catch (Exception e) {
-         e.printStackTrace();
+         throw new Exception("Failed to add listeners for expression " + fExpressionStr, e);
       }
       return false;
    }

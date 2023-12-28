@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
@@ -688,31 +689,44 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
    
    @Override
-   public void modelElementChanged(ObservableModel model) {
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
+      for (String prop:properties) {
+         if ("Mapping".equals(prop)) {
+            if (model instanceof MappingInfo) {
+               notifyListeners();
+            }
+            boolean changed = false;
+            Status status = checkMappingConflicted();
+            if (!Status.equals(fStatus, status)) {
+               fStatus = status;
+               changed = true;
+            }
+            status = getAssociatedSignalsStatus();
+            if (!Status.equals(fAssociatedStatus, status)) {
+               fAssociatedStatus = status;
+               changed = true;
+            }
+            if (changed) {
+               notifyListeners(this);
+            }
+            notifyModelListeners();
+         }
+         else if ("Value".equals(prop)) {
+         }
+         else if ("Structure".equals(prop)) {
+            if (this == UNASSIGNED_PIN) {
+               return;
+            }
+            notifyStructureChangeListeners();
+         }
+         else if ("Status".equals(prop)) {
+            if (this == UNASSIGNED_PIN) {
+               return;
+            }
+            notifyStatusListeners();
+         }
+      }
 
-//      if (model instanceof Signal) {
-//         notifyListeners(model);
-//         return;
-//      }
-
-      if (model instanceof MappingInfo) {
-         notifyListeners();
-      }
-      boolean changed = false;
-      Status status = checkMappingConflicted();
-      if (!Status.equals(fStatus, status)) {
-         fStatus = status;
-         changed = true;
-      }
-      status = getAssociatedSignalsStatus();
-      if (!Status.equals(fAssociatedStatus, status)) {
-         fAssociatedStatus = status;
-         changed = true;
-      }
-      if (changed) {
-         notifyListeners(model);
-      }
-      notifyModelListeners();
    }
 
    public void setPort(Signal signal) throws Exception {
@@ -989,22 +1003,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       public int getValue() {
          return value;
       }
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel model) {
-      if (this == UNASSIGNED_PIN) {
-         return;
-      }
-      notifyStructureChangeListeners();
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel model) {
-      if (this == UNASSIGNED_PIN) {
-         return;
-      }
-      notifyStatusListeners();
    }
 
 }

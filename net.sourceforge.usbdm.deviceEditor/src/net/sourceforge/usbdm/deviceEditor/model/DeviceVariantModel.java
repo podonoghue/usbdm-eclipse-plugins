@@ -54,7 +54,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
    }
 
    @Override
-   public void modelElementChanged(ObservableModel model) {
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
          String variantName = deviceInfo.getPreciseName();
@@ -63,16 +63,8 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
    }
 
    @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-   }
-
-   @Override
    protected void removeMyListeners() {
       fDeviceInfo.removeListener(this);
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
    }
 
 }

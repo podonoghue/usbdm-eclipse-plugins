@@ -88,17 +88,16 @@ public class ChoiceVariable extends VariableWithChoices {
       setValue(index);
    }
    
-   @Override
-   public void notifyListeners() {
-      ArrayList<ChoiceData> choices = getVisibleChoiceData();
-      if (fValue>=choices.size()) {
-         System.err.println("Opps");
-      }
-      else {
-         updateTargets(choices.get(fValue));
-      }
-      super.notifyListeners();
-   }
+//   public void notifyListenersX() {
+//      ArrayList<ChoiceData> choices = getVisibleChoiceData();
+//      if (fValue>=choices.size()) {
+//         System.err.println("Opps");
+//      }
+//      else {
+//         updateTargets(choices.get(fValue));
+//      }
+//      super.notifyListeners();
+//   }
    
    /**
     * Sets variable value.

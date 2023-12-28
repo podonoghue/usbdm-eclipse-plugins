@@ -98,17 +98,29 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    }
 
    @Override
-   public void modelElementChanged(ObservableModel observableModel) {
-      updateAncestors();
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-      StructuredViewer viewer = getViewer();
-      if (viewer != null) {
-         final String[] properties = {"Value"};
-         viewer.update(getParent(), properties);
-         viewer.refresh(this);
+   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
+      for (String prop:properties) {
+         if (ObservableModelInterface.PROP_VALUE[0].equals(prop)) {
+            StructuredViewer viewer = getViewer();
+            if (viewer != null) {
+               viewer.update(this, properties);
+            }
+            updateAncestors();
+         }
+         else if (ObservableModelInterface.PROP_HIDDEN[0].equals(prop)) {
+            StructuredViewer viewer = getViewer();
+            if (viewer != null) {
+//               if (getName().contains("ftm_sc_ps")) {
+//                  System.err.println("VariableModel: vm = "+this+", hidden = " + isHidden());
+//               }
+//               viewer.refresh(this);
+//               viewer.update(this, properties);
+               viewer.update(this.getParent(), properties);
+            }
+         }
+         else if (ObservableModelInterface.PROP_STATUS[0].equals(prop)) {
+            updateAncestors();
+         }
       }
    }
 
@@ -154,11 +166,6 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       return fVariable.getStatus();
    }
 
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-      updateAncestors();
-   }
-   
    @Override
    public VariableModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException  {
       VariableModel model = (VariableModel) super.clone(parentModel, provider, index);

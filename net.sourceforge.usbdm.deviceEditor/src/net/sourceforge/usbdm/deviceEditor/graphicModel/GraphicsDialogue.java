@@ -21,8 +21,8 @@ import org.eclipse.swt.widgets.Text;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
-import net.sourceforge.usbdm.deviceEditor.model.ModelChangeAdapter;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 
 public class GraphicsDialogue {
 
@@ -306,10 +306,10 @@ public class GraphicsDialogue {
       }
    }
 
-   ModelChangeAdapter runModeChangeListener = new ModelChangeAdapter() {
+   IModelChangeListener runModeChangeListener = new IModelChangeListener() {
       
       @Override
-      public void modelElementChanged(ObservableModel observableModel) {
+      public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
          System.err.println("Run Mode changed " + observableModel);
       }
    };

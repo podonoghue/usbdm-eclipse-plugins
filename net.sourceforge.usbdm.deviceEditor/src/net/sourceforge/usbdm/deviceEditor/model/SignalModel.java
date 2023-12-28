@@ -146,25 +146,33 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
    
    @Override
-   public void modelElementChanged(ObservableModel model) {
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
+      for (String prop:properties) {
+         if ("Value".equals(prop)) {
+            // Update status
+            Status status = fSignal.checkMappingConflicted();
+            if (status == null) {
+               for (MappingInfo mappingInfo: fSignal.getMappedPinInformation()) {
+                  status = mappingInfo.getPin().checkMappingConflicted();
+                  if (status != null) {
+                     break;
+                  }
+               }
+            }
+            setStatus(status);
 
-      // Update status
-      Status status = fSignal.checkMappingConflicted();
-      if (status == null) {
-         for (MappingInfo mappingInfo: fSignal.getMappedPinInformation()) {
-            status = mappingInfo.getPin().checkMappingConflicted();
-            if (status != null) {
-               break;
+            if (model instanceof Signal) {
+               update(null);
+            }
+            if (model instanceof Pin) {
+               update(null);
             }
          }
-      }
-      setStatus(status);
-
-      if (model instanceof Signal) {
-         update();
-      }
-      if (model instanceof Pin) {
-         update();
+         else if ("Structure".equals(prop)) {
+         }
+         else if ("Status".equals(prop)) {
+            updateAncestors();
+         }
       }
    }
 
@@ -226,11 +234,6 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
 
    @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-      // Not used
-   }
-
-   @Override
    public boolean isInactive() {
       MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
       return ((currentMapping == null) ||
@@ -241,11 +244,6 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    protected void removeMyListeners() {
       fSignal.removeListener(this);
       fSignal.disconnectListeners();
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-      updateAncestors();
    }
 
    /**
@@ -269,6 +267,19 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          canedit = canedit && !((PeripheralSignalsModel)fParent).areChildrenLocked();
       }
       return canedit;
+   }
+
+   @Override
+   public int getSelection() {
+      MappingInfo mapping = fSignal.getFirstMappedPinInformation();
+      fSelection = mapping.getMux().ordinal() - MuxSelection.unassigned.ordinal();
+      if (fSelection<0) {
+         fSelection = 0;
+      }
+      if (fSelection>=fChoices.length) {
+         fSelection = 0;
+      }
+      return fSelection;
    }
 
 }

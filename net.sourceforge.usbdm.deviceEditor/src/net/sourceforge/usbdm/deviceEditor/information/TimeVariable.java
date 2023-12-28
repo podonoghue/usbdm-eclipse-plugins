@@ -5,6 +5,7 @@ import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.TimeVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 
 public class TimeVariable extends LongVariable {
 
@@ -18,6 +19,11 @@ public class TimeVariable extends LongVariable {
       super(name, key, value);
    }
    
+   /**
+    * {@inheritDoc}
+    * 
+    * <li>fPeriodExpression
+    */
    @Override
    public void addInternalListeners() throws Exception {
       if (fPeriodExpression != null) {
@@ -27,13 +33,13 @@ public class TimeVariable extends LongVariable {
    }
 
    @Override
-   public boolean update(Expression expression) {
+   public void update(VariableUpdateInfo info, Expression expression) {
       
-      boolean changed = super.update(expression);
+      super.update(info, expression);
       
-      changed = changed || (expression == fPeriodExpression);
-      
-      return changed;
+      if (expression == fPeriodExpression) {
+         info.properties.add(PROP_VALUE[0]);
+      }
    }
    
    @Override

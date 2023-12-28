@@ -16,7 +16,7 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    }
 
    @Override
-   public void modelElementChanged(ObservableModel model) {
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
          String packageName = deviceInfo.getVariant().getPackage().getName();
@@ -27,15 +27,7 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    }
 
    @Override
-   public void modelStructureChanged(ObservableModel model) {
-   }
-
-   @Override
    protected void removeMyListeners() {
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
    }
 
    @Override

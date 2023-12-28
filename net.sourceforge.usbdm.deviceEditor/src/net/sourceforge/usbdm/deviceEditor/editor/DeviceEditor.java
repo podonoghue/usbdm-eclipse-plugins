@@ -53,7 +53,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IEditorPage;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IPage;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
@@ -508,53 +508,38 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       return true;
    }
 
-   /** Used when the models have been re-generated */
    @Override
-   public void modelElementChanged(ObservableModel model) {
-      if (model == fFactory) {
-         firePropertyChange(PROP_DIRTY);
+   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
+      
+      for (String prop:properties) {
+         if ("Value".equals(prop)) {
+            if (model == fFactory) {
+               firePropertyChange(PROP_DIRTY);
+            }
+         }
+         else if ("Structure".equals(prop)) {
+            if (model == fFactory) {
+               refreshModels();
+            }
+            fFactory.getDeviceInfo().refreshConnections();
+            firePropertyChange(PROP_DIRTY);
+         }
+         else if ("Status".equals(prop)) {
+         }
       }
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel model) {
-      if (model == fFactory) {
-         refreshModels();
-      }
-      fFactory.getDeviceInfo().refreshConnections();
-      firePropertyChange(PROP_DIRTY);
    }
 
    DeviceEditorOutlinePage fOutlinePage = null;
-
-   
-//   @Override
-//   public void dispose() {
-//      Activator activator = Activator.getDefault();
-//      if (activator != null) {
-//         IDialogSettings dialogSettings = activator.getDialogSettings();
-//         if (dialogSettings != null) {
-//            dialogSettings.put(ActiveTab_key,           fTabFolder.getSelectionIndex());
-//            dialogSettings.put(PeripheralTabNumber_key, fPeripheralParametersFolder.getSelectionIndex());
-//         }
-//      }
-//      super.dispose();
-//   }
 
    @Override
    public <T> T getAdapter(Class<T> adapter) {
       if (IContentOutlinePage.class.equals(adapter)) {
          if (fOutlinePage == null) {
             fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
-            fOutlinePage.setInput(getEditorInput());
          }
          return adapter.cast(fOutlinePage);
       }
       return super.getAdapter(adapter);
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
    }
 
 }

@@ -381,14 +381,14 @@ public class PcrInitialiser {
          return "";
       }
       StringBuffer sb = new StringBuffer();
-      sb.append("\n#if defined(PCC_PCCn_CGC_MASK)\n");
-      for (String port:portsNeeded) {
-         if (port == null) {
-            continue;
-         }
-         sb.append(indent+String.format("PCC->PCC_%s = PCC_PCCn_CGC_MASK;\n", port));
-      }
-      sb.append("#else\n");
+//      sb.append("\n#if defined(PCC_PCCn_CGC_MASK)\n");
+//      for (String port:portsNeeded) {
+//         if (port == null) {
+//            continue;
+//         }
+//         sb.append(indent+String.format("PCC->PCC_%s = PCC_PCCn_CGC_MASK;\n", port));
+//      }
+//      sb.append("#else\n");
       boolean isFirst = true;
       for (String port:portsNeeded) {
          if (port == null) {
@@ -406,7 +406,7 @@ public class PcrInitialiser {
       if (!isFirst) {
          sb.append(");\n");
       }
-      sb.append("#endif\n\n");
+//      sb.append("#endif\n\n");
       
       return sb.toString();
    }

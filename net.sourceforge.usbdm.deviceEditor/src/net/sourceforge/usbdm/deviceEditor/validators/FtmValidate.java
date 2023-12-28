@@ -13,6 +13,11 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class FtmValidate extends PeripheralValidator {
 
+   int MODE_None;
+   int MODE_Left;
+   int MODE_Centre;
+   int MODE_Quad;
+   
    public FtmValidate(PeripheralWithState peripheral) {
       super(peripheral);
    }
@@ -31,8 +36,7 @@ public class FtmValidate extends PeripheralValidator {
       ChoiceVariable    modeVar           =  getChoiceVariable("mode");
 
       int mode = (int) modeVar.getValueAsLong();
-      if (mode == 2) {
-         // Quad-decoder
+      if ((mode == MODE_None) || (mode == MODE_Quad)) {
          return;
       }
 
@@ -80,24 +84,25 @@ public class FtmValidate extends PeripheralValidator {
                else {
                   // cnvEventTimeVar[] -> cnv[]
                   for (int channel=0; channel<NumChannels; channel++) {
-                     DoubleVariable cnvEventTimeVar  = getDoubleVariable("ftm_cnvEventTime["+channel+"]");
-                     if (variable.equals(cnvEventTimeVar)) {
+                     DoubleVariable ftm_cnvEventTime_independentVar  = getDoubleVariable("ftm_cnvEventTime_independent["+channel+"]");
+                     if (variable.equals(ftm_cnvEventTime_independentVar)) {
                         // Target
-                        LongVariable cnvVar = getLongVariable("ftm_cnv["+channel+"]");
+                        LongVariable ftm_cnv_independentVar = getLongVariable("ftm_cnv_independent["+channel+"]");
 
-                        if (!cnvEventTimeVar.isEnabled()||!cnvVar.isEnabled()) {
+                        if (!ftm_cnvEventTime_independentVar.isEnabled()||!ftm_cnv_independentVar.isEnabled()) {
                            // Ignore if disabled to preserve value
                            continue;
                         }
                         // Calculate rounded value for event time in ticks
-                        double cnvEventTime = cnvEventTimeVar.getValueAsDouble();
+                        double cnvEventTime = ftm_cnvEventTime_independentVar.getValueAsDouble();
                         if (!Double.isFinite(cnvEventTime)) {
                            // Don't propagate invalid calculation
                            continue;
                         }
                         long cnv = Math.max(0, Math.round((cnvEventTime/clockPeriod)));
-//                        System.err.println("ftm_cnv="+ftm_cnv+", ftm_cnvEventTime= "+ftm_cnvEventTime);
-                        cnvVar.setValue(cnv);
+                        ftm_cnv_independentVar.setValue(cnv);
+//                        System.err.println("ftm_cnv_independent="+ftm_cnv_independentVar+", \n"
+//                              + "ftm_cnvEventTime_independent= "+ftm_cnvEventTime_independentVar);
                      }
                   }
                }
@@ -115,17 +120,22 @@ public class FtmValidate extends PeripheralValidator {
             "ftm_mod",
             "ftm_modPeriod",
             "ftm_sc_cpwms",
-            "ftm_cnvEventTime[0]",
-            "ftm_cnvEventTime[1]",
-            "ftm_cnvEventTime[2]",
-            "ftm_cnvEventTime[3]",
-            "ftm_cnvEventTime[4]",
-            "ftm_cnvEventTime[5]",
-            "ftm_cnvEventTime[6]",
-            "ftm_cnvEventTime[7]",
+            "ftm_cnvEventTime_independent[0]",
+            "ftm_cnvEventTime_independent[1]",
+            "ftm_cnvEventTime_independent[2]",
+            "ftm_cnvEventTime_independent[3]",
+            "ftm_cnvEventTime_independent[4]",
+            "ftm_cnvEventTime_independent[5]",
+            "ftm_cnvEventTime_independent[6]",
+            "ftm_cnvEventTime_independent[7]",
       };
       addToWatchedVariables(externalVariables);
-
+      
+      MODE_None   = (int) getLongVariable("/FTM0/None").getValueAsLong();
+      MODE_Left   = (int) getLongVariable("/FTM0/Left").getValueAsLong();
+      MODE_Centre = (int) getLongVariable("/FTM0/Centre").getValueAsLong();
+      MODE_Quad   = (int) getLongVariable("/FTM0/Quad").getValueAsLong();
+      
       // Don't add default dependencies
       return false;
    }

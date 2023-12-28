@@ -1789,10 +1789,10 @@ public class CreateDeviceSkeletonFromSVD {
 //         "DAC",
 //         "DMA",
 //         "DMAMUX",
-         "ENET",
+//         "ENET",
 //         "EWM",
 //         "FTF",
-//         "FTM",
+         "FTM",
 //         "FMC",
 //         "FGPIO",
 //         "ICS",
@@ -1855,14 +1855,51 @@ public class CreateDeviceSkeletonFromSVD {
          }
          System.out.println("Processing " + peripheral.getSourceFilename());
          CreateDeviceSkeletonFromSVD instance = new CreateDeviceSkeletonFromSVD(suffix, peripherals, peripheral);
-         instance.writePreamble();
-         instance.processRegisters();
-         instance.writeSettersAndGetters();
-         instance.writeInitClass();
-         instance.writeCommon();
-         instance.savePeripheralFiles();
+         instance.listFields();
+//         instance.writePreamble();
+//         instance.processRegisters();
+//         instance.writeSettersAndGetters();
+//         instance.writeInitClass();
+//         instance.writeCommon();
+//         instance.savePeripheralFiles();
       }
    }
+   
+   public void listFields() {
+
+      VisitRegisters createSimpleFieldList = new VisitRegisters(peripheral) {
+
+         final StringBuilder resultSb = new StringBuilder();
+         Boolean firstField = true;
+
+         @Override
+         void visitor(Register register, String context) {
+
+//            if ((register.getDimension()>0)||(context.contains("[index]"))) {
+//               return;
+//            }
+//            System.err.println("Context = '"+context+"'");
+            String regName = stripRegisteName(register.getName());
+            for (Field field:register.getFields()) {
+               if (!firstField) {
+                  resultSb.append("\n");
+               }
+               String fieldName  = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               firstField = false;
+               resultSb.append(String.format("%s", fieldName));
+            }
+         }
+         @Override
+         Object getResult() {
+            return resultSb.toString()+"\n";
+         }
+      };
+
+      createSimpleFieldList.visit();
+      
+      System.err.print(createSimpleFieldList.getResult());
+   }
+   
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("FRDM_KE04Z", "mke");
 //      doAllPeripherals("FRDM_KE06Z");
@@ -1870,9 +1907,9 @@ public class CreateDeviceSkeletonFromSVD {
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
 //      doAllPeripherals("FRDM_KL25Z", "mkl");
-//      doAllPeripherals("FRDM_K20D50M", "mk");
+      doAllPeripherals("FRDM_K20D50M", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
-      doAllPeripherals("FRDM_K64F", "mk");
+//      doAllPeripherals("FRDM_K64F", "mk");
    }
 
 }

@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IEditor;
+import net.sourceforge.usbdm.deviceEditor.model.MyViewFilter;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralParametersEditor;
 import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
 
@@ -111,6 +112,7 @@ public class PeripheralParametersEditorTab implements IEditor {
             };
             tabItem.setControl(treeEditor.createControl(fTabFolder));
             treeEditor.setModel(pageModel);
+            treeEditor.getViewer().addFilter(new MyViewFilter());
          }
          else {
             System.err.println("Unexpected page mode type");

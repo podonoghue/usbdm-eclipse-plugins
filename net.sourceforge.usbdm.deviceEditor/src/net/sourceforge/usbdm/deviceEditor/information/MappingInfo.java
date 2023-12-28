@@ -10,33 +10,33 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
  */
 public class MappingInfo extends ObservableModel {
 
-   public final static long PORT_PCR_PULL_SHIFT  =  0;                             
-   public final static long PORT_PCR_PULL_MASK   =  (0x03L << PORT_PCR_PULL_SHIFT);  
-   public final static long PORT_PCR_SRE_SHIFT   =  2;                             
-   public final static long PORT_PCR_SRE_MASK    =  (0x01L << PORT_PCR_SRE_SHIFT); 
-   public final static long PORT_PCR_PFE_SHIFT   =  4;                             
-   public final static long PORT_PCR_PFE_MASK    =  (0x01L << PORT_PCR_PFE_SHIFT); 
-   public final static long PORT_PCR_ODE_SHIFT   =  5;                             
-   public final static long PORT_PCR_ODE_MASK    =  (0x01L << PORT_PCR_ODE_SHIFT); 
-   public final static long PORT_PCR_DSE_SHIFT   =  6;                             
-   public final static long PORT_PCR_DSE_MASK    =  (0x01L << PORT_PCR_DSE_SHIFT); 
-   public final static long PORT_PCR_MUX_SHIFT   =  8;                             
-   public final static long PORT_PCR_MUX_MASK    =  (0x07L << PORT_PCR_MUX_SHIFT); 
-   public final static long PORT_PCR_LK_SHIFT    =  15;                            
-   public final static long PORT_PCR_LK_MASK     =  (0x01L << PORT_PCR_LK_SHIFT);  
-   public final static long PORT_PCR_IRQC_SHIFT  =  16;                            
-   public final static long PORT_PCR_IRQC_MASK   =  (0x0FL << PORT_PCR_IRQC_SHIFT); 
-   public final static long PORT_PCR_ISF_SHIFT   =  24;                            
+   public final static long PORT_PCR_PULL_SHIFT  =  0;
+   public final static long PORT_PCR_PULL_MASK   =  (0x03L << PORT_PCR_PULL_SHIFT);
+   public final static long PORT_PCR_SRE_SHIFT   =  2;
+   public final static long PORT_PCR_SRE_MASK    =  (0x01L << PORT_PCR_SRE_SHIFT);
+   public final static long PORT_PCR_PFE_SHIFT   =  4;
+   public final static long PORT_PCR_PFE_MASK    =  (0x01L << PORT_PCR_PFE_SHIFT);
+   public final static long PORT_PCR_ODE_SHIFT   =  5;
+   public final static long PORT_PCR_ODE_MASK    =  (0x01L << PORT_PCR_ODE_SHIFT);
+   public final static long PORT_PCR_DSE_SHIFT   =  6;
+   public final static long PORT_PCR_DSE_MASK    =  (0x01L << PORT_PCR_DSE_SHIFT);
+   public final static long PORT_PCR_MUX_SHIFT   =  8;
+   public final static long PORT_PCR_MUX_MASK    =  (0x07L << PORT_PCR_MUX_SHIFT);
+   public final static long PORT_PCR_LK_SHIFT    =  15;
+   public final static long PORT_PCR_LK_MASK     =  (0x01L << PORT_PCR_LK_SHIFT);
+   public final static long PORT_PCR_IRQC_SHIFT  =  16;
+   public final static long PORT_PCR_IRQC_MASK   =  (0x0FL << PORT_PCR_IRQC_SHIFT);
+   public final static long PORT_PCR_ISF_SHIFT   =  24;
    public final static long PORT_PCR_ISF_MASK    =  (0x01L << PORT_PCR_ISF_SHIFT);
 
    // This is a dummy mask used internally
-//   public final static long PORT_POLARITY_SHIFT  =  30;                            
-//   public final static long PORT_POLARITY_MASK   =  (0x01L << PORT_POLARITY_SHIFT); 
-   public final static long PCR_MASK        =  
+//   public final static long PORT_POLARITY_SHIFT  =  30;
+//   public final static long PORT_POLARITY_MASK   =  (0x01L << PORT_POLARITY_SHIFT);
+   public final static long PCR_MASK        =
          PORT_PCR_PULL_MASK|PORT_PCR_SRE_MASK|PORT_PCR_PFE_MASK|PORT_PCR_ODE_MASK|
-         PORT_PCR_DSE_MASK|PORT_PCR_LK_MASK|PORT_PCR_IRQC_MASK; 
+         PORT_PCR_DSE_MASK|PORT_PCR_LK_MASK|PORT_PCR_IRQC_MASK;
 
-   public final static long PROPERTIES_MASK        = PCR_MASK; 
+   public final static long PROPERTIES_MASK        = PCR_MASK;
 
    /** List of peripheral signals that are mapped  by this selection */
    private final ArrayList<Signal> fSignals = new ArrayList<Signal>();
@@ -82,7 +82,7 @@ public class MappingInfo extends ObservableModel {
    }
    
    /**
-    * Get list of peripheral signals that are mapped by this selection 
+    * Get list of peripheral signals that are mapped by this selection
     * 
     * @return List of mapped signals
     */
@@ -90,7 +90,7 @@ public class MappingInfo extends ObservableModel {
       return fSignals;
    }
 
-   /** 
+   /**
     * Add signal to the list of signals in this mapping
     * 
     * @param signal
@@ -101,7 +101,7 @@ public class MappingInfo extends ObservableModel {
    
    
    /**
-    * Get pin that signals are mapped to 
+    * Get pin that signals are mapped to
     * 
     * @return Associated pin
     */
@@ -110,7 +110,7 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Get pin multiplexor setting to map these signals on the pin 
+    * Get pin multiplexor setting to map these signals on the pin
     * 
     * @return Mux value
     */
@@ -132,27 +132,19 @@ public class MappingInfo extends ObservableModel {
          return false;
       }
       if (!fPin.isAvailableInPackage()) {
-//         if (fMuxValue == MuxSelection.fixed) {
-//            return false;
-//         }
-//         System.err.println("Selected unavailable pin!!!" + fPin);
          return false;
       }
-//      System.err.println("MappingIofo.select("+selected+") == "+fSelected);
       if (fSelected == selected) {
-//         System.err.println(toString() + " No Change");
+         // No change
          return false;
       }
       fSelected = selected;
-//      if (fBusy) {
-//         throw new RuntimeException("Loop!!!");
-//      }
       if (fPin != origin) {
-         fPin.modelElementChanged(this);
+         fPin.modelElementChanged(null, PROP_MAPPING);
       }
       for (Signal signal:getSignals()) {
          if (signal != origin) {
-            signal.modelElementChanged(this);
+            signal.modelElementChanged(null, PROP_MAPPING);
          }
       }
       return true;
@@ -306,7 +298,7 @@ public class MappingInfo extends ObservableModel {
 
    /**
     * Set PCR value (excluding MUX)<br>
-    * Changes to unavailable properties are ignored. 
+    * Changes to unavailable properties are ignored.
     * 
     * @param properties PCR value (excluding MUX)
     * 
@@ -330,11 +322,11 @@ public class MappingInfo extends ObservableModel {
          return false;
       }
       fProperties = properties;
-      fPin.modelElementChanged(this);
+      fPin.modelElementChanged(this, PROP_MAPPING);
       for (Signal signal:getSignals()) {
-         signal.modelElementChanged(this);
+         signal.modelElementChanged(this, PROP_MAPPING);
       }
-      fPin.modelElementChanged(this);
+      fPin.modelElementChanged(this, PROP_MAPPING);
       fPin.setDirty(true);
       return true;
    }
@@ -342,7 +334,7 @@ public class MappingInfo extends ObservableModel {
    /**
     * Get property (field from getProperties())
     * 
-    * @param mask    Mask to extract field 
+    * @param mask    Mask to extract field
     * @param offset  Offset to shift after extraction
     * 
     * @return Extracted field from property or null if doesn't exist (no PCR or Analogue)
@@ -370,7 +362,7 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Returns a list of peripheral signals and identifiers mapped by this selection as a string 
+    * Returns a list of peripheral signals and identifiers mapped by this selection as a string
     * e.g. <b><i>GPIOC_6[RedLed]/LLWU_P10</b></i>
     * 
     * @return List of mapped signals as string

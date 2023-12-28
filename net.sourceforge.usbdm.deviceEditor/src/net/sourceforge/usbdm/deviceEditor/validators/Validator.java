@@ -14,7 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public abstract class Validator implements IModelChangeListener {
@@ -431,7 +431,7 @@ public abstract class Validator implements IModelChangeListener {
    }
    
    @Override
-   public void modelElementChanged(ObservableModel observableModel) {
+   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
       
       try {
          Variable var = null;
@@ -464,15 +464,6 @@ public abstract class Validator implements IModelChangeListener {
       }
    }
 
-   @Override
-   public void modelStructureChanged(ObservableModel observableModel) {
-   }
-
-   @Override
-   public void elementStatusChanged(ObservableModel observableModel) {
-   }
-
-   
    /**
     * Adds dependencies for validators:<br>
     * 

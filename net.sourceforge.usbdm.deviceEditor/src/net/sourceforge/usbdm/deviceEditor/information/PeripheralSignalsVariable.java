@@ -24,7 +24,7 @@ public class PeripheralSignalsVariable extends Variable {
 
    @Override
    public boolean setValueQuietly(Object value) {
-      throw new RuntimeException("This method should never be called");
+      return false;
    }
 
    @Override
@@ -34,17 +34,14 @@ public class PeripheralSignalsVariable extends Variable {
 
    @Override
    public void setPersistentValue(String value) {
-      throw new RuntimeException("This method should never be called");
    }
 
    @Override
    public void setDefault(Object value) {
-      throw new RuntimeException("This method should never be called");
    }
 
    @Override
    public void setDisabledValue(Object value) {
-      throw new RuntimeException("This method should never be called");
    }
 
    @Override

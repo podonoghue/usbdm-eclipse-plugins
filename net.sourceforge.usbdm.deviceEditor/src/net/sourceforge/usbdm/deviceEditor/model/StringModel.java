@@ -19,7 +19,7 @@ public abstract class StringModel extends BaseModel {
    
    public void setValue(String value) {
       fValue = value;
-      update(); 
+      update(new String[] {"Value"});
    }
 
    @Override

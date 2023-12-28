@@ -254,13 +254,14 @@ public class ChoiceData {
    
    /**
     * Add listener to choice expressions:
-    *    enableBy
-    *    nameExpression
-    *    reference
+    *    <li>enableBy
+    *    <li>nameExpression
+    *    <li>reference
     * 
     * @param listener
+    * @throws Exception
     */
-   public void addListener(IExpressionChangeListener listener) {
+   public void addListener(IExpressionChangeListener listener) throws Exception {
       if (fEnabledBy != null) {
          fEnabledBy.addListener(listener);
       }
