@@ -2842,6 +2842,9 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    String deduceRegister(Variable controlVar) throws Exception {
 
+//      if (controlVar.getName().contains("comswap")) {
+//         System.err.println("Found it '"+controlVar+"'");
+//      }
       String register = null;
       String variableKey  = controlVar.getBaseNameFromKey();
       String registerName = controlVar.getRegister();
@@ -4540,10 +4543,6 @@ public class ParseMenuXML extends XML_BaseParser {
             }
             String key           = getAttributeAsString(element, "keys",   null);
             
-            
-            
-            
-            
             for (int index=start; index<end; index++) {
                
                fForStack.createLevel(fProvider, key, index, ";");
@@ -4557,7 +4556,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
                if (condition != null) {
                   // Evaluate condition to retain choice
-                  Boolean keepChoice = Expression.checkCondition(condition.replace("key", Integer.toString(index)), fProvider);
+                  Boolean keepChoice = Expression.checkCondition(condition, fProvider);
                   if (!keepChoice) {
                      // Discard choice
                      continue;

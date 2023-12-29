@@ -45,7 +45,7 @@ public class FtmValidate extends PeripheralValidator {
       DoubleVariable    modPeriodVar      =  getDoubleVariable("ftm_modPeriod");
       BooleanVariable   sc_cpwmsVar       =  getBooleanVariable("ftm_sc_cpwms");
 
-      LongVariable      NumChannelsVar    = getLongVariable("NumChannels");
+      LongVariable      NumChannelsVar    = getLongVariable("_channelCount");
       int               NumChannels       = (int)NumChannelsVar.getValueAsLong();
 
       double clockFrequency = clockVar.getValueAsDouble();

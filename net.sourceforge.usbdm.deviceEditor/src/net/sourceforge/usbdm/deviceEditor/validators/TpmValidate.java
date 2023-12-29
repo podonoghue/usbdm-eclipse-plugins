@@ -26,13 +26,17 @@ public class TpmValidate extends PeripheralValidator {
 
       super.validate(variable);
 
+      int MODE_None   = (int) getLongVariable("None").getValueAsLong();
+//      int MODE_Left   = (int) getLongVariable("/TPM0/Left").getValueAsLong();
+//      int MODE_Centre = (int) getLongVariable("/TPM0/Centre").getValueAsLong();
+      int MODE_Quad   = (int) getLongVariable("Quad").getValueAsLong();
+
       //=================================
 
       ChoiceVariable    modeVar           =  getChoiceVariable("mode");
 
       int mode = (int) modeVar.getValueAsLong();
-      if (mode == 2) {
-         // Quad-decoder
+      if ((mode == MODE_None) || (mode == MODE_Quad)) {
          return;
       }
 
@@ -41,7 +45,7 @@ public class TpmValidate extends PeripheralValidator {
       DoubleVariable    modPeriodVar      =  getDoubleVariable("tpm_modPeriod");
       BooleanVariable   sc_cpwmsVar       =  getBooleanVariable("tpm_sc_cpwms");
 
-      LongVariable      NumChannelsVar    = getLongVariable("NumChannels");
+      LongVariable      NumChannelsVar    = getLongVariable("_channelCount");
       int               NumChannels       = (int)NumChannelsVar.getValueAsLong();
 
       double clockFrequency = clockVar.getValueAsDouble();
@@ -80,10 +84,10 @@ public class TpmValidate extends PeripheralValidator {
                else {
                   // cnvEventTimeVar[] -> cnv[]
                   for (int channel=0; channel<NumChannels; channel++) {
-                     DoubleVariable cnvEventTimeVar  = getDoubleVariable("tpm_cnvEventTime["+channel+"]");
+                     DoubleVariable cnvEventTimeVar  = getDoubleVariable("tpm_cnvEventTime_independent["+channel+"]");
                      if (variable.equals(cnvEventTimeVar)) {
                         // Target
-                        LongVariable cnvVar = getLongVariable("tpm_cnv["+channel+"]");
+                        LongVariable cnvVar = getLongVariable("tpm_cnv_independent["+channel+"]");
 
                         if (!cnvEventTimeVar.isEnabled()||!cnvVar.isEnabled()) {
                            // Ignore if disabled to preserve value
@@ -115,14 +119,14 @@ public class TpmValidate extends PeripheralValidator {
             "tpm_mod",
             "tpm_modPeriod",
             "tpm_sc_cpwms",
-            "tpm_cnvEventTime[0]",
-            "tpm_cnvEventTime[1]",
-            "tpm_cnvEventTime[2]",
-            "tpm_cnvEventTime[3]",
-            "tpm_cnvEventTime[4]",
-            "tpm_cnvEventTime[5]",
-            "tpm_cnvEventTime[6]",
-            "tpm_cnvEventTime[7]",
+            "tpm_cnvEventTime_independent[0]",
+            "tpm_cnvEventTime_independent[1]",
+            "tpm_cnvEventTime_independent[2]",
+            "tpm_cnvEventTime_independent[3]",
+            "tpm_cnvEventTime_independent[4]",
+            "tpm_cnvEventTime_independent[5]",
+            "tpm_cnvEventTime_independent[6]",
+            "tpm_cnvEventTime_independent[7]",
       };
       addToWatchedVariables(externalVariables);
 

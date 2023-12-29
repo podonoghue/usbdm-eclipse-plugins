@@ -271,8 +271,7 @@ public class CreateDeviceSkeletonFromSVD {
          + "";
 
       final String usefulInfo = "\n"
-         + "<!--\n"
-         + "    * General substitutions\n"
+         + "<!-- ____ General substitutions ____\n"
          + "    *  $(_NAME)         => e.g FTM2 => FTM2\n"
          + "    *  $(_name)         => e.g FTM2 => ftm2\n"
          + "    *  $(_BASENAME)     => e.g FTM0 => FTM, PTA => PT\n"
@@ -282,8 +281,7 @@ public class CreateDeviceSkeletonFromSVD {
          + "    *  $(_instance)     => e.g FTM0 => 0, PTA => A\n"
          + "-->\n"
          + "\n"
-         + "<!--\n"
-         + "    * Template substitutions\n"
+         + "<!-- ____ Template substitutions ________\n"
          + "    *\n"
          + "    * <li>%paramExpression            Parameters ORed together e.g. adcPretrigger|adcRefSel\n"
          + "    * <li>%valueExpression            Numeric variable value e.g. 0x3\n"
@@ -322,7 +320,7 @@ public class CreateDeviceSkeletonFromSVD {
       }
       String classDecl =
             "\n"+
-            "   <!-- ************* Class Declaration ****************** -->\n" +
+            "   <!-- ____ Class Declaration ________ -->\n" +
             "   <constant key=\"_class_declaration\" type=\"String\"\n" +
             "      value=\"&quot;$(_Class)Info : public $(_Structname)BasicInfo&quot;\" />\n";
       resultSb.append(classDecl);
@@ -333,7 +331,7 @@ public class CreateDeviceSkeletonFromSVD {
    void processRegister(Register cluster) {
       String header = ""
             + "\n"
-            + "   <!-- ************* %s ****************** -->\n";
+            + "   <!-- ____ %s ____ -->\n";
       String title = ""
             + "   <title description=\"%s\" />\n";
       Register reg = cluster;
