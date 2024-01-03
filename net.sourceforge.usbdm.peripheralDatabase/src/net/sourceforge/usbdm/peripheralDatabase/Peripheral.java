@@ -1621,7 +1621,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 
    private static final String DEVICE_LIST_PREAMBLE =
            "<!--\n"
-         + "Devices using this peripheral:\n";
+         + "Devices using this peripheral: \n";
    
    private static final String DEVICE_LIST_POSTAMBLE =
            "-->\n";

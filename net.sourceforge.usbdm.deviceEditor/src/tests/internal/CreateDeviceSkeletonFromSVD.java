@@ -191,9 +191,9 @@ public class CreateDeviceSkeletonFromSVD {
    static abstract class VisitRegisters {
 
       static String stripRegisteName(String name) {
-         if (name.contains("RXIMR")) {
-            System.err.println("FOund it "+name);
-         }
+//         if (name.contains("RXIMR")) {
+//            System.err.println("Found it "+name);
+//         }
          name = name.replaceAll("^([^,]*).*", "$1");
          name = name.replace("%s", "");
          return name;
@@ -1450,7 +1450,7 @@ public class CreateDeviceSkeletonFromSVD {
    void writeCommon() {
       String common =
             "\n" +
-            "   <!-- ************* Common ****************** -->\n" +
+            "   <!-- ____ Common __________________ -->\n" +
             "\n" +
             "   <template key=\"/$(_BASENAME)/declarations\" codeGenCondition=\"enablePeripheralSupport\" >\n" +
             "   <![CDATA[\n" +
@@ -1478,7 +1478,7 @@ public class CreateDeviceSkeletonFromSVD {
 
       resultSb.append(
             "\n" +
-            "   <!-- ************* Startup ****************** -->\n" +
+            "   <!-- ____ Startup __________________ -->\n" +
             "\n" +
             "   <template key=\"/SYSTEM/Includes\" condition=\"configurePeripheralInStartUp\" codeGenCondition=\"configurePeripheralInStartUp\" >\n" +
             "      <![CDATA[#include \"$(_basename).h\"\\n\n" +
@@ -1497,16 +1497,17 @@ public class CreateDeviceSkeletonFromSVD {
       
       resultSb.append(""
             + "\n"
-            + "   <!-- ************* SIM configuration ****************** -->\n"
-            + "   <category name=\"Advanced\" description=\"SIM configuration\" >\n"
+            + "   <!-- ____ SIM configuration __________________ -->\n\n"
+            + "   <category name=\"Advanced\" description=\"SIM configuration\"\n"
+            + "      toolTip=\"Thes settings only have effect if the SIM configuration is enabled\" >\n"
             + "      <aliasOption key=\"=_scgc_clock\" locked=\"false\" condition=\"_scgc_clock\" />\n"
-            + "      <aliasOption key=\"/SIM/sim_pinsel_$(_name)ps\"  locked=\"false\" optional=\"true\" />\n"
-            + "      <aliasOption key=\"/SIM/sim_pinsel0_$(_name)ps\" locked=\"false\" optional=\"true\" />\n"
-            + "      <aliasOption key=\"/SIM/sim_pinsel1_$(_name)ps\" locked=\"false\" optional=\"true\" />\n"
+            + "      <for keys=\"v\" values=\"=/SIM/$(_Class)ExternalItems\" condition=\"/SIM/$(_Class)ExternalItems\" >\n"
+            + "         <aliasOption key=\"/SIM/%(v)\"           optional=\"true\" locked=\"false\" />\n"
+            + "      </for>\n"
             + "   </category>\n"
             + "   <deleteVariables variables=\"_scgc_clock\"  mustExist=\"false\" />\n"
             + "\n"
-            + "   <!-- ************* Signal mapping ****************** -->\n"
+            + "   <!--  ____ Signal mapping __________________ -->\n"
             + "   <signals enabledBy=\"enablePeripheralSupport\" locked=\"!/PCR/_present\" />\n");
       
       resultSb.append("\n</peripheralPage>\n");
@@ -1518,7 +1519,7 @@ public class CreateDeviceSkeletonFromSVD {
    private void writeHandlers() {
       
       final String irqHandlerStatusText = ""
-            + "   <!--   ========== Interrupt handling =============================== -->\n"
+            + "   <!--   ____ Interrupt handling _____________ -->\n"
             + "\n"
             + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n"
             + "      variables=\"irqHandlingMethod\"\n"
@@ -1851,15 +1852,15 @@ public class CreateDeviceSkeletonFromSVD {
             System.out.println("Skipping " + peripheral.getSourceFilename());
             continue;
          }
-         System.out.println("Processing " + peripheral.getSourceFilename());
+         System.err.println("Processing " + peripheral.getSourceFilename());
          CreateDeviceSkeletonFromSVD instance = new CreateDeviceSkeletonFromSVD(suffix, peripherals, peripheral);
-         instance.listFields();
-//         instance.writePreamble();
-//         instance.processRegisters();
-//         instance.writeSettersAndGetters();
-//         instance.writeInitClass();
-//         instance.writeCommon();
-//         instance.savePeripheralFiles();
+//         instance.listFields();
+         instance.writePreamble();
+         instance.processRegisters();
+         instance.writeSettersAndGetters();
+         instance.writeInitClass();
+         instance.writeCommon();
+         instance.savePeripheralFiles();
       }
    }
    
@@ -1876,7 +1877,7 @@ public class CreateDeviceSkeletonFromSVD {
 //            if ((register.getDimension()>0)||(context.contains("[index]"))) {
 //               return;
 //            }
-//            System.err.println("Context = '"+context+"'");
+            System.err.println("Context = '"+context+"'");
             String regName = stripRegisteName(register.getName());
             for (Field field:register.getFields()) {
                if (!firstField) {
@@ -1905,7 +1906,8 @@ public class CreateDeviceSkeletonFromSVD {
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
 //      doAllPeripherals("FRDM_KL25Z", "mkl");
-      doAllPeripherals("FRDM_K20D50M", "mk");
+//    doAllPeripherals("FRDM_K20D50M", "mk");
+    doAllPeripherals("FRDM_K22F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
    }

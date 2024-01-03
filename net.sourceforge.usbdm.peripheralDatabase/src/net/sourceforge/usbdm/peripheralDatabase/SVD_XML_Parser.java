@@ -279,7 +279,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             referencedField = register.findField(fieldElement.getAttribute(DERIVEDFROM_ATTRIB));
          }
          if (referencedField == null) {
-            throw new Exception("Referenced field cannot be found: \"" + fieldElement.getAttribute(DERIVEDFROM_ATTRIB) + "\"");
+            throw new Exception("DerivedFrom field cannot be found: \"" + fieldElement.getAttribute(DERIVEDFROM_ATTRIB) + "\"");
          }
          field = new Field(referencedField);
       }

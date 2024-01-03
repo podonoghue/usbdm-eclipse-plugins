@@ -174,7 +174,7 @@ public class WriterForSpi extends PeripheralWithState {
          int index = -1;
          FormatInfo format = new FormatInfo(
                "SpiPeripheralSelect SpiPeripheralSelect_%s",
-               "SpiPeripheralSelect_PCS%s"
+               "SpiPeripheralSelect_Pcs%s"
                );
          for (Signal signal:signalTable.table) {
             index++;
@@ -188,7 +188,7 @@ public class WriterForSpi extends PeripheralWithState {
          int index = -1;
          FormatInfo format = new FormatInfo(
                typeName+" "+typeName+"_%s",
-               typeName+"_PCS%s"
+               typeName+"_Pcs%s"
                );
          for (Signal signal:signalTable.table) {
             index++;
@@ -197,7 +197,7 @@ public class WriterForSpi extends PeripheralWithState {
                if (!firstValue) {
                   pcsSb.append(",\n      ");
                }
-               pcsSb.append("SpiPcsActiveLow_PCS"+(index-PCS_FIRST_INDEX));
+               pcsSb.append("SpiPcsActiveLow_Pcs"+(index-PCS_FIRST_INDEX));
                firstValue=false;
             }
          }

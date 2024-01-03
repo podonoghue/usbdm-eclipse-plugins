@@ -904,7 +904,8 @@ public class CreatePeripheralDatabase {
 //    firstFileToProcess = ("^MK22F51212.*");
 //    firstFileToReject  = ("^MK22FA.*");
 
-      System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
+//    firstFileToProcess = ("^MKL82Z7.*");
+    System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 
 //      doHeaderFiles();
 //      doInitialRegeneration();

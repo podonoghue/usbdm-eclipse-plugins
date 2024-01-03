@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion.PinMap;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
@@ -372,6 +374,38 @@ public class BitmaskVariable extends LongVariable {
     */
    public Integer[] getBitMapping() {
       return fBitMapping;
+   }
+
+   @Override
+   public String formatParam(String paramName) {
+      
+      if (getTypeName() != null) {
+         // Pretend it's an enum
+         return paramName;
+      }
+      return super.formatParam(paramName);
+   }
+
+   @Override
+   public String getUsageValue() {
+
+      
+      String value = getSubstitutionValue();
+      
+      String format = getValueFormat();
+      if (format != null) {
+         value = String.format(format, value);
+      }
+      String typeName = getTypeName();
+      if (typeName != null) {
+         // Don't provides cast to (signed) int
+         Pattern pSpecial = Pattern.compile("(signed(\\sint)?)|(int)");
+         Matcher mSpecial = pSpecial.matcher(typeName);
+         if (!mSpecial.matches()) {
+            return typeName+"("+value+")";
+         }
+      }
+      return value;
    }
 
 }

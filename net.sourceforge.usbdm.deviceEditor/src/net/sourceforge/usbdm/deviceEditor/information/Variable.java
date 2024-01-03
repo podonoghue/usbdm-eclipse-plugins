@@ -102,9 +102,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /** Target for clock selector */
    private String fTarget = null;
 
-   /** stem for enum generation e.g. XXXX => XXXX_yyyy enums */
+   /** Stem for enum generation e.g. XXXX => XXXX_yyyy enums */
    private String fTypeName = null;
-
+   
+   /** Underlying C type for enum */
+   private String fEnumType = null;
+   
    /** Format for printing value e.g. CMP_CR0_FILTER_CNT(%s) */
    private String fValueFormat = null;
    
@@ -1083,10 +1086,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     *       Tttt_ccc,
     *       }; </pre>
     * 
-    * @param enumType Enumeration type/stem
+    * @param typeName Enumeration type/stem
     */
-   public void setTypeName(String enumType) {
-      fTypeName = enumType;
+   public void setTypeName(String typeName) {
+      fTypeName = typeName;
    }
    
    /**
@@ -1103,6 +1106,38 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public String getTypeName() {
       return fTypeName;
+   }
+
+   /**
+    * Set underlying C type for enum e.g. eeee  => <br>
+    * <pre>
+    *    enum Tttt : eeee {
+    *       Tttt_aaa,
+    *       Tttt_bbb,
+    *       Tttt_ccc,
+    *       };
+    * </pre>
+    * 
+    * @return Enumeration type/stem
+    */
+   public void setEnumType(String enumType) {
+      fEnumType = enumType;
+   }
+   
+   /**
+    * Get underlying C type for enum e.g. eeee  => <br>
+    * <pre>
+    *    enum Tttt : eeee {
+    *       Tttt_aaa,
+    *       Tttt_bbb,
+    *       Tttt_ccc,
+    *       };
+    * </pre>
+    * 
+    * @return Enumeration type/stem
+    */
+   public String getEnumType() {
+      return fEnumType;
    }
 
    public void setErrorPropagate(String attributeWithFor) {
@@ -1167,9 +1202,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @param valueFormat
     */
    public void setValueFormat(String valueFormat) {
-      if (valueFormat.contains("[")) {
-         System.err.println("Found it "+valueFormat);
-      }
       fValueFormat = valueFormat;
    }
 
@@ -1748,7 +1780,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Formats parameter appropriately for use in expression
+    * Formats a function parameter appropriately for use in expression<br>
+    * This would be used for %constructorAssignment, %fieldAssignment or %paramExpression
     * 
     * @param paramName Name of parameter
     * 
