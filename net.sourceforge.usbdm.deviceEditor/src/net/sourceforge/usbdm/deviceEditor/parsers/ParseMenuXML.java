@@ -520,7 +520,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element Element being examined
     * @param name    Attribute name
     * 
-    * @return value as Long or null if attribute not present<br>
+    * @return value as Long or defaultValue if attribute not present<br>
     *         If the attribute is a simple string it is parsed as a Long.<br>
     *         If the attribute value starts with "=" then it is evaluated as an immediate expression
     *         with variable substitution.  If this results in a Long it is returned, otherwise it is
@@ -528,10 +528,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception
     */
-   protected Long getLongExpressionAttribute(Element element, String name) throws Exception {
+   protected Long getLongExpressionAttribute(Element element, String name, Long defaultValue) throws Exception {
       Object attr = getAttribute(element, name);
       if (attr == null) {
-         return null;
+         return defaultValue;
       }
       if (attr instanceof Long) {
          return (Long) attr;
@@ -541,6 +541,24 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch (NumberFormatException e) {
          throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' value '"+attr+"'");
       }
+   }
+
+   /**
+    * Get a long attribute
+    * 
+    * @param element Element being examined
+    * @param name    Attribute name
+    * 
+    * @return value as Long or null if attribute not present<br>
+    *         If the attribute is a simple string it is parsed as a Long.<br>
+    *         If the attribute value starts with "=" then it is evaluated as an immediate expression
+    *         with variable substitution.  If this results in a Long it is returned, otherwise it is
+    *         converted to a string and parsed as a Long.
+    * 
+    * @throws Exception
+    */
+   protected Long getLongExpressionAttribute(Element element, String name) throws Exception {
+      return getLongExpressionAttribute(element, name, null);
    }
 
    /**
@@ -1353,12 +1371,35 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
+      
+      Long   bitmask        = null;
+      String bitList        = null;
+      String bitDescription = null;
+
+      String uses = getAttributeAsString(varElement, "uses");
+      if (uses != null ) {
+         ChoiceVariable cv = safeGetChoiceVariable(uses);
+         ChoiceData[] cd = cv.getChoiceData();
+         StringBuilder bitListSb = new StringBuilder();
+         StringBuilder bitDescriptionSb = new StringBuilder();
+         for (int index=0; index<cd.length; index++) {
+            if (!bitListSb.isEmpty()) {
+               bitListSb.append(",");
+               bitDescriptionSb.append(",");
+            }
+            bitListSb.append(cd[index].getEnumName());
+            bitDescriptionSb.append(cd[index].getName());
+         }
+         bitList        = bitListSb.toString();
+         bitDescription = bitDescriptionSb.toString();
+      }
+      
       try {
          parseCommonAttributes(parent, varElement, variable);
          variable.init(
-               getLongExpressionAttribute(varElement, "bitmask"),
-               getAttributeAsString(varElement, "bitList"),
-               getAttributeAsString(varElement, "bitDescription")
+               getLongExpressionAttribute(varElement, "bitmask", bitmask),
+               getAttributeAsString(varElement, "bitList", bitList),
+               getAttributeAsString(varElement, "bitDescription", bitDescription)
                );
       } catch( Exception e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
@@ -3123,7 +3164,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
             Variable variable    = variableList.get(index);
             String   variableKey = variable.getKey();
-
+            
             if (index > 0) {
                // Indicates newline is needed as newline on multi-params was requested
                parmsOnNewLine = multipleParamsOnNewline;
@@ -3356,6 +3397,14 @@ public class ParseMenuXML extends XML_BaseParser {
             }
             paramExprSb.append(variable.formatParam(paramName));
 
+//            if (variable.getName().contains("nvic_irqLevel")) {
+//               System.err.println("Found it, " + variable);
+//            }
+            String defaultValue = "%defaultValue not available";
+            if (defaultParamV != null) {
+               defaultValue = defaultParamV;
+            }
+            
             String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, tooltip);
             paramDescriptionSb.append(paramDescriptionN);
 
@@ -3410,7 +3459,8 @@ public class ParseMenuXML extends XML_BaseParser {
             substitutions.add(0, new StringPair("%register"+index,                registerN));
             substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
             substitutions.add(0, new StringPair("%param"+index,                   param));
-
+            substitutions.add(0, new StringPair("%defaultValue"+index,            defaultValue));
+            
             if (index == 0) {
                substitutions.add(new StringPair("%variable",                variableKey));
                substitutions.add(new StringPair("%description",             description));
@@ -3421,6 +3471,7 @@ public class ParseMenuXML extends XML_BaseParser {
                substitutions.add(new StringPair("%paramType",               paramType));
                substitutions.add(new StringPair("%registerName",            registerNameN));
                substitutions.add(new StringPair("%registerNAME",            registerNAMEN));
+               substitutions.add(new StringPair("%defaultValue",            defaultValue));
             }
          }
          substitutions.add(new StringPair("%multilineDescription",             multilineDescription.toString()));
