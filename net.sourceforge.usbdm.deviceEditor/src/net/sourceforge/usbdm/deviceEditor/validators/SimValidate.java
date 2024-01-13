@@ -155,6 +155,9 @@ public class SimValidate extends IndexedValidator {
    @Override
    public void validate(Variable variable, int index) throws Exception {
 
+      if ((variable != null) && variable.isLogging()) {
+         System.err.println("validate("+variable+")");
+      }
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock[]");
 
@@ -229,16 +232,14 @@ public class SimValidate extends IndexedValidator {
       //===========================================
       if (system_core_clockVar.isEnabled() && ((variable==null)||(variable==system_core_clockVar))) {
          // Core clock changed
-         {
-            Severity severity = Severity.OK;
-            if (coreDivisor.failed()) {
-               severity = Severity.ERROR;
-            }
-            else if (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency) {
-               system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
-            }
-            system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
+         Severity severity = Severity.OK;
+         if (coreDivisor.failed()) {
+            severity = Severity.ERROR;
          }
+         else if (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency) {
+//            system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+         }
+         system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
          if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
             // Target clock manually changed - update divisor
             sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor-1);

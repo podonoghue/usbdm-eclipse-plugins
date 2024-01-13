@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
@@ -176,6 +177,9 @@ public class LongVariable extends Variable {
    
    @Override
    public boolean setValueQuietly(Object value) {
+      if (fLogging) {
+         System.err.println(getName()+".setValueQuietly(L:"+value+")");
+      }
       Long res = translate(value);
       return setValueQuietly(res);
    }
@@ -240,12 +244,56 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public String formatParam(String paramName) {
+   public String formatValueForRegister(String paramName) {
       String valueFormat = getValueFormat();
       if (valueFormat != null) {
-         paramName = String.format(valueFormat, paramName);
+         return String.format(valueFormat, paramName);
       }
       return paramName;
+   }
+   
+   @Override
+   public String fieldExtractFromRegister(String registerValue) {
+//      boolean foundIt = getName().contains("adc_cv_cv");
+//      if (foundIt) {
+//         System.err.print("Found it " + getName());
+//      }
+      String valueFormat = getValueFormat();
+      String typeName = getTypeName();
+      boolean hasOuterBrackets = false;
+      if ((valueFormat != null) && !valueFormat.matches("^\\(?%s\\)?$")) {
+         String parts[] = valueFormat.split(",");
+         StringBuilder sb = new StringBuilder();
+         boolean needsBrackets = false;
+         for(String format:parts) {
+            Pattern p = Pattern.compile("^([a-zA-Z0-9_]*)\\(?\\%s\\)?");
+            Matcher m = p.matcher(format);
+            if (!m.matches()) {
+               return "Illegal use of formatParam - unexpected pattern '"+valueFormat+"'";
+            }
+            String macro = m.group(1);
+            if (!sb.isEmpty()) {
+               sb.append("|");
+               needsBrackets = true;
+            }
+            sb.append(String.format("((%s_MASK&%s)>>%s_SHIFT)",macro,registerValue, macro));
+         }
+         registerValue = sb.toString();
+         if (needsBrackets) {
+            registerValue = "("+registerValue+")";
+         }
+         hasOuterBrackets = true;
+      }
+      if (typeName != null) {
+         if (!hasOuterBrackets) {
+            registerValue = "("+registerValue+")";
+         }
+         registerValue = String.format("%s%s", typeName, registerValue);
+      }
+//      if (foundIt) {
+//         System.err.println(" => " + registerValue);
+//      }
+      return registerValue;
    }
    
    /**
@@ -291,7 +339,7 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public Object getEditValueAsString() {
+   public String getEditValueAsString() {
       return formatValueAsString(getValueAsLong(), getUnits(), fRadix);
    }
 
@@ -306,7 +354,7 @@ public class LongVariable extends Variable {
    }
    
    @Override
-   public boolean getValueAsBoolean() {
+   public Boolean getValueAsBoolean() {
       return getValueAsLong() != 0;
    }
    
@@ -753,16 +801,16 @@ public class LongVariable extends Variable {
    public void update(VariableUpdateInfo info, Expression expression) {
       
       boolean updateLimits = false;
-      if (expression == fMinExpression) {
+      if (info.doFullUpdate || ((fMinExpression != null)&&(expression == fMinExpression))) {
          fMin = null;
          updateLimits = true;
       }
-      if (expression == fMaxExpression) {
+      if (info.doFullUpdate || ((fMaxExpression != null)&&(expression == fMaxExpression))) {
          fMax = null;
          updateLimits = true;
       }
       if (updateLimits && setStatusQuietly(isValid())) {
-            info.properties.add(PROP_STATUS[0]);
+         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
       }
       super.update(info, expression);
    }
@@ -782,6 +830,11 @@ public class LongVariable extends Variable {
          fMaxExpression.addListener(this);
       }
       super.addInternalListeners();
+   }
+
+   @Override
+   public Object getValue() {
+      return getValueAsLong();
    }
 
 }

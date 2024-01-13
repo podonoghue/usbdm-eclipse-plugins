@@ -586,7 +586,7 @@ public abstract class BaseModel implements Cloneable {
       fHidden = hide;
       StructuredViewer viewer = getViewer();
       if (viewer != null) {
-         viewer.update(this.getParent(), ObservableModel.PROP_HIDDEN);
+         viewer.update(this.getParent(), ObservableModelInterface.PROP_HIDDEN);
       }
    }
 

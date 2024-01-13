@@ -71,4 +71,9 @@ public class PeripheralSignalsVariable extends Variable {
       return super.clone();
    }
 
+   @Override
+   public Object getValue() {
+      return null;
+   }
+
 }

@@ -453,7 +453,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             fDeviceFamily = DeviceFamily.mk;
          }
       }
-      setDirty(true);
+      setDirty();
    }
 
    /**
@@ -478,7 +478,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          return;
       }
       fDeviceFamily = deviceFamily;
-      setDirty(true);
+      setDirty();
    }
 
    /**
@@ -1535,7 +1535,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          deviceName = getDeviceName(fPreciseName);
       }
       DeviceLinkerInformation.addLinkerMemoryMap(deviceName, fVariables);
-      setDirty(true);
+      setDirty();
    }
    
    /**
@@ -1856,7 +1856,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                   // Shouldn't be any unmatched peripheral settings
                   System.err.println("WARNING: Discarding unmatched peripheral settings "+key+"("+value+")");
                   // Indicate state will change on save
-                  setDirty(true);
+                  setDirty();
                }
                else {
                   // Load persistent value (parameter)
@@ -1894,7 +1894,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          Activator.logError(e.getMessage(), e);
          e.printStackTrace();
       }
-      setDirty(false);
+      clearDirty();
    }
 
    /**
@@ -2050,7 +2050,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       } catch (Exception e) {
          Activator.logError(e.getMessage(), e);
       }
-      setDirty(false);
+      clearDirty();
    }
 
    /**
@@ -2067,8 +2067,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @return true if changed
     */
-   public void setDirty(boolean dirty) {
-      fIsDirty = dirty;
+   public void setDirty() {
+      fIsDirty = true;
+      notifyListeners(this);
+   }
+
+   /**
+    * Indicates if the data has changed since being loaded
+    * 
+    * @return true if changed
+    */
+   public void clearDirty() {
+      fIsDirty = false;
       notifyListeners(this);
    }
 
@@ -2457,7 +2467,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
       for (String prop:properties) {
          if (PROP_VALUE[0].equals(prop)) {
-            setDirty(true);
+            setDirty();
          }
       }
    }

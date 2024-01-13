@@ -1531,7 +1531,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          return;
       }
       fCodeIdentifier = codeIdentifier;
-      setDirty(true);
+      setDirty();
       fProxy.notifyListeners();
    }
 
@@ -1552,7 +1552,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          return;
       }
       fUserDescription = userDescription;
-      setDirty(true);
+      setDirty();
       fProxy.notifyListeners();
    }
 
@@ -1574,7 +1574,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void setCreateInstance(boolean value) {
       if (fCreateInstance != value) {
          fCreateInstance = value;
-         setDirty(true);
+         setDirty();
          fProxy.notifyListeners();
       }
    }

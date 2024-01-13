@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
@@ -255,7 +256,7 @@ public class DoubleVariable extends Variable {
    }
    
    @Override
-   public Object getEditValueAsString() {
+   public String getEditValueAsString() {
       return formatValueAsString(getValueAsDouble(), getUnits());
    }
 
@@ -559,16 +560,16 @@ public class DoubleVariable extends Variable {
    public void update(VariableUpdateInfo info, Expression expression) {
       
       boolean updateLimits = false;
-      if (expression == fMinExpression) {
+      if (info.doFullUpdate || ((fMinExpression != null)&&(expression == fMinExpression))) {
          fMin = null;
          updateLimits = true;
       }
-      if (expression == fMaxExpression) {
+      if (info.doFullUpdate || ((fMaxExpression != null)&&(expression == fMaxExpression))) {
          fMax = null;
          updateLimits = true;
       }
       if (updateLimits && setStatusQuietly(isValid())) {
-         info.properties.add(PROP_STATUS[0]);
+         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
       }
       super.update(info, expression);
    }
@@ -595,5 +596,9 @@ public class DoubleVariable extends Variable {
       super.update(info);
    }
 
+   @Override
+   public Object getValue() {
+      return getValueAsDouble();
+   }
    
 }

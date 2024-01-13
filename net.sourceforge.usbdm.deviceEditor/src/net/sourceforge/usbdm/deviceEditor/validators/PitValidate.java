@@ -43,7 +43,6 @@ public class PitValidate extends PeripheralValidator {
       for (int ch=0; ch<numberOfChannels; ch++) {
          LongVariable    pit_ldvalVar      = getLongVariable("pit_ldval_tsv["+ch+"]");
          DoubleVariable  pit_periodVar     = getDoubleVariable("pit_period["+ch+"]");
-         DoubleVariable  pit_frequencyVar  = getDoubleVariable("pit_frequency["+ch+"]");
 
          long pit_ldval = pit_ldvalVar.getValueAsLong();
          
@@ -51,7 +50,7 @@ public class PitValidate extends PeripheralValidator {
          if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed) {
             if ((variable != null) && variable.isEnabled()) {
                if (variable.equals(pit_periodVar)) {
-                  // period ->  ldval, frequency
+                  // period ->  ldval
                   //         System.err.println("pit_period");
                   double pit_period = pit_periodVar.getValueAsDouble();
                   if (pit_period == 0) {
@@ -61,17 +60,6 @@ public class PitValidate extends PeripheralValidator {
                      pit_ldval = Math.max(0, Math.round((pit_period*inputClockFrequency)-1));
                   }
                }
-               else if (variable.equals(pit_frequencyVar)) {
-                  // Default frequency ->  period, ldval
-                  //         System.err.println("pit_frequency");
-                  double pit_frequency = pit_frequencyVar.getValueAsDouble();
-                  if (pit_frequency == 0) {
-                     pit_ldval = 0;
-                  }
-                  else {
-                     pit_ldval = Math.max(0, Math.round(inputClockFrequency/pit_frequency-1));
-                  }
-               }
             }
          }
          if (pit_ldvalVar.isEnabled()) {
@@ -79,11 +67,9 @@ public class PitValidate extends PeripheralValidator {
             pit_ldvalVar.setValue(pit_ldval);
             if (pit_ldval == 0) {
                pit_periodVar.setValue(0);
-               pit_frequencyVar.setValue(0);
             }
             else {
                pit_periodVar.setValue((pit_ldval+1)/inputClockFrequency);
-               pit_frequencyVar.setValue(inputClockFrequency/(pit_ldval+1));
             }
          }
       }
@@ -100,7 +86,6 @@ public class PitValidate extends PeripheralValidator {
       for (int num=(int)numChannelsVar.getValueAsLong(); num>=0; num--) {
          variablesToWatch.add("pit_ldval_tsv["+num+"]");
          variablesToWatch.add("pit_period["+num+"]");
-         variablesToWatch.add("pit_frequency["+num+"]");
       }
 
       addSpecificWatchedVariables(variablesToWatch);

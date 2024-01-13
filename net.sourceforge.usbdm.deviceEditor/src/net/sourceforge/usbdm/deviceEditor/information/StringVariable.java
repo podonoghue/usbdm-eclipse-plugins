@@ -65,7 +65,7 @@ public class StringVariable extends Variable {
    }
 
    @Override
-   public boolean getValueAsBoolean() {
+   public Boolean getValueAsBoolean() {
       return Boolean.valueOf(getPersistentValue());
    }
 
@@ -154,6 +154,11 @@ public class StringVariable extends Variable {
 
    @Override
    public Object getNativeValue() {
+      return getValueAsString();
+   }
+
+   @Override
+   public Object getValue() {
       return getValueAsString();
    }
 

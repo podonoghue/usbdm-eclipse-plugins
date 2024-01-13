@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
@@ -421,6 +422,9 @@ public abstract class VariableWithChoices extends Variable {
     */
    @Override
    public void update(VariableUpdateInfo info, Expression expression) {
+      if (fLogging) {
+         System.err.println(getName()+".update(VWC:"+expression+")");
+      }
       
       super.update(info, expression);
       
@@ -429,7 +433,9 @@ public abstract class VariableWithChoices extends Variable {
       
       if (choice != null) {
          // If change or choice expression changed
-         if ((expression == null) || (choice.getReference() == expression)) {
+         if (info.doFullUpdate ||
+             ((choice.getReference() != null) && (choice.getReference() == expression)) ||
+             info.properties.contains(ObservableModelInterface.PROP_VALUE[0])) {
             try {
                updateTargets(choice);
             } catch (Exception e) {
@@ -451,9 +457,6 @@ public abstract class VariableWithChoices extends Variable {
    
    @Override
    public boolean enable(boolean enabled) {
-//      if (this.getName().contains("sim_sopt0_swde")) {
-//         System.err.println("Found it ");
-//      }
       boolean changed = enableQuietly(enabled);
       if (changed) {
          updateChoices();
@@ -510,6 +513,41 @@ public abstract class VariableWithChoices extends Variable {
    public String getTableName() {
       return fTableName;
    }
-
+   
+   @Override
+   public String fieldExtractFromRegister(String registerValue) {
+      String valueFormat = getValueFormat();
+      String typeName = getTypeName();
+      if (valueFormat != null) {
+         String parts[] = valueFormat.split(",");
+         StringBuilder sb = new StringBuilder();
+         boolean needBracketForMask = false;
+         for(String format:parts) {
+            Pattern p = Pattern.compile("^([a-zA-Z0-9_]*)\\(?\\%s\\)?");
+            Matcher m = p.matcher(format);
+            if (!m.matches()) {
+               return "Illegal use of formatParam - unexpected pattern '"+valueFormat+"'";
+            }
+            String macro = m.group(1);
+            if (!sb.isEmpty()) {
+               sb.append("|");
+               needBracketForMask = true;
+            }
+            sb.append(macro+"_MASK");
+         }
+         String mask = sb.toString();
+         if (needBracketForMask) {
+            mask = "("+mask+")";
+         }
+         registerValue = String.format("%s&%s", registerValue, mask);
+         if (typeName == null) {
+            registerValue = "("+registerValue+")";
+         }
+      }
+      if (typeName != null) {
+         registerValue = String.format("%s(%s)", typeName, registerValue);
+      }
+      return registerValue;
+   }
 
 }

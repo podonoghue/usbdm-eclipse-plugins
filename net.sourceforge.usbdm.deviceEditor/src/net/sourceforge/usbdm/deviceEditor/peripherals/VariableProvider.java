@@ -194,7 +194,7 @@ public class VariableProvider {
    
    public void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
-      fDeviceInfo.setDirty(true);
+      fDeviceInfo.setDirty();
       if (fDeviceInfo.getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
@@ -206,9 +206,9 @@ public class VariableProvider {
    /**
     * Set editor dirty via deviceInfo
     */
-   public void setDirty(boolean dirty) {
+   public void setDirty() {
       if (fDeviceInfo != null) {
-         fDeviceInfo.setDirty(dirty);
+         fDeviceInfo.setDirty();
       }
    }
    

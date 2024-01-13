@@ -107,6 +107,9 @@ public class ChoiceVariable extends VariableWithChoices {
     * @return True if variable actually changed value
     */
    public boolean setValueQuietly(int index) {
+      if (fLogging) {
+         System.err.println(getName()+".setValue(C:"+index+")");
+      }
       if ((fValue != null) && fValue.equals(index)) {
          return false;
       }
@@ -128,6 +131,7 @@ public class ChoiceVariable extends VariableWithChoices {
     * 
     * @return
     */
+   @Override
    public Object getValue() {
       return isEnabled()?fValue:fDisabledValue;
    }

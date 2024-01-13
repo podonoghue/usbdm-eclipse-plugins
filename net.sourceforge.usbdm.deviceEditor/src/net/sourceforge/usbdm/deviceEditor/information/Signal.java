@@ -119,9 +119,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /**
     * Set editor dirty via deviceInfo
     */
-   void setDirty(boolean dirty) {
+   void setDirty() {
       if (fPeripheral != null) {
-         fPeripheral.setDirty(dirty);
+         fPeripheral.setDirty();
       }
    }
    
@@ -136,7 +136,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          return;
       }
       fCodeIdentifier = codeIdentifier;
-      setDirty(true);
+      setDirty();
       getMappedPin().modelElementChanged(this, PROP_VALUE);
       modelElementChanged(this, PROP_VALUE);
    }
@@ -169,7 +169,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       fUserDescription  = userDescription;
 
-      setDirty(true);
+      setDirty();
       notifyListeners();
       getMappedPin().modelElementChanged(this, PROP_VALUE);
    }
@@ -513,8 +513,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (mappingInfo != null) {
          changed = mappingInfo.select(this, true) || changed;
       }
-      setDirty(changed);
       if (changed) {
+         setDirty();
          notifyListeners();
       }
       return changed;
@@ -534,7 +534,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          changed = mapping.select(this, false) || changed;
       }
       changed = mappingInfo.select(this, true) || changed;
-      setDirty(changed);
+      if (changed) {
+         setDirty();
+      }
       notifyListeners();
    }
 
@@ -586,7 +588,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public void setCreateInstance(boolean value) {
       if (fCreateInstance != value) {
          fCreateInstance = value;
-         setDirty(true);
+         setDirty();
          notifyListeners();
       }
    }

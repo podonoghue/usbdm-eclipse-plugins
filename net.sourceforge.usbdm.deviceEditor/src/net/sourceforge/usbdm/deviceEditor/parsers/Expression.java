@@ -1560,11 +1560,12 @@ public class Expression implements IModelChangeListener {
     * Class to accumulate variable changes
     */
    public static class VariableUpdateInfo {
-      public Object   value   = null;
-      public Status   status  = null;
-      public String   origin  = null;
-      public boolean  enable  = true;
-      public HashSet<String> properties = new HashSet<String>();
+      public Object           value        = null;
+      public Status           status       = null;
+      public String           origin       = null;
+      public boolean          enable       = true;
+      public boolean          doFullUpdate = false;
+      public HashSet<String>  properties   = new HashSet<String>();
    };
 
    /** Variable provider for variable in expression */

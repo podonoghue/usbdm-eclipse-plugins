@@ -85,7 +85,7 @@ public class ListVariableModel extends StringVariableModel {
                }
                if (changedToUnknown) {
                   // Tell variable to recalculate state
-                  var.updateAndNotify(null);
+                  var.updateFullyAndNotify();
                   StructuredViewer viewer = vm.getViewer();
                   if (viewer != null) {
                      viewer.refresh(this);

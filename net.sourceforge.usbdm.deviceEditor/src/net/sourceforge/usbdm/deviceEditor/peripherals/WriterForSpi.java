@@ -252,7 +252,7 @@ public class WriterForSpi extends PeripheralWithState {
          return false;
       }
       fPcsPolarity ^= (1<<index);
-      setDirty(true);
+      setDirty();
       return true;
    }
    

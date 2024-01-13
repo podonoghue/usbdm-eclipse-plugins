@@ -39,7 +39,7 @@ public class ObservableModel implements ObservableModelInterface {
       
       for (IModelChangeListener listener:fListeners) {
          if (listener instanceof BaseModel) {
-            listener.modelElementChanged(this, PROP_VALUE);
+            listener.modelElementChanged(this, ObservableModelInterface.PROP_VALUE);
          }
       }
       fRefreshPending = false;
@@ -69,7 +69,7 @@ public class ObservableModel implements ObservableModelInterface {
     * @param origin Listener to exclude
     */
    final public void notifyListeners(IModelChangeListener exclude) {
-      notifyListeners(exclude, PROP_VALUE);
+      notifyListeners(exclude, ObservableModelInterface.PROP_VALUE);
    }
    
    /**
@@ -78,7 +78,7 @@ public class ObservableModel implements ObservableModelInterface {
     * @param origin Listener to exclude
     */
    final public void notifyListeners() {
-      notifyListeners(PROP_VALUE);
+      notifyListeners(ObservableModelInterface.PROP_VALUE);
    }
    
    @Override

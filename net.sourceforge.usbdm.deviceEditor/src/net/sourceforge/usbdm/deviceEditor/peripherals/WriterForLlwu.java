@@ -272,7 +272,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
          return false;
       }
       pinMode[index] = mode;
-      setDirty(true);
+      setDirty();
       return true;
    }
 

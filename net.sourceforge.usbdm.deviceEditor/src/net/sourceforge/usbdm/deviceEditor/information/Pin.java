@@ -560,7 +560,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          changed = activatedMuxSetting.select(this, true) || changed;
       }
       fStatus = checkMappingConflicted();
-      setDirty(changed);
+      if (changed) {
+         setDirty();
+      }
       notifyListeners();
    }
 
@@ -682,9 +684,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @param justChanged false => no change in dirty state, true => set dirty
     */
-   void setDirty(boolean justChanged) {
-      if (justChanged && (fDeviceInfo != null)) {
-         fDeviceInfo.setDirty(true);
+   void setDirty() {
+      if (fDeviceInfo != null) {
+         fDeviceInfo.setDirty();
       }
    }
    

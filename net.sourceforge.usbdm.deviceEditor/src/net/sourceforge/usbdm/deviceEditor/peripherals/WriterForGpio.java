@@ -392,7 +392,7 @@ public class WriterForGpio extends PeripheralWithState {
          return false;
       }
       fPolarity ^= (1<<index);
-      setDirty(true);
+      setDirty();
       return true;
    }
 

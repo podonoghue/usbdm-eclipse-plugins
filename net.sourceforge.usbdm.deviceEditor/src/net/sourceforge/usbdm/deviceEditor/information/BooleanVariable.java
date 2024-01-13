@@ -109,8 +109,9 @@ public class BooleanVariable extends VariableWithChoices {
     * 
     * @return
     */
+   @Override
    public Object getValue() {
-      return isEnabled()?fValue:fDisabledValue;
+      return getValueAsBoolean();
    }
    
    @Override
@@ -174,7 +175,7 @@ public class BooleanVariable extends VariableWithChoices {
    }
 
    @Override
-   public boolean getValueAsBoolean() {
+   public Boolean getValueAsBoolean() {
       return isEnabled()?fValue:fDisabledValue;
    }
 

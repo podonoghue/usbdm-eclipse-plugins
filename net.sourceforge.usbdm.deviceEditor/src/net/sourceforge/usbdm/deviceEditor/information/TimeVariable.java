@@ -37,7 +37,7 @@ public class TimeVariable extends LongVariable {
       
       super.update(info, expression);
       
-      if (expression == fPeriodExpression) {
+      if (info.doFullUpdate||(expression == fPeriodExpression)) {
          info.properties.add(PROP_VALUE[0]);
       }
    }
@@ -89,7 +89,7 @@ public class TimeVariable extends LongVariable {
    }
 
    @Override
-   public Object getEditValueAsString() {
+   public String getEditValueAsString() {
       return super.formatValueAsString(getValueAsLong());
    }
 

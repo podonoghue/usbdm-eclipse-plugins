@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion.PinMap;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 
@@ -151,7 +152,7 @@ public class BitmaskVariable extends LongVariable {
       super.update(info, expression);
       
       try {
-         if (info.properties.contains(PROP_VALUE[0])) {
+         if (info.doFullUpdate || info.properties.contains(ObservableModelInterface.PROP_VALUE[0])) {
             updatePinMap(getValueAsLong());
          }
       } catch (Exception e) {
@@ -377,13 +378,13 @@ public class BitmaskVariable extends LongVariable {
    }
 
    @Override
-   public String formatParam(String paramName) {
+   public String formatValueForRegister(String paramName) {
       
       if (getTypeName() != null) {
          // Pretend it's an enum
          return paramName;
       }
-      return super.formatParam(paramName);
+      return super.formatValueForRegister(paramName);
    }
 
    @Override

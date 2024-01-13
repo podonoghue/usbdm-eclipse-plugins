@@ -8,6 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
@@ -21,11 +22,12 @@ import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 public abstract class Variable extends ObservableModel implements Cloneable, IExpressionChangeListener {
    
    static DeviceInfo fDeviceInfo=null;
+   protected boolean   fLogging = false;
    
    protected boolean defaultHasChanged = false;
    
    /**
-    * Set device info object used to register variables
+    * Set device info used to register variables
     * 
     * @param deviceInfo
     */
@@ -34,7 +36,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Get device info object used to register variables
+    * Get device info used to register variables
     * 
     * @return
     */
@@ -203,7 +205,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return String representation e.g. "PTA3"
     * @throws MemoryException
     */
-   public Object getEditValueAsString() {
+   public String getEditValueAsString() {
       return getValueAsString();
    }
 
@@ -216,12 +218,14 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return True if variable actually changed value
     */
    public final boolean setValue(Object value) {
-//      System.err.println(getName()+".setValue("+value+")");
+      if (fLogging) {
+         System.err.println(getName()+".setValue(V:"+value+")");
+      }
       if (!setValueQuietly(value)) {
          return false;
       }
       if ((fDeviceInfo != null) && fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended)) {
-         updateAndNotify();
+         updateAndNotify(null);
       }
       notifyListeners();
       return true;
@@ -285,6 +289,14 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public abstract void setDisabledValue(Object value);
 
+   /**
+    * Get current value in format suitable for use with setValue(Object);
+    * This value is qualified by enable state
+    * 
+    * @return current value
+    */
+   public abstract Object getValue();
+   
    /**
     * Gets variable default value
     * 
@@ -535,7 +547,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * 
     * @return Value as boolean
     */
-   public boolean getValueAsBoolean() {
+   public Boolean getValueAsBoolean() {
       throw new RuntimeException(this+"("+getClass()+") is not compatible with boolean" );
    }
 
@@ -879,7 +891,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public boolean setHidden(boolean isHidden) {
       if (setHiddenQuietly(isHidden)) {
-         notifyListeners(PROP_HIDDEN);
+         notifyListeners(ObservableModelInterface.PROP_HIDDEN);
          return true;
       }
       return false;
@@ -1446,150 +1458,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Update variable from calculated info + local modifiers (enabledBy, lockedIf, errorIf etc)
-    * 
-    * @param info       Original information for update (will be modified as above)
-    * 
-    * @return true if a change has occurred in the variable state and listeners need notification
-    * 
-    * @throws Exception
-    */
-   void update(VariableUpdateInfo info) throws Exception {
-
-      if ((fUnlockedBy != null) && setLockedQuietly(!fUnlockedBy.getValueAsBoolean())) {
-         info.properties.add(PROP_STATUS[0]);
-      }
-      if (fHiddenBy != null) {
-         Boolean hidden = fHiddenBy.getValueAsBoolean();
-         if (setHiddenQuietly(hidden)) {
-            info.properties.add(PROP_HIDDEN[0]);
-         }
-         // Cumulative enable
-         info.enable = info.enable && !hidden;
-      }
-      if (fEnabledBy != null) {
-         // Cumulative enable
-         Boolean enabled = fEnabledBy.getValueAsBoolean();
-         info.enable = info.enable && enabled;
-         if (!enabled) {
-            info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
-         }
-      }
-      if (enableQuietly(info.enable)) {
-         info.properties.add(PROP_STATUS[0]);
-      }
-   
-      if (info.value != null) {
-         if (setValueQuietly(info.value)) {
-            info.properties.add(PROP_VALUE[0]);
-         }
-      }
-      if (fErrorIf != null) {
-         if  (fErrorIf.getValueAsBoolean()) {
-            // Forced error status
-            info.status = new Status(fErrorIf.getMessage("Error "));
-            info.properties.add(PROP_STATUS[0]);
-         }
-      }
-      else {
-         String validCheck = isValid();
-         if (validCheck != null) {
-            info.status = new Status(validCheck);
-         }
-      }
-      if (setStatusQuietly(info.status)) {
-         info.properties.add(PROP_STATUS[0]);
-      }
-
-      if ((info.origin != null) && !info.origin.isBlank()) {
-         if (setOriginQuietly(info.origin)) {
-            info.properties.add(PROP_STATUS[0]);
-         }
-      }
-   }
-   
-   /**
-    * Update state based upon a changing expression that is affecting this variable
-    * 
-    * @param info       [IN/OUT] Information about the changes made (if any)
-    * @param expression [IN] Expression causing update or null to force update
-    * <br><br>
-    * Handles changes in:
-    * <li> fReference
-    * <li> fEnabledBy
-    * <li> fErrorIf
-    * <li> fUnlockedBy
-    * <li> fpinMapEnable
-    * <li> fHiddenBy
-    */
-   public void update(VariableUpdateInfo info, Expression expression) {
-      
-      boolean checkUpdate =
-          (expression == null) ||
-          (expression == fReference)||
-          (expression == fEnabledBy)||
-          (expression == fErrorIf)||
-          (expression == fUnlockedBy)||
-          (expression == fHiddenBy)||
-          (expression == fpinMapEnable);
-      
-      if (checkUpdate) {
-         try {
-            if (expression == fReference) {
-               determineUpdateInformation(info, expression);
-            }
-            update(info);
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
-      }
-   }
-   
-   /**
-    * Update state and notify listeners of changes
-    * 
-    * @param expression - The expression that has changed.<br>
-    *        This may be null to force update from all expressions during initialisation.
-    */
-   public void updateAndNotify(Expression expression) {
-      try {
-         
-         VariableUpdateInfo info = new VariableUpdateInfo();
-         update(info, expression);
-         if (info.properties.size()>0) {
-            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
-            notifyListeners(properties);
-         }
-      } catch (Exception e) {
-         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
-         t.printStackTrace();
-      }
-   }
-   
-   /**
-    * Force update state and notify listeners of changes
-    */
-   public void updateAndNotify() {
-      updateAndNotify((Expression)null);
-   }
-
-   /**
-    * Called when a monitored expression changes.
-    * 
-    * @param expression - The expression that has changed.<br>
-    *        This may be null to force update from all expressions during initialisation.
-    */
-   @Override
-   final public void expressionChanged(Expression expression) {
-//      System.err.println(getName()+".expressionChanged("+expression+")");
-
-      if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
-         return;
-      }
-      updateAndNotify(expression);
-   }
-
-   /**
     * Determine updates from a <b>controlling expression</b>.<br>
     * A controlling expression will be from a ref=... either directly or through a choice selection<br>
     *   This includes:
@@ -1612,7 +1480,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       
       if (expression != null) {
          info.value = expression.getValue();
-         info.properties.add(PROP_VALUE[0]);
+         if ((info.value instanceof Long) && ((Long)info.value == 120000000)) {
+            System.err.println("Calculated value = "+info.value);
+         }
+         info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
          
 //         Variable primaryVariableInExpression = expression.getPrimaryVar();
 
@@ -1624,6 +1495,174 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          info.origin = expression.getOriginMessage();
       }
       return info;
+   }
+
+   /**
+    * Update variable from provided info + local modifiers (enabledBy, lockedIf, errorIf etc)
+    * 
+    * @param info Original information for update (will be modified as above)
+    * 
+    * @throws Exception
+    */
+   void update(VariableUpdateInfo info) throws Exception {
+
+      if ((fUnlockedBy != null) && setLockedQuietly(!fUnlockedBy.getValueAsBoolean())) {
+         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+      }
+      if (fHiddenBy != null) {
+         Boolean hidden = fHiddenBy.getValueAsBoolean();
+         if (setHiddenQuietly(hidden)) {
+            info.properties.add(ObservableModelInterface.PROP_HIDDEN[0]);
+         }
+         // Cumulative enable
+         info.enable = info.enable && !hidden;
+      }
+      if (fEnabledBy != null) {
+         // Cumulative enable
+         Boolean enabled = fEnabledBy.getValueAsBoolean();
+         info.enable = info.enable && enabled;
+         if (!enabled) {
+            info.status = new Status(fEnabledBy.getMessage("Disabled by "), Severity.OK);
+         }
+      }
+      Object value = getValue();
+      if (enableQuietly(info.enable)) {
+         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         if (value != getValue()) {
+            // Value changed
+            info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+         }
+      }
+      if (info.value != null) {
+         if (setValueQuietly(info.value)) {
+            info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+         }
+      }
+      if (fErrorIf != null) {
+         if  (fErrorIf.getValueAsBoolean()) {
+            // Forced error status
+            info.status = new Status(fErrorIf.getMessage("Error "));
+            info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         }
+      }
+      else {
+         String validCheck = isValid();
+         if (validCheck != null) {
+            info.status = new Status(validCheck);
+         }
+      }
+      if (setStatusQuietly(info.status)) {
+         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+      }
+
+      if ((info.origin != null) && !info.origin.isBlank()) {
+         if (setOriginQuietly(info.origin)) {
+            info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         }
+      }
+   }
+   
+   /**
+    * Update state based upon a changing expression that is affecting this variable
+    * 
+    * @param info       [IN/OUT] Information about the changes made (if any)
+    * @param expression [IN] Expression causing update or null to force update
+    * <br><br>
+    * Handles changes in:
+    * <li> fReference
+    * <li> fEnabledBy
+    * <li> fErrorIf
+    * <li> fUnlockedBy
+    * <li> fpinMapEnable
+    * <li> fHiddenBy
+    */
+   public void update(VariableUpdateInfo info, Expression expression) {
+      
+      if ((expression == null) && info.doFullUpdate) {
+         expression = getReference();
+      }
+      boolean checkUpdate =
+          info.doFullUpdate ||
+          (expression == fReference)||
+          (expression == fEnabledBy)||
+          (expression == fErrorIf)||
+          (expression == fUnlockedBy)||
+          (expression == fHiddenBy)||
+          (expression == fpinMapEnable);
+      
+      if (checkUpdate) {
+         try {
+            if (info.doFullUpdate||(expression == fReference)) {
+               determineUpdateInformation(info, expression);
+            }
+            update(info);
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
+   }
+   
+   /**
+    * Update state and notify listeners of changes
+    * 
+    * @param expression - The expression that has changed.
+    */
+   protected final void updateAndNotify(Expression expression) {
+      if (fLogging) {
+         System.err.println(getName()+".updateAndNotify("+expression+")");
+      }
+      try {
+         VariableUpdateInfo info = new VariableUpdateInfo();
+         if (expression==null) {
+            // Assume value change
+            info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+         }
+         update(info, expression);
+         if (info.properties.size()>0) {
+            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
+            notifyListeners(properties);
+         }
+      } catch (Exception e) {
+         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
+         t.printStackTrace();
+      }
+   }
+   
+   /**
+    * Force full update of state and notify listeners of changes
+    */
+   public final void updateFullyAndNotify() {
+      if (fLogging) {
+         System.err.println(getName()+".fullUpdateAndNotify()");
+      }
+      try {
+         VariableUpdateInfo info = new VariableUpdateInfo();
+         info.doFullUpdate = true;
+         update(info, null);
+         if (info.properties.size()>0) {
+            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
+            notifyListeners(properties);
+         }
+      } catch (Exception e) {
+         Exception t = new Exception("Failed to do full update", e);
+         t.printStackTrace();
+      }
+   }
+
+   /**
+    * Called when a monitored expression changes.
+    * 
+    * @param expression - The expression that has changed.<br>
+    *        This may be null to force update from all expressions during initialisation.
+    */
+   @Override
+   final public void expressionChanged(Expression expression) {
+//      System.err.println(getName()+".expressionChanged("+expression+")");
+
+      if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
+         return;
+      }
+      updateAndNotify(expression);
    }
 
    /**
@@ -1780,15 +1819,51 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Formats a function parameter appropriately for use in expression<br>
+    * Formats a function value appropriately for use in expression being assigned to register<br>
     * This would be used for %constructorAssignment, %fieldAssignment or %paramExpression
     * 
     * @param paramName Name of parameter
     * 
-    * @return Formatted parameter e.g.<li> LongVariable => SIM_SOPT0_DELAY(<b>paramName</b>),<li> ChoiceVariable (unchanged) => <b>paramName</b>
+    * @return Formatted parameter e.g.
+    * <li> LongVariable               => SIM_SOPT0_DELAY(<b>paramName</b>)
+    * <li> ChoiceVariable (unchanged) => <b>paramName</b>
     */
-   public String formatParam(String paramName) {
+   public String formatValueForRegister(String paramName) {
       return paramName;
+   }
+
+   /**
+    * Extracts a field from a register value
+    * 
+    * @param registerValue Value from register
+    * 
+    * @return Formatted parameter e.g.
+    * <li> LongVariable   => ((SIM_SCG_DEL_MASK&<b>registerValue</b>)&gt;&gt;SIM_SCG_DEL_SHIFT)
+    * <li> ChoiceVariable => (SIM_SCG_DEL_MASK&<b>registerValue</b>)
+    */
+   public String fieldExtractFromRegister(String registerValue) {
+      return registerValue;
+   }
+
+   /**
+    * Indicates if variable is being logged
+    * 
+    * @return true if logging variable
+    */
+   public boolean isLogging() {
+      return fLogging;
+   }
+
+   /**
+    * Sets variable logging
+    * 
+    * @param logging true tpo enable logging
+    */
+   public void setLogging(boolean logging) {
+      if (logging) {
+         System.err.println("Logging "+getName());
+      }
+      this.fLogging = logging;
    }
 
 }

@@ -939,14 +939,11 @@ public class ParseMenuXML extends XML_BaseParser {
 
       if (key.contains("[")) {
          String baseKey = key.substring(0,key.length()-3);
-
-         // XXX Eventually remove
          if (safeGetVariable(baseKey) != null) {
             throw new RuntimeException("Creating non-scalar after scaler variable "+baseKey);
          }
       }
       else {
-         // XXX Eventually remove
          if (safeGetVariable(key+"[0]") != null) {
             throw new RuntimeException("Creating scalar after non-scaler variable"+key);
          }
@@ -1092,6 +1089,9 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDescription(getAttributeAsString(varElement, "description"));
       }
       variable.setToolTip(getToolTip(varElement));
+      
+      variable.setLogging(getAttributeAsBoolean(varElement, "logging", false));
+      
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(getAttributeAsString(varElement, "origin"));
       }
@@ -2984,6 +2984,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * <li>%paramType[index]               Based on typeName e.g. AdcCompare (or uint32_t)
     * <li>%paramName[index]               Based on typeName with lower-case first letter adcCompare
     * <li>%enumType[index]                Underlying type for enum
+    * <li>%fieldExtract                   Expression of form '(%register & %mask)
     * <li>%fieldAssignment                Expression of form '%register     <= (%register & ~%mask)|%paramExpression
     * <li>%constructorFieldAssignment     Expression of form '%registerName <= (%registerName & ~%mask)|%paramExpression
     * <li>%configFieldAssignment          Expression of form '%register     <= (%register & ~%mask)|%registerName
@@ -3010,7 +3011,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
       boolean isConstructor = (element.getTagName().equalsIgnoreCase("constructorTemplate"));
 
-      boolean useDefinitions               = Boolean.valueOf(getAttributeAsString(element, "useDefinitions", "false"));
+      boolean useDefinitions          = Boolean.valueOf(getAttributeAsString(element, "useDefinitions", "false"));
       boolean multipleParamsOnNewline = Boolean.valueOf(getAttributeAsString(element, "multipleParamsOnNewline", "false"));
       
       String temp = getAttributeAsString(element, "params");
@@ -3066,6 +3067,10 @@ public class ParseMenuXML extends XML_BaseParser {
       
       if (variablesAttribute != null) {
          
+         if (variablesAttribute.isEmpty()) {
+            String text = getText(element);
+            throw new Exception("Empty '"+variableAttributeName+"' attribute in template\n"+text);
+         }
          // Create variable list
          String varNames[] = variablesAttribute.split(",");
    
@@ -3112,6 +3117,8 @@ public class ParseMenuXML extends XML_BaseParser {
       
       ArrayList<StringPair> substitutions = new ArrayList<StringPair>();
       
+      boolean allowEmptyParameterList = false;
+      
       if (variableList != null) {
          
          // Process variables found
@@ -3122,6 +3129,7 @@ public class ParseMenuXML extends XML_BaseParser {
          StringBuilder paramExprSb          = new StringBuilder();  // Combined expression param1|param2
          StringBuilder paramsSb             = new StringBuilder();  // Parameter list with defaults etc.
          StringBuilder paramDescriptionSb   = new StringBuilder();  // @param style comments for parameters
+
          boolean       parmsOnNewLine       = false;                 // Indicates there are multiple parameters
           
          // Padding applied to comments (before * @param)
@@ -3143,13 +3151,16 @@ public class ParseMenuXML extends XML_BaseParser {
          }
 
          // Find maximum name length
-         int maxNameLength = 4;
+         int maxTypeNameLength = 4;
          for (int index=0; index<variableList.size(); index++) {
+            if ((paramOverride.size()>index) && (paramOverride.get(index).equals("*"))) {
+               continue;
+            }
             String typeName = variableList.get(index).getTypeName();
             if (typeName == null) {
                continue;
             }
-            maxNameLength = Math.max(maxNameLength, typeName.length());
+            maxTypeNameLength = Math.max(maxTypeNameLength, typeName.length());
          }
          String  register           = null;
          String  registerName       = null;
@@ -3157,6 +3168,10 @@ public class ParseMenuXML extends XML_BaseParser {
 
          // Accumulates the description for all parameters as block comment
          StringBuilder multilineDescription = new StringBuilder();
+         
+         // Padding applied to parameters
+         String paramPadding = (variableList.size()<=1)?"":"\\t      "+linePadding;
+         
 
          // To differentiate 'nameless' params
          int valueSuffix = 0;
@@ -3166,15 +3181,9 @@ public class ParseMenuXML extends XML_BaseParser {
             String   variableKey = variable.getKey();
             
             if (index > 0) {
-               // Indicates newline is needed as newline on multi-params was requested
-               parmsOnNewLine = multipleParamsOnNewline;
-               maskSb.append('|');
                valueExpressionSb.append(separator);
                symbolicExpressionSb.append(separator);
                initExpressionSb.append("\n");
-               paramExprSb.append(separator);
-               paramsSb.append(",\n");
-               paramDescriptionSb.append("\n");
             }
 
             // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
@@ -3228,9 +3237,14 @@ public class ParseMenuXML extends XML_BaseParser {
                macro = Variable.getBaseNameFromKey(variableKey).toUpperCase();
                mask  = macro+"_MASK";
             }
-            maskSb.append(mask);
-
-            if (mask.length() > 0) {
+            
+            if (!mask.isBlank()) {
+               
+               if (maskSb.length()>0) {
+                  maskSb.append('|');
+               }
+               maskSb.append(mask);
+               
                boolean bracketsRequired = !mask.matches("[a-zA-Z0-9_]*");
                if (bracketsRequired) {
                   mask = '('+mask+')';
@@ -3239,10 +3253,14 @@ public class ParseMenuXML extends XML_BaseParser {
 
             // Underlying C type from variable
             String enumType = "'%enumType' is not valid here";
-
+            
             String enumTypeValue = variable.getEnumType();
+            String typeNameValue = variable.getTypeName();
             if (enumTypeValue != null) {
                enumType = enumTypeValue;
+            }
+            else if (typeNameValue != null) {
+               enumType = typeNameValue;
             }
             
             // Type from variable with upper-case 1st letter
@@ -3319,7 +3337,13 @@ public class ParseMenuXML extends XML_BaseParser {
             }
 
             if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
-               paramName = paramOverride.get(index);
+               if (paramOverride.get(index).equals("*")) {
+                  paramName               = null;
+                  allowEmptyParameterList = true;
+               }
+               else {
+                  paramName = paramOverride.get(index);
+               }
             }
 
             if ((paramTypesOverride.size()>index) && !paramTypesOverride.get(index).isBlank()) {
@@ -3355,10 +3379,12 @@ public class ParseMenuXML extends XML_BaseParser {
             if (temp != null) {
                shortDescription = temp;
             }
+            String pad = "\\t   // ";
             if (!multilineDescription.isEmpty()) {
                multilineDescription.append("\\n");
+               pad = "\\t"+linePadding+"// ";
             }
-            multilineDescription.append("\\t   // " + shortDescription);
+            multilineDescription.append(pad + shortDescription);
             multilineDescription.append(" ("+variable.getName()+")");
             
             // Tool-tip from variable
@@ -3395,31 +3421,49 @@ public class ParseMenuXML extends XML_BaseParser {
             if ((defaultValueOverride.size()>index) && !defaultValueOverride.get(index).isBlank()) {
                defaultParamV = defaultValueOverride.get(index);
             }
-            paramExprSb.append(variable.formatParam(paramName));
+            if (paramName != null) {
+               if (paramExprSb.length()>0) {
+                  paramExprSb.append(separator);
+               }
+               paramExprSb.append(variable.formatValueForRegister(paramName));
+            }
 
 //            if (variable.getName().contains("nvic_irqLevel")) {
 //               System.err.println("Found it, " + variable);
 //            }
-            String defaultValue = "%defaultValue not available";
+            String defaultValue = "%defaultValue"+index+" not available";
             if (defaultParamV != null) {
                defaultValue = defaultParamV;
             }
+            String paramDescriptionN = "%paramDescription not available";
+            if (paramName != null) {
+               paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxTypeNameLength)+"s %s", paramName, tooltip);
+               if (paramDescriptionSb.length()>0) {
+                  paramDescriptionSb.append("\n");
+               }
+               paramDescriptionSb.append(paramDescriptionN);
+            }
             
-            String paramDescriptionN = String.format("\\t"+linePadding+" * @param %"+(-maxNameLength)+"s %s", paramName, tooltip);
-            paramDescriptionSb.append(paramDescriptionN);
-
-            // Padding applied to parameters
-            String paramPadding = (variableList.size()<=1)?"":"\\t      "+linePadding;
-
-            String param;
-            if (index<numberOfNonDefaultParams) {
-               param = String.format("%"+(-maxNameLength)+"s %s", paramType, paramName);
+            String param = "%param"+index+" not available";
+            if (paramName != null) {
+               if (index<numberOfNonDefaultParams) {
+                  param = String.format("%"+(-maxTypeNameLength)+"s %s", paramType, paramName);
+               }
+               else {
+                  param = String.format("%"+(-maxTypeNameLength)+"s %"+(-maxTypeNameLength)+"s = %s", paramType, paramName, defaultParamV);
+               }
+               if (paramsSb.length()>0) {
+                  paramsSb.append(",");
+                  
+                  // Indicates newline is needed as newline on multi-params was requested
+                  parmsOnNewLine = multipleParamsOnNewline;
+                  
+                  if (multipleParamsOnNewline) {
+                     paramsSb.append("\n"+paramPadding);
+                  }
+               }
+               paramsSb.append(param);
             }
-            else {
-               param = String.format("%"+(-maxNameLength)+"s %"+(-maxNameLength)+"s = %s", paramType, paramName, defaultParamV);
-            }
-            paramsSb.append(paramPadding + param);
-
             String registerN     = "'register' is not valid here";
             String registerNameN = "'registerName' is not valid here";
             String registerNAMEN = "'registerNAME' is not valid here";
@@ -3441,6 +3485,9 @@ public class ParseMenuXML extends XML_BaseParser {
                      registerName = "'registerName' is conflicted";
                   }
                }
+            }
+            if (paramName == null) {
+               paramName = "%paramName"+index+" not available";
             }
             substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
             substitutions.add(0, new StringPair("%symbolicExpression"+index, symbolicExpression));
@@ -3491,6 +3538,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
 
          String maskingExpression            = "'maskingExpression' is not valid here";
+         String fieldExtract                 = "'fieldExtract' is not valid here";
          String fieldAssignment              = "'fieldAssignment' is not valid here";
          String constructorFieldAssignment   = "'constructorFieldAssignment' is not valid here";
          String configFieldAssignment        = "'constructorFieldAssignment' is not valid here";
@@ -3498,11 +3546,16 @@ public class ParseMenuXML extends XML_BaseParser {
          String constructorRegAssignment     = "'constructorRegAssignment' is not valid here";
          String configRegAssignment          = "'constructorRegAssignment' is not valid here";
          if (register != null) {
+            if (variableList.size()==1) {
+               // LongVariable   => ((SIM_SCG_DEL_MASK&<b>registerValue</b>)>>SIM_SCG_DEL_SHIFT)
+               // ChoiceVariable => (SIM_SCG_DEL_MASK&<b>registerValue</b>)
+               fieldExtract       = variableList.get(0).fieldExtractFromRegister(register);
+            }
             if (mask != null) {
                maskingExpression = register+"&"+mask;
                
                //  %register = (%register&~%mask) | %paramExpression;
-               fieldAssignment       = register+" = ("+register+"&~"+mask+") | "+paramExpr;
+               fieldAssignment    = register+" = "+"("+register+"&~"+mask+")"+" | "+paramExpr;
                
                //  %registerName = (%registerName&~%mask) | %paramExpression;
                constructorFieldAssignment = registerName+" = ("+registerName+"&~"+mask+") | "+paramExpr;
@@ -3520,6 +3573,7 @@ public class ParseMenuXML extends XML_BaseParser {
                configRegAssignment = register+" = "+"init."+registerName;
             }
             else {
+               
                //  %register = %paramExpression;
                fieldAssignment       = register+" = "+paramExpr;
                
@@ -3539,9 +3593,6 @@ public class ParseMenuXML extends XML_BaseParser {
                configRegAssignment = register+" = "+"init."+registerName;
             }
          }
-         if ((register != null) && (mask != null)) {
-
-         }
          if (register == null) {
             register     = "'register' is not valid here";
             registerName = "'registerName' is not valid here";
@@ -3552,13 +3603,19 @@ public class ParseMenuXML extends XML_BaseParser {
          String params = "'params' is not valid here";
          if (paramsSb.length()>0) {
             if (parmsOnNewLine) {
-               paramsSb.insert(0,"\n");
+               paramsSb.insert(0,"\n"+paramPadding);
             }
             params = paramsSb.toString();
+         }
+         else if (allowEmptyParameterList) {
+            params="";
          }
          String paramDescription = "'comments' is not valid here";
          if (paramDescriptionSb.length()>0) {
             paramDescription = paramDescriptionSb.toString();
+         }
+         else if (allowEmptyParameterList) {
+            paramDescription = "";
          }
 
          String initExpression = "'initExpression' is not valid here";
@@ -3570,7 +3627,8 @@ public class ParseMenuXML extends XML_BaseParser {
          substitutions.add(new StringPair("%valueExpression",           valueExpressionSb.toString()));
          substitutions.add(new StringPair("%symbolicExpression",        symbolicExpressionSb.toString()));
          substitutions.add(new StringPair("%paramExpression",           paramExpr));
-
+         
+         substitutions.add(new StringPair("%fieldExtract",               fieldExtract));
          substitutions.add(new StringPair("%fieldAssignment",            fieldAssignment));
          substitutions.add(new StringPair("%constructorFieldAssignment", constructorFieldAssignment));
          substitutions.add(new StringPair("%configFieldAssignment",      configFieldAssignment));
@@ -3633,10 +3691,6 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private boolean checkTemplateConditions(Element element, String discardRepeats) throws Exception {
-      String condition = getAttributeAsString(element,"condition","");
-      if (condition.contains("dmamux_chcfg_low_source[21]")) {
-         System.err.println("Found it "+condition);
-      }
       if (!checkCondition(element)) {
          return false;
       }
@@ -3710,7 +3764,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String where       = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
       if (where != null) {
          if ((key != null) && !"all".equalsIgnoreCase(where)) {
-            throw new Exception("Attribute 'key' used with wrong 'where' attribute");
+            throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
          }
          if (("usbdm".equals(where))) {
             // Before peripheral class in pinmapping.h
@@ -3846,10 +3900,10 @@ public class ParseMenuXML extends XML_BaseParser {
       baseClass - In base class for peripheral (causes discard repeats using StructName as key)
       
       */
-      String where       = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
+      String where = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
       if (where != null) {
          if ((key != null) && !"all".equalsIgnoreCase(where)) {
-            throw new Exception("Attribute 'key' used with wrong 'where' attribute");
+            throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
          }
          if ("usbdm".equals(where)) {
             // Before peripheral class in pinmapping.h
@@ -3882,6 +3936,9 @@ public class ParseMenuXML extends XML_BaseParser {
          else if ("all".equals(where)) {
             // Arbitrary location
             // Key necessary
+            if (key==null) {
+               throw new Exception("Attribute 'key' missing when 'where=all' ");
+            }
             namespace      = "all"; // Arbitrary location
             // discardRepeats unmodified
          }
