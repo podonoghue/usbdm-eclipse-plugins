@@ -69,8 +69,10 @@ public class WriterForCmp extends PeripheralWithState {
       
       super.writeDeclarations(hardwareDeclarationInfo);
       
-      String enumNameP   = "Cmp"+getInstance()+"InputPlus_";
-      String enumNameM   = "Cmp"+getInstance()+"InputMinus_";
+      String enumNameP   = getClassName()+"InputPlus_";
+      String enumNameM   = getClassName()+"InputMinus_";
+      String enumNameE   = getClassName()+"InputEnable_";
+      
       String commentRoot = "///< ";
       ArrayList<InfoTable> signalTables = getSignalTables();
       HashSet<String> usedIdentifiers = new HashSet<String>();
@@ -104,44 +106,48 @@ public class WriterForCmp extends PeripheralWithState {
             String instanceIfUsed = ""; //getInstance();
             String trailingComment  = pin.getNameWithLocation();
             String description = signal.getUserDescription();
-            String pinNameP = enumNameP+prettyPinName(pin.getName());
-            String pinNameM = enumNameM+prettyPinName(pin.getName());
+            String pinNameP  = enumNameP+prettyPinName(pin.getName());
+            String pinNameM  = enumNameM+prettyPinName(pin.getName());
+            String pinEnable = enumNameE+prettyPinName(pin.getName());
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier());
-//            String inputIdentifierP = "";
-//            String inputIdentifierM = "";
-            String mapNameP = "Cmp"+instanceIfUsed+"InputPlus_"+index;
-            String mapNameM = "Cmp"+instanceIfUsed+"InputMinus_"+index;
+            String mapNameP = getClassBaseName()+instanceIfUsed+"InputPlus_"+index;
+            String mapNameM = getClassBaseName()+instanceIfUsed+"InputMinus_"+index;
+            String mapPinEnable = getClassBaseName()+instanceIfUsed+"InputEnable_"+index;
+            
             if (!cIdentifier.isBlank()) {
-//               inputIdentifierP =  "constexpr Cmp"+instanceIfUsed+"InputPlus  "+ enumNameP+cIdentifier;
-//               inputIdentifierM =  "constexpr Cmp"+instanceIfUsed+"InputMinus "+ enumNameM+cIdentifier;
-//               String typeP = String.format("%s<%s>", getClassBaseName()+instanceIfUsed+"::"+"Pin", pinNameP);
                String typeM = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinNameM);
-//               String constTypeP = "const "+ typeP;
                String constTypeM = "const "+ typeM;
                if (signal.getCreateInstance()) {
-//                  writeVariableDeclaration("", description, cIdentifier, constTypeP, trailingComment);
                   writeVariableDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, constTypeM, trailingComment);
                }
                else {
-//                  writeTypeDeclaration("", description, cIdentifier, typeP, trailingComment);
                   writeTypeDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, typeM, trailingComment);
                }
             }
             boolean inUse = !usedIdentifiers.add(pinNameP);
-            pinNameP = "constexpr Cmp"+instanceIfUsed+"InputPlus  "+ pinNameP;
+            pinNameP = "constexpr "+getClassBaseName()+instanceIfUsed+"InputPlus   "+ pinNameP;
             if (inUse) {
                pinNameP = "// "+pinNameP;
             }
             inUse = !usedIdentifiers.add(pinNameM);
-            pinNameM = "constexpr Cmp"+instanceIfUsed+"InputMinus "+ pinNameM;
+            pinNameM = "constexpr "+getClassBaseName()+instanceIfUsed+"InputMinus  "+ pinNameM;
             if (inUse) {
                pinNameM = "// "+pinNameM;
             }
+            inUse = !usedIdentifiers.add(pinEnable);
+            pinEnable = "constexpr "+getClassBaseName()+instanceIfUsed+"InputEnable "+ pinEnable;
+            if (inUse) {
+               pinEnable = "// "+pinEnable;
+            }
+            boolean doEnables = (safeGetVariable("/"+getName()+"/acmp_c2_acipe_present") != null);
             if (mappingInfo.getMux() == MuxSelection.fixed) {
                // Fixed pin mapping
                trailingComment = commentRoot+"Fixed pin  "+trailingComment;
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameP, mapNameP+";", trailingComment));
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameM, mapNameM+";", trailingComment));
+               if (doEnables) {
+                  inputsStringBuilder.append(String.format(PIN_FORMAT, pinEnable, mapPinEnable+";", trailingComment));
+               }
 //               if (!inputIdentifierP.isBlank()) {
 //                  inUse = !usedIdentifiers.add(inputIdentifierP);
 //                  if (inUse) {
@@ -159,6 +165,9 @@ public class WriterForCmp extends PeripheralWithState {
                trailingComment = commentRoot+"Mapped pin "+trailingComment;
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameP, mapNameP+";", trailingComment));
                inputsStringBuilder.append(String.format(PIN_FORMAT, pinNameM, mapNameM+";", trailingComment));
+               if (doEnables) {
+                  inputsStringBuilder.append(String.format(PIN_FORMAT, pinEnable, mapPinEnable+";", trailingComment));
+               }
 //               if (!inputIdentifierP.isBlank()) {
 //                  inUse = !usedIdentifiers.add(inputIdentifierP);
 //                  if (inUse) {
@@ -175,14 +184,16 @@ public class WriterForCmp extends PeripheralWithState {
          }
          String mappings = inputsStringBuilder.toString();
          
-         // Create or replace input mapping variable as needed
+         // Replace or add to existing input mapping variable as needed
+         String key = makeKey("/"+getBaseName()+"/InputMapping");
          if (!getInstance().equals("0")) {
-            Variable existingMapping = fDeviceInfo.safeGetVariable(makeKey("/CMP/InputMapping"));
+            // Keep existing and add to it
+            Variable existingMapping = fDeviceInfo.safeGetVariable(key);
             if (existingMapping != null) {
                mappings = existingMapping.getValueAsString() + mappings;
             }
          }
-         fDeviceInfo.addOrUpdateStringVariable("InputMapping", makeKey("/CMP/InputMapping"), mappings, true);
+         fDeviceInfo.addOrUpdateStringVariable("InputMapping", makeKey(key), mappings, true);
       }
    }
 

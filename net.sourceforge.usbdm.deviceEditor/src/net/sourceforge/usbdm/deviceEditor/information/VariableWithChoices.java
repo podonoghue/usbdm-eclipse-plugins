@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
@@ -403,9 +403,8 @@ public abstract class VariableWithChoices extends Variable {
          VariableUpdateInfo info = new VariableUpdateInfo();
          targetVar.determineUpdateInformation(info, expression);
          targetVar.update(info);
-         if (info.properties.size()>0) {
-            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
-            targetVar.notifyListeners(properties);
+         if (info.properties != 0) {
+            targetVar.notifyListeners(info.properties);
          }
       } catch (Exception e) {
          Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
@@ -430,12 +429,12 @@ public abstract class VariableWithChoices extends Variable {
       
       // Check if expression is from active choice and process if so
       ChoiceData choice = getCurrentChoice();
-      
+
       if (choice != null) {
          // If change or choice expression changed
          if (info.doFullUpdate ||
              ((choice.getReference() != null) && (choice.getReference() == expression)) ||
-             info.properties.contains(ObservableModelInterface.PROP_VALUE[0])) {
+             ((info.properties&IModelChangeListener.PROPERTY_VALUE)!=0) ) {
             try {
                updateTargets(choice);
             } catch (Exception e) {

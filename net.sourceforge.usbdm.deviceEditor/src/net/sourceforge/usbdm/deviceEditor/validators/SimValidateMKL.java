@@ -133,7 +133,7 @@ public class SimValidateMKL extends IndexedValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable, int index) throws Exception {
+   public void validate(Variable variable, int properties, int index) throws Exception {
 //      if ((variable != null) && variable.getName().contains("[3]")) {
 //         System.err.println(variable.getName() + " changed to  "+variable.getValueAsLong());
 //      }

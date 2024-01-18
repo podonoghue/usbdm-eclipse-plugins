@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
@@ -259,7 +259,7 @@ public class LongVariable extends Variable {
 //         System.err.print("Found it " + getName());
 //      }
       String valueFormat = getValueFormat();
-      String typeName = getTypeName();
+      String returnType  = getReturnType();
       boolean hasOuterBrackets = false;
       if ((valueFormat != null) && !valueFormat.matches("^\\(?%s\\)?$")) {
          String parts[] = valueFormat.split(",");
@@ -284,11 +284,11 @@ public class LongVariable extends Variable {
          }
          hasOuterBrackets = true;
       }
-      if (typeName != null) {
+      if (returnType != null) {
          if (!hasOuterBrackets) {
             registerValue = "("+registerValue+")";
          }
-         registerValue = String.format("%s%s", typeName, registerValue);
+         registerValue = String.format("%s%s", returnType, registerValue);
       }
 //      if (foundIt) {
 //         System.err.println(" => " + registerValue);
@@ -810,7 +810,7 @@ public class LongVariable extends Variable {
          updateLimits = true;
       }
       if (updateLimits && setStatusQuietly(isValid())) {
-         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         info.properties |= IModelChangeListener.PROPERTY_STATUS;
       }
       super.update(info, expression);
    }
@@ -835,6 +835,64 @@ public class LongVariable extends Variable {
    @Override
    public Object getValue() {
       return getValueAsLong();
+   }
+   
+   @Override
+   public String getParamType() {
+      String paramType = getTypeName();
+      if (paramType == null) {
+         Units units = getUnits();
+         if (units != Units.None) {
+            return "const "+getUnits().getType()+"&";
+         }
+         paramType = super.getBaseType();
+         if (paramType != null) {
+            return paramType;
+         }
+         return "Long_no_type";
+      }
+      if (isIntegerTypeInC(paramType)) {
+         // Return type unchanged
+         return paramType;
+      }
+      return super.getParamType();
+   }
+   
+   @Override
+   public String getParamName() {
+      String typeName = getTypeName();
+      if (typeName == null) {
+         Units units = getUnits();
+         if (units != Units.None) {
+            typeName = units.getType();
+            if (typeName == null) {
+               return "no_name";
+            }
+            return typeName.substring(0,1).toLowerCase()+typeName.substring(1);
+         }
+      }
+      return super.getParamName();
+   }
+
+   @Override
+   public String getReturnType() {
+      String paramType = getParamType();
+      Pattern p = Pattern.compile("^(const)?\\s+([a-zA-Z0-9]+)\\s*&?$");
+      Matcher m = p.matcher(paramType);
+      if (m.matches()) {
+//         System.err.println("Found it '"+paramType+"' => '"+m.group(2)+"'");
+         return m.group(2);
+      }
+      return super.getReturnType();
+   }
+
+   @Override
+   public String getBaseType() {
+      String baseType = super.getBaseType();
+      if (baseType != null) {
+         return baseType;
+      }
+      return getReturnType();
    }
 
 }

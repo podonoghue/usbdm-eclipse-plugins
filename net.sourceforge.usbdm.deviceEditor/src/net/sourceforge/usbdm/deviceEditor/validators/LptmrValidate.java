@@ -26,9 +26,9 @@ public class LptmrValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
       
-      super.validate(variable);
+      super.validate(variable, properties);
 
 //      System.err.println("LptmrValidate.validate("+variable+")");
       

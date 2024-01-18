@@ -439,7 +439,7 @@ public class ChoiceVariable extends VariableWithChoices {
    public String getDefaultParameterValue() throws Exception {
       Integer index = fDefaultValue;
       if ((index==null) || (index<0)) {
-         throw new Exception("Failed to get default");
+         throw new Exception("Failed to get default value for "+this);
       }
       return makeEnum(getChoiceData()[index].getEnumName());
    }

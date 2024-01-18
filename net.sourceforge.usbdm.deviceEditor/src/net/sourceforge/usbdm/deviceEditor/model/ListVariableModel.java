@@ -40,7 +40,7 @@ public class ListVariableModel extends StringVariableModel {
    }
    
    @Override
-   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
+   public void modelElementChanged(ObservableModelInterface observableModel, int properties) {
 
       ArrayList<BaseModel> children = getChildren();
       if (children != null) {

@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
@@ -723,8 +722,24 @@ public class Expression implements IModelChangeListener {
 
       @Override
       Object eval() throws Exception {
-         String s = (String) fArg.eval();
-         return Character.toUpperCase(s.charAt(0))+s.substring(1);
+         String s = ((String) fArg.eval()).strip();
+         String res = s;
+         if (s.length()>2) {
+            if (s.matches("[A-Z0-9]+")) {
+               // All upper-case
+               res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+            }
+            else if (s.matches("[a-z0-9]+")) {
+               // All lower-case
+               res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+            }
+            else {
+               // Mixed case
+               res = Character.toUpperCase(s.charAt(0))+s.substring(1);
+            }
+         }
+//         System.err.println("prettify: '"+s+"' => '"+res+"'");
+         return res;
       }
    }
    
@@ -1560,12 +1575,12 @@ public class Expression implements IModelChangeListener {
     * Class to accumulate variable changes
     */
    public static class VariableUpdateInfo {
-      public Object           value        = null;
-      public Status           status       = null;
-      public String           origin       = null;
-      public boolean          enable       = true;
-      public boolean          doFullUpdate = false;
-      public HashSet<String>  properties   = new HashSet<String>();
+      public Object   value        = null;
+      public Status   status       = null;
+      public String   origin       = null;
+      public boolean  enable       = true;
+      public boolean  doFullUpdate = false;
+      public int      properties   = 0;
    };
 
    /** Variable provider for variable in expression */
@@ -2026,43 +2041,6 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   @Override
-   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
-      
-//      if (fExpressionStr.matches(".*ftm_cnsc_mode\\[0.*")) {
-//         System.err.println("Found it modelElementChanged"+fExpressionStr+")");
-//      }
-      try {
-         Object newValue = evaluate();
-         if (newValue == fCurrentValue) {
-            // No change to propagate
-            return;
-         }
-         boolean changed = true;
-         if ((fCurrentValue != null) && (fExpression.fType == Type.Double)) {
-            if (Double.isNaN((Double)fCurrentValue)&&Double.isNaN((Double)newValue)) {
-               // Ignore NAN => NAN
-               changed = false;
-            }
-            if (Double.isInfinite((Double)fCurrentValue)&&Double.isInfinite((Double)newValue)) {
-               // Ignore Infinity => Infinity etc.
-               changed = false;
-            }
-            if (Double.isFinite((Double)fCurrentValue)&&Double.isFinite((Double)newValue)) {
-               Double change = ((Double)newValue-(Double)fCurrentValue)/(Double)fCurrentValue;
-               changed =  (Math.abs(change)>0.000000001);
-            }
-         }
-         if (changed) {
-            fCurrentValue = newValue;
-//            notifyIfNeeded();
-            notifyExpressionChangeListeners();
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
-
    /**
     * Add listener for expression changes<br>
     * Only adds listener if the expression is not constant
@@ -2098,6 +2076,43 @@ public class Expression implements IModelChangeListener {
    @Override
    public String toString() {
       return "Expression("+fExpressionStr+", "+fMode+", "+fVarProvider+")";
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModelInterface observableModel, int properties) {
+      
+//      if (fExpressionStr.matches(".*ftm_cnsc_mode\\[0.*")) {
+//         System.err.println("Found it modelElementChanged"+fExpressionStr+")");
+//      }
+      try {
+         Object newValue = evaluate();
+         if (newValue == fCurrentValue) {
+            // No change to propagate
+            return;
+         }
+         boolean changed = true;
+         if ((fCurrentValue != null) && (fExpression.fType == Type.Double)) {
+            if (Double.isNaN((Double)fCurrentValue)&&Double.isNaN((Double)newValue)) {
+               // Ignore NAN => NAN
+               changed = false;
+            }
+            if (Double.isInfinite((Double)fCurrentValue)&&Double.isInfinite((Double)newValue)) {
+               // Ignore Infinity => Infinity etc.
+               changed = false;
+            }
+            if (Double.isFinite((Double)fCurrentValue)&&Double.isFinite((Double)newValue)) {
+               Double change = ((Double)newValue-(Double)fCurrentValue)/(Double)fCurrentValue;
+               changed =  (Math.abs(change)>0.000000001);
+            }
+         }
+         if (changed) {
+            fCurrentValue = newValue;
+//            notifyIfNeeded();
+            notifyExpressionChangeListeners();
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
    }
 
 }

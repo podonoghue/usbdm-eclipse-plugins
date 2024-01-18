@@ -77,7 +77,7 @@ public class PllValidator extends IndexedValidator {
     * @throws Exception
     */
    @Override
-   protected void validate(Variable variable, int index) throws Exception {
+   protected void validate(Variable variable, int properties, int index) throws Exception {
 
 //      final LongVariable   mcg_erc_clockVar       = getLongVariable("mcg_erc_clock");
       final LongVariable   pll0InputFrequencyVar  = getLongVariable("pll0InputFrequency[]");

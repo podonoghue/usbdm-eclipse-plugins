@@ -8,7 +8,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
@@ -51,7 +50,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
       public String getType() {
          switch (this) {
-         case None:       return "int";
+         case None:       return null;
          case Hz:         return "Hertz";
          case s:          return "Seconds";
          case ticks:      return "Ticks";
@@ -108,7 +107,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    private String fTypeName = null;
    
    /** Underlying C type for enum */
-   private String fEnumType = null;
+   private String fBaseType = null;
    
    /** Format for printing value e.g. CMP_CR0_FILTER_CNT(%s) */
    private String fValueFormat = null;
@@ -386,7 +385,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          // No change
          return false;
       }
-      notifyListeners();
+      notifyListeners(IModelChangeListener.PROPERTY_STATUS);
       return true;
    }
    
@@ -657,7 +656,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          return false;
       }
       notifyListeners();
-      notifyStatusListeners();
+      notifyListeners(IModelChangeListener.PROPERTY_STATUS);
       return true;
    }
 
@@ -891,7 +890,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public boolean setHidden(boolean isHidden) {
       if (setHiddenQuietly(isHidden)) {
-         notifyListeners(ObservableModelInterface.PROP_HIDDEN);
+         notifyListeners(IModelChangeListener.PROPERTY_HIDDEN);
          return true;
       }
       return false;
@@ -1091,37 +1090,21 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
   
    /**
-    * Set type/stem for enum code generation e.g. tttt => <br>
-    *    <pre>enum Tttt {
-    *       Tttt_aaa,
-    *       Tttt_bbb,
-    *       Tttt_ccc,
-    *       }; </pre>
+    * Check if type is a standard C integer type e.g. int or uint16_t
     * 
-    * @param typeName Enumeration type/stem
+    * @param type
+    * 
+    * @return true if integer type
     */
-   public void setTypeName(String typeName) {
-      fTypeName = typeName;
+   public static boolean isIntegerTypeInC(String type) {
+      // This is used to identify C integer type
+      return type.matches("(u?int[0-9]+_t)|((un)?signed(\\sint)?)|(int)");
    }
    
+   //_______________________________________________________________________________
+   
    /**
-    * Get type for enum code generation e.g. tttt => <br>
-    * <pre>
-    *    enum Tttt {
-    *       Tttt_aaa,
-    *       Tttt_bbb,
-    *       Tttt_ccc,
-    *       };
-    * </pre>
-    * 
-    * @return Enumeration type/stem
-    */
-   public String getTypeName() {
-      return fTypeName;
-   }
-
-   /**
-    * Set underlying C type for enum e.g. eeee  => <br>
+    * Set underlying C type for variable e.g. for enum eeee  => <br>
     * <pre>
     *    enum Tttt : eeee {
     *       Tttt_aaa,
@@ -1129,11 +1112,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     *       Tttt_ccc,
     *       };
     * </pre>
-    * 
-    * @return Enumeration type/stem
     */
-   public void setEnumType(String enumType) {
-      fEnumType = enumType;
+   public void setBaseType(String baseType) {
+      fBaseType = baseType;
    }
    
    /**
@@ -1146,12 +1127,83 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     *       };
     * </pre>
     * 
-    * @return Enumeration type/stem
+    * @return Base type
     */
-   public String getEnumType() {
-      return fEnumType;
+   public String getBaseType() {
+      return fBaseType;
    }
 
+   /**
+    * Set type/stem for enum code generation e.g. tttt => <br>
+    *    <pre>enum Tttt {
+    *       Tttt_aaa,
+    *       Tttt_bbb,
+    *       Tttt_ccc,
+    *       }; </pre>
+    * 
+    * @param typeName Enumeration type/stem
+    */
+   public void setTypeName(String typeName) {
+      if (typeName != null) {
+         typeName = typeName.strip();
+      }
+      fTypeName = typeName;
+   }
+   
+   /**
+    * Get type for enum code generation e.g. tttt => <br>
+    * <pre>
+    *    enum Tttt {
+    *       Tttt_aaa,
+    *       Tttt_bbb,
+    *       Tttt_ccc,
+    *       };
+    * </pre>
+    * This is also used for return type of functions
+    * 
+    * @return Enumeration type/stem
+    */
+   public String getTypeName() {
+      return fTypeName;
+   }
+
+   /**
+    * Get type for parameters
+    * 
+    * @return Type
+    */
+   public String getParamType() {
+      String typeName = getTypeName();
+      if (typeName == null) {
+         return "Variable_no_type";
+      }
+      typeName = typeName.strip();
+      return typeName.substring(0,1).toUpperCase()+typeName.substring(1);
+   }
+
+   /**
+    * Get name for parameters of this type
+    * 
+    * @return Parameter name
+    */
+   public String getParamName() {
+      String typeName = getTypeName();
+      if (typeName == null) {
+         return "Variable_no_name";
+      }
+      typeName = typeName.strip();
+      return typeName.substring(0,1).toLowerCase()+typeName.substring(1);
+   }
+
+   /**
+    * Get type for parameters
+    * 
+    * @return Type
+    */
+   public String getReturnType() {
+      return getParamType();
+   }
+   
    public void setErrorPropagate(String attributeWithFor) {
       fSeverityPropagate = Severity.valueOf(attributeWithFor);
    }
@@ -1480,10 +1532,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       
       if (expression != null) {
          info.value = expression.getValue();
-         if ((info.value instanceof Long) && ((Long)info.value == 120000000)) {
-            System.err.println("Calculated value = "+info.value);
-         }
-         info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+         info.properties |= IModelChangeListener.PROPERTY_VALUE;
          
 //         Variable primaryVariableInExpression = expression.getPrimaryVar();
 
@@ -1507,12 +1556,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    void update(VariableUpdateInfo info) throws Exception {
 
       if ((fUnlockedBy != null) && setLockedQuietly(!fUnlockedBy.getValueAsBoolean())) {
-         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         info.properties |= IModelChangeListener.PROPERTY_STATUS;
       }
       if (fHiddenBy != null) {
          Boolean hidden = fHiddenBy.getValueAsBoolean();
          if (setHiddenQuietly(hidden)) {
-            info.properties.add(ObservableModelInterface.PROP_HIDDEN[0]);
+            info.properties |= IModelChangeListener.PROPERTY_HIDDEN;
          }
          // Cumulative enable
          info.enable = info.enable && !hidden;
@@ -1527,22 +1576,22 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       }
       Object value = getValue();
       if (enableQuietly(info.enable)) {
-         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         info.properties |= IModelChangeListener.PROPERTY_STATUS;
          if (value != getValue()) {
             // Value changed
-            info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+            info.properties |= IModelChangeListener.PROPERTY_VALUE;
          }
       }
       if (info.value != null) {
          if (setValueQuietly(info.value)) {
-            info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+            info.properties |= IModelChangeListener.PROPERTY_VALUE;
          }
       }
       if (fErrorIf != null) {
          if  (fErrorIf.getValueAsBoolean()) {
             // Forced error status
             info.status = new Status(fErrorIf.getMessage("Error "));
-            info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+            info.properties |= IModelChangeListener.PROPERTY_STATUS;
          }
       }
       else {
@@ -1552,12 +1601,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          }
       }
       if (setStatusQuietly(info.status)) {
-         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         info.properties |= IModelChangeListener.PROPERTY_STATUS;
       }
 
       if ((info.origin != null) && !info.origin.isBlank()) {
          if (setOriginQuietly(info.origin)) {
-            info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+            info.properties |= IModelChangeListener.PROPERTY_STATUS;
          }
       }
    }
@@ -1615,12 +1664,11 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          VariableUpdateInfo info = new VariableUpdateInfo();
          if (expression==null) {
             // Assume value change
-            info.properties.add(ObservableModelInterface.PROP_VALUE[0]);
+            info.properties |= IModelChangeListener.PROPERTY_VALUE;
          }
          update(info, expression);
-         if (info.properties.size()>0) {
-            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
-            notifyListeners(properties);
+         if (info.properties != 0) {
+            notifyListeners(info.properties);
          }
       } catch (Exception e) {
          Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
@@ -1639,9 +1687,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          VariableUpdateInfo info = new VariableUpdateInfo();
          info.doFullUpdate = true;
          update(info, null);
-         if (info.properties.size()>0) {
-            String[] properties = info.properties.toArray(new String[(info.properties.size())]);
-            notifyListeners(properties);
+         if (info.properties != 0) {
+            notifyListeners(info.properties);
          }
       } catch (Exception e) {
          Exception t = new Exception("Failed to do full update", e);
@@ -1672,6 +1719,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @param pinName    Name of pin
     */
    protected void setActivePinMapping(String signalName, String pinName) {
+      if (fLogging) {
+         System.err.println("setActivePinMapping("+signalName+" => "+pinName+")");
+      }
       try {
          Signal signal = getProvider().getDeviceInfo().findSignal(signalName);
          if ((pinName==null)||(pinName.isBlank())) {
@@ -1691,7 +1741,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
             signal.mapPin(pin);
          }
       } catch (Exception e) {
-         System.err.println("Signal mapping change failed for " + signalName + ", reason=" + e.getMessage());
+         System.err.println("Signal mapping change failed in variable '" + this);
+         System.err.println("Signal mapping change failed for signal '" + signalName + "', => pin '"+pinName+"', reason=" + e.getMessage());
       }
    }
 
@@ -1719,9 +1770,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Set active pin mappings
+    * Release active pin mappings
     * 
-    * @param activePinMap list of pin mappings e.g. 'SWD_DIO,PTA4;SWD_CLK,PTC4'
+    * @param activePinMap list of current pin mappings e.g. 'SWD_DIO,PTA4;SWD_CLK,PTC4'
     */
    protected void releaseActivePinMappings(String activePinMap) {
       if (activePinMap == null) {
@@ -1812,9 +1863,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    @Override
-   public void notifyListeners(IModelChangeListener exclude, String[] properties) {
+   public void notifyListeners(int properties) {
       if ((fDeviceInfo != null) && fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended)) {
-         super.notifyListeners(exclude, properties);
+         super.notifyListeners(properties);
       }
    }
    

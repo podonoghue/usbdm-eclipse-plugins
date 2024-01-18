@@ -309,7 +309,7 @@ public class GraphicsDialogue {
    IModelChangeListener runModeChangeListener = new IModelChangeListener() {
       
       @Override
-      public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
+      public void modelElementChanged(ObservableModelInterface observableModel, int properties) {
          System.err.println("Run Mode changed " + observableModel);
       }
    };

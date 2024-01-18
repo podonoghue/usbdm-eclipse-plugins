@@ -1698,13 +1698,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    @Override
-   public void notifyModelListeners() {
-      fProxy.notifyModelListeners();
-   }
-   
-   @Override
-   public void notifyStatusListeners() {
-      fProxy.notifyStatusListeners();
+   public void notifyBaseModelListeners() {
+      fProxy.notifyBaseModelListeners();
    }
 
    @Override
@@ -1712,27 +1707,14 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       fProxy.notifyStructureChangeListeners();
    }
 
-   @Override
-   public boolean isRefreshPending() {
-      return fProxy.isRefreshPending();
-   }
-
-   @Override
-   public void setRefreshPending(boolean refreshPending) {
-      fProxy.setRefreshPending(refreshPending);
-   }
-
-   @Override
-   public void notifyListeners(IModelChangeListener exclude, String[] properties) {
-      fProxy.notifyListeners(exclude, properties);
-   }
-   
-   @Override
-   public void notifyListeners(String[] properties) {
-      fProxy.notifyListeners(null, properties);
-   }
-
    public void notifyListeners() {
       fProxy.notifyListeners();
    }
+   
+   @Override
+   public void notifyListeners(int properties) {
+      fProxy.notifyListeners(properties);
+   }
+
+
 }

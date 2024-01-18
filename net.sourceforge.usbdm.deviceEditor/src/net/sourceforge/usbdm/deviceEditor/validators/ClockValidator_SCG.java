@@ -74,7 +74,7 @@ public class ClockValidator_SCG extends IndexedValidator {
     * @throws Exception
     */
    @Override
-   protected void validate(Variable variable, int index) throws Exception {
+   protected void validate(Variable variable, int properties, int index) throws Exception {
       
       if (!initialisationDone) {
          for (int clockIndex=0; clockIndex<fDimension; clockIndex++) {

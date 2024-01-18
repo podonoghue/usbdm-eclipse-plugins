@@ -809,7 +809,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @return Signal found
     * 
-    * @throws Exception signal nor found
+    * @throws Exception if signal not found
     */
    public Signal findSignal(String name) {
       Signal signal = safeFindSignal(name);
@@ -1920,14 +1920,14 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          Peripheral peripheral =  fPeripheralsMap.get(name);
          if (peripheral instanceof PeripheralWithState) {
             PeripheralWithState p = (PeripheralWithState) peripheral;
-            p.variableChanged(null);
+            p.variableChanged(null, IModelChangeListener.PROPERTY_VALUE);
          }
       }
       for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
          Peripheral peripheral =  entry.getValue();
          if (peripheral instanceof PeripheralWithState) {
             PeripheralWithState p = (PeripheralWithState) peripheral;
-            p.variableChanged(null);
+            p.variableChanged(null, IModelChangeListener.PROPERTY_VALUE);
          }
       }
       
@@ -2069,7 +2069,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void setDirty() {
       fIsDirty = true;
-      notifyListeners(this);
+      notifyListeners();
    }
 
    /**
@@ -2079,7 +2079,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void clearDirty() {
       fIsDirty = false;
-      notifyListeners(this);
+      notifyListeners();
    }
 
    /**
@@ -2463,15 +2463,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
    }
 
-   @Override
-   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
-      for (String prop:properties) {
-         if (PROP_VALUE[0].equals(prop)) {
-            setDirty();
-         }
-      }
-   }
-
    /**
     * Get peripheral information from SVD file<br>
     * This is a time consuming operation.
@@ -2608,6 +2599,17 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       dynamicSignalPinMappings.add(signalPinMapping);
    }
+
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      if (model == this) {
+         return;
+      }
+      if ((properties & PROPERTY_VALUE) != 0) {
+         setDirty();
+      }
+   }
+
 
 //   /**
 //    * Test main

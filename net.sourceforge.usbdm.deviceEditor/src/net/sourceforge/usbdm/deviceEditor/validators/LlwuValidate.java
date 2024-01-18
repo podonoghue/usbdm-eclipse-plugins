@@ -87,9 +87,9 @@ public class LlwuValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
       
-      super.validate(variable);
+      super.validate(variable, properties);
       doPeripheralNames();
       
       for (int index=0; index<8; index++) {

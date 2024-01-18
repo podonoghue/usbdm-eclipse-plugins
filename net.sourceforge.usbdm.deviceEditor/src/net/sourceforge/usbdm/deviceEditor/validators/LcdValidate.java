@@ -33,9 +33,9 @@ public class LcdValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
       
-      super.validate(variable);
+      super.validate(variable, properties);
       
       String         osc0_peripheral           =  getStringVariable("/SIM/osc0_peripheral").getValueAsString();
       LongVariable   osc0_oscer_clockVar       =  getLongVariable(osc0_peripheral+"/oscer_clock");

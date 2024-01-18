@@ -16,7 +16,16 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    }
 
    @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
+   protected void removeMyListeners() {
+   }
+
+   @Override
+   public boolean showAsLocked() {
+      return true;
+   }
+   
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
          String packageName = deviceInfo.getVariant().getPackage().getName();
@@ -26,13 +35,5 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
       }
    }
 
-   @Override
-   protected void removeMyListeners() {
-   }
 
-   @Override
-   public boolean showAsLocked() {
-      return true;
-   }
-   
 }

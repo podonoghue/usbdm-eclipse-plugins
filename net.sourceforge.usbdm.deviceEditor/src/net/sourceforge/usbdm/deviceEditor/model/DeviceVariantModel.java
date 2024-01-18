@@ -54,17 +54,17 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
    }
 
    @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
+   protected void removeMyListeners() {
+      fDeviceInfo.removeListener(this);
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
          String variantName = deviceInfo.getPreciseName();
          setValueAsString(variantName);
       }
-   }
-
-   @Override
-   protected void removeMyListeners() {
-      fDeviceInfo.removeListener(this);
    }
 
 }

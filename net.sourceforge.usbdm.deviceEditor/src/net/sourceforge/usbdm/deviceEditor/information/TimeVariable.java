@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.TimeVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
@@ -38,7 +39,7 @@ public class TimeVariable extends LongVariable {
       super.update(info, expression);
       
       if (info.doFullUpdate||(expression == fPeriodExpression)) {
-         info.properties.add(PROP_VALUE[0]);
+         info.properties |= IModelChangeListener.PROPERTY_VALUE;
       }
    }
    

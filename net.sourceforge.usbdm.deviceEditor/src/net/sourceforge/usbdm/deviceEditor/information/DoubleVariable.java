@@ -1,9 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
@@ -569,7 +572,7 @@ public class DoubleVariable extends Variable {
          updateLimits = true;
       }
       if (updateLimits && setStatusQuietly(isValid())) {
-         info.properties.add(ObservableModelInterface.PROP_STATUS[0]);
+         info.properties |= IModelChangeListener.PROPERTY_STATUS;
       }
       super.update(info, expression);
    }
@@ -600,5 +603,59 @@ public class DoubleVariable extends Variable {
    public Object getValue() {
       return getValueAsDouble();
    }
+
+   @Override
+   public String getParamType() {
+      String paramType = getTypeName();
+      if (paramType == null) {
+         Units units = getUnits();
+         if (units != Units.None) {
+            return "const "+getUnits().getType()+"&";
+         }
+         paramType = super.getBaseType();
+         if (paramType != null) {
+            return paramType;
+         }
+         return "Double_no_type";
+      }
+      return super.getParamType();
+   }
    
+   @Override
+   public String getParamName() {
+      String typeName = getTypeName();
+      if (typeName == null) {
+         Units units = getUnits();
+         if (units != Units.None) {
+            typeName = units.getType();
+            if (typeName == null) {
+               return "no_name";
+            }
+            return typeName.substring(0,1).toLowerCase()+typeName.substring(1);
+         }
+      }
+      return super.getParamName();
+   }
+   
+   @Override
+   public String getReturnType() {
+      String paramType = getParamType();
+      Pattern p = Pattern.compile("^(const)?\\s+([a-zA-Z0-9]+)\\s*&?$");
+      Matcher m = p.matcher(paramType);
+      if (m.matches()) {
+//         System.err.println("Found it '"+paramType+"' => '"+m.group(2)+"'");
+         return m.group(2);
+      }
+      return super.getReturnType();
+   }
+
+   @Override
+   public String getBaseType() {
+      String baseType = super.getBaseType();
+      if (baseType != null) {
+         return baseType;
+      }
+      return getReturnType();
+   }
+
 }

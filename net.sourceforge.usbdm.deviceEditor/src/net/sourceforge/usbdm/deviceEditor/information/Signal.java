@@ -137,8 +137,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       fCodeIdentifier = codeIdentifier;
       setDirty();
-      getMappedPin().modelElementChanged(this, PROP_VALUE);
-      modelElementChanged(this, PROP_VALUE);
+      getMappedPin().modelElementChanged(this, IModelChangeListener.PROPERTY_VALUE);
+      modelElementChanged(this, IModelChangeListener.PROPERTY_VALUE);
    }
 
    /**
@@ -171,7 +171,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
       setDirty();
       notifyListeners();
-      getMappedPin().modelElementChanged(this, PROP_VALUE);
+      getMappedPin().modelElementChanged(this, IModelChangeListener.PROPERTY_VALUE);
    }
 
    /**
@@ -515,7 +515,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       if (changed) {
          setDirty();
-         notifyListeners();
+         notifyListeners(PROPERTY_VALUE);
       }
       return changed;
    }
@@ -529,6 +529,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       boolean changed = false;
       for (MappingInfo mapping:fPinMappings) {
          if (mapping == mappingInfo) {
+            // Don't modify mapping being set
             continue;
          }
          changed = mapping.select(this, false) || changed;
@@ -537,7 +538,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (changed) {
          setDirty();
       }
-      notifyListeners();
+      notifyListeners(PROPERTY_MAPPING|PROPERTY_VALUE);
    }
 
    /**
@@ -546,40 +547,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public void disconnectListeners() {
    }
    
-   @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
-      for (String prop:properties) {
-         if ("Mapping".equals(prop)) {
-            if (model instanceof MappingInfo) {
-               notifyListeners();
-            }
-            boolean changed = false;
-            Status status = checkMappingConflicted();
-            if (!Status.equals(fStatus, status)) {
-               fStatus = status;
-               changed = true;
-            }
-            status = getAssociatedStatus();
-            if (!Status.equals(fAssociatedStatus, status)) {
-               fAssociatedStatus = status;
-               changed = true;
-            }
-            if (changed) {
-               notifyListeners(this);
-            }
-            notifyModelListeners();
-         }
-         else if ("Value".equals(prop)) {
-         }
-         else if ("Structure".equals(prop)) {
-         }
-         else if ("Status".equals(prop)) {
-            notifyStatusListeners();
-         }
-      }
-
-   }
-
    /**
     * Sets whether code for a user instance of the peripheral class should be created
     * 
@@ -688,6 +655,35 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          }
       }
       return pin;
+   }
+   
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      
+      if ((properties & PROPERTY_VALUE) != 0) {
+      }
+      if ((properties & (PROPERTY_STATUS|PROPERTY_MAPPING)) != 0) {
+         if (model instanceof MappingInfo) {
+            notifyListeners();
+         }
+         boolean changed = false;
+         Status status = checkMappingConflicted();
+         if (!Status.equals(fStatus, status)) {
+            fStatus = status;
+            changed = true;
+         }
+         status = getAssociatedStatus();
+         if (!Status.equals(fAssociatedStatus, status)) {
+            fAssociatedStatus = status;
+            changed = true;
+         }
+         if (changed) {
+            notifyListeners();
+         }
+         notifyBaseModelListeners();
+      }
+      if ((properties & PROPERTY_STRUCTURE) != 0) {
+      }
    }
 
  }

@@ -27,7 +27,7 @@ public class WriterForKbi extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "LCD, Segment LCD";
+      return "Keyboard Interrupts";
    }
 
    @Override
@@ -63,7 +63,8 @@ public class WriterForKbi extends PeripheralWithState {
          }
          String trailingComment  = pin.getNameWithLocation();
          String type = "Kbi"+getInstance()+"PinIndex";
-         writeConstexprValue(hardwareDeclarationInfo, signal.getUserDescription(), cIdentifier, type, type+"("+index+")", trailingComment);
+         String pinName = type + "_" + prettyPinName(pin.getName());
+         writeConstexprValue(hardwareDeclarationInfo, signal.getUserDescription(), cIdentifier, type, pinName, trailingComment);
       }
    }
 

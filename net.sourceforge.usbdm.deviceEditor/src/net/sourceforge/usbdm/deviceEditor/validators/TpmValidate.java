@@ -22,9 +22,9 @@ public class TpmValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
 
-      super.validate(variable);
+      super.validate(variable, properties);
 
       int MODE_None   = (int) getLongVariable("None").getValueAsLong();
 //      int MODE_Left   = (int) getLongVariable("/TPM0/Left").getValueAsLong();
@@ -41,7 +41,7 @@ public class TpmValidate extends PeripheralValidator {
       }
 
       DoubleVariable    clockVar          =  getDoubleVariable("clock");
-      LongVariable      modVar            =  getLongVariable("tpm_mod");
+      LongVariable      modVar            =  getLongVariable("tpm_mod_mod");
       DoubleVariable    modPeriodVar      =  getDoubleVariable("tpm_modPeriod");
       BooleanVariable   sc_cpwmsVar       =  getBooleanVariable("tpm_sc_cpwms");
 
@@ -116,7 +116,7 @@ public class TpmValidate extends PeripheralValidator {
       final String[] externalVariables = {
             "mode",
             "clock",
-            "tpm_mod",
+            "tpm_mod_mod",
             "tpm_modPeriod",
             "tpm_sc_cpwms",
             "tpm_cnvEventTime_independent[0]",

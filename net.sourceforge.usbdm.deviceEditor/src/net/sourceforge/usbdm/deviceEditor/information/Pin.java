@@ -690,47 +690,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
    
-   @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
-      for (String prop:properties) {
-         if ("Mapping".equals(prop)) {
-            if (model instanceof MappingInfo) {
-               notifyListeners();
-            }
-            boolean changed = false;
-            Status status = checkMappingConflicted();
-            if (!Status.equals(fStatus, status)) {
-               fStatus = status;
-               changed = true;
-            }
-            status = getAssociatedSignalsStatus();
-            if (!Status.equals(fAssociatedStatus, status)) {
-               fAssociatedStatus = status;
-               changed = true;
-            }
-            if (changed) {
-               notifyListeners(this);
-            }
-            notifyModelListeners();
-         }
-         else if ("Value".equals(prop)) {
-         }
-         else if ("Structure".equals(prop)) {
-            if (this == UNASSIGNED_PIN) {
-               return;
-            }
-            notifyStructureChangeListeners();
-         }
-         else if ("Status".equals(prop)) {
-            if (this == UNASSIGNED_PIN) {
-               return;
-            }
-            notifyStatusListeners();
-         }
-      }
-
-   }
-
    public void setPort(Signal signal) throws Exception {
       if (this == UNASSIGNED_PIN) {
          return;
@@ -1006,5 +965,49 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          return value;
       }
    }
+
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      
+      if (model == this) {
+         return;
+      }
+      if ((properties & PROPERTY_VALUE) != 0) {
+      }
+      if ((properties & PROPERTY_STATUS) != 0) {
+         if (this == UNASSIGNED_PIN) {
+            return;
+         }
+         notifyListeners(IModelChangeListener.PROPERTY_STATUS);
+      }
+      if ((properties & PROPERTY_MAPPING) != 0) {
+         if (model instanceof MappingInfo) {
+            notifyListeners();
+         }
+         boolean changed = false;
+         Status status = checkMappingConflicted();
+         if (!Status.equals(fStatus, status)) {
+            fStatus = status;
+            changed = true;
+         }
+         status = getAssociatedSignalsStatus();
+         if (!Status.equals(fAssociatedStatus, status)) {
+            fAssociatedStatus = status;
+            changed = true;
+         }
+         if (changed) {
+            notifyListeners(PROPERTY_STATUS);
+         }
+         notifyBaseModelListeners();
+      
+      }
+      if ((properties & PROPERTY_STRUCTURE) != 0) {
+         if (this == UNASSIGNED_PIN) {
+            return;
+         }
+         notifyStructureChangeListeners();
+      }
+   }
+
 
 }

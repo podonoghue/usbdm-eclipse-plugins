@@ -196,9 +196,9 @@ public class PdbValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
       
-      super.validate(variable);
+      super.validate(variable, properties);
       
       // Validate the shared counter
       doCounterValidate(variable);

@@ -508,27 +508,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       return true;
    }
 
-   @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
-      
-      for (String prop:properties) {
-         if ("Value".equals(prop)) {
-            if (model == fFactory) {
-               firePropertyChange(PROP_DIRTY);
-            }
-         }
-         else if ("Structure".equals(prop)) {
-            if (model == fFactory) {
-               refreshModels();
-            }
-            fFactory.getDeviceInfo().refreshConnections();
-            firePropertyChange(PROP_DIRTY);
-         }
-         else if ("Status".equals(prop)) {
-         }
-      }
-   }
-
    DeviceEditorOutlinePage fOutlinePage = null;
 
    @Override
@@ -540,6 +519,23 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          return adapter.cast(fOutlinePage);
       }
       return super.getAdapter(adapter);
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      
+      if ((properties & PROPERTY_VALUE) != 0) {
+         if (model == fFactory) {
+            firePropertyChange(PROP_DIRTY);
+         }
+      }
+      else if ((properties & PROPERTY_STRUCTURE) != 0) {
+         if (model == fFactory) {
+            refreshModels();
+         }
+         fFactory.getDeviceInfo().refreshConnections();
+         firePropertyChange(PROP_DIRTY);
+      }
    }
 
 }

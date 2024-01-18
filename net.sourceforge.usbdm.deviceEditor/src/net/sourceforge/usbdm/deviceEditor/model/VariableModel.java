@@ -98,33 +98,6 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    }
 
    @Override
-   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
-      for (String prop:properties) {
-         if (ObservableModelInterface.PROP_VALUE[0].equals(prop)) {
-            StructuredViewer viewer = getViewer();
-            if (viewer != null) {
-               viewer.update(this, properties);
-            }
-            updateAncestors();
-         }
-         else if (ObservableModelInterface.PROP_HIDDEN[0].equals(prop)) {
-            StructuredViewer viewer = getViewer();
-            if (viewer != null) {
-//               if (getName().contains("ftm_sc_ps")) {
-//                  System.err.println("VariableModel: vm = "+this+", hidden = " + isHidden());
-//               }
-//               viewer.refresh(this);
-//               viewer.update(this, properties);
-               viewer.update(this.getParent(), properties);
-            }
-         }
-         else if (ObservableModelInterface.PROP_STATUS[0].equals(prop)) {
-            updateAncestors();
-         }
-      }
-   }
-
-   @Override
    public boolean isEnabled() {
       return fVariable.isEnabled() &&
             (!(fParent instanceof BooleanVariableModel) || ((BooleanVariableModel)fParent).getValueAsBoolean());
@@ -179,5 +152,41 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    public boolean isHidden() {
       return super.isHidden() || ((fVariable != null) && fVariable.isHidden());
    }
+   
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      
+      if ((properties & PROPERTY_VALUE) != 0) {
+         StructuredViewer viewer = getViewer();
+         if (viewer != null) {
+            viewer.update(this, new String[] {"Value"} );
+         }
+         updateAncestors();
+      }
+      if ((properties & PROPERTY_STATUS) != 0) {
+         updateAncestors();
+      }
+      if ((properties & PROPERTY_MAPPING) != 0) {
+      }
+      if ((properties & PROPERTY_STRUCTURE) != 0) {
+         StructuredViewer viewer = getViewer();
+         if (viewer != null) {
+//          if (fLogging) {
+//          System.err.println("VariableModel: vm = "+this+", hidden = " + isHidden());
+//       }
+            viewer.update(this.getParent(), new String[] {"Structure"});
+         }
+      }
+      if ((properties & PROPERTY_HIDDEN) != 0) {
+         StructuredViewer viewer = getViewer();
+         if (viewer != null) {
+//          if (fLogging) {
+//          System.err.println("VariableModel: vm = "+this+", hidden = " + isHidden());
+//       }
+            viewer.update(this.getParent(), new String[] {"Hidden"});
+         }
+      }
+   }
+
    
  }

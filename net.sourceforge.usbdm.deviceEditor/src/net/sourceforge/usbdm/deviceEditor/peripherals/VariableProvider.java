@@ -192,14 +192,14 @@ public class VariableProvider {
       return fValidators;
    }
    
-   public void variableChanged(Variable variable) {
+   public void variableChanged(Variable variable, int properties) {
 //      System.err.println("variableChanged()" + variable.toString());
       fDeviceInfo.setDirty();
       if (fDeviceInfo.getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
       for (Validator v:fValidators) {
-         v.variableChanged(variable);
+         v.variableChanged(variable, properties);
       }
    }
    

@@ -38,10 +38,11 @@ public abstract class Validator implements IModelChangeListener {
     * Validate settings dialogue
     * 
     * @param variable   Variable trigger change leading to validation (may be null)
+    * @param properties
     * 
     * @throws Exception
     */
-   protected abstract void validate(Variable variable) throws Exception;
+   protected abstract void validate(Variable variable, int properties) throws Exception;
 
    /**
     * Checks is identifier is a valid C name
@@ -77,10 +78,11 @@ public abstract class Validator implements IModelChangeListener {
     * Default handler for variable changed events
     * 
     * @param variable
+    * @param properties
     * 
     * @return true => Updates pending, false => update completed
     */
-   public boolean variableChanged(Variable variable) {
+   public boolean variableChanged(Variable variable, int properties) {
 //      System.err.println(getSimpleClassName()+".variableChanged("+variable+")");
       int iterationCount = 0;
 //      if (!varModified.add(variable)) {
@@ -97,7 +99,7 @@ public abstract class Validator implements IModelChangeListener {
       do {
          recursedVariable = null;
          try {
-            validate(variable);
+            validate(variable, properties);
          } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -383,10 +385,12 @@ public abstract class Validator implements IModelChangeListener {
    private static class ValidateInfo {
       final public Validator validator;
       final public Variable  variable;
+      final public int       properties;
       
-      public ValidateInfo(Validator validator, Variable variable) {
-         this.validator = validator;
-         this.variable  = variable;
+      public ValidateInfo(Validator validator, Variable variable, int properties) {
+         this.validator  = validator;
+         this.variable   = variable;
+         this.properties = properties;
       }
    }
 
@@ -415,55 +419,21 @@ public abstract class Validator implements IModelChangeListener {
     * 
     * @return Queue or null
     */
-   static synchronized List<ValidateInfo> addValidation(Validator validator, Variable var) {
+   static synchronized List<ValidateInfo> addValidation(Validator validator, Variable var, int properties) {
 
       synchronized (validationQueue) {
          if (validationQueue.isEmpty()) {
-            validationQueue.add(new ValidateInfo(validator, var));
+            validationQueue.add(new ValidateInfo(validator, var, properties));
             return validationQueue;
          }
          else {
-            validationQueue.add(new ValidateInfo(validator, var));
+            validationQueue.add(new ValidateInfo(validator, var, properties));
             return null;
          }
 
       }
    }
    
-   @Override
-   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
-      
-      try {
-         Variable var = null;
-         if (observableModel instanceof Variable) {
-            var = (Variable) observableModel;
-         }
-         List<ValidateInfo> queue = addValidation(this, var);
-         if (queue == null) {
-            // Not the only active validator - leave execution to later
-//            System.err.println("Deferring validation");
-            return;
-         }
-         // First validator in queue - execute validators in order until empty
-         ValidateInfo item;
-//         int count=0;
-         do {
-            item = null;
-            synchronized (validationQueue) {
-               if (!queue.isEmpty()) {
-                  item = queue.get(0);
-                  queue.remove(0);
-//                  System.err.println("Executing validator("+getSimpleClassName()+":"+count+") this="+fPeripheral.getName()+", p=" + item.validator.fPeripheral.getName() +", v="+item.variable.getName());
-                  item.validator.validate(item.variable);
-               }
-            }
-//            count++;
-         } while (item != null);
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
-
    /**
     * Adds dependencies for validators:<br>
     * 
@@ -515,4 +485,38 @@ public abstract class Validator implements IModelChangeListener {
       return fDeviceInfo;
    }
    
+   @Override
+   public void modelElementChanged(ObservableModelInterface observableModel, int properties) {
+      
+      try {
+         Variable var = null;
+         if (observableModel instanceof Variable) {
+            var = (Variable) observableModel;
+         }
+         List<ValidateInfo> queue = addValidation(this, var, properties);
+         if (queue == null) {
+            // Not the only active validator - leave execution to later
+//            System.err.println("Deferring validation");
+            return;
+         }
+         // First validator in queue - execute validators in order until empty
+         ValidateInfo item;
+//         int count=0;
+         do {
+            item = null;
+            synchronized (validationQueue) {
+               if (!queue.isEmpty()) {
+                  item = queue.get(0);
+                  queue.remove(0);
+//                  System.err.println("Executing validator("+getSimpleClassName()+":"+count+") this="+fPeripheral.getName()+", p=" + item.validator.fPeripheral.getName() +", v="+item.variable.getName());
+                  item.validator.validate(item.variable, item.properties);
+               }
+            }
+//            count++;
+         } while (item != null);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+
 }

@@ -25,7 +25,7 @@ public class ClockValidator_MCG extends IndexedValidator {
     * @throws Exception
     */
    @Override
-   protected void validate(Variable variable, int index) throws Exception {
+   protected void validate(Variable variable, int properties, int index) throws Exception {
 //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       // Check configuration name is valid C identifier

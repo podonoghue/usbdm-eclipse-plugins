@@ -403,7 +403,7 @@ public class CreateDeviceSkeletonFromSVD {
             else {
                // Read/Write so create enum wrapper
                resultSb.append("\n      typeName=\""+ enumName + "\"\n");
-               resultSb.append("      enumType=\""+ getRegisterCType((field.getBitwidth()+7)/8) + "\"\n");
+               resultSb.append("      baseType=\""+ getRegisterCType((field.getBitwidth()+7)/8) + "\"\n");
             }
             resultSb.append("      description=\"" + fieldDescription + "\"\n");
             resultSb.append("      toolTip=\"" + toolTip + "\"\n");
@@ -427,7 +427,7 @@ public class CreateDeviceSkeletonFromSVD {
             resultSb.append(hidden);
             resultSb.append(registerAttr);
             resultSb.append("\n      typeName=\"" +  enumName +"\"\n");
-            resultSb.append("      enumType=\""+ getRegisterCType((reg.getWidth()+7)/8) + "\"\n");
+            resultSb.append("      baseType=\""+ getRegisterCType((reg.getWidth()+7)/8) + "\"\n");
 
             resultSb.append("      description=\"" + fieldDescription + "\"\n");
             resultSb.append("      toolTip=\"" + toolTip + "\" >\n");
@@ -519,7 +519,7 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t *\n" +
           "         \\t * @return %tooltip\n" +
           "         \\t */\n" +
-          "         \\tstatic %paramType get%(name)() {\n" +
+          "         \\tstatic %returnType get%(name)() {\n" +
           "         \\t   return %fieldExtract;\n" +
           "         \\t}\n" +
           "         \\t\\n\n" +
@@ -1010,7 +1010,7 @@ public class CreateDeviceSkeletonFromSVD {
          HashSet<String> usedFieldNames = new HashSet<String>();
          final int MAX_LIST_LENGTH = 40;
          final String memberDeclaration =
-               "%%enumType   : %s";
+               "%%baseType   : %s";
          final String padding=
                "\n                             ";
          
@@ -1759,7 +1759,7 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    static String peripheralsToDo[] = {
-         "ACMP",
+//         "ACMP",
 //         "ADC",
 //         "CAN",
 //         "CMP",
@@ -1778,7 +1778,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "IRQ",
 //         "I2C",
 //         "I2S",
-//         "KBI",
+         "KBI",
 //         "LPTMR",
 //         "LPUART",
 //         "LLWU",
@@ -1880,8 +1880,8 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    public static void main(String[] args) throws Exception {
-      doAllPeripherals("FRDM_KE04Z", "mke");
-//      doAllPeripherals("FRDM_KE06Z");
+//      doAllPeripherals("FRDM_KE04Z", "mke");
+      doAllPeripherals("FRDM_KE06Z", "mke");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");

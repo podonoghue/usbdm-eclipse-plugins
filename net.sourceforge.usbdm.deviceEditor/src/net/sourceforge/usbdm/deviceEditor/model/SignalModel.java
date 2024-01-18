@@ -146,37 +146,6 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
    
    @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
-      for (String prop:properties) {
-         if ("Value".equals(prop)) {
-            // Update status
-            Status status = fSignal.checkMappingConflicted();
-            if (status == null) {
-               for (MappingInfo mappingInfo: fSignal.getMappedPinInformation()) {
-                  status = mappingInfo.getPin().checkMappingConflicted();
-                  if (status != null) {
-                     break;
-                  }
-               }
-            }
-            setStatus(status);
-
-            if (model instanceof Signal) {
-               update(null);
-            }
-            if (model instanceof Pin) {
-               update(null);
-            }
-         }
-         else if ("Structure".equals(prop)) {
-         }
-         else if ("Status".equals(prop)) {
-            updateAncestors();
-         }
-      }
-   }
-
-   @Override
    public String toString() {
       return "SignalModel("+fName+") => "+getValueAsString();
    }
@@ -280,6 +249,34 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          fSelection = 0;
       }
       return fSelection;
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      
+      if ((properties & PROPERTY_VALUE) != 0) {
+         // Update status
+         Status status = fSignal.checkMappingConflicted();
+         if (status == null) {
+            for (MappingInfo mappingInfo: fSignal.getMappedPinInformation()) {
+               status = mappingInfo.getPin().checkMappingConflicted();
+               if (status != null) {
+                  break;
+               }
+            }
+         }
+         setStatus(status);
+         
+         if (model instanceof Signal) {
+            update(null);
+         }
+         if (model instanceof Pin) {
+            update(null);
+         }
+      }
+      if ((properties & PROPERTY_STATUS) != 0) {
+         updateAncestors();
+      }
    }
 
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
  
 public class BooleanVariable extends VariableWithChoices {
@@ -136,11 +135,11 @@ public class BooleanVariable extends VariableWithChoices {
    }
 
    @Override
-   public void notifyListeners(IModelChangeListener exclude, String[] properties) {
+   public void notifyListeners(int properties) {
       if (fValue != null) {
          updateTargets(fValue?fTrue:fFalse);
       }
-      super.notifyListeners(exclude, properties);
+      super.notifyListeners(properties);
    }
    
    /**

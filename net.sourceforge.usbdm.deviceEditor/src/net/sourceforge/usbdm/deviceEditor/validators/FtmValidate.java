@@ -27,9 +27,9 @@ public class FtmValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
 
-      super.validate(variable);
+      super.validate(variable, properties);
 
       //=================================
 
@@ -41,7 +41,7 @@ public class FtmValidate extends PeripheralValidator {
       }
 
       DoubleVariable    clockVar          =  getDoubleVariable("clock");
-      LongVariable      modVar            =  getLongVariable("ftm_mod");
+      LongVariable      modVar            =  getLongVariable("ftm_mod_mod");
       DoubleVariable    modPeriodVar      =  getDoubleVariable("ftm_modPeriod");
       BooleanVariable   sc_cpwmsVar       =  getBooleanVariable("ftm_sc_cpwms");
 
@@ -117,7 +117,7 @@ public class FtmValidate extends PeripheralValidator {
       final String[] externalVariables = {
             "mode",
             "clock",
-            "ftm_mod",
+            "ftm_mod_mod",
             "ftm_modPeriod",
             "ftm_sc_cpwms",
             "ftm_cnvEventTime_independent[0]",

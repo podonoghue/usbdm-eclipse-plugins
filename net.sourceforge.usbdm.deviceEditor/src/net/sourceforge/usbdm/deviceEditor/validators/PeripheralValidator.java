@@ -46,7 +46,7 @@ public class PeripheralValidator extends Validator {
    }
 
    @Override
-   protected void validate(Variable variable) throws Exception {
+   protected void validate(Variable variable, int properties) throws Exception {
    }
 
    /**

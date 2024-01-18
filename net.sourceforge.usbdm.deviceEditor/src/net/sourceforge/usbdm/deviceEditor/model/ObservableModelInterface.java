@@ -35,39 +35,17 @@ public interface ObservableModelInterface {
    /**
     * Notify all listeners of changes in given property types
     */
-   public void notifyListeners(String[] properties);
+   public void notifyListeners(int properties);
    
    /**
-    * Notify all listeners (apart from exclude) of changes in given property types
-    * 
-    * @param origin Listener to exclude
-    */
-   public void notifyListeners(IModelChangeListener exclude, String[] properties);
-
-   /**
-    * Notify BaseModel listeners
+    * Notify BaseModel listeners<br>
     * Notify all BaseModel listeners of change in property = "Status"
     */
-   public void notifyModelListeners();
+   public void notifyBaseModelListeners();
    
    /**
-    * Notify all listeners of change in property = "Status"
-    */
-   public void notifyStatusListeners();
-
-   /**
     * Notify structure change listeners
-    * 
     */
    public void notifyStructureChangeListeners();
-
-   /**
-    * Set whether the node has changed since last refresh
-    * 
-    * @param updatePending
-    */
-   public void setRefreshPending(boolean refreshPending);
-
-   public boolean isRefreshPending();
 
 }

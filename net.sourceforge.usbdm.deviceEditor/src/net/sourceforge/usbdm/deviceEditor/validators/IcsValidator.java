@@ -93,7 +93,7 @@ public class IcsValidator extends IndexedValidator {
     * Determines RDIV and MCG_C3_RANGE0
     */
    @Override
-   protected void validate(Variable variable, int index) throws Exception {
+   protected void validate(Variable variable, int properties, int index) throws Exception {
 
       final ChoiceVariable  ics_c1_rdivVar = getChoiceVariable("ics_c1_rdiv[]");
       

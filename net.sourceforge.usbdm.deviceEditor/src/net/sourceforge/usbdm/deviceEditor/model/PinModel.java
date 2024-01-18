@@ -115,14 +115,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    }
 
    @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
-      
-      // Update status
-      setStatus(fPin.getStatus());
-      update(null);
-   }
-
-   @Override
    public String getSimpleDescription() {
       return fPin.getMappedSignalsUserDescriptions();
    }
@@ -183,6 +175,14 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          }
       }
       return sb.toString();
+   }
+   
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      
+      // Update status
+      setStatus(fPin.getStatus());
+      update(null);
    }
 
 }

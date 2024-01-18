@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion.PinMap;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 
@@ -152,7 +152,7 @@ public class BitmaskVariable extends LongVariable {
       super.update(info, expression);
       
       try {
-         if (info.doFullUpdate || info.properties.contains(ObservableModelInterface.PROP_VALUE[0])) {
+         if (info.doFullUpdate || ((info.properties&IModelChangeListener.PROPERTY_VALUE)!=0)) {
             updatePinMap(getValueAsLong());
          }
       } catch (Exception e) {
@@ -338,6 +338,13 @@ public class BitmaskVariable extends LongVariable {
          for (int index=0; index<fDescriptions.length; index++) {
             fDescriptions[index] = fDescriptions[index].trim();
          }
+      }
+      
+      if (isLogging()) {
+         System.err.println("fBitMapping = "+Arrays.toString(fBitMapping));
+         System.err.println("fBitNames = "+Arrays.toString(fBitNames));
+         System.err.println("fDescriptions = "+Arrays.toString(fDescriptions));
+         System.err.println("fPinMap = "+fPinMap);
       }
    }
    

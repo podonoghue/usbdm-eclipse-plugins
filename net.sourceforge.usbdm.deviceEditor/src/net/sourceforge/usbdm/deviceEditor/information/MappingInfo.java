@@ -3,8 +3,8 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin.PinIrqDmaValue;
 import net.sourceforge.usbdm.deviceEditor.information.Pin.PinPullValue;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 
 /**
  * Describes the set of peripheral signals that are mapped to a pin for a particular mux value<br>
@@ -141,11 +141,11 @@ public class MappingInfo extends ObservableModel {
       }
       fSelected = selected;
       if (fPin != origin) {
-         fPin.modelElementChanged(null, ObservableModelInterface.PROP_MAPPING);
+         fPin.modelElementChanged(null, IModelChangeListener.PROPERTY_MAPPING);
       }
       for (Signal signal:getSignals()) {
          if (signal != origin) {
-            signal.modelElementChanged(null, ObservableModelInterface.PROP_MAPPING);
+            signal.modelElementChanged(null, IModelChangeListener.PROPERTY_MAPPING);
          }
       }
       return true;
@@ -323,11 +323,11 @@ public class MappingInfo extends ObservableModel {
          return false;
       }
       fProperties = properties;
-      fPin.modelElementChanged(this, ObservableModelInterface.PROP_MAPPING);
+      fPin.modelElementChanged(this, IModelChangeListener.PROPERTY_MAPPING);
       for (Signal signal:getSignals()) {
-         signal.modelElementChanged(this, ObservableModelInterface.PROP_MAPPING);
+         signal.modelElementChanged(this, IModelChangeListener.PROPERTY_MAPPING);
       }
-      fPin.modelElementChanged(this, ObservableModelInterface.PROP_MAPPING);
+      fPin.modelElementChanged(this, IModelChangeListener.PROPERTY_MAPPING);
       fPin.setDirty();
       return true;
    }

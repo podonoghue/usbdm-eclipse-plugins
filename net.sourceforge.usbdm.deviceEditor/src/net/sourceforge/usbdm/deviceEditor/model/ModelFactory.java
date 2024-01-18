@@ -412,25 +412,6 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       return new ModelFactory(DeviceInfo.createFromSettingsFile(null, path));
    }
 
-   @Override
-   public void modelElementChanged(ObservableModelInterface model, String[] properties) {
-      if (underConstruction) {
-         return;
-      }
-      if (model instanceof DeviceInfo) {
-         if (fCurrentDeviceVariant != fDeviceInfo.getVariant()) {
-            // Major change
-            fCurrentDeviceVariant = fDeviceInfo.getVariant();
-            createModels();
-            notifyStructureChangeListeners();
-         }
-         else {
-            // Minor change
-            notifyListeners();
-         }
-      }
-   }
-   
    public void setHardwareFile(String value) {
    }
 
@@ -481,4 +462,24 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          };
       }
    }
+   
+   @Override
+   public void modelElementChanged(ObservableModelInterface model, int properties) {
+      if (underConstruction) {
+         return;
+      }
+      if (model instanceof DeviceInfo) {
+         if (fCurrentDeviceVariant != fDeviceInfo.getVariant()) {
+            // Major change
+            fCurrentDeviceVariant = fDeviceInfo.getVariant();
+            createModels();
+            notifyStructureChangeListeners();
+         }
+         else {
+            // Minor change
+            notifyListeners();
+         }
+      }
+   }
+   
 }

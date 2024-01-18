@@ -16,25 +16,28 @@ public abstract class IndexedValidator extends PeripheralValidator {
    }
 
    @Override
-   final protected void validate(Variable variable) throws Exception {
-      super.validate(variable);
+   final protected void validate(Variable variable, int properties) throws Exception {
+      super.validate(variable, properties);
       int varIndex = -1;
       if (variable != null) {
          varIndex = variable.getIndex();
       }
+      if ((variable!=null) && variable.isLogging()) {
+         System.err.println("validate("+variable+")");
+      }
       if (varIndex < 0) {
          for (int clockIndex=0; clockIndex<fDimension; clockIndex++) {
             setClockIndex(clockIndex);
-            validate(variable, clockIndex);
+            validate(variable, properties, clockIndex);
          }
       }
       else {
          setClockIndex(varIndex);
-         validate(variable, varIndex);
+         validate(variable, properties, varIndex);
       }
    }
    
-   protected abstract void validate(Variable variable, int index) throws Exception;
+   protected abstract void validate(Variable variable, int properties, int index) throws Exception;
    
    /**
     * Get Variable from associated peripheral. <br>

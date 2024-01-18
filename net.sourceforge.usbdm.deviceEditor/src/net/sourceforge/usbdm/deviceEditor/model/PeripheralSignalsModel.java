@@ -72,7 +72,7 @@ public final class PeripheralSignalsModel extends VariableModel implements IMode
    }
 
    @Override
-   public void modelElementChanged(ObservableModelInterface observableModel, String[] properties) {
+   public void modelElementChanged(ObservableModelInterface observableModel, int properties) {
       setStatus(fPeripheral.getStatus());
       if (fChildren == null) {
          return;

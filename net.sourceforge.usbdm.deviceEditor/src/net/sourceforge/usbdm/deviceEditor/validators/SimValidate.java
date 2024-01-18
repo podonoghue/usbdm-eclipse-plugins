@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -153,10 +154,13 @@ public class SimValidate extends IndexedValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable, int index) throws Exception {
+   public void validate(Variable variable, int properties, int index) throws Exception {
 
+      if ((properties&PROPERTY_VALUE) == 0) {
+         return;
+      }
       if ((variable != null) && variable.isLogging()) {
-         System.err.println("validate("+variable+")");
+         System.err.println("validate("+variable+", "+IModelChangeListener.getPropertyNames(properties)+")");
       }
       // Determine peripheralClock
       LongVariable  peripheralClockVar = getLongVariable("system_peripheral_clock[]");
@@ -237,7 +241,7 @@ public class SimValidate extends IndexedValidator {
             severity = Severity.ERROR;
          }
          else if (system_core_clockVar.getValueAsLong() != coreDivisor.nearestTargetFrequency) {
-//            system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+            system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
          }
          system_core_clockVar.setStatus(new Status(coreDivisor.divisors, severity));
          if (!coreDivisor.failed() && doGuiUpdates && (variable == system_core_clockVar)) {
@@ -270,7 +274,7 @@ public class SimValidate extends IndexedValidator {
       if (!busDivisor.failed() && doGuiUpdates && (variable == system_bus_clockVar)) {
          // Target clock manually changed - update divisors
          sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor-1);
-         //system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
+         system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
       }
       // Flexbus Clock
       //===========================================
@@ -298,7 +302,7 @@ public class SimValidate extends IndexedValidator {
          if (!flexDivisor.failed() && doGuiUpdates && (variable == system_flexbus_clockVar)) {
             // Target clock manually changed - update divisor
             sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor-1);
-            //system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
+            system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
          }
       }
       // Flash Clock
@@ -324,10 +328,11 @@ public class SimValidate extends IndexedValidator {
          sb.append(flashDivisor.divisors);
          system_flash_clockVar.setStatus(new Status(sb.toString(), severity));
       }
-      if (!flashDivisor.failed() && doGuiUpdates && (variable == system_flash_clockVar)) {
+      boolean doUpdate = !flashDivisor.failed() && doGuiUpdates && (variable == system_flash_clockVar);
+      if (doUpdate) {
          // Target clock changed - validate
          sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor-1);
-         //system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
+         system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
       }
       
 //      System.err.println("validate() - exit");

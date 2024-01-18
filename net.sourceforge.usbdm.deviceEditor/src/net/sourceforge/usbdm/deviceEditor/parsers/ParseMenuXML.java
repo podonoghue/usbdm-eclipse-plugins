@@ -1100,9 +1100,13 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (varElement.hasAttribute("typeName")) {
          variable.setTypeName(getAttributeAsString(varElement, "typeName", null));
+         String check = getAttributeAsString(varElement, "typeName", null);
+         if (check.contains("Ticks")) {
+            System.err.println("Illegal value for typeName '"+ check + "'");
+         }
       }
-      if (varElement.hasAttribute("enumType")) {
-         variable.setEnumType(getAttributeAsString(varElement, "enumType", null));
+      if (varElement.hasAttribute("baseType")) {
+         variable.setBaseType(getAttributeAsString(varElement, "baseType", null));
       }
       if (varElement.hasAttribute("valueFormat")) {
          variable.setValueFormat(getAttributeAsString(varElement, "valueFormat"));
@@ -1652,25 +1656,28 @@ public class ParseMenuXML extends XML_BaseParser {
    
    /// Format string with parameters: description, tool-tip, enumClass, body
    String enumTemplate = ""
+       /*                  */ + " \\t/**\n"
+       /*  Description     */ + " \\t * %s\n"
+       /*  Variable names  */ + " \\t * (%s)\n"
+       /*                  */ + " \\t *\n"
+       /*  Tooltip         */ + " \\t * %s\n"
+       /*                  */ + " \\t */\n"
+       /*  type,enumtype   */ + " \\tenum %s%s {\n"
+       /*  body            */ + " %s"
+       /*                  */ + " \\t};\\n\\n\n";
+
+   /// Format string with parameters: description, tool-tip, enumClass, body
+   String constantTemplate = ""
          + "      \\t/**\n"
          + "      \\t * %s\n"
          + "      \\t *\n"
          + "      \\t * %s\n"
          + "      \\t */\n"
-         + "      \\tenum %s%s {\n"
-         + "      %s"
-         + "      \\t};\\n\\n\n";
-
+         + "      %s\\n\\n\n";
+   
    String guardedEnumTemplate = ""
          + "#if %s\n"
-         + "      \\t/**\n"
-         + "      \\t * %s\n"
-         + "      \\t *\n"
-         + "      \\t * %s\n"
-         + "      \\t */\n"
-         + "      \\tenum %s%s {\n"
-         + "      %s"
-         + "      \\t};\n"
+         + "%s"
          + "#endif\\n\\n\n";
 
    /**
@@ -1686,22 +1693,24 @@ public class ParseMenuXML extends XML_BaseParser {
       if (typeName==null) {
          return;
       }
-
+      boolean createAsConstants = getAttributeAsBoolean(varElement, "createAsConstants", false);
+      
       String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
 
-      if ((fPeripheral != null) && fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
+      if (!createAsConstants &&
+         (fPeripheral != null) &&
+         fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
          return;
       }
 
-      String enumType = getAttributeAsString(varElement, "enumType");
-      if (enumType != null) {
-         enumType = " : "+enumType;
+      String baseType = getAttributeAsString(varElement, "baseType");
+      if (baseType != null) {
+         baseType = " : "+baseType;
       }
       else {
-         enumType = "";
+         baseType = "";
       }
-
       String namespace = "usbdm";
       String templateKey = getAttributeAsString(varElement, "templateKey");
       if (templateKey != null) {
@@ -1750,6 +1759,12 @@ public class ParseMenuXML extends XML_BaseParser {
                continue;
             }
             String completeEnumName = enumClass+"_"+enumName;
+            if (createAsConstants) {
+               completeEnumName = enumName;
+            }
+            else {
+               completeEnumName = enumClass+"_"+enumName;
+            }
             enumNamesList.add(completeEnumName);
             enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
 
@@ -1765,7 +1780,7 @@ public class ParseMenuXML extends XML_BaseParser {
                }
                sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
             }
-            String completeValue = sb.toString()+",";
+            String completeValue = sb.toString()+(createAsConstants?";":",");
             //            valuesList.add(escapeString(completeValue));
             valuesList.add(completeValue);
             valueMax        = Math.max(valueMax, completeValue.length());
@@ -1777,7 +1792,12 @@ public class ParseMenuXML extends XML_BaseParser {
       
       // Create enums body
       for (int index=0; index<enumNamesList.size(); index++) {
-         body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
+         if (createAsConstants) {
+            body.append(String.format("\\tconstexpr %s %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", typeName, enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
+         }
+         else {
+            body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
+         }
       }
       String enumText = getAttributeAsString(varElement, "enumText", null);
       if (enumText != null) {
@@ -1787,15 +1807,17 @@ public class ParseMenuXML extends XML_BaseParser {
          body.append(enumText+"\n");
       }
       // Create enum declaration
-      String entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body.toString());
-
+      String entireEnum;
+      if (createAsConstants) {
+         entireEnum = String.format(constantTemplate, description, tooltip, body.toString());
+      }
+      else {
+         entireEnum = String.format(enumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
+      }
       String enumGuard = getAttributeAsString(varElement, "enumGuard");
       if (enumGuard != null) {
          // Add guard
-         entireEnum = String.format(guardedEnumTemplate, enumGuard, description, tooltip, enumClass, enumType, body.toString());
-      }
-      else {
-         entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body.toString());
+         entireEnum = String.format(guardedEnumTemplate, enumGuard, entireEnum);
       }
       templateInfo.addText(entireEnum);
    }
@@ -1821,12 +1843,18 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
 
-      String enumType = getAttributeAsString(varElement, "enumType");
-      if (enumType != null) {
-         enumType = " : "+enumType;
+      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
+      if ("false".equalsIgnoreCase(doEnum)) {
+         return;
+      }
+      boolean emptyEnum = "empty".equalsIgnoreCase(doEnum);
+      
+      String baseType = getAttributeAsString(varElement, "baseType");
+      if (baseType != null) {
+         baseType = " : "+baseType;
       }
       else {
-         enumType = "";
+         baseType = "";
       }
 
       String namespace = "usbdm";
@@ -1846,32 +1874,30 @@ public class ParseMenuXML extends XML_BaseParser {
 
       TemplateInformation templateInfo = addTemplate(templateKey, namespace, null);
 
-      StringBuilder body = new StringBuilder();
-
-      // Use typeName attribute
-      if ((typeName == null) || typeName.isBlank()) {
-         throw new Exception("typeName is missing in " + variable);
-      }
       String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
 
       String[]  bitNames = variable.getBitNames();
       String[]  bitDesc  = variable.getBitDescriptions();
       Integer[] bitMap   = variable.getBitMapping();
 
-      // Check length of enums
-      int enumNameMax    = 0;
-      for (int index=0; index<bitNames.length; index++) {
-         bitNames[index] = makeSafeIdentifierName(bitNames[index]);
-         String enumName = enumClass+"_"+bitNames[index];
-         enumNameMax     = Math.max(enumNameMax, enumName.length());
-      }
+      StringBuilder body = new StringBuilder();
+      
+      if (!emptyEnum) {
+         // Check length of enums
+         int enumNameMax    = 0;
+         for (int index=0; index<bitNames.length; index++) {
+            bitNames[index] = makeSafeIdentifierName(bitNames[index]);
+            String enumName = enumClass+"_"+bitNames[index];
+            enumNameMax     = Math.max(enumNameMax, enumName.length());
+         }
 
-      // Create enums body
-      for (int index=0; index<bitNames.length; index++) {
-         String completeEnumName = enumClass+"_"+bitNames[index];
-         String value = String.format(valueFormat, "1<<"+bitMap[index])+",";
-         
-         body.append(String.format("\\t   %-"+enumNameMax+"s = %-10s %s\n", completeEnumName, value, (bitDesc==null)?"":("///< " +bitDesc[index])));
+         // Create enums body
+         for (int index=0; index<bitNames.length; index++) {
+            String completeEnumName = enumClass+"_"+bitNames[index];
+            String value = String.format(valueFormat, "1U<<"+bitMap[index])+",";
+            
+            body.append(String.format("\\t   %-"+enumNameMax+"s = %-10s %s\n", completeEnumName, value, (bitDesc==null)?"":("///< " +bitDesc[index])));
+         }
       }
       String enumText = getAttributeAsString(varElement, "enumText", null);
       if (enumText != null) {
@@ -1881,15 +1907,12 @@ public class ParseMenuXML extends XML_BaseParser {
          body.append(enumText+"\n");
       }
       // Create enum declaration
-      String entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body.toString());
+      String entireEnum = String.format(enumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
 
       String enumGuard = getAttributeAsString(varElement, "enumGuard");
       if (enumGuard != null) {
          // Add guard
-         entireEnum = String.format(guardedEnumTemplate, enumGuard, description, tooltip, enumClass, enumType, body.toString());
-      }
-      else {
-         entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body.toString());
+         entireEnum = String.format(guardedEnumTemplate, enumGuard, entireEnum);
       }
       templateInfo.addText(entireEnum);
    }
@@ -1903,22 +1926,16 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void generateEnum(Element varElement, LongVariable variable) throws Exception {
 
-      String enumType = getAttributeAsString(varElement, "enumType");
-      if (enumType == null) {
+      String baseType = getAttributeAsString(varElement, "baseType");
+      if (baseType == null) {
          return;
       }
-      enumType = " : "+enumType;
-
       // Use typeName attribute
       String typeName  = variable.getTypeName();
-      if ((typeName == null) || typeName.isBlank()) {
-         throw new Exception("typeName is missing in " + variable);
-      }
-
-      if (typeName.contains("Ticks")) {
-         // Ignore longs with using existing type "Tick"
+      if (typeName == null) {
          return;
       }
+      baseType = " : "+baseType;
 
       if ((fPeripheral != null) && fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
@@ -1948,13 +1965,11 @@ public class ParseMenuXML extends XML_BaseParser {
       // Create enum declaration
       String entireEnum;
 
+      entireEnum = String.format(enumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
       String enumGuard = getAttributeAsString(varElement, "enumGuard");
       if (enumGuard != null) {
          // Add guard
-         entireEnum = String.format(guardedEnumTemplate, enumGuard, description, tooltip, enumClass, enumType, body.toString());
-      }
-      else {
-         entireEnum = String.format(enumTemplate, description, tooltip, enumClass, enumType, body.toString());
+         entireEnum = String.format(guardedEnumTemplate, enumGuard, entireEnum);
       }
       templateInfo.addText(entireEnum);
    }
@@ -2971,33 +2986,46 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Construct template substitutions<br><br>
     * <ul>
-    * <li>%paramExpression                Parameters ORed together e.g. adcPretrigger|adcRefSel
-    * <li>%valueExpression                Numeric variable value e.g. 0x3
-    * <li>%symbolicExpression[index]      Symbolic formatted value e.g. AdcCompare_Disabled
-    * <li>%variable[index]                Variable name /ADC0/adc_sc2_acfe
-    * <li>%macro[index](value)            C register macro e.g. ADC_SC2_ACFGT(value)
-    * <li>%description[index]             Description from controlVar e.g. Compare Function Enable
-    * <li>%shortDescription[index]        Short description from controlVar e.g. Compare Function Enable
-    * <li>%tooltip[index]                 Tool-tip from controlVar e.g. Each bit disables the GPIO function
-    * <li>%params                         Formatted parameter list for function
-    * <li>%paramDescription[index]        Tool-tip from controlVar formatted as param description @param ...
-    * <li>%paramType[index]               Based on typeName e.g. AdcCompare (or uint32_t)
-    * <li>%paramName[index]               Based on typeName with lower-case first letter adcCompare
-    * <li>%enumType[index]                Underlying type for enum
+    * <li>%baseType[index]                Underlying type for enum
+
+    * <li>%configFieldAssignment          Expression of form '%register     <= (%register & ~%mask)|%registerName
+    * <li>%configRegAssignment            Expression of form '%register     <= %registerName
+    * <li>%constructorFieldAssignment     Expression of form '%registerName <= (%registerName & ~%mask)|%paramExpression
+    * <li>%constructorRegAssignment       Expression of form '%registerName <= %paramExpression
+
+    * <li>%defaultValue[index]            Default value of variable
+    * <li>%description[index]             Description from variable e.g. Compare Function Enable
+
     * <li>%fieldExtract                   Expression of form '(%register & %mask)
     * <li>%fieldAssignment                Expression of form '%register     <= (%register & ~%mask)|%paramExpression
-    * <li>%constructorFieldAssignment     Expression of form '%registerName <= (%registerName & ~%mask)|%paramExpression
-    * <li>%configFieldAssignment          Expression of form '%register     <= (%register & ~%mask)|%registerName
-    * <li>%regAssignment                  Expression of form '%register     <= %paramExpression
-    * <li>%constructorRegAssignment       Expression of form '%registerName <= %paramExpression
-    * <li>%configRegAssignment            Expression of form '%register     <= %registerName
-    * <li>%maskingExpression              Based on variable etc. Similar to (%register&%mask)
-    * <li>%variable[index]                Variable name from condition
+
+    * <li>%initExpression                 Based on variables etc. Similar to (%register&%mask)
+    
     * <li>%macro[index]                   From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG"
     * <li>%mask[index]                    From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG_MASK" (_MASK is added)
+    * <li>%maskingExpression              Based on variable etc. Similar to (%register&%mask)
+    * <li>%multilineDescription           Brief description of all variables
+
+    * <li>%param[index]                   Formatted parameter for function
+    * <li>%paramDescription[index]        Tool-tip from controlVar formatted as param description @param ...
+    * <li>%paramExpression                Parameters ORed together e.g. adcPretrigger|adcRefSel
+    * <li>%paramName[index]               Based on typeName with lower-case first letter adcCompare
+    * <li>%params                         Formatted parameter list for function
+    * <li>%paramType[index]               Based on typeName e.g. AdcCompare (or uint32_t)
+
+    * <li>%regAssignment                  Expression of form '%register     <= %paramExpression
     * <li>%register[index]                Register associated with variable e.g. adc->APCTL1
     * <li>%registerName[index]            Name of corresponding register (lower-case for Init()) e.g. apctl1
-    * <li>%registerNAME[index]            Name of corresponding register (upper-case for Init()) e.g. APCTL1 <br><br>
+    * <li>%registerNAME[index]            Name of corresponding register (upper-case for Init()) e.g. APCTL1
+    * <li>%returnType[index]              Based on typeName e.g. AdcCompare (or uint32_t) (references and const stripped)
+
+    * <li>%shortDescription[index]        Short description from controlVar e.g. Compare Function Enable
+    * <li>%symbolicExpression[index]      Symbolic formatted value e.g. AdcCompare_Disabled
+
+    * <li>%tooltip[index]                 Tool-tip from controlVar e.g. Each bit disables the GPIO function
+
+    * <li>%valueExpression                Numeric variable value e.g. 0x3
+    * <li>%variable[index]                Variable name e.g. /ADC0/adc_sc2_acfe
     * </ul>
     * 
     * @param element                 Element
@@ -3009,10 +3037,8 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    List<StringPair> getTemplateSubstitutions(Element element, String variableAttributeName) throws Exception {
 
-      boolean isConstructor = (element.getTagName().equalsIgnoreCase("constructorTemplate"));
-
       boolean useDefinitions          = Boolean.valueOf(getAttributeAsString(element, "useDefinitions", "false"));
-      boolean multipleParamsOnNewline = Boolean.valueOf(getAttributeAsString(element, "multipleParamsOnNewline", "false"));
+      boolean multipleParamsOnNewline = Boolean.valueOf(getAttributeAsString(element, "multipleParamsOnNewline", "true"));
       
       String temp = getAttributeAsString(element, "params");
       List<String> paramOverride;
@@ -3129,6 +3155,10 @@ public class ParseMenuXML extends XML_BaseParser {
          StringBuilder paramExprSb          = new StringBuilder();  // Combined expression param1|param2
          StringBuilder paramsSb             = new StringBuilder();  // Parameter list with defaults etc.
          StringBuilder paramDescriptionSb   = new StringBuilder();  // @param style comments for parameters
+         StringBuilder descriptionSb        = new StringBuilder();  // @param style comments for parameters
+
+         // Accumulates the description for all parameters as block comment
+         StringBuilder multilineDescription = new StringBuilder();
 
          boolean       parmsOnNewLine       = false;                 // Indicates there are multiple parameters
           
@@ -3166,9 +3196,6 @@ public class ParseMenuXML extends XML_BaseParser {
          String  registerName       = null;
          boolean registeNameChanged = false;
 
-         // Accumulates the description for all parameters as block comment
-         StringBuilder multilineDescription = new StringBuilder();
-         
          // Padding applied to parameters
          String paramPadding = (variableList.size()<=1)?"":"\\t      "+linePadding;
          
@@ -3251,93 +3278,53 @@ public class ParseMenuXML extends XML_BaseParser {
                }
             }
 
-            // Underlying C type from variable
-            String enumType = "'%enumType' is not valid here";
+            String baseType = "'%baseType' is not valid here";
             
-            String enumTypeValue = variable.getEnumType();
+            String baseTypeValue = variable.getBaseType();
             String typeNameValue = variable.getTypeName();
-            if (enumTypeValue != null) {
-               enumType = enumTypeValue;
+            if (baseTypeValue != null) {
+               baseType = baseTypeValue;
             }
             else if (typeNameValue != null) {
-               enumType = typeNameValue;
+               baseType = typeNameValue;
             }
             
             // Type from variable with upper-case 1st letter
-            String paramName = "'%paramName' is not valid here";
-
-            String paramType = variable.getTypeName();
-            if (paramType == null) {
-               if (variable instanceof LongVariable) {
-                  LongVariable var = (LongVariable) variable;
-                  paramType = var.getUnits().getType();
-                  if (var.getUnits() == Units.ticks) {
-                     paramName = "ticks";
-                  }
-                  else {
-                     paramName = "value";
-                  }
-               }
-               else if (variable instanceof DoubleVariable) {
-                  DoubleVariable var = (DoubleVariable) variable;
-                  paramType = var.getUnits().getType();
-                  if (var.getUnits() == Units.ticks) {
-                     paramName = "ticks";
-                  }
-                  else {
-                     paramName = "value";
-                  }
-               }
-               if (paramType == null) {
-                  paramType = "'%paramType' is not valid here";
-               }
-               else {
-
-               }
+            String paramName  = variable.getParamName();
+            String paramType  = variable.getParamType();
+            // Check for given value
+            String returnType = getAttributeAsString(element, "returnType", null);
+            if (returnType == null ) {
+               // Get return type from variable
+               returnType = variable.getReturnType();
             }
-            else {
-               paramType = paramType.strip();
-               Pattern p = Pattern.compile("(const\\s)?\\s*([a-zA-Z0-9_]+)\\s*(&)?");
-               Matcher m = p.matcher(paramType);
-               if (!m.matches()) {
-                  throw new Exception("Failed to match '" + paramType + "'");
-               }
-               String constPrefix = m.group(1);
-               String type        = m.group(2);
-               String reference   = m.group(3);
-               if (constPrefix == null) {
-                  constPrefix = "";
-               }
-               if (reference == null) {
-                  reference = "";
-               }
-               if (!isConstructor) {
-                  // Strip references from type unless it is a constexpr constructor
-                  constPrefix = "";
-                  reference   = "";
-               }
-               paramType  = constPrefix + Character.toUpperCase(type.charAt(0)) + type.substring(1) + reference;
-               paramName  = Character.toLowerCase(type.charAt(0)) + type.substring(1);
-
-            }
-            // Special cases pattern
-            // This is used to identify C integers
-            Pattern pSpecial = Pattern.compile("(u?int[0-9]+_t)|((un)?signed(\\sint)?)|(int)");
-
-            Matcher mSpecial = pSpecial.matcher(paramName);
-            boolean integerType = mSpecial.matches();
-            if (integerType) {
+//            if (variable.isLogging() && (returnType.equals("null"))) {
+//               System.err.println("Found it null " + variable);
+//            }
+//            if (returnType.equals("null" )) {
+//               System.err.println("Found it null " + variable);
+//            }
+//            if (paramName.substring(0,1).matches("[A-Z]")) {
+//               System.err.println("Found it, paramName=" + paramName +", var ="+variable);
+//            }
+//            if (paramType.substring(0,1).matches("[a-z]") &&
+//               !paramType.startsWith("const") &&
+//               !Variable.isIntegerTypeInC(paramType)) {
+//               System.err.println("Found it, paramType= " + paramType +", var ="+variable);
+//            }
+            
+            if (Variable.isIntegerTypeInC(paramType)) {
                // Integer parameters get a name of 'value' by default
-               paramType = paramName;
                paramName = "value";
                if (valueSuffix != 0) {
                   paramName = paramName+valueSuffix;
                }
                valueSuffix++;
             }
-
+            
             if ((paramOverride.size()>index) && !paramOverride.get(index).isBlank()) {
                if (paramOverride.get(index).equals("*")) {
+                  // Exclude variable from parameter list
                   paramName               = null;
                   allowEmptyParameterList = true;
                }
@@ -3368,6 +3355,15 @@ public class ParseMenuXML extends XML_BaseParser {
             temp = variable.getDescription();
             if (temp != null) {
                description = temp;
+               if (!descriptionSb.isEmpty()) {
+                  if ((index+1)==variableList.size()) {
+                     descriptionSb.append(" and ");
+                  }
+                  else {
+                     descriptionSb.append(", ");
+                  }
+               }
+               descriptionSb.append(description);
             }
             if (temp == null) {
                System.err.println("Warning: no description for '"+variable.getName()+"'");
@@ -3489,36 +3485,37 @@ public class ParseMenuXML extends XML_BaseParser {
             if (paramName == null) {
                paramName = "%paramName"+index+" not available";
             }
-            substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
-            substitutions.add(0, new StringPair("%symbolicExpression"+index, symbolicExpression));
 
-            substitutions.add(0, new StringPair("%variable"+index,                variableKey));
+            substitutions.add(0, new StringPair("%baseType"+index,                baseType));
+            substitutions.add(0, new StringPair("%defaultValue"+index,            defaultValue));
             substitutions.add(0, new StringPair("%description"+index,             description));
-            substitutions.add(0, new StringPair("%shortDescription"+index,        shortDescription));
-            substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
             substitutions.add(0, new StringPair("%macro"+index,                   macro));
             substitutions.add(0, new StringPair("%mask"+index,                    mask));
+            substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
             substitutions.add(0, new StringPair("%paramName"+index,               paramName));
-            substitutions.add(0, new StringPair("%enumType"+index,                enumType));
             substitutions.add(0, new StringPair("%paramType"+index,               paramType));
+            substitutions.add(0, new StringPair("%param"+index,                   param));
             substitutions.add(0, new StringPair("%registerName"+index,            registerNameN));
             substitutions.add(0, new StringPair("%registerNAME"+index,            registerNAMEN));
             substitutions.add(0, new StringPair("%register"+index,                registerN));
-            substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
-            substitutions.add(0, new StringPair("%param"+index,                   param));
-            substitutions.add(0, new StringPair("%defaultValue"+index,            defaultValue));
+            substitutions.add(0, new StringPair("%returnType"+index,              returnType));
+            substitutions.add(0, new StringPair("%shortDescription"+index,        shortDescription));
+            substitutions.add(0, new StringPair("%symbolicExpression"+index,      symbolicExpression));
+            substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
+            substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
+            substitutions.add(0, new StringPair("%variable"+index,                variableKey));
             
             if (index == 0) {
-               substitutions.add(new StringPair("%variable",                variableKey));
-               substitutions.add(new StringPair("%description",             description));
-               substitutions.add(new StringPair("%shortDescription",        shortDescription));
-               substitutions.add(new StringPair("%tooltip",                 tooltip));
+               substitutions.add(new StringPair("%baseType",                baseType));
+               substitutions.add(new StringPair("%defaultValue",            defaultValue));
                substitutions.add(new StringPair("%paramName",               paramName));
-               substitutions.add(new StringPair("%enumType",                enumType));
                substitutions.add(new StringPair("%paramType",               paramType));
+               substitutions.add(new StringPair("%returnType",              returnType));
                substitutions.add(new StringPair("%registerName",            registerNameN));
                substitutions.add(new StringPair("%registerNAME",            registerNAMEN));
-               substitutions.add(new StringPair("%defaultValue",            defaultValue));
+               substitutions.add(new StringPair("%shortDescription",        shortDescription));
+               substitutions.add(new StringPair("%tooltip",                 tooltip));
+               substitutions.add(new StringPair("%variable",                variableKey));
             }
          }
          substitutions.add(new StringPair("%multilineDescription",             multilineDescription.toString()));
@@ -3594,13 +3591,13 @@ public class ParseMenuXML extends XML_BaseParser {
             }
          }
          if (register == null) {
-            register     = "'register' is not valid here";
-            registerName = "'registerName' is not valid here";
+            register     = "'%register' is not valid here";
+            registerName = "'%registerName' is not valid here";
          }
          if (mask == null) {
-            mask = "'mask' not available in this template";
+            mask = "'%mask' not available in this template";
          }
-         String params = "'params' is not valid here";
+         String params = "'%params' is not valid here";
          if (paramsSb.length()>0) {
             if (parmsOnNewLine) {
                paramsSb.insert(0,"\n"+paramPadding);
@@ -3610,7 +3607,7 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (allowEmptyParameterList) {
             params="";
          }
-         String paramDescription = "'comments' is not valid here";
+         String paramDescription = "'%comments' is not valid here";
          if (paramDescriptionSb.length()>0) {
             paramDescription = paramDescriptionSb.toString();
          }
@@ -3618,29 +3615,39 @@ public class ParseMenuXML extends XML_BaseParser {
             paramDescription = "";
          }
 
-         String initExpression = "'initExpression' is not valid here";
+         String initExpression = "'%initExpression' is not valid here";
          if (initExpressionSb.length()>0) {
             initExpression = initExpressionSb.toString();
          }
 
-         substitutions.add(new StringPair("%initExpression",            initExpression));
-         substitutions.add(new StringPair("%valueExpression",           valueExpressionSb.toString()));
-         substitutions.add(new StringPair("%symbolicExpression",        symbolicExpressionSb.toString()));
-         substitutions.add(new StringPair("%paramExpression",           paramExpr));
+         String description = "'%description' is not valid here";
+         if (descriptionSb.length()>0) {
+            description = descriptionSb.toString();
+         }
+         substitutions.add(new StringPair("%configFieldAssignment",      configFieldAssignment));
+         substitutions.add(new StringPair("%configRegAssignment",        configRegAssignment));
+         substitutions.add(new StringPair("%constructorFieldAssignment", constructorFieldAssignment));
+         substitutions.add(new StringPair("%constructorRegAssignment",   constructorRegAssignment));
          
          substitutions.add(new StringPair("%fieldExtract",               fieldExtract));
          substitutions.add(new StringPair("%fieldAssignment",            fieldAssignment));
-         substitutions.add(new StringPair("%constructorFieldAssignment", constructorFieldAssignment));
-         substitutions.add(new StringPair("%configFieldAssignment",      configFieldAssignment));
-         substitutions.add(new StringPair("%regAssignment",              regAssignment));
-         substitutions.add(new StringPair("%constructorRegAssignment",   constructorRegAssignment));
-         substitutions.add(new StringPair("%configRegAssignment",        configRegAssignment));
+         
+         substitutions.add(new StringPair("%description",                description));
+         
+         substitutions.add(new StringPair("%initExpression",             initExpression));
          substitutions.add(new StringPair("%maskingExpression",          maskingExpression));
          substitutions.add(new StringPair("%mask",                       mask));
-         substitutions.add(new StringPair("%register",                   register));
-         substitutions.add(new StringPair("%registerName",               registerName));
-         substitutions.add(new StringPair("%params",                     params));
          substitutions.add(new StringPair("%paramDescription",           paramDescription));
+         substitutions.add(new StringPair("%paramExpression",            paramExpr));
+         substitutions.add(new StringPair("%params",                     params));
+         
+         substitutions.add(new StringPair("%registerName",               registerName));
+         substitutions.add(new StringPair("%regAssignment",              regAssignment));
+         substitutions.add(new StringPair("%register",                   register));
+         
+         substitutions.add(new StringPair("%symbolicExpression",         symbolicExpressionSb.toString()));
+         
+         substitutions.add(new StringPair("%valueExpression",            valueExpressionSb.toString()));
       }
       
       String immediateVariables  = getAttributeAsString(element, "immediateVariables");
@@ -3709,10 +3716,18 @@ public class ParseMenuXML extends XML_BaseParser {
          // Assume associated with Base class
          repeatKey = "_"+fPeripheral.getBaseName();
       }
-      repeatKey = "$TEMPLATE"+repeatKey;
+      repeatKey = "$TEMPLATE_"+repeatKey;
+
+//      String structName = fProvider.getVariable("structName").getValueAsString();
+//      if (structName.contains("FTM")) {
+//         System.err.println("Found it "+structName);
+//      }
 
       // Already blocked?
       if (fPeripheral.getDeviceInfo().checkIfRepeatedItem(repeatKey)) {
+//         if (structName.contains("FTM")) {
+//            System.err.println("Found it Blocking "+structName+", key ="+repeatKey);
+//         }
          // These are common!
          return false;
       }
@@ -3761,7 +3776,7 @@ public class ParseMenuXML extends XML_BaseParser {
       baseClass - In base class for peripheral (causes discard repeats using StructName as key)
       
       */
-      String where       = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
+      String where = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
       if (where != null) {
          if ((key != null) && !"all".equalsIgnoreCase(where)) {
             throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
@@ -3922,9 +3937,13 @@ public class ParseMenuXML extends XML_BaseParser {
          else if ("basicInfo".equals(where)) {
             // e.g. FtmBasicInfo ($(_Structname)BasicInfo)
             // One for each variant (structure type) of a peripheral
+//            String structName = fProvider.getVariable("structName").getValueAsString();
+//            if (structName.equals("FTM")) {
+//               System.err.println("Found it "+structName);
+//            }
             key            =  null;
             namespace      = "basicInfo"; // Before peripheral class in pinmapping.h
-            discardRepeats = fProvider.getVariable("structName").getValueAsString();
+            discardRepeats = fProvider.getVariable("structName").getValueAsString()+"_BasicInfo";
          }
          else if ("info".equals(where)) {
             // e.g. Ftm0Info ($(_Class)Info)
@@ -4828,17 +4847,18 @@ public class ParseMenuXML extends XML_BaseParser {
                // Empty loop
                continue;
             }
-            
+
+            Integer index = 0;
             fForStack.createLevel(fProvider, keys, values, delimiter);
             do {
-               String valuePattern  = getAttributeAsString(element, "value", null);
-               String namePattern   = getAttributeAsString(element, "name",  null);
-               String enumPattern   = getAttributeAsString(element, "enum",  "");
+               String value  = getAttributeAsString(element, "value", "%(i)").replace("%(i)", index.toString());
+               String name   = getAttributeAsString(element, "name",  "Choice %(i)").replace("%(i)", index.toString());
+               String eNum   = getAttributeAsString(element, "enum",  "").replace("%(i)", index.toString());;
 
                ChoiceData entry = new ChoiceData(
-                     namePattern,
-                     valuePattern,
-                     enumPattern,
+                     name,
+                     value,
+                     eNum,
                      null,
                      null,
                      null,
@@ -4846,6 +4866,7 @@ public class ParseMenuXML extends XML_BaseParser {
                      fProvider
                      );
                entries.add(entry);
+               index++;
             } while (fForStack.next());
             
             fForStack.dropLevel();

@@ -41,7 +41,7 @@ public class FllValidator extends IndexedValidator {
    }
 
    @Override
-   protected void validate(Variable variable, int index) throws Exception {
+   protected void validate(Variable variable, int properties, int index) throws Exception {
 
       boolean fll_enabled  = getBooleanVariable("fll_enabled[]").getValueAsBoolean();
       

@@ -74,7 +74,7 @@ public class I2cValidate_MKE extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
       
       LongVariable   i2cInputClockVar           = getLongVariable("i2cInputClock");
       LongVariable   speedVar                   = getLongVariable("i2c_speed");

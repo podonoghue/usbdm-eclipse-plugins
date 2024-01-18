@@ -97,9 +97,9 @@ public class OscValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
 
-      super.validate(variable);
+      super.validate(variable, properties);
 
       Status  osc_clockStatus  = null;
 

@@ -98,7 +98,7 @@ public class FrdivValidator extends IndexedValidator {
     * Determines FRDIV and MCG_C3_RANGE0
     */
    @Override
-   protected void validate(Variable variable, int index) throws Exception {
+   protected void validate(Variable variable, int properties, int index) throws Exception {
 
       final BooleanVariable mcg_c1_irefsVar    = getBooleanVariable("mcg_c1_irefs[]");
       final ChoiceVariable  mcg_c1_frdivVar    = getChoiceVariable("mcg_c1_frdiv[]");

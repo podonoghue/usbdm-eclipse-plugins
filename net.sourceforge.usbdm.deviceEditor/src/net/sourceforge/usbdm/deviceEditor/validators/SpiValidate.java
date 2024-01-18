@@ -64,7 +64,7 @@ public class SpiValidate extends PeripheralValidator {
     * @throws Exception
     */
    @Override
-   public void validate(Variable variable) throws Exception {
+   public void validate(Variable variable, int properties) throws Exception {
       
       LongVariable   spiInputClockVar           = getLongVariable("spiInputClock");
       LongVariable   speedVar                   = getLongVariable("spi_speed");
