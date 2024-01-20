@@ -2988,10 +2988,11 @@ public class ParseMenuXML extends XML_BaseParser {
     * <ul>
     * <li>%baseType[index]                Underlying type for enum
 
-    * <li>%configFieldAssignment          Expression of form '%register     <= (%register & ~%mask)|%registerName
-    * <li>%configRegAssignment            Expression of form '%register     <= %registerName
-    * <li>%constructorFieldAssignment     Expression of form '%registerName <= (%registerName & ~%mask)|%paramExpression
-    * <li>%constructorRegAssignment       Expression of form '%registerName <= %paramExpression
+    * <li>%constructorBitSet              Expression of form '%registerName |= %paramExpression
+    * <li>%configFieldAssignment          Expression of form '%register      = (%register & ~%mask)|%registerName
+    * <li>%configRegAssignment            Expression of form '%register      = %registerName
+    * <li>%constructorFieldAssignment     Expression of form '%registerName  = (%registerName & ~%mask)|%paramExpression
+    * <li>%constructorRegAssignment       Expression of form '%registerName  = %paramExpression
 
     * <li>%defaultValue[index]            Default value of variable
     * <li>%description[index]             Description from variable e.g. Compare Function Enable
@@ -3542,12 +3543,26 @@ public class ParseMenuXML extends XML_BaseParser {
          String regAssignment                = "'regAssignment' is not valid here";
          String constructorRegAssignment     = "'constructorRegAssignment' is not valid here";
          String configRegAssignment          = "'constructorRegAssignment' is not valid here";
+         String constructorBitSet            = "'constructorBitSet' is not valid here";
+         
          if (register != null) {
             if (variableList.size()==1) {
                // LongVariable   => ((SIM_SCG_DEL_MASK&<b>registerValue</b>)>>SIM_SCG_DEL_SHIFT)
                // ChoiceVariable => (SIM_SCG_DEL_MASK&<b>registerValue</b>)
                fieldExtract       = variableList.get(0).fieldExtractFromRegister(register);
             }
+            //  %register = %paramExpression;
+            regAssignment       = register+" = "+paramExpr;
+            
+            //  %register = init.%registerName (e.g. ftm->PWMLOAD = pwmload;)
+            configRegAssignment = register+" = "+"init."+registerName;
+            
+            //  %registerName = %paramExpression; (e.g. pwmload |= ftmLoadPoint;)
+            constructorRegAssignment = registerName+" = "+paramExpr;
+            
+            //  %registerName |= %paramExpression; (e.g. pwmload |= ftmLoadPoint;)
+            constructorBitSet = registerName+" |= "+paramExpr;
+            
             if (mask != null) {
                maskingExpression = register+"&"+mask;
                
@@ -3559,15 +3574,6 @@ public class ParseMenuXML extends XML_BaseParser {
                
                //  %register = (%register&~%mask) | %registerName;
                configFieldAssignment = register+" = ("+register+"&~"+mask+") | "+"init."+registerName;
-               
-               //  %register = %paramExpression;
-               regAssignment       = register+" = "+paramExpr;
-               
-               //  %registerName =  %paramExpression;
-               constructorRegAssignment = registerName+" = "+paramExpr;
-               
-               //  %register =  %registerName;
-               configRegAssignment = register+" = "+"init."+registerName;
             }
             else {
                
@@ -3580,14 +3586,6 @@ public class ParseMenuXML extends XML_BaseParser {
                //  %registerName = %paramExpression;
                configFieldAssignment = register+" = "+"init."+registerName;
                
-               //  %register = %paramExpression;
-               regAssignment       = register+" = "+paramExpr;
-               
-               //  %registerName = %paramExpression;
-               constructorRegAssignment = registerName+" = "+paramExpr;
-               
-               //  %registerName = %paramExpression;
-               configRegAssignment = register+" = "+"init."+registerName;
             }
          }
          if (register == null) {
@@ -3624,6 +3622,7 @@ public class ParseMenuXML extends XML_BaseParser {
          if (descriptionSb.length()>0) {
             description = descriptionSb.toString();
          }
+         substitutions.add(new StringPair("%constructorBitSet",          constructorBitSet));
          substitutions.add(new StringPair("%configFieldAssignment",      configFieldAssignment));
          substitutions.add(new StringPair("%configRegAssignment",        configRegAssignment));
          substitutions.add(new StringPair("%constructorFieldAssignment", constructorFieldAssignment));
@@ -4941,7 +4940,7 @@ public class ParseMenuXML extends XML_BaseParser {
             Object tmp;
             tmp = booleanVar.getDefault();
             if (tmp == null) {
-               booleanVar.setDefault(choiceInfo.defaultEntry);
+               booleanVar.setDefault(choiceInfo.entries.get(choiceInfo.defaultEntry).getValue());
             }
             tmp = booleanVar.getValue();
             if (tmp == null) {
