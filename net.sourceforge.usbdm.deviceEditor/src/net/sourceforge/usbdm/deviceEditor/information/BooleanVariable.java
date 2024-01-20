@@ -61,6 +61,9 @@ public class BooleanVariable extends VariableWithChoices {
     * @return Converted object
     */
    public boolean translate(Object value) {
+      if (isLogging()) {
+         System.err.println("Found it "+value);
+      }
       if (value instanceof Boolean) {
          return (Boolean)value;
       }
@@ -315,14 +318,25 @@ public class BooleanVariable extends VariableWithChoices {
 
    @Override
    public String getDefaultParameterValue() throws Exception {
+      if (isLogging()) {
+         System.err.println("Found it"+this);
+      }
       Object t = getDefault();
       if (t==null) {
          return null;
       }
-      if ((fTrue == null) || (fFalse == null)) {
-         return "Default not defined";
+      if ((Boolean)t) {
+         if (fTrue == null) {
+            return "Default not defined (true)";
+         }
+         return makeEnum(fTrue.getEnumName());
       }
-      return makeEnum((Boolean)t?fTrue.getEnumName():fFalse.getEnumName());
+      else {
+         if (fFalse == null) {
+            return "Default not defined (false)";
+         }
+         return makeEnum(fFalse.getEnumName());
+      }
    }
 
    @Override
