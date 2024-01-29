@@ -843,13 +843,23 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     */
    public String expandTypePattern(String pattern, Pin pin, Integer infoTableIndex, String polarity) {
       String type = pattern;
-      type = type.replace("%i", pin.getPortInstance());     // port instance e.g."A"
-      type = type.replace("%n", pin.getGpioBitNum());       // bit number within associated GPIO
-      type = type.replace("%p", polarity);                  // polarity polarity
-      type = type.replace("%c", getClassName());            // class name e.g.  FTM2 => Ftm2
-      type = type.replace("%b", getClassBaseName());        // base class name e.g. FTM2 => Ftm
-      type = type.replace("%t", infoTableIndex.toString()); // index in infotable
-      
+      String[] patterns = {"%i","%n","%p","%c","%b","%t",};
+      String[] replacements = {
+            pin.getPortInstance(),     // port instance e.g."A"
+            pin.getGpioBitNum(),       // bit number within associated GPIO
+            polarity,                  // polarity polarity
+            getClassName(),            // class name e.g.  FTM2 => Ftm2
+            getClassBaseName(),        // base class name e.g. FTM2 => Ftm
+            infoTableIndex.toString(), // index in infotable
+      };
+      for (int index=0; index<patterns.length; index++) {
+         String from = patterns[index];
+         String to   = replacements[index];
+         if (to == null) {
+            to = from+" not available";
+         }
+         type = type.replace(from,to);
+      }
       return type;
    }
    
