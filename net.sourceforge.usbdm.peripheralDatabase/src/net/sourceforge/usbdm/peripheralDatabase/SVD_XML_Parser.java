@@ -936,9 +936,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
 
       fCurrentPeripheral = null;
       boolean    derived    = peripheralElement.hasAttribute(DERIVEDFROM_ATTRIB);
+      Peripheral referencedPeripheral = null;
       
       if (derived) {
-         Peripheral referencedPeripheral = null;
          referencedPeripheral = device.findPeripheral(Peripheral.getMappedPeripheralName(peripheralElement.getAttribute(DERIVEDFROM_ATTRIB)));
          if (referencedPeripheral == null) {
             // Try unmapped name
@@ -1056,6 +1056,10 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             throw new Exception("parsePeripheral() - Unexpected field in PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
       }
+//      if (fCurrentPeripheral.getDerivedFrom() != null) {
+//         System.err.println("Cloning, "+fCurrentPeripheral+" derived from  " + referencedPeripheral);
+//      }
+      
       return fCurrentPeripheral;
    }
 

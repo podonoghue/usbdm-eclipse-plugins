@@ -142,6 +142,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
    /** Dynamically hides an item */
    private Expression fHiddenBy = null;
+   
+   /** Associated signal identifier */
+   private String fAssociatedSignalName;
 
    /**
     * Constructor
@@ -1915,6 +1918,27 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          System.err.println("Logging "+getName());
       }
       this.fLogging = logging;
+   }
+
+   /**
+    * Set name of signal associated with this variable
+    * 
+    * @param associatedSignal Name of associated signal
+    */
+   public void setAssociatedSignalName(String associatedSignal) {
+      fAssociatedSignalName = associatedSignal;
+   }
+
+   /**
+    * Get signal associated with this variable
+    * 
+    * @return Associated Signal or null if none
+    */
+   public Signal getAssociatedSignal() {
+      if (fAssociatedSignalName == null) {
+         return null;
+      }
+      return fDeviceInfo.getSignals().get(fAssociatedSignalName);
    }
 
 }

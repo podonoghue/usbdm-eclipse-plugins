@@ -37,8 +37,8 @@ public class PitValidate extends PeripheralValidator {
       LongVariable   pitInputClockVar           = getLongVariable("pitInputClock");
       LongVariable   numChannelsVar             = getLongVariable("NumChannels");
 
-      double inputClockFrequency = pitInputClockVar.getValueAsDouble();
-      int numberOfChannels       = (int) numChannelsVar.getValueAsLong();
+      double pitInputClockFrequency = pitInputClockVar.getValueAsDouble();
+      int numberOfChannels          = (int) numChannelsVar.getValueAsLong();
       
       for (int ch=0; ch<numberOfChannels; ch++) {
          LongVariable    pit_ldvalVar      = getLongVariable("pit_ldval_tsv["+ch+"]");
@@ -57,19 +57,19 @@ public class PitValidate extends PeripheralValidator {
                      pit_ldval = 0;
                   }
                   else {
-                     pit_ldval = Math.max(0, Math.round((pit_period*inputClockFrequency)-1));
+                     pit_ldval = Math.max(0, Math.round((pit_period*pitInputClockFrequency)-1));
                   }
                }
             }
          }
          if (pit_ldvalVar.isEnabled()) {
-            pit_periodVar.setMax((pit_ldvalVar.getMax()+1)/inputClockFrequency);
+            pit_periodVar.setMax((pit_ldvalVar.getMax()+1)/pitInputClockFrequency);
             pit_ldvalVar.setValue(pit_ldval);
             if (pit_ldval == 0) {
                pit_periodVar.setValue(0);
             }
             else {
-               pit_periodVar.setValue((pit_ldval+1)/inputClockFrequency);
+               pit_periodVar.setValue((pit_ldval+1)/pitInputClockFrequency);
             }
          }
       }

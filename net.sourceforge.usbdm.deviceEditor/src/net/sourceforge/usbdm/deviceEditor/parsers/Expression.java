@@ -543,7 +543,7 @@ public class Expression implements IModelChangeListener {
 
       @Override
       public String toString() {
-         return fValue.toString();
+         return fValue;
       }
    }
 

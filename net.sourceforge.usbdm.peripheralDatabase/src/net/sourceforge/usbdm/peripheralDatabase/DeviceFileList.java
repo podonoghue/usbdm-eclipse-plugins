@@ -16,9 +16,9 @@ public class DeviceFileList extends SVD_XML_BaseParser {
     *  Creates device name map from deviceFileList file
     * 
     *  @param filePath Path to file
-    *  
+    * 
     *  @return device peripheral description
-    *  @throws Exception 
+    *  @throws Exception
     */
    public DeviceFileList(Path filePath) throws Exception {
       // Parse the XML file into the XML internal DOM representation
@@ -107,6 +107,12 @@ public class DeviceFileList extends SVD_XML_BaseParser {
          this.svdName           = svdName;
          this.deviceNamePattern = deviceNamePattern;
       }
+      
+      @Override
+      public String toString() {
+         return("DeviceSvdInfo("+deviceName+", "+svdName+","+deviceNamePattern+")");
+      }
+      
    }
    
    public ArrayList<DeviceSvdInfo> getArrayList() {

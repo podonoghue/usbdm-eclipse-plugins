@@ -170,7 +170,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       Peripheral clone = (Peripheral) super.clone();
       
       // Clones should be renamed
-      clone.setName(getName()+"peripheral_clone");
+      clone.setName(getName()+"_peripheral_clone");
       
       clone.setDerivedFrom(this);
       clone.setSourceFilename(null);
@@ -258,8 +258,10 @@ public class Peripheral extends ModeControl implements Cloneable {
       if ((fOwner != null) && (fOwner.isUseHeaderDefinitionsPrefix())) {
          prefix = fOwner.getHeaderDefinitionsPrefix();
       }
-
       if (fDerivedFrom != null) {
+         if (fDerivedFrom.getName().equals("GPIOF")) {
+            System.err.println("Using derived from header " + fDerivedFrom);
+         }
          return prefix+fDerivedFrom.getHeaderStructName();
       }
       if ((fHeaderStructName != null) && (!fHeaderStructName.isEmpty())) {
@@ -665,6 +667,10 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public void setDerivedFrom(Peripheral derivedFrom) {
       clearAddressBlocks();
+//      System.err.println("Found it, "+this+" derived from  " + derivedFrom.toString());
+//      if (this.toString().equals("GPIOF")) {
+//         System.err.println("Found it, "+this+" derived from  " + derivedFrom.toString());
+//      }
       this.fDerivedFrom = derivedFrom;
    }
 
@@ -1427,7 +1433,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       
       sortRegisters(registerList);
 
-      boolean  debugThisPeripheral = false; //getName().equals("ADC0");
+      boolean  debugThisPeripheral = false; //getName().equals("TIM15");
       if (debugThisPeripheral) {
          System.err.println(String.format("    extractSimpleRegisterArrays(%s):1", getName()));
       }
@@ -1448,7 +1454,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          }
          String   mergeName = mergeReg.getName();
          
-         boolean  debugThisRegister = debugThisPeripheral && mergeName.equals("CV1");
+         boolean  debugThisRegister = debugThisPeripheral && mergeName.equals("CCR1");
          if (debugThisRegister) {
             System.err.println(String.format("        extractSimpleRegisterArrays():2, reg=\"%s\"", getName()+":"+mergeName));
          }
@@ -1495,7 +1501,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             }
             String   victimName = victimReg.getName();
 
-            boolean  debugThisMatch = debugThisRegister && victimName.equals("CV2");
+            boolean  debugThisMatch = debugThisRegister && victimName.equals("CCR2");
             if (debugThisMatch) {
                System.err.println(
                      String.format("            extractSimpleRegisterArrays(), comparing %-20s ?= %-20s",
@@ -1553,8 +1559,12 @@ public class Peripheral extends ModeControl implements Cloneable {
          if (dimensionIndexes.size() > 1) {
             // Remove replaced registers
             for (Register victimReg : removedRegisters) {
+               if (debugThisPeripheral) {
+                  System.err.println("Found it, Removing " + victimReg);
+               }
                registerList.remove(victimReg);
             }
+            mergeReg.setDebugThis(true);
             mergeReg.setName(modifiedRegisterName);
             mergeReg.setDescription(mergePatternDescription);
             mergeReg.setDimensionIncrement((int)dimensionIncrement);
@@ -2086,9 +2096,15 @@ public class Peripheral extends ModeControl implements Cloneable {
       // Flush current union if exists
       unionRegisters.writeHeaderFileUnion();
       
-      addTypedefsTable(getSafeHeaderStructName());
+      String structName = getSafeHeaderStructName();
+      if (fTypedefsTable.contains(structName)) {
+        System.err.println("Peripheral Typedef clash - " + this.getName() + ", " + structName);
+        structName = structName + "X";
+      }
       
-      writer.print(indenter+String.format(DEVICE_CLOSE_STRUCT, getSafeHeaderStructName()));
+      addTypedefsTable(structName);
+      
+      writer.print(indenter+String.format(DEVICE_CLOSE_STRUCT, structName));
    }
 
    static final String PARAMETER_TEMPLATE = "#define %-20s %s";

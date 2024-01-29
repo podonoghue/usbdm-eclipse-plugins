@@ -689,6 +689,10 @@ public class Register extends Cluster implements Cloneable {
    @Override
    public void writeSvd(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       
+      if (getDebugThis()) {
+         System.err.println("Found it "+fOwner.getName()+":"+getName() );
+      }
+      
       if (isFlattenArrays() && (getDimension()>0)) {
          writeFlattenedSVD(writer, standardFormat, owner, indent);
          return;
@@ -1127,6 +1131,5 @@ public class Register extends Cluster implements Cloneable {
       if (isExtractSimilarFields()) {
          extractSimilarFields();
       }
-      
    }
 }

@@ -661,6 +661,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public void modelElementChanged(ObservableModelInterface model, int properties) {
       
       if ((properties & PROPERTY_VALUE) != 0) {
+         notifyListeners();
       }
       if ((properties & (PROPERTY_STATUS|PROPERTY_MAPPING)) != 0) {
          if (model instanceof MappingInfo) {

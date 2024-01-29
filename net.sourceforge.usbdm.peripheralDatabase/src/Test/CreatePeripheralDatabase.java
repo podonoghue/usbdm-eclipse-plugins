@@ -321,7 +321,7 @@ public class CreatePeripheralDatabase {
                // Create header file
                Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName().toString()+".h");
                
-               System.err.print(String.format("Processing File : %-20s => %-20s\n", fileName, headerFilePath.getFileName()));
+               System.out.print(String.format("Processing File : %-20s => %-20s\n", fileName, headerFilePath.getFileName()));
                
                devicePeripherals.writeHeaderFile(headerFilePath);
             }
@@ -416,7 +416,9 @@ public class CreatePeripheralDatabase {
          System.err.println("Destination already exists -  deleting \"" + destinationFolderPath.getFileName()+"\"\n");
          removeDirectoryTree(destinationFolderPath);
       }
-
+      if (!Files.exists(destinationFolderPath)) {
+         Files.createDirectory(destinationFolderPath);
+      }
       ArrayList<DevicePeripherals> deviceList = new ArrayList<DevicePeripherals>();
 
       // Set optimizations
@@ -901,6 +903,8 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) throws IOException {
       
+//    firstFileToProcess = ("^STM*.*");
+//    firstFileToReject  = ("^STM*");
 //    firstFileToProcess = ("^MK22F51212.*");
 //    firstFileToReject  = ("^MK22FA.*");
 

@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.editor.CellEditorProvider;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -14,7 +15,11 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
  */
 public abstract class VariableModel extends EditableModel implements IModelChangeListener, CellEditorProvider {
 
+   // Variable being modelled
    protected Variable fVariable;
+   
+   // Signal associated with the variable modelled by this model
+   private Signal fAssociatedSignal;
    
    /**
     * Constructor - Create model from variable
@@ -188,5 +193,18 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       }
    }
 
+   public Signal getAssociatedSignal() {
+      
+      // Check for signal associated with variable
+      if (fAssociatedSignal == null) {
+         Signal associatedSignal = fVariable.getAssociatedSignal();
+         if (associatedSignal == null) {
+            return null;
+         }
+         fAssociatedSignal = associatedSignal;
+         fAssociatedSignal.addListener(this);
+      }
+      return fAssociatedSignal;
+   }
    
  }

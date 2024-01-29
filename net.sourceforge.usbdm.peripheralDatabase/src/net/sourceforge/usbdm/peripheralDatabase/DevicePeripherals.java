@@ -329,6 +329,9 @@ public class DevicePeripherals extends ModeControl {
             if (checkPeripheral.getDerivedFrom() != null) {
                continue;
             }
+            if (peripheral.getDerivedFrom() == checkPeripheral) {
+               continue;
+            }
             if (checkPeripheral.equivalentStructure(peripheral)) {
                checkPeripheral.equivalentStructure(peripheral);
                checkPeripheral.setDerivedFrom(peripheral);

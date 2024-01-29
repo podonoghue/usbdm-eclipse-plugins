@@ -1114,6 +1114,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("ref")) {
          variable.setReference(getAttributeAsString(varElement, "ref"));
       }
+      variable.setAssociatedSignalName(getAttributeAsString(varElement, "signal"));
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttributeAsString(varElement, "enabledBy"));
       }

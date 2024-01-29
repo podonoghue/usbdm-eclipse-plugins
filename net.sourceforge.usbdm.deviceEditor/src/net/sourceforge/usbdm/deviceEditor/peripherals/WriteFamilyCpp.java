@@ -293,7 +293,7 @@ public class WriteFamilyCpp {
       // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
       public StringBuilder hardwareDefinitions = new StringBuilder();
       
-      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
+      // Contains the actual declarations for any user objects needed by peripherals in hardware.cpp
       public StringBuilder hardwareDeclarations = new StringBuilder();
    };
    

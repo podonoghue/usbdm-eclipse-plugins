@@ -51,6 +51,9 @@ public class Cluster extends ModeControl implements Cloneable {
 
    /** Keep as array in SVD viewer */
    private boolean fKeepAsArray;
+
+   /** Set to provide debug messages */
+   private boolean fDebugThis;
    
    Cluster(Peripheral owner) {
       this.fOwner            = owner;
@@ -337,6 +340,7 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    public void setDimensionIndexes(ArrayList<String> dimensionIndexes) {
       this.fDimensionIndexes = dimensionIndexes;
+      this.fDim = Integer.toString(dimensionIndexes.size());
    }
 
    /**
@@ -668,6 +672,10 @@ public class Cluster extends ModeControl implements Cloneable {
     *  @throws IOException
     */
    void writeSvdDimensionList(Writer writer, String indenter, Cluster derivedCluster) throws IOException {
+      if (getDebugThis()) {
+         System.err.println("Found it "+fOwner.getName()+":"+getName() );
+      }
+      
       if (derivedCluster != null) {
          if (getDim() != derivedCluster.getDim()) {
             writer.write(String.format("<dim>%s</dim>", (getDim()==null)?"":getDim()));
@@ -722,6 +730,9 @@ public class Cluster extends ModeControl implements Cloneable {
    public void writeSvd(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       final String indenter = RegisterUnion.getIndent(indent);
 
+      if (getName().startsWith("CCR")) {
+         System.err.println("Found it" );
+      }
       sortRegisters();
 
       writer.write(                 indenter+"<cluster>\n");
@@ -1202,6 +1213,14 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    public boolean isIsolated() {
       return fIsolated;
+   }
+
+   public void setDebugThis(boolean b) {
+      fDebugThis = b;
+   }
+   
+   public boolean getDebugThis() {
+      return fDebugThis;
    }
 
 }

@@ -17,7 +17,6 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.UppercaseNode;
-import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -235,11 +234,13 @@ public class ExpressionParser {
          return new Expression.ExpandPinListNode(arg);
       }
       if ("Exists".equalsIgnoreCase(functionName)) {
-         if (!(arg instanceof VariableNode)) {
-            throw new Exception("Expected name of variable");
+         if (!(arg instanceof StringNode)) {
+            throw new Exception("Expected name of signal (a string)");
          }
-         VariableNode vn = (VariableNode) arg;
-         return new BooleanNode(vn.exists());
+         // Do early evaluation
+         StringNode sArg = (StringNode) arg;
+         Variable var = fProvider.safeGetVariable(sArg.toString());
+         return new BooleanNode(var != null);
       }
       if ("SignalExists".equalsIgnoreCase(functionName)) {
          if (!(arg instanceof StringNode)) {

@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public class CodeIdentifierColumnEditingSupport extends EditingSupport {
@@ -42,7 +43,7 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
          }
          return signal.getCodeIdentifier();
       }
-      else if (model instanceof SignalModel) {
+      if (model instanceof SignalModel) {
          Signal signal = ((SignalModel) model).getSignal();
          if (!signal.canCreateType() && !signal.canCreateInstance()) {
             // Cannot create C identifier for this signal
@@ -50,13 +51,24 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
          }
          return signal.getCodeIdentifier();
       }
-      else if (model instanceof PeripheralSignalsModel) {
+      if (model instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)model).getPeripheral();
          if (!peripheral.canCreateType() && !peripheral.canCreateInstance()) {
             // Cannot create C identifier for this peripheral
             return null;
          }
          return peripheral.getCodeIdentifier();
+      }
+      if (model instanceof VariableModel) {
+         VariableModel vm = (VariableModel) model;
+         Signal signal = vm.getAssociatedSignal();
+         if (signal != null) {
+            if (!signal.canCreateType() && !signal.canCreateInstance()) {
+               // Cannot create C identifier for this signal
+               return null;
+            }
+            return signal.getCodeIdentifier();
+         }
       }
       return null;
    }
@@ -95,6 +107,14 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
          Peripheral peripheral = ((PeripheralSignalsModel)model).getPeripheral();
          peripheral.setCodeIdentifier((String) value);
          viewer.update(model, null);
+      }
+      if (model instanceof VariableModel) {
+         VariableModel vm = (VariableModel) model;
+         Signal signal = vm.getAssociatedSignal();
+         if (signal != null) {
+            signal.setCodeIdentifier((String) value);
+            viewer.update(model, null);
+         }
       }
    }
 
