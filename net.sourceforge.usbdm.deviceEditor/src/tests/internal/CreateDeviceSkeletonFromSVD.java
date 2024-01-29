@@ -59,33 +59,53 @@ public class CreateDeviceSkeletonFromSVD {
       if (peripheralBasename.matches(".*[0-9]")) {
          peripheralBasename = peripheralBasename.substring(0, peripheralBasename.length()-1);
       }
+      if (peripheralBasename.matches("GPIO[A-Z]")) {
+         peripheralBasename = "GPIO";
+      }
       resultSb          = new StringBuilder();
    }
    
-   void savePeripheralFiles() throws UsbdmException, IOException {
+   void savePeripheralFiles(boolean isFragment) throws UsbdmException, IOException {
+      String filename = peripheral.getSourceFilename();
+      if (filename == null) {
+         filename = peripheral.getName();
+      }
+      filename = filename.toLowerCase();
       // USBDM installation path
-      Path hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(DeviceInfo.USBDM_ARM_PERIPHERALS_LOCATION).resolve(peripheral.getSourceFilename().toLowerCase()+"_new"+".xml");
+      Path hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(DeviceInfo.USBDM_ARM_PERIPHERALS_LOCATION).resolve(filename+"_new"+".xml");
       
       Charset charset = Charset.forName("US-ASCII");
       BufferedWriter writer = Files.newBufferedWriter(hardwarePath, charset);
       
-      final String preamble =""
-            + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
-            + "<!DOCTYPE peripheralPage SYSTEM \"_menu.dtd\" >\n"
-            + "<!-- %s.xml -->\n"
-            + "\n"
-            + "<peripheralPage xmlns:xi=\"http://www.w3.org/2001/XInclude\" name=\"_instance\" description=\"%s\" >\n";
+      if (isFragment) {
+         String stubTemplate = ""
+               + "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+               + "<!DOCTYPE fragment SYSTEM \"_menu.dtd\" >\n"
+               + "<!-- %s -->\n"
+               + "\n"
+               + "<fragment xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n"
+               + "<xi:include href=\"gpio_def.xml\"/>\n"
+               + "</fragment>\n";
+         resultSb.append(String.format(stubTemplate, filename));
+      }
+      else {
+         final String preamble =""
+               + "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+               + "<!DOCTYPE peripheralPage SYSTEM \"_menu.dtd\" >\n"
+               + "<!-- %s.xml -->\n"
+               + "\n"
+               + "<peripheralPage xmlns:xi=\"http://www.w3.org/2001/XInclude\" name=\"_instance\" description=\"%s\" >\n";
 
-      String filename = peripheral.getSourceFilename().toLowerCase();
-      String fileDescription=peripheral.getDescription();
-      
-      writer.write(String.format(preamble,
-            filename,
-            fileDescription
-      ));
-      
-      if (irqEnum != null) {
-         writer.write(irqEnum.toString());
+         String fileDescription=peripheral.getDescription();
+
+         writer.write(String.format(preamble,
+               filename,
+               fileDescription
+               ));
+
+         if (irqEnum != null) {
+            writer.write(irqEnum.toString());
+         }
       }
       writer.write(resultSb.toString());
       writer.close();
@@ -262,42 +282,47 @@ public class CreateDeviceSkeletonFromSVD {
          + "   <title />\n"
          + "";
 
-      final String usefulInfo = "\n"
-         + "<!-- ____ General substitutions ____\n"
-         + "    *  $(_NAME)         => e.g FTM2 => FTM2\n"
-         + "    *  $(_name)         => e.g FTM2 => ftm2\n"
-         + "    *  $(_BASENAME)     => e.g FTM0 => FTM, PTA => PT\n"
-         + "    *  $(_basename)     => e.g FTM0 => ftm, PTA => pt\n"
-         + "    *  $(_Class)        => e.g FTM2 => Ftm2\n"
-         + "    *  $(_Baseclass)    => e.g FTM0 => Ftm\n"
-         + "    *  $(_instance)     => e.g FTM0 => 0, PTA => A\n"
-         + "-->\n"
-         + "\n"
-         + "<!-- ____ Template substitutions ________\n"
-         + "    *\n"
-         + "    * <li>%paramExpression            Parameters ORed together e.g. adcPretrigger|adcRefSel\n"
-         + "    * <li>%valueExpression            Numeric variable value e.g. 0x3\n"
-         + "    * <li>%symbolicExpression[index]  Symbolic formatted value e.g. AdcCompare_Disabled\n"
-         + "    * <li>%variable[index]            Variable name /ADC0/adc_sc2_acfe\n"
-         + "    * <li>%macro[index](value)        C register macro e.g. ADC_SC2_ACFGT(value)\n"
-         + "    * <li>%description[index]         Description from controlVar e.g. Compare Function Enable\n"
-         + "    * <li>%shortDescription[index]    Short description from controlVar e.g. Compare Function Enable\n"
-         + "    * <li>%tooltip[index]             Tool-tip from controlVar e.g. Each bit disables the GPIO function\n"
-         + "    * <li>%params                     Formatted parameter list for function\n"
-         + "    * <li>%paramDescription[index]    Tool-tip from controlVar formatted as param description @param ...\n"
-         + "    * <li>%paramType[index]           Based on typeName e.g. AdcCompare (or uint32_t)\n"
-         + "    * <li>%paramName[index]           Based on typeName with lower-case first letter adcCompare\n"
-         + "    * <li>%fieldAssignment            Expression of form '%register <= (%register & ~%mask)|%paramExpression\n"
-         + "    * <li>%maskingExpression          Based on variable etc. Similar to (%register&%mask)\n"
-         + "    * <li>%mask[index]                From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. \"SIM_SOPT_REG_MASK\" (_MASK is added)\n"
-         + "    * <li>%register[index]            Register associated with variable e.g. adc->APCTL1\n"
-         + "    * <li>%registerName[index]        Name of corresponding register (lowercase for Init()) e.g. apctl1\n"
-         + "    * <li>%registerNAME[index]        Name of corresponding register (uppercase for Init()) e.g. APCTL1 <br><br>\n"
-         + "-->\n";
+//      final String usefulInfo = "\n"
+//         + "<!-- ____ General substitutions ____\n"
+//         + "    *  $(_NAME)         => e.g FTM2 => FTM2\n"
+//         + "    *  $(_name)         => e.g FTM2 => ftm2\n"
+//         + "    *  $(_BASENAME)     => e.g FTM0 => FTM, PTA => PT\n"
+//         + "    *  $(_basename)     => e.g FTM0 => ftm, PTA => pt\n"
+//         + "    *  $(_Class)        => e.g FTM2 => Ftm2\n"
+//         + "    *  $(_Baseclass)    => e.g FTM0 => Ftm\n"
+//         + "    *  $(_instance)     => e.g FTM0 => 0, PTA => A\n"
+//         + "-->\n"
+//         + "\n"
+//         + "<!-- ____ Template substitutions ________\n"
+//         + "    *\n"
+//         + "    * <li>%paramExpression            Parameters ORed together e.g. adcPretrigger|adcRefSel\n"
+//         + "    * <li>%valueExpression            Numeric variable value e.g. 0x3\n"
+//         + "    * <li>%symbolicExpression[index]  Symbolic formatted value e.g. AdcCompare_Disabled\n"
+//         + "    * <li>%variable[index]            Variable name /ADC0/adc_sc2_acfe\n"
+//         + "    * <li>%macro[index](value)        C register macro e.g. ADC_SC2_ACFGT(value)\n"
+//         + "    * <li>%description[index]         Description from controlVar e.g. Compare Function Enable\n"
+//         + "    * <li>%shortDescription[index]    Short description from controlVar e.g. Compare Function Enable\n"
+//         + "    * <li>%tooltip[index]             Tool-tip from controlVar e.g. Each bit disables the GPIO function\n"
+//         + "    * <li>%params                     Formatted parameter list for function\n"
+//         + "    * <li>%paramDescription[index]    Tool-tip from controlVar formatted as param description @param ...\n"
+//         + "    * <li>%paramType[index]           Based on typeName e.g. AdcCompare (or uint32_t)\n"
+//         + "    * <li>%paramName[index]           Based on typeName with lower-case first letter adcCompare\n"
+//         + "    * <li>%fieldAssignment            Expression of form '%register <= (%register & ~%mask)|%paramExpression\n"
+//         + "    * <li>%maskingExpression          Based on variable etc. Similar to (%register&%mask)\n"
+//         + "    * <li>%mask[index]                From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. \"SIM_SOPT_REG_MASK\" (_MASK is added)\n"
+//         + "    * <li>%register[index]            Register associated with variable e.g. adc->APCTL1\n"
+//         + "    * <li>%registerName[index]        Name of corresponding register (lowercase for Init()) e.g. apctl1\n"
+//         + "    * <li>%registerNAME[index]        Name of corresponding register (uppercase for Init()) e.g. APCTL1 <br><br>\n"
+//         + "-->\n";
+      
       final String simExtra = "\n"
          + "   <xi:include href=\"_simCommon.xml\" />\n";
       
-      String filename = peripheral.getSourceFilename().toLowerCase();
+      String filename = peripheral.getSourceFilename();
+      if (filename == null) {
+         filename = peripheral.getName();
+      }
+      filename = filename.toLowerCase();
       isSim = filename.startsWith("sim");
       
       if (peripheral.getName().startsWith("GPIO")) {
@@ -305,7 +330,7 @@ public class CreateDeviceSkeletonFromSVD {
       }
       resultSb.append(String.format(pre, Boolean.toString(irqsUsed)));
 
-      resultSb.append(usefulInfo);
+//      resultSb.append(usefulInfo);
       
       if (isSim) {
          resultSb.append(simExtra);
@@ -1528,7 +1553,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <!-- ____ SIM configuration __________________ -->\n"
             + "\n"
             + "   <category name=\"Advanced\" description=\"SIM configuration\"\n"
-            + "      toolTip=\"Thes settings only have effect if the SIM configuration is enabled\" >\n"
+            + "      toolTip=\"These settings only have effect if the SIM configuration is enabled\" >\n"
             + "      <title description=\"$(_BASENAME) Shared\" />\n"
             + "      <for keys=\"v\" values=\"=/SIM/$(_Baseclass)ExternalItems\" condition=\"/SIM/$(_Baseclass)ExternalItems\" >\n"
             + "         <aliasOption key=\"/SIM/%(v)\"           optional=\"true\" locked=\"false\" />\n"
@@ -1541,7 +1566,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "   </category>\n"
             + "");
       
-      resultSb.append("\n   <signals enabledBy=\"enablePeripheralSupport\" locked=\"!/PCR/_present\" />\n");
+      resultSb.append("\n   <!--  ____ Signal mapping __________________ -->\n"
+            + "   <signals enabledBy=\"enablePeripheralSupport\" locked=\"!/PCR/_present\" />\n");
       resultSb.append("\n</peripheralPage>\n");
    }
 
@@ -1764,7 +1790,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "CAN",
 //         "CMP",
 //         "CMT",
-//         "CRC",
+         "CRC",
 //         "DAC",
 //         "DMA",
 //         "DMAMUX",
@@ -1773,12 +1799,13 @@ public class CreateDeviceSkeletonFromSVD {
 //         "FTF",
 //         "FTM",
 //         "FMC",
-//         "FGPIO",
+         "GPIO",
+//       "FGPIO",
 //         "ICS",
 //         "IRQ",
 //         "I2C",
 //         "I2S",
-         "KBI",
+//         "KBI",
 //         "LPTMR",
 //         "LPUART",
 //         "LLWU",
@@ -1825,22 +1852,34 @@ public class CreateDeviceSkeletonFromSVD {
          throw new Exception("Unable to get peripheral data for '"+deviceName+"'\n");
       }
       for (Peripheral peripheral:peripherals.getPeripherals()) {
-         if (peripheral.getSourceFilename() == null) {
-            continue;
-         }
          if (!doThisPeripheral(peripheral.getName())) {
-            System.out.println("Skipping " + peripheral.getSourceFilename());
+            System.out.println("Skipping " + peripheral.getName());
             continue;
          }
-         System.err.println("Processing " + peripheral.getSourceFilename());
+         if (peripheral.getDerivedFrom() != null) {
+            continue;
+         }
+         String name = peripheral.getSourceFilename();
+         if (name == null) {
+            name = peripheral.getName()+suffix;
+         }
+         System.err.println("Processing " + name);
+         name = name+suffix;
          CreateDeviceSkeletonFromSVD instance = new CreateDeviceSkeletonFromSVD(suffix, peripherals, peripheral);
-//         instance.listFields();
-         instance.writePreamble();
-         instance.processRegisters();
-         instance.writeSettersAndGetters();
-         instance.writeInitClass();
-         instance.writeCommon();
-         instance.savePeripheralFiles();
+         String filename = peripheral.getSourceFilename();
+         if (filename == null) {
+            // Just create a stub
+            instance.savePeripheralFiles(true);
+         }
+         else {
+            //         instance.listFields();
+            instance.writePreamble();
+            instance.processRegisters();
+            instance.writeSettersAndGetters();
+            instance.writeInitClass();
+            instance.writeCommon();
+            instance.savePeripheralFiles(false);
+         }
       }
    }
    
@@ -1880,8 +1919,9 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    public static void main(String[] args) throws Exception {
+//      doAllPeripherals("STM32F030", "mke");
 //      doAllPeripherals("FRDM_KE04Z", "mke");
-      doAllPeripherals("FRDM_KE06Z", "mke");
+//      doAllPeripherals("FRDM_KE06Z", "mke");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
