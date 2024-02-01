@@ -4,7 +4,27 @@ public class ProjectAction {
    protected final String fId;
 
    private ProjectActionList owner = null;
+
+   private Object  fUserData = null;
    
+   /**
+    * Get arbitrary user data
+    * 
+    * @return The user data
+    */
+   public Object getUserData() {
+      return fUserData;
+   }
+
+   /**
+    * Set arbitrary user data
+    * 
+    * @param fUserData The user data to set
+    */
+   public void setUserData(Object fUserData) {
+      this.fUserData = fUserData;
+   }
+
    /**
     * @return the owner
     */

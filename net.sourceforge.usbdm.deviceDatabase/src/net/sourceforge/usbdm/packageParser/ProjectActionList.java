@@ -15,7 +15,7 @@ public class ProjectActionList extends ProjectAction {
 
    /** Indicates if the action list should be done once only if encountered multiple times */
    private boolean fDoOnceOnly = false;
-
+   
    public static class Value {
       private Object returnValue;
 
@@ -58,12 +58,12 @@ public class ProjectActionList extends ProjectAction {
             /**
              * Indicates to continue processing
              */
-            CONTINUE, 
+            CONTINUE,
             /**
              * Indicates to stop processing this node <br>
              * Used to 'prune' subtrees
              */
-            PRUNE, 
+            PRUNE,
             /**
              * Indicates processing should stop and throw an exception <br>
              * Used for unexpected happenings
@@ -105,7 +105,7 @@ public class ProjectActionList extends ProjectAction {
           * 
           * @return Message
           */
-         public String getMessage() { 
+         public String getMessage() {
             String msg = "No Exception";
             if (fException != null) {
                msg = fException.getMessage();
@@ -118,7 +118,7 @@ public class ProjectActionList extends ProjectAction {
           * 
           * @return
           */
-         public Status getStatus() { 
+         public Status getStatus() {
             return fStatus;
          }
 
@@ -134,6 +134,7 @@ public class ProjectActionList extends ProjectAction {
             return fException;
          }
          
+         @Override
          public String toString() {
             StringBuffer sb = new StringBuffer();
             
@@ -158,7 +159,7 @@ public class ProjectActionList extends ProjectAction {
        * @return Result object controlling how the visitation proceeds
        */
       Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor);
-   } 
+   }
 
    private ApplyWhenCondition               fApplyWhenCondition   = ApplyWhenCondition.trueCondition;
    private ArrayList<ProjectAction>         fProjectActionList    = new ArrayList<ProjectAction>();
@@ -169,7 +170,7 @@ public class ProjectActionList extends ProjectAction {
 
    /**
     * @param condition the condition to set
-    * @throws Exception 
+    * @throws Exception
     */
    public void setApplyWhenCondition(ApplyWhenCondition condition) throws Exception {
       if (fApplyWhenCondition != ApplyWhenCondition.trueCondition) {
@@ -192,7 +193,7 @@ public class ProjectActionList extends ProjectAction {
          ProjectAction action = it.next();
          buffer.append(action.toString());
       }
-      return buffer.toString();     
+      return buffer.toString();
    }
    
    public boolean appliesTo(Device device, ISubstitutionMap variableMap) {
@@ -236,7 +237,7 @@ public class ProjectActionList extends ProjectAction {
     * @param  visitor  Method to apply
     * @param  value    Object to hold progress/return value
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public Result visit(Visitor visitor, Value value) {
       return visit(visitor, value, new NullProgressMonitor());
@@ -249,7 +250,7 @@ public class ProjectActionList extends ProjectAction {
     * @param  value    Object to hold progress/return value
     * @param  monitor  Monitor to indicate progress
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    public Result visit(Visitor visitor, Value value, IProgressMonitor progressMonitor) {
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
@@ -257,13 +258,13 @@ public class ProjectActionList extends ProjectAction {
 
       Result control = visitor.applyTo(this, value, monitor.newChild(1));
       switch (control.getStatus()) {
-      case EXCEPTION     : 
+      case EXCEPTION     :
          // No more actions applied
          return control;
-      case PRUNE     : 
+      case PRUNE     :
          // No children visited
          return new Result(Status.CONTINUE);
-      case CONTINUE  : 
+      case CONTINUE  :
          // Keep going
          break;
       }
@@ -275,11 +276,11 @@ public class ProjectActionList extends ProjectAction {
             control = visitor.applyTo(action, value, monitor.newChild(1));
          }
          switch (control.getStatus()) {
-         case EXCEPTION     : 
+         case EXCEPTION     :
             // No more actions applied
             return control;
-         case PRUNE     : 
-         case CONTINUE  : 
+         case PRUNE     :
+         case CONTINUE  :
             // Keep going
             break;
          }

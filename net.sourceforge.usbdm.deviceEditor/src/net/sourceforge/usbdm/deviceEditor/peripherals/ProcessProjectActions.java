@@ -10,6 +10,7 @@ import net.sourceforge.usbdm.cdt.utilties.AddTargetFiles;
 import net.sourceforge.usbdm.cdt.utilties.ApplyOptions;
 import net.sourceforge.usbdm.cdt.utilties.DeleteResource;
 import net.sourceforge.usbdm.cdt.utilties.ProjectUtilities;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.packageParser.CreateFolderAction;
 import net.sourceforge.usbdm.packageParser.CustomAction;
 import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
@@ -47,9 +48,9 @@ public class ProcessProjectActions {
     */
    public void process(
          final StringBuilder         actionRecord,
-         final IProject              projectHandle, 
+         final IProject              projectHandle,
          final ProjectActionList     actionList,
-         final ISubstitutionMap      symbolMap, 
+         final ISubstitutionMap      symbolMap,
          final IProgressMonitor      monitor) throws Exception {
 
       if (actionList == null) {
@@ -66,6 +67,13 @@ public class ProcessProjectActions {
             subMonitor.subTask(action.toString());
 //            System.err.println("ProjectCustomAction: "+action.toString());
             try {
+               if (action.getUserData() instanceof Expression) {
+                  Expression exp = (Expression) action.getUserData();
+                  if (!exp.getValueAsBoolean()) {
+                     System.err.println("Discarding action "+action+" due to "+exp.toString());
+                     return new Result(Status.PRUNE);
+                  }
+               }
                if (action instanceof FileAction) {
                   new AddTargetFiles().process(projectHandle, symbolMap, (FileAction)action, subMonitor);
                }

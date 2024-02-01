@@ -378,7 +378,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          ParseFamilyXML parser = new ParseFamilyXML();
          parser.parseHardwareFile(this, fHardwarePath);
 
-         fVariableProvider = new VariableProvider("Common Settings", this) {
+         fVariableProvider = new VariableProvider("Common_Settings", this) {
             // Add change lister to mark editor dirty
             @Override
             public void addVariable(Variable variable) {
@@ -2228,6 +2228,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          deviceInfo = DeviceInfo.create(project, device, subMonitor.newChild(10));
          if (deviceInfo != null) {
             // Generate C++ code
+            BooleanVariable initialBuildVariable = new BooleanVariable("", "/Common_Settings/Initial_Build");
+            initialBuildVariable.setValue(true);
+            deviceInfo.addVariable(initialBuildVariable);
             deviceInfo.generateCppFiles(project, true, subMonitor.newChild(90));
             deviceInfo.saveSettings(project);
          }

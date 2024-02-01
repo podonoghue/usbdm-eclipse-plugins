@@ -101,7 +101,12 @@ public class ParseMenuXML extends XML_BaseParser {
        * @param validators          Associated validators
        * @param projectActionList   Associated action lists
        */
-      public MenuData(BaseModel model, Map<String, ArrayList<TemplateInformation>> templateInfos, ArrayList<ValidatorInformation> validators, ProjectActionList projectActionList) {
+      public MenuData(
+            BaseModel model,
+            Map<String, ArrayList<TemplateInformation>> templateInfos,
+            ArrayList<ValidatorInformation> validators,
+            ProjectActionList projectActionList) {
+         
          fRootModel  = model;
          fTemplatesList  = templateInfos;
          if (validators == null) {
@@ -4301,6 +4306,10 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "projectActionList") {
          if (checkCondition(element)) {
             ProjectActionList pal = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
+            String codeGenCondition = getAttributeAsString(element, "codeGenCondition", null);
+            if (codeGenCondition != null) {
+               pal.setUserData(new Expression(codeGenCondition, fProvider));
+            }
             pal.visit(new Visitor() {
                @Override
                public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
@@ -4923,7 +4932,6 @@ public class ParseMenuXML extends XML_BaseParser {
                throw new Exception("Wrong number of choices in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
             }
             BooleanVariable booleanVar = (BooleanVariable) variable;
-
             if (choiceInfo.entries.size()==2) {
                booleanVar.setFalseValue(choiceInfo.entries.get(0));
                booleanVar.setTrueValue(choiceInfo.entries.get(1));
