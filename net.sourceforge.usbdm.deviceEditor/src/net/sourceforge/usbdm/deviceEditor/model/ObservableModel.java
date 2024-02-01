@@ -47,11 +47,15 @@ public class ObservableModel implements ObservableModelInterface {
    @Override
    public void notifyListeners(int properties) {
       if ((this instanceof Variable) && ((Variable)this).isLogging()) {
-         System.err.println("notifyListeners"+this+", "+IModelChangeListener.getPropertyNames(properties));
+         System.err.println(this.toString()+".notifyListeners("+IModelChangeListener.getPropertyNames(properties)+") ========");
       }
       ArrayList<IModelChangeListener> cp = new ArrayList<IModelChangeListener>();
       cp.addAll(fListeners);
       for (IModelChangeListener listener:cp) {
+         if ((this instanceof Variable) && ((Variable)this).isLogging()) {
+            System.err.println(this.toString()+".notifyListeners("+IModelChangeListener.getPropertyNames(properties)+") =>"+
+                  listener.toString());
+         }
          listener.modelElementChanged(this, properties);
       }
    }

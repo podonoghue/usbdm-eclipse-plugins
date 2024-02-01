@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.editor;
+package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,11 +12,25 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
-import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.IEditor;
-import net.sourceforge.usbdm.deviceEditor.model.MyViewFilter;
-import net.sourceforge.usbdm.deviceEditor.model.PeripheralParametersEditor;
-import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
+import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.InstanceColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.InstanceEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.NameColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinBooleanColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinBooleanEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.PinInterruptDmaColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinInterruptDmaEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.PinPullColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinPullEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
+import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor.TreeColumnInformation;
 
 /**
  * Represents a editor tab containing information for a peripheral

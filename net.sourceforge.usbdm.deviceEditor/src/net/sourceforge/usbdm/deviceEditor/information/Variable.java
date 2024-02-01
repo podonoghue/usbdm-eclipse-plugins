@@ -314,8 +314,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    
    @Override
    public String toString() {
-      String value = getSubstitutionValue();
-      boolean wrap = value.length()>40;
+      String value = getValueAsString();
+      boolean wrap = (value != null) && (value.length()>40);
       return String.format(getSimpleClassName()+
             "(Key=%s,"+(wrap?"\n":" ")+"value=%s"+(wrap?"\n":" ")+"(%s))",
             getKey(), getSubstitutionValue(), getValueAsString());
@@ -1661,7 +1661,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    protected final void updateAndNotify(Expression expression) {
       if (fLogging) {
-         System.err.println(getName()+".updateAndNotify("+expression+")");
+         System.err.println("Logging: "+this.toString()+".updateAndNotify("+expression+")");
       }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();

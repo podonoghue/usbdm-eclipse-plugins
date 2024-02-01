@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import java.util.ArrayList;
+
 /**
  * Used to communicate changes in the model element.
  *
@@ -12,6 +14,36 @@ public interface IModelChangeListener {
    public static final int PROPERTY_STRUCTURE = 0b01000;
    public static final int PROPERTY_HIDDEN    = 0b10000;
    
+   final String names[] = {
+         "Value",
+         "Status",
+         "Mapping",
+         "Structure",
+         "Hidden",
+   };
+   
+   /**
+    * Convert properties to array of property strings
+    * 
+    * @param properties
+    * 
+    * @return array of properties or null if none
+    */
+   public static String[] getProperties(int properties) {
+      
+      if (properties == 0) {
+         return null;
+      }
+      
+      ArrayList<String> props = new ArrayList<String>();
+      for (int bitNum=0; bitNum<names.length; bitNum++) {
+         if (((1<<bitNum)&properties) != 0) {
+            props.add(names[bitNum]);
+         }
+      }
+      return props.toArray(new String[props.size()]);
+   }
+
    /**
     * Get names of the properties for debugging
     * 
@@ -20,16 +52,8 @@ public interface IModelChangeListener {
     * @return
     */
    public static String getPropertyNames(int properties) {
-      
       StringBuilder sb = new StringBuilder();
-      String names[] = {
-            "Value",
-            "Status",
-            "Mapping",
-            "Structure",
-            "Hidden",
-      };
-      for (int bitNum=0; bitNum<5; bitNum++) {
+      for (int bitNum=0; bitNum<names.length; bitNum++) {
          if (((1<<bitNum)&properties) != 0) {
             if (!sb.isEmpty()) {
                sb.append(",");
@@ -39,7 +63,6 @@ public interface IModelChangeListener {
       }
       return sb.toString();
    }
-   
    
    /**
     * Called when the model changes.

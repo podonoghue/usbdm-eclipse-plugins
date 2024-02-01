@@ -35,7 +35,13 @@ public class TreeViewModel extends BaseModel {
 
    @Override
    protected StructuredViewer getViewer() {
-      return fViewer;
+      if (fViewer != null) {
+         return fViewer;
+      }
+      if (fParent != null) {
+         return fParent.getViewer();
+      }
+      return null;
    }
 
    @Override

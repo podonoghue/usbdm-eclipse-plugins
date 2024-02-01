@@ -160,7 +160,9 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    
    @Override
    public void modelElementChanged(ObservableModelInterface model, int properties) {
-      
+      if (fVariable.isLogging()) {
+         System.err.println("Logging: "+ this + ".modelElementChanged()");
+      }
       if ((properties & PROPERTY_VALUE) != 0) {
          StructuredViewer viewer = getViewer();
          if (viewer != null) {

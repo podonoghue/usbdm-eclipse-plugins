@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
-import net.sourceforge.usbdm.deviceEditor.editor.PeripheralParametersEditorTab;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**

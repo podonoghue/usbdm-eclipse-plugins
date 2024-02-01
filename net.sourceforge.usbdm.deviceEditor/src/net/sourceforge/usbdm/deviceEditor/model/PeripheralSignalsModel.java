@@ -77,15 +77,17 @@ public final class PeripheralSignalsModel extends VariableModel implements IMode
       if (fChildren == null) {
          return;
       }
+      String[] props = IModelChangeListener.getProperties(properties);
+
       for (Object child : fChildren) {
          if (child instanceof SignalModel ) {
             SignalModel s = (SignalModel)child;
             s.enable(isEnabled());
-            s.update(null);
+            s.update(props);
          }
       }
 //      fVariable.enable(isEnabled());
-      update(null);
+      update(props);
    }
 
    @Override

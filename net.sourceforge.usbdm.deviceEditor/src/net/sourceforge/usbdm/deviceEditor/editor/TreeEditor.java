@@ -120,6 +120,9 @@ public abstract class TreeEditor implements IEditor {
    }
 
    public TreeViewer getViewer() {
+      if (fViewer == null) {
+         System.err.println("No Viewer!!!");
+      }
       return fViewer;
    }
    

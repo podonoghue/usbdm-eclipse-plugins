@@ -345,7 +345,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       fDeviceInfo.addListener(this);
 
-      fDeviceInformationPageModel      = (DeviceInformationModel)fDeviceInfo.getModel(null);
+      fDeviceInformationPageModel = (DeviceInformationModel)fDeviceInfo.getModel(null);
       
       fPackageImageModel = new PackageImageModel(this, null);
 

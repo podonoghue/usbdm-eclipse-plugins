@@ -2075,7 +2075,7 @@ public class Expression implements IModelChangeListener {
 
    @Override
    public String toString() {
-      return "Expression("+fExpressionStr+", "+fMode+", "+fVarProvider+")";
+      return "Expression(\""+fExpressionStr+"\", "+fMode+", "+fVarProvider+")";
    }
 
    @Override

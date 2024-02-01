@@ -45,7 +45,7 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String toString() {
-      return String.format("BooleanVariable(Name=%s, value=%s (%s))", getName(), getSubstitutionValue(), getValueAsString());
+      return String.format("BooleanVariable(Name=%s, value=%s))", getName(), fValue);
    }
 
    @Override
@@ -62,7 +62,7 @@ public class BooleanVariable extends VariableWithChoices {
     */
    public boolean translate(Object value) {
       if (isLogging()) {
-         System.err.println("Found it "+value);
+         System.err.println("Logging: "+this.toString()+".translate("+value+")");
       }
       if (value instanceof Boolean) {
          return (Boolean)value;
@@ -123,7 +123,11 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String getValueAsString() {
-      if (getValueAsBoolean()) {
+      Boolean value = getValueAsBoolean();
+      if (value == null) {
+         return "(null)";
+      }
+      if (value) {
          return (fTrue==null)?"true":fTrue.getName();
       }
       return (fFalse==null)?"false":fFalse.getName();
@@ -131,7 +135,11 @@ public class BooleanVariable extends VariableWithChoices {
    
    @Override
    public String getSubstitutionValue() {
-      if (getValueAsBoolean()) {
+      Boolean value = getValueAsBoolean();
+      if (value == null) {
+         return "(null)";
+      }
+      if (value) {
          return (fTrue==null)?"true":fTrue.getValue();
       }
       return (fFalse==null)?"false":fFalse.getValue();
@@ -318,10 +326,10 @@ public class BooleanVariable extends VariableWithChoices {
 
    @Override
    public String getDefaultParameterValue() throws Exception {
-      if (isLogging()) {
-         System.err.println("Found it"+this);
-      }
       Object t = getDefault();
+      if (isLogging()) {
+         System.err.println("Logging: "+this+".getDefaultParameterValue() => "+t);
+      }
       if (t==null) {
          return null;
       }

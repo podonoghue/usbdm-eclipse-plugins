@@ -14,7 +14,7 @@ public class PeripheralSignalsVariable extends Variable {
 
    @Override
    public String getSubstitutionValue() {
-      throw new RuntimeException("This method should never be called");
+      return "(nul)";
    }
 
    @Override
