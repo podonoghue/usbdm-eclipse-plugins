@@ -21,6 +21,8 @@ public class WriterForConsole extends PeripheralWithState {
       return "Console Interface";
    }
    
+   @Override
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
    }
 }
