@@ -1061,6 +1061,8 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setLocked(otherVariable.isLocked());
          variable.setDerived(otherVariable.getDerived());
          variable.setTypeName(otherVariable.getTypeName());
+         variable.setValueFormat(otherVariable.getValueFormat());
+         variable.setBaseType(otherVariable.getBaseType());
          Expression enabledBy = otherVariable.getEnabledBy();
          if (enabledBy != null) {
             variable.setEnabledBy(enabledBy);
