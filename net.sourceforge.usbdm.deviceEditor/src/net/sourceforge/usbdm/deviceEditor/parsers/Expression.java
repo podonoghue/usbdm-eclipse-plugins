@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
@@ -762,6 +764,39 @@ public class Expression implements IModelChangeListener {
       Object eval() throws Exception {
          String s = (String) fArg.eval();
          return s.toUpperCase();
+      }
+   }
+   
+   static class ReplaceAllNode extends UnaryExpressionNode {
+
+      /**
+       * Uppercase a string e.g. cmd => CMD
+       * 
+       * @param arg
+       * @throws Exception
+       */
+      ReplaceAllNode(ExpressionNode arg) throws Exception {
+         super(arg, Type.String);
+      }
+
+      @Override
+      Object eval() throws Exception {
+
+         Object args = fArg.eval();
+         if (!(args instanceof Object[])) {
+            throw new Exception("Wrong argument type to ReplaceAll, arg = " + fArg);
+         }
+         Object resArray[] = (Object[]) args;
+         if (resArray.length != 3) {
+            throw new Exception("Wrong number or arguments to ReplaceAll, arg = " + Arrays.toString(resArray));
+         }
+         if (!(resArray[0] instanceof String)||!(resArray[1] instanceof String)||!(resArray[2] instanceof String)) {
+            throw new Exception("Wrong type of arguments to ReplaceAll, arg = " + Arrays.toString(resArray));
+         }
+         String res = Pattern.compile(resArray[1].toString()).matcher(resArray[0].toString()).replaceAll(resArray[2].toString());
+         System.err.println("Pattern.compile(\""+resArray[1].toString()+"\").matcher(\""+resArray[0].toString()+"\").replaceAll(\""+resArray[2].toString()+"\")"+
+               "=>\""+res+"\"");
+         return res;
       }
    }
    

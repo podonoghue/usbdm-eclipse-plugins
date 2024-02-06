@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.FormatNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LowercaseNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ReplaceAllNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.UppercaseNode;
@@ -267,9 +268,6 @@ public class ExpressionParser {
          return new BooleanNode(pin!=null);
       }
       if ("Prettify".equalsIgnoreCase(functionName)) {
-         if (!(arg instanceof StringNode)) {
-            throw new Exception("Expected name to prettify (a string)");
-         }
          return new PrettyNode(arg);
       }
       if ("ToLowerCase".equalsIgnoreCase(functionName)) {
@@ -277,6 +275,12 @@ public class ExpressionParser {
             throw new Exception("Expected name to ToLowerCase (a string)");
          }
          return new LowercaseNode(arg);
+      }
+      if ("ReplaceAll".equalsIgnoreCase(functionName)) {
+//         if (arg.fType != Type.String) {
+//            throw new Exception("Expected name to ToUpperCase (a string)");
+//         }
+         return new ReplaceAllNode(arg);
       }
       if ("ToUpperCase".equalsIgnoreCase(functionName)) {
          if (arg.fType != Type.String) {
