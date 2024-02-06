@@ -1670,18 +1670,18 @@ public class CreateDeviceSkeletonFromSVD {
 
       //________________________________________________________________________________________________
       
-      final String enumOpeningTemplate = "\n"
-            + "   <choiceOption key=\"irq_enum\" condition=\"=_irqCount>1\"\n"
-            + "      valueFormat=\"%s\"\n"
-            + "      hidden=\"true\"\n"
-            + "      derived=\"true\"\n"
-            + "      typeName=\"$(_Class)IrqNum\"\n"
-            + "      description=\"$(_Class) Interrupt indices\"\n"
-            + "      toolTip=\"Used to identify peripheral interrupt\" >\n";
-      final String enumTemplate        = ""
-/* V E N */  + "      <choice value=%-4s enum=%-15s name=\"%s\" />\n";
-      final String enumClosingTemplate = ""
-            + "   </choiceOption>\n";
+//      final String enumOpeningTemplate = "\n"
+//            + "   <choiceOption key=\"irq_enum\" condition=\"=_irqCount>1\"\n"
+//            + "      valueFormat=\"%s\"\n"
+//            + "      hidden=\"true\"\n"
+//            + "      derived=\"true\"\n"
+//            + "      typeName=\"$(_Class)IrqNum\"\n"
+//            + "      description=\"$(_Class) Interrupt indices\"\n"
+//            + "      toolTip=\"Used to identify peripheral interrupt\" >\n";
+//      final String enumTemplate        = ""
+///* V E N */  + "      <choice value=%-4s enum=%-15s name=\"%s\" />\n";
+//      final String enumClosingTemplate = ""
+//            + "   </choiceOption>\n";
       
       //________________________________________________________________________________________________
       
@@ -1694,21 +1694,21 @@ public class CreateDeviceSkeletonFromSVD {
       StringBuilder typeDefSb          = new StringBuilder();
       StringBuilder irqHandlerSb       = new StringBuilder();
       StringBuilder staticSb           = new StringBuilder();
-      StringBuilder irqEnumSb          = null;
-      
-      if (entries.size()>1) {
-         irqEnumSb = new StringBuilder();
-      }
+//      StringBuilder irqEnumSb          = null;
+//
+//      if (entries.size()>1) {
+//         irqEnumSb = new StringBuilder();
+//      }
       
       typeDefSb.append(irqHandlerStatusText);
       
       typeDefSb.append(typeDefOpeningText);
       irqHandlerSb.append(irqHandlingOpeningText);
       staticSb.append(staticOpeningText);
-      if (irqEnumSb != null) {
-         irqEnumSb.append(enumOpeningTemplate);
-      }
-      int index=0;
+//      if (irqEnumSb != null) {
+//         irqEnumSb.append(enumOpeningTemplate);
+//      }
+//      int index=0;
       for (InterruptEntry entry:entries) {
          String description      = entry.getCDescription();
          String irqVectorName    = entry.getName();
@@ -1760,28 +1760,28 @@ public class CreateDeviceSkeletonFromSVD {
                callbackName,
                callbackType
                ));
-         if (irqEnumSb != null) {
-            irqEnumSb.append(String.format(enumTemplate,
-                  "\""+index+"\"",
-                  "\""+irqVectorName+"\"",
-                  description
-                  ));
-         }
-         index++;
+//         if (irqEnumSb != null) {
+//            irqEnumSb.append(String.format(enumTemplate,
+//                  "\""+index+"\"",
+//                  "\""+irqVectorName+"\"",
+//                  description
+//                  ));
+//         }
+//         index++;
       }
       typeDefSb.append(typeDefClosingTemplate);
       irqHandlerSb.append(irqHandlingClosingTemplate);
       staticSb.append(staticClosingTemplate);
-      if (irqEnumSb != null) {
-         irqEnumSb.append(enumClosingTemplate);
-      }
+//      if (irqEnumSb != null) {
+//         irqEnumSb.append(enumClosingTemplate);
+//      }
       //________________________________________________________________________________________________
       
       resultSb.append(typeDefSb.toString());
       resultSb.append(irqHandlerSb.toString());
       resultSb.append(staticSb.toString());
       
-      irqEnum = irqEnumSb;
+//      irqEnum = irqEnumSb;
    }
    
    static String peripheralsToDo[] = {
@@ -1790,7 +1790,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "CAN",
 //         "CMP",
 //         "CMT",
-         "CRC",
+//         "CRC",
 //         "DAC",
 //         "DMA",
 //         "DMAMUX",
@@ -1799,8 +1799,8 @@ public class CreateDeviceSkeletonFromSVD {
 //         "FTF",
 //         "FTM",
 //         "FMC",
-         "GPIO",
-//       "FGPIO",
+//         "GPIO",
+//         "FGPIO",
 //         "ICS",
 //         "IRQ",
 //         "I2C",
@@ -1828,8 +1828,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SIM",
 //         "TSI",
 //         "TRNG",
-//         "UART",
-
+         "UART",
 //         "VREF",
 //         "USB",
 //         "USBDCD",
@@ -1926,7 +1925,7 @@ public class CreateDeviceSkeletonFromSVD {
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
 //      doAllPeripherals("FRDM_KL25Z", "mkl");
-//    doAllPeripherals("FRDM_K20D50M", "mk");
+    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
