@@ -70,7 +70,7 @@ public class ProcessProjectActions {
                if (action.getUserData() instanceof Expression) {
                   Expression exp = (Expression) action.getUserData();
                   if (!exp.getValueAsBoolean()) {
-                     System.err.println("Discarding action "+action+" due to "+exp.toString());
+                     System.out.println("Discarding action "+action+" due to "+exp.toString());
                      return new Result(Status.PRUNE);
                   }
                }
