@@ -54,7 +54,8 @@ public class BitmaskDialogue extends Dialog {
    public BitmaskDialogue(BitmaskVariable bitmaskVariable, Shell parentShell) throws Exception {
       super(parentShell);
       fVariable = bitmaskVariable;
-
+      
+      bitmaskVariable.calculateValues();
       fBitmask       = bitmaskVariable.getPermittedBits();
       fBitNames      = bitmaskVariable.getBitNames();
       fDescriptions  = bitmaskVariable.getBitDescriptions();

@@ -30,6 +30,10 @@ public class BitmaskVariable extends LongVariable {
    // Index may be -ve to indicate no mapping (used in case 3 for dummy bits)
    private Integer[] fBitMapping;
 
+   private long   fRawPermittedBits;
+   private String fRawBitNames;
+   private String fRawBitDescriptions;
+   
    /**
     * @param name
     * @param key
@@ -160,6 +164,12 @@ public class BitmaskVariable extends LongVariable {
       }
    }
 
+   public void init(long permittedBits, String bitNames, String bitDescriptions) throws Exception {
+      fRawPermittedBits    = permittedBits;
+      fRawBitNames         = bitNames;
+      fRawBitDescriptions  = bitDescriptions;
+   }
+
    /**
     * Expands lists using substitutions<br>
     * 
@@ -186,14 +196,26 @@ public class BitmaskVariable extends LongVariable {
     * 
     * @throws Exception
     */
-   public void init(long permittedBits, String bitNames, String bitDescriptions) throws Exception {
+   public void calculateValues() throws Exception {
 
       fDescriptions = null;
 
-      String[] tBitnames     = PinListExpansion.expandPinList(bitNames, ",");
-      String[] tDescriptions = PinListExpansion.expandPinList(bitDescriptions, ",");
+      String[] tBitnames;
+      if ((fRawBitNames != null)&&(fRawBitNames.startsWith("@"))) {
+         tBitnames     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitNames, getProvider()), ",");
+      }
+      else {
+         tBitnames     = PinListExpansion.expandPinList(fRawBitNames, ",");
+      }
+      String[] tDescriptions;
+      if ((fRawBitDescriptions != null)&&(fRawBitDescriptions.startsWith("@"))) {
+         tDescriptions     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitDescriptions, getProvider()), ",");
+      }
+      else {
+         tDescriptions     = PinListExpansion.expandPinList(fRawBitDescriptions, ",");
+      }
       
-      if (permittedBits == 0) {
+      if (fRawPermittedBits == 0) {
          // Case 3 - Bitmask=0, Names must be provided with skipped bits
          // Determine bitmask and indices from bit-names
          if (tBitnames == null) {
@@ -206,7 +228,7 @@ public class BitmaskVariable extends LongVariable {
          for (int index=0; index<tBitnames.length; index++) {
             long mask = (1L<<index);
             if (!tBitnames[index].isBlank()) {
-               permittedBits |= mask;
+               fRawPermittedBits |= mask;
                bitMappingList.add(index);
                bitNamesList.add(tBitnames[index]);
             }
@@ -215,7 +237,7 @@ public class BitmaskVariable extends LongVariable {
          fBitMapping = bitMappingList.toArray(new Integer[bitMappingList.size()]);
          
          if (tDescriptions != null) {
-            // Cases 3b & 3c
+            // Cases 3b
             if (tDescriptions.length>1) {
                // Case 3b
                fDescriptions = new String[fBitNames.length];
@@ -229,20 +251,6 @@ public class BitmaskVariable extends LongVariable {
                   }
                }
             }
-//            else {
-//               // Case 3c
-//               // Need to expand description pattern to match actual bits
-//               fDescriptions = new String[fBitNames.length];
-//               for (int index=0; index<fBitNames.length; index++) {
-//                  if (fBitMapping[index] < 0) {
-//                     fDescriptions[index] = "";
-//                  }
-//                  else {
-//                     fDescriptions[index] =
-//                           tDescriptions[0].replace("%i", fBitMapping[index].toString()).replace("%n", fBitNames[index]);
-//                  }
-//               }
-//            }
          }
       }
       else {
@@ -257,10 +265,10 @@ public class BitmaskVariable extends LongVariable {
          ArrayList<Integer> bitMappingList = new ArrayList<Integer>();
          for (int index=0; index<32; index++) {
             long mask = (1L<<index);
-            if (mask>permittedBits) {
+            if (mask>fRawPermittedBits) {
                break;
             }
-            if ((permittedBits&mask) != 0) {
+            if ((fRawPermittedBits&mask) != 0) {
                numberOfBitInUse++;
                bitMappingList.add(index);
             }
@@ -273,11 +281,11 @@ public class BitmaskVariable extends LongVariable {
             format = "B%i";
          }
          else if (tBitnames.length == 1) {
-            // Cases 1b, 2c - format provided
+            // Cases 1a, 1b - format provided
             format = tBitnames[0];
          }
          if (format != null) {
-            // Cases 1b, 2c or 4
+            // Cases 1a, 1b or 4
             // Expand names
 
             ArrayList<String> bitNamesList = new ArrayList<String>();
@@ -289,11 +297,11 @@ public class BitmaskVariable extends LongVariable {
             fBitNames = bitNamesList.toArray(new String[bitNamesList.size()]);
          }
          else {
-            // Cases 2b
-            // Should be a name for each bit
+            // Cases 2a or 2b
+            // Check there is a name for each bit
             if (tBitnames.length != fBitMapping.length) {
                throw new Exception("# of bits in use doesn't match # of names provided:\n"
-                     + "PermittedBits = " + permittedBits +"\n"
+                     + "PermittedBits = " + fRawPermittedBits +"\n"
                      + "Number        = " + numberOfBitInUse +"\n"
                      + "Names         = " + Arrays.toString(tBitnames));
             }
@@ -307,8 +315,8 @@ public class BitmaskVariable extends LongVariable {
          if (tDescriptions.length>1) {
             // Cases 2b, 3b - explicit list
             // bitName and bitDescriptions must match in format
-            if ((tDescriptions.length != tBitnames.length)) {
-               throw new Exception("# of bit desciptions does not match # of names:\n"
+            if ((tDescriptions.length < fBitNames.length)) {
+               throw new Exception("# of  bit descriptions does not match # of names:\n"
                      + "Desc   = " + Arrays.toString(tDescriptions) +"\n"
                      + "Names  = " + Arrays.toString(fBitNames));
             }
