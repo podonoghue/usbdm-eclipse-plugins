@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
@@ -276,7 +277,7 @@ public class LongVariable extends Variable {
                sb.append("|");
                needsBrackets = true;
             }
-            sb.append(String.format("((%s_MASK&%s)>>%s_SHIFT)",macro,registerValue, macro));
+            sb.append(String.format("((%s&%s_MASK)>>%s_SHIFT)",registerValue, macro, macro));
          }
          registerValue = sb.toString();
          if (needsBrackets) {
@@ -673,24 +674,6 @@ public class LongVariable extends Variable {
       return fMax;
    }
 
-//   /**
-//    * Triggers update of minimum value on next use
-//    */
-//   public void updateMin() {
-//      if (fMinExpression != null) {
-//         fMin = null;
-//      }
-//   }
-//
-//   /**
-//    * Triggers update of maximum value on next use
-//    */
-//   public void updateMax() {
-//      if (fMaxExpression != null) {
-//         fMax = null;
-//      }
-//   }
-
    /**
     * Sets expression for dynamic min value
     * 
@@ -799,7 +782,9 @@ public class LongVariable extends Variable {
     */
    @Override
    public void update(VariableUpdateInfo info, Expression expression) {
-      
+      if (fLogging) {
+         System.err.println("LongVariable.update");
+      }
       boolean updateLimits = false;
       if (info.doFullUpdate || ((fMinExpression != null)&&(expression == fMinExpression))) {
          fMin = null;
@@ -810,7 +795,9 @@ public class LongVariable extends Variable {
          updateLimits = true;
       }
       if (updateLimits && setStatusQuietly(isValid())) {
-         info.properties |= IModelChangeListener.PROPERTY_STATUS;
+         if ((getErrorPropagate()==null)||getErrorPropagate().greaterThan(Severity.OK)) {
+            info.properties |= IModelChangeListener.PROPERTY_STATUS;
+         }
       }
       super.update(info, expression);
    }

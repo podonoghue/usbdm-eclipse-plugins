@@ -113,9 +113,6 @@ public class ChoiceVariable extends VariableWithChoices {
       if ((fValue != null) && fValue.equals(index)) {
          return false;
       }
-//      if (getName().contains("oscillatorRange")) {
-//         System.err.println("Found it "+ getName()+".setValue("+index+")");
-//      }
       ArrayList<ChoiceData> choices = getVisibleChoiceData();
       if ((index<0) || (index>choices.size())) {
          System.err.println("setValue("+index+") - Illegal value for choice");
@@ -209,6 +206,9 @@ public class ChoiceVariable extends VariableWithChoices {
       if (fValue == null) {
          return null;
       }
+      if ((fData == null)||(fData.length==0)) {
+         return null;
+      }
       return fData[fValue].getValue();
    }
 
@@ -256,13 +256,6 @@ public class ChoiceVariable extends VariableWithChoices {
          }
          index++;
       }
-//      index = 0;
-//      for (ChoiceData choice:choiceData) {
-//         if (choice.getName().equalsIgnoreCase(value)) {
-//            return index;
-//         }
-//         index++;
-//      }
       String[] choices = getVisibleChoiceNames();
       if (choices == null) {
          return -1;
@@ -398,29 +391,6 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    public void setChoiceData(ArrayList<ChoiceData> entries) {
       setChoiceData(entries, null);
-   }
-   
-   /**
-    * Adds choice data to existing data
-    * 
-    * @param entries       Entries to add
-    * @param defaultValue  New default value (null to leave unchanged)
-    */
-   public void addChoices(ArrayList<ChoiceData> entries, Integer defaultValue) {
-      
-      ArrayList<ChoiceData> consolidatedEntries = new ArrayList<ChoiceData>();
-      for (ChoiceData item:fData) {
-         consolidatedEntries.add(item);
-      }
-      consolidatedEntries.addAll(entries);
-
-      if (defaultValue == null) {
-         // Preserve default value
-         defaultValue = fDefaultValue;
-      }
-      setChoiceData(consolidatedEntries);
-      fDefaultValue = defaultValue;
-      fValue        = defaultValue;
    }
    
    @Override

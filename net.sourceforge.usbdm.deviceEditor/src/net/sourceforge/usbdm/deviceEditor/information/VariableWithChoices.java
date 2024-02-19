@@ -72,7 +72,7 @@ public abstract class VariableWithChoices extends Variable {
    /**
     * 
     */
-   public void updateChoices() {
+   public void updateChoicesAvailable() {
       String[] choices = getVisibleChoiceNames();
       if (getValueAsLong()>=choices.length) {
          setValue(0);
@@ -87,10 +87,13 @@ public abstract class VariableWithChoices extends Variable {
     */
    public String[] getVisibleChoiceNames() {
       
+      boolean previousDynamicChoices = false;
+      
+      ChoiceData[] choiceData = getChoiceData();
+      
       if (fDynamicChoices || (fChoices == null)) {
          
          // Construct new list of choice names
-         ChoiceData[] choiceData = getChoiceData();
          if (choiceData == null) {
             return null;
          }
@@ -104,6 +107,17 @@ public abstract class VariableWithChoices extends Variable {
             choices.add(choiceData[index].getName());
          }
          fChoices = choices.toArray(new String[choices.size()]);
+      }
+      if (!previousDynamicChoices && fDynamicChoices) {
+         for (ChoiceData choiceDatax:getChoiceData()) {
+            if (choiceDatax.isDynamic()) {
+               try {
+                  choiceDatax.addListener(this);
+               } catch (Exception e) {
+                  e.printStackTrace();
+               }
+            }
+         }
       }
       return fChoices;
    }
@@ -324,20 +338,23 @@ public abstract class VariableWithChoices extends Variable {
    /**
     * Update targets affected by this choice selection
     * 
-    * @param choiceData
+    * @param choiceData  Choice being examined
+    * @param info        Updated if choice affects owner e.g. name changes
+    * @param expression  Expression triggering update
+    * 
     * @throws Exception
     */
-   void updateTargets(ChoiceData choiceData) {
+   void updateChoice(ChoiceData choiceData, VariableUpdateInfo info, Expression expression) {
 
       if (choiceData == null) {
          return;
       }
-      //      System.err.println(getName()+".updateTargets("+choiceData.getName()+")");
-
       if (fDeviceInfo.getInitialisationPhase().isEarlierThan(InitPhase.VariablePropagationAllowed)) {
          return;
       }
-
+      if (fLogging) {
+         System.err.println(getName()+".updateTargets("+choiceData.getName()+")");
+      }
       try {
          // Update pin mapping from choice (or disabled)
          String     disabledPinMap = getDisabledPinMap();
@@ -361,7 +378,6 @@ public abstract class VariableWithChoices extends Variable {
             setActivePinMappings(choiceData.getPinMap());
          }
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
 
@@ -395,22 +411,22 @@ public abstract class VariableWithChoices extends Variable {
          t.printStackTrace();
       }
       
-      Expression expression = choiceData.getReference();
+      Expression referenceExpression = choiceData.getReference();
       try {
          // Update choice.ref => target
          Variable targetVar = getProvider().getVariable(target);
          
-         VariableUpdateInfo info = new VariableUpdateInfo();
-         targetVar.determineUpdateInformation(info, expression);
-         targetVar.update(info);
-         if (info.properties != 0) {
-            targetVar.notifyListeners(info.properties);
+         VariableUpdateInfo info1 = new VariableUpdateInfo();
+         targetVar.determineUpdateInformation(info1, referenceExpression);
+         targetVar.update(info1);
+         if (info1.properties != 0) {
+            targetVar.notifyListeners(info1.properties);
          }
       } catch (Exception e) {
-         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
+         Exception t = new Exception("Failed to update from Expression '"+referenceExpression+"'", e);
          t.printStackTrace();
       }
-      updateChoices();
+      updateChoicesAvailable();
    }
 
    /**
@@ -433,10 +449,11 @@ public abstract class VariableWithChoices extends Variable {
       if (choice != null) {
          // If change or choice expression changed
          if (info.doFullUpdate ||
-             ((choice.getReference() != null) && (choice.getReference() == expression)) ||
-             ((info.properties&IModelChangeListener.PROPERTY_VALUE)!=0) ) {
+             (choice.isDependentOn(expression) ||
+             (info.properties&IModelChangeListener.PROPERTY_VALUE)!=0) ) {
             try {
-               updateTargets(choice);
+               updateChoice(choice, info, expression);
+               info.properties |= IModelChangeListener.PROPERTY_VALUE;
             } catch (Exception e) {
                e.printStackTrace();
             }
@@ -449,7 +466,7 @@ public abstract class VariableWithChoices extends Variable {
    boolean enableQuietly(boolean enabled) {
       boolean changed = super.enableQuietly(enabled);
       if (changed) {
-         updateChoices();
+         updateChoicesAvailable();
       }
       return changed;
    }
@@ -458,7 +475,7 @@ public abstract class VariableWithChoices extends Variable {
    public boolean enable(boolean enabled) {
       boolean changed = enableQuietly(enabled);
       if (changed) {
-         updateChoices();
+         updateChoicesAvailable();
          notifyListeners();
       }
       return changed;

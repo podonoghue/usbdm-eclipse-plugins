@@ -687,4 +687,43 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
    }
 
+   @Override
+   public boolean addListener(IModelChangeListener listener) {
+      if (this == Signal.DISABLED_SIGNAL) {
+         return false;
+      }
+      return super.addListener(listener);
+   }
+
+   /**
+    * Get a information about signal and mapped pin. <br>
+    * Returns a string of format<br>
+    * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b>
+    * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b>
+    * 
+    * @return
+    */
+   public String getMapDescription() {
+      
+      if (this == Signal.DISABLED_SIGNAL) {
+         return "-||-|";
+      }
+      String signalName       = getName();
+      String signalDesc       = getUserDescription();
+      String codeIdentifier   = getCodeIdentifier();
+      if ((signalDesc == null) || signalDesc.isBlank()) {
+         signalDesc = codeIdentifier;
+      }
+      if (signalDesc == null) {
+         signalDesc = "";
+      }
+      String pinName = "-";
+      Pin pin = getMappedPin();
+      if (pin != Pin.UNASSIGNED_PIN) {
+         pinName = pin.getNameWithLocation();
+      }
+      String combinedDescription = (signalDesc.isBlank()?signalName:signalDesc)+" ["+pinName+"]";
+      return signalName+"|"+signalDesc+"|"+pinName+"|"+combinedDescription+"|"+codeIdentifier;
+   }
+
  }

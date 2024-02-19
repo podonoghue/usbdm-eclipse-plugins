@@ -180,16 +180,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /** Name of default USBDM project file in Eclipse project */
    public static final String USBDM_PROJECT_FILENAME = "Configure";
-   
+
    /** Relative location of ARM peripheral files in USBDM installation */
    public static final String USBDM_ARM_STATIONERY_LOCATION  = "Stationery/Packages/180.ARM_Peripherals";
-   
+
    /** Relative location of hardware files in USBDM installation */
    public static final String USBDM_HARDWARE_LOCATION  = USBDM_ARM_STATIONERY_LOCATION + "/Hardware";
-   
+
    /** Relative location of hardware files in USBDM installation */
    public static final String USBDM_ARM_PERIPHERALS_LOCATION  = USBDM_HARDWARE_LOCATION + "/peripherals";
-   
+
    /** Key for device variant persistence */
    public static final String USBDMPROJECT_VARIANT_SETTING_KEY       = "$$DeviceInfo_Device_Variant";
 
@@ -198,7 +198,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /** Key for target family persistence */
    public static final String USBDMPROJECT_SUBFAMILY_SETTING_KEY     = "$$DeviceInfo_SubFamily";
-   
+
    /** Key for hardware source file persistence */
    public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY  = "$$Hardware_Source_Filename";
 
@@ -208,7 +208,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    private DeviceInfo() {
       Variable.setDeviceInfo(this);
    }
-   
+
    public static Path findFile(Path filePath) throws Exception {
       Path resolvedPath = null;
 
@@ -243,7 +243,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       return resolvedPath;
    }
-   
+
    /**
     * Create device hardware description from given file<br>
     * 
@@ -255,7 +255,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception
     */
    public static DeviceInfo createFromCsvFile(Path filePath, HashMap<String, HashSet<String>> peripheralVersions) throws Exception {
-      
+
       String filename  = filePath.getFileName().toString();
       if (!filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
          throw new Exception("Incorrect file type"+ filePath);
@@ -279,7 +279,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception
     */
    public static DeviceInfo createFromHardwareFile(Path filePath) throws Exception {
-      
+
       String filename  = filePath.getFileName().toString();
       if (!filename.endsWith(HARDWARE_FILE_EXTENSION)) {
          throw new Exception("Incorrect file type"+ filePath);
@@ -289,10 +289,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          throw new Exception("Cannot locate file "+ filePath);
       }
       DeviceInfo deviceInfo = new DeviceInfo();
-      deviceInfo.loadHardwareDescription(resolvedPath);
+      ParseFamilyXML parser = deviceInfo.getHardwareParser(resolvedPath);
+      deviceInfo.loadDeviceDescription(parser);
+      deviceInfo.loadPeripheralDescriptions(parser);
       return deviceInfo;
    }
-   
+
    /**
     * Create device hardware description from settings file
     * 
@@ -304,12 +306,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception
     */
    public static DeviceInfo createFromSettingsFile(Device device, Path filePath) throws Exception {
-      
+
       String filename  = filePath.getFileName().toString();
       if (!filename.endsWith(PROJECT_FILE_EXTENSION)) {
          throw new Exception("Incorrect file type"+ filePath);
       }
-      
+
       filePath = filePath.toAbsolutePath();
       if (!Files.isReadable(filePath)) {
          throw new Exception("Cannot locate file "+ filePath);
@@ -318,7 +320,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       DeviceInfo deviceInfo = new DeviceInfo();
 
       Settings projectSettings = deviceInfo.getSettings(filePath);
-      
+
       Path hardwarePath = Paths.get(projectSettings.get(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY));
 
       if (!hardwarePath.isAbsolute()) {
@@ -343,9 +345,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if (!Files.isReadable(hardwarePath)) {
          throw new Exception("Cannot locate file "+ hardwarePath);
       }
-      deviceInfo.loadHardwareDescription(hardwarePath);
-      deviceInfo.loadSettings(device, projectSettings);
-      
+      ParseFamilyXML parser = deviceInfo.getHardwareParser(hardwarePath);
+      deviceInfo.loadDeviceDescription(parser);
+      deviceInfo.loadPeripheralDescriptions(parser);
+      deviceInfo.loadInitialSettings(device, projectSettings);
+      deviceInfo.loadRemainingSettings(device, projectSettings);
+
       return deviceInfo;
    }
 
@@ -363,6 +368,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       parser.parseFile(hardwarePath, peripheralVersions);
    }
 
+   ParseFamilyXML getHardwareParser(Path hardwarePath) throws Exception {
+      System.out.println("DeviceInfo.getHardwareParser(" + hardwarePath.getFileName().toString() + ")");
+      fHardwarePath = hardwarePath;
+      String filename = fHardwarePath.getFileName().toString();
+      if (!filename.endsWith("xml")&&!filename.endsWith(HARDWARE_FILE_EXTENSION)) {
+         throw new Exception("Unexpected file type for " + hardwarePath);
+      }
+      ParseFamilyXML parser = new ParseFamilyXML();
+      parser.parseHardwareFile(this, fHardwarePath);
+      return parser;
+   }
+
    /**
     * Load hardware description from file (.usbdmHardware)
     * 
@@ -370,54 +387,57 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception
     */
-   private void loadHardwareDescription(Path hardwarePath) throws Exception {
-      System.out.println("DeviceInfo.parse(" + hardwarePath.getFileName().toString() + ")");
-      fHardwarePath = hardwarePath;
-      String filename = fHardwarePath.getFileName().toString();
-      if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
-         ParseFamilyXML parser = new ParseFamilyXML();
-         parser.parseHardwareFile(this, fHardwarePath);
+   private void loadDeviceDescription(ParseFamilyXML parser) throws Exception {
 
-         fVariableProvider = new VariableProvider("Common_Settings", this) {
-            // Add change lister to mark editor dirty
-            @Override
-            public void addVariable(Variable variable) {
-               super.addVariable(variable);
-               variable.addListener(DeviceInfo.this);
-            }
-         };
-         // Add device sub-family as variable
-         addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
-         
-         fMenuData = ParseMenuXML.parseMenuFile("common_settings", fVariableProvider);
-         
-         ArrayList<PeripheralWithState> peripheralWithStateList = new ArrayList<PeripheralWithState>();
-         
-         // Construct list of all PeripheralWithState
-         for (String name:fPeripheralsMap.keySet()) {
-            Peripheral p = fPeripheralsMap.get(name);
-            if (p instanceof PeripheralWithState) {
-               peripheralWithStateList.add((PeripheralWithState) fPeripheralsMap.get(name));
-            }
+      System.out.println("DeviceInfo.loadDeviceDescription()");
+      fVariableProvider = new VariableProvider("Common_Settings", this) {
+         // Add change lister to mark editor dirty
+         @Override
+         public void addVariable(Variable variable) {
+            super.addVariable(variable);
+            variable.addListener(DeviceInfo.this);
          }
-         // Sort in priority order
-         Collections.sort(peripheralWithStateList, new Comparator<PeripheralWithState>() {
-            @Override
-            public int compare(PeripheralWithState o1, PeripheralWithState o2) {
-               return o2.getPriority()-o1.getPriority();
-            }
-         });
-         // Construct peripherals
-         for (PeripheralWithState p:peripheralWithStateList) {
-            p.loadModels();
-         }
-         repeatedItemSet.clear();
-         for (PeripheralWithState p:peripheralWithStateList) {
-            p.instantiateAliases();
+      };
+      // Add device sub-family as variable
+      addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
+
+      fMenuData = ParseMenuXML.parseMenuFile("common_settings", fVariableProvider);
+   }
+
+   /**
+    * Load hardware description from file (.usbdmHardware)
+    * 
+    * @param hardwarePath  Path to load from
+    * 
+    * @throws Exception
+    */
+   private void loadPeripheralDescriptions(ParseFamilyXML parser) throws Exception {
+      
+      System.out.println("DeviceInfo.loadPeripheralDescriptions()");
+
+      ArrayList<PeripheralWithState> peripheralWithStateList = new ArrayList<PeripheralWithState>();
+      
+      // Construct list of all PeripheralWithState
+      for (String name:fPeripheralsMap.keySet()) {
+         Peripheral p = fPeripheralsMap.get(name);
+         if (p instanceof PeripheralWithState) {
+            peripheralWithStateList.add((PeripheralWithState) fPeripheralsMap.get(name));
          }
       }
-      else {
-         throw new Exception("Unexpected file type for " + hardwarePath);
+      // Sort in priority order
+      Collections.sort(peripheralWithStateList, new Comparator<PeripheralWithState>() {
+         @Override
+         public int compare(PeripheralWithState o1, PeripheralWithState o2) {
+            return o2.getPriority()-o1.getPriority();
+         }
+      });
+      // Construct peripherals
+      for (PeripheralWithState p:peripheralWithStateList) {
+         p.loadModels();
+      }
+      repeatedItemSet.clear();
+      for (PeripheralWithState p:peripheralWithStateList) {
+         p.instantiateAliases();
       }
    }
 
@@ -714,6 +734,17 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
+    * Get signal by name
+    * 
+    * @param signalName Name of signal to locate
+    * 
+    * @return Signal or null if it doesn't exist
+    */
+   public Signal getSignal(String signalName) {
+      return fSignals.get(signalName);
+   }
+
+   /**
     * Get map of signals associated with the given baseName<br>
     * e.g. "FTM" with return all the FTM signals
     * 
@@ -732,7 +763,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param name          e.g. FTM0_CH6
     * @param baseName      e.g. FTM0_CH6 = FTM
     * @param instance      e.g. FTM0_CH6 = 0
-    * @param signal        e.g. FTM0_CH6 = 6
+    * @param signalName    e.g. FTM0_CH6 = CH6
     * 
     * @return Signal if found or created, null otherwise
     * @throws Exception
@@ -1212,7 +1243,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForI2s.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(LLWU)()_(P\\d+)",
+               "(LLWU)()_((P|M)\\d+)",
                getDeviceFamily(),
                WriterForLlwu.class);
          createPeripheralTemplateInformation(
@@ -1769,14 +1800,22 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       return null;
    }
+   
    /**
-    * Load persistent settings
+    * Load initial persistent settings
+    * This includes:
+    * <li> Device variant e.g. FRDM_K20D50M
+    * <li> Device sub-family e.g. MK20D5
+    * <li> Signals (Code identifiers and descriptions)
+    * <li> Pins ()
     * 
     * @param device     Associated device (only used if settings are incomplete)
-    * @param settings   Settings to load from
+    * @param settings   Settings to load from (updated with information based on variant and subfamily for system files)
     */
-   public void loadSettings(Device device, Settings settings) {
+   public void loadInitialSettings(Device device, Settings settings) {
+      System.err.println("Loading initial settings");
       try {
+         // Device variant
          String variantName = settings.get(USBDMPROJECT_VARIANT_SETTING_KEY);
          if ((variantName == null) && (device != null)) {
             for (String variant:getDeviceVariants().keySet()) {
@@ -1805,6 +1844,37 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             subFamilyName = settings.get(USBDMPROJECT_OLD_SUBFAMILY_SETTING_KEY);
          }
          setDeviceSubFamily(subFamilyName);
+         for (String pinName:fPins.keySet()) {
+            Pin pin = fPins.get(pinName);
+            pin.loadSettings(settings);
+         }
+         for (String signalName:fSignals.keySet()) {
+            Signal signal = fSignals.get(signalName);
+            signal.loadSettings(settings);
+         }
+         
+      } catch (Exception e) {
+         Activator.logError(e.getMessage(), e);
+         e.printStackTrace();
+      }
+   }
+
+   /**
+    * Load remaining persistent settings
+    * This includes:
+    * <li> Adding validators
+    * <li> Peripheral settings
+    * <li> Runs peripheral customiser routine
+    * <li> Variable values
+    * <li> Runs sanity check on values loaded (changes in values during load)
+    * <li> Marks values as clean
+    *
+    * @param device     Associated device (only used if settings are incomplete)
+    * @param settings   Settings to load from
+    */
+   public void loadRemainingSettings(Device device, Settings settings) {
+      System.err.println("Loading remaining settings");
+      try {
 
          // Create dependencies between variables and peripherals
          for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
@@ -1813,14 +1883,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             for (Validator validator:validators) {
                validator.addDependencies();
             }
-         }
-         for (String pinName:fPins.keySet()) {
-            Pin pin = fPins.get(pinName);
-            pin.loadSettings(settings);
-         }
-         for (String signalName:fSignals.keySet()) {
-            Signal signal = fSignals.get(signalName);
-            signal.loadSettings(settings);
          }
          for (String peripheralName:fPeripheralsMap.keySet()) {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
@@ -1882,7 +1944,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             if (value != null) {
                Variable var = fVariables.get(entry.getKey());
                if (!var.isDerived()) {
-                  if (!var.getPersistentValue().equals(value)) {
+                  if (!value.equals(var.getPersistentValue())) {
                      System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getKey());
                      System.err.println("Loaded value     = " + value);
                      System.err.println("Final value = " + var.getPersistentValue());
@@ -2230,6 +2292,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             // Generate C++ code
             BooleanVariable initialBuildVariable = new BooleanVariable("", "/Common_Settings/Initial_Build");
             initialBuildVariable.setValue(true);
+            initialBuildVariable.setDerived(true);
             deviceInfo.addVariable(initialBuildVariable);
             deviceInfo.generateCppFiles(project, true, subMonitor.newChild(90));
             deviceInfo.saveSettings(project);

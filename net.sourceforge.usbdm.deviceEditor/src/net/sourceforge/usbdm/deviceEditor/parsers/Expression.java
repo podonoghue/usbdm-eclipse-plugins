@@ -1,7 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
@@ -10,7 +10,9 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.PinListExpansion;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
@@ -19,12 +21,53 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.ExpressionParser.Mode;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class Expression implements IModelChangeListener {
 
    public enum Type {
       Double, Long, String, Boolean, DisabledValue, List, Set, Unknown,
+   }
+   
+   /**
+    * Evaluates an argument
+    * 
+    * @param arg     Argument to evaluate
+    * @param type    Expected type arg
+    * @return        Evaluated result or null if arg is null
+    * 
+    * @throws Exception if arg is not a constant or of unexpected type
+    */
+   static Object evalConstantArg(ExpressionNode arg, Type type) throws Exception {
+      
+      if (arg == null) {
+         return null;
+      }
+      if (arg.fType != type) {
+         throw new Exception(type.toString() + " argument expected, found '" + arg.fType + "'");
+      }
+      if (!arg.isConstant()) {
+         throw new Exception("Constant argument expected");
+      }
+      return arg.eval();
+   }
+   
+   /**
+    * Evaluates an argument
+    * 
+    * @param arg     Argument to evaluate
+    * @param type    Expected type arg
+    * @return        Evaluated result or null if arg is null
+    * 
+    * @throws Exception if arg is not a constant or of unexpected type
+    */
+   static Object evalRequiredConstantArg(ExpressionNode arg, Type type) throws Exception {
+      Object result = evalConstantArg(arg, type);
+      if (result == null) {
+         throw new Exception("Missing argument of type '" + type.toString() + "'");
+      }
+      return result;
    }
    
    static abstract class ExpressionNode {
@@ -474,11 +517,11 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   static class DoubleNode extends ExpressionNode {
+   static class DoubleConstantNode extends ExpressionNode {
 
       final Double fValue;
 
-      DoubleNode(double value) {
+      DoubleConstantNode(double value) {
          super(Type.Double);
          fValue = value;
       }
@@ -499,11 +542,11 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   static class LongNode extends ExpressionNode {
+   static class LongConstantNode extends ExpressionNode {
 
       final Long fValue;
 
-      LongNode(long value) {
+      LongConstantNode(long value) {
          super(Type.Long);
          fValue = value;
       }
@@ -524,17 +567,17 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   static class StringNode extends ExpressionNode {
+   static class StringConstantNode extends ExpressionNode {
 
       final String fValue;
 
-      StringNode(String value) {
+      StringConstantNode(String value) {
          super(Type.String);
          fValue = value;
       }
 
       @Override
-      Object eval() {
+      String eval() {
          return fValue;
       }
       
@@ -545,7 +588,32 @@ public class Expression implements IModelChangeListener {
 
       @Override
       public String toString() {
+         return "\""+fValue+"\"";
+      }
+   }
+
+   static class BooleanConstantNode extends ExpressionNode {
+
+      final Boolean fValue;
+
+      BooleanConstantNode(Boolean value) {
+         super(Type.Boolean);
+         fValue = value;
+      }
+
+      @Override
+      Boolean eval() {
          return fValue;
+      }
+      
+      @Override
+      boolean isConstant() {
+         return true;
+      }
+
+      @Override
+      public String toString() {
+         return "\""+fValue+"\"";
       }
    }
 
@@ -770,32 +838,33 @@ public class Expression implements IModelChangeListener {
    static class ReplaceAllNode extends UnaryExpressionNode {
 
       /**
-       * Uppercase a string e.g. cmd => CMD
+       * Does Pattern.compile(text).matcher(regex).replaceAll(replacement)
        * 
-       * @param arg
+       * @param arg     Arguments - must be ("text","regex","replacement")
        * @throws Exception
        */
       ReplaceAllNode(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
+         if (!(arg instanceof CommaListNode)) {
+            throw new Exception("Expected (\"text\",\"regex\",\"replacement\")");
+         }
+         CommaListNode cln = (CommaListNode) arg;
+         ExpressionNode[] args = cln.getExpressionList();
+         if (args.length != 3) {
+            throw new Exception("Wrong number of arguments, expected (\"text\",\"regex\",\"replacement\")");
+         }
+         if ((args[0].fType != Type.String)||(args[1].fType != Type.String)||(args[2].fType != Type.String)) {
+            throw new Exception("Arguments have wrong type, expected (\"text\",\"regex\",\"replacement\")");
+         }
       }
 
       @Override
       Object eval() throws Exception {
 
-         Object args = fArg.eval();
-         if (!(args instanceof Object[])) {
-            throw new Exception("Wrong argument type to ReplaceAll, arg = " + fArg);
-         }
-         Object resArray[] = (Object[]) args;
-         if (resArray.length != 3) {
-            throw new Exception("Wrong number or arguments to ReplaceAll, arg = " + Arrays.toString(resArray));
-         }
-         if (!(resArray[0] instanceof String)||!(resArray[1] instanceof String)||!(resArray[2] instanceof String)) {
-            throw new Exception("Wrong type of arguments to ReplaceAll, arg = " + Arrays.toString(resArray));
-         }
+         Object resArray[] = (Object[]) fArg.eval();
          String res = Pattern.compile(resArray[1].toString()).matcher(resArray[0].toString()).replaceAll(resArray[2].toString());
-         System.err.println("Pattern.compile(\""+resArray[1].toString()+"\").matcher(\""+resArray[0].toString()+"\").replaceAll(\""+resArray[2].toString()+"\")"+
-               "=>\""+res+"\"");
+//         System.err.println("Pattern.compile(\""+resArray[1].toString()+"\").matcher(\""+resArray[0].toString()+"\").replaceAll(\""+resArray[2].toString()+"\")"+
+//               "=>\""+res+"\"");
          return res;
       }
    }
@@ -836,7 +905,7 @@ public class Expression implements IModelChangeListener {
        */
       LowercaseNode(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
-         if (arg.fType != Expression.Type.String) {
+         if (arg.fType != Type.String) {
             throw new Exception("Expression cannot be Lowercased");
          }
       }
@@ -941,9 +1010,391 @@ public class Expression implements IModelChangeListener {
       }
    }
    
-   static class UnaryMinueNode extends UnaryExpressionNode {
+   static class SignalDescriptionNode extends ExpressionNode {
 
-      UnaryMinueNode(ExpressionNode left) {
+      final Signal fSignal;
+      final String fRegex;
+      final String fReplacement;
+      
+      private SignalDescriptionNode(Signal signal, String regex, String replacement) {
+         super(Type.String);
+         fSignal      = signal;
+         fRegex       = regex;
+         fReplacement = replacement;
+      }
+
+      /**
+       * Create 'live' Expression node describing the signal
+       * String is of format<br>
+       * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description"</b>
+       * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)"</b>
+       * 
+       * @param peripheral Peripheral owning the signal
+       * @param arg        Constant expression evaluating to the index of the signal in info table
+       * 
+       * @throws Exception
+       */
+      /**
+       * Get a information about signal and mapped pin. <br>
+       * Returns a string of format<br>
+       * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description"</b>
+       * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)"</b>
+       * 
+       * @return
+       */
+      
+      private SignalDescriptionNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
+         super(Type.String);
+
+         if (arg == null) {
+            throw new Exception("Expected index for signal (an integer)");
+         }
+         if (arg.fType != Type.List) {
+            
+            // Must be a single index (Long)
+            Long value = (Long) evalConstantArg(arg, Type.Long);
+            
+            fSignal      = peripheral.getSignalFromIndex((int)value.longValue());
+            fRegex       = null;
+            fReplacement = null;
+            return;
+         }
+         ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+         if (args.length != 3) {
+            // Must be an index (Long) and a String replacement pattern
+            throw new Exception("Expected 3 arguments 'index,regex,replacement'");
+         }
+         fSignal      = peripheral.getSignalFromIndex((int)((Long) evalConstantArg(args[0], Type.Long)).longValue());
+         fRegex       = (String) evalConstantArg(args[1], Type.String);
+         fReplacement = (String) evalConstantArg(args[2], Type.String);
+         
+      }
+      
+      /**
+       * Get signal being monitored
+       * 
+       * @return Signal or null if not found when constructed
+       */
+      public Signal getSignal() {
+         return fSignal;
+      }
+      
+      @Override
+      Object eval() throws Exception {
+
+         String text = fSignal.getMapDescription();
+         if (fRegex != null) {
+            Pattern pattern = Pattern.compile(fRegex);
+            Matcher matcher = pattern.matcher(text);
+            if (!matcher.matches()) {
+               return "regex failed match";
+            }
+            text = matcher.replaceAll(fReplacement);
+         }
+         return text;
+      }
+
+      /**
+       * Create Expression node providing information about a signal.
+       * 
+       * @param fProvider  Peripheral to locate signals
+       * @param arg        Constant expression evaluating to<br>
+       * <li> Long index of the signal in info table
+       * <li> (optional) regex for pattern matching (String)
+       * <li> (optional) replacement pattern for use with regex to modify result (String)<br>
+       * <br>
+       * If arg is null then no modification is done.<br>
+       * Examples<br>
+       * Signal description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b><br>
+       * Signal example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b><br>
+       * Example filter:     <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       * Example replacement: <b>"$1 mapped to $3"</b><br>
+       * 
+       * @return  SignalDescriptionNode if signal found <br>
+       *          StringConstantNode("Signal not found") if signal not found
+       * 
+       * @throws Exception
+       */
+      public static ExpressionNode createNodeFromIndex(Peripheral peripheral, ExpressionNode arg) throws Exception {
+
+         Signal signal;
+         String regex       = null;
+         String replacement = null;
+         
+         if (arg == null) {
+            throw new Exception("Expected index for signal (an integer)");
+         }
+         do {
+            if (arg.fType != Type.List) {
+
+               // Must be a single index (Long)
+               Long value = (Long) evalConstantArg(arg, Type.Long);
+
+               signal      = peripheral.getSignalFromIndex((int)value.longValue());
+               continue;
+            }
+            ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+            if (args.length != 3) {
+               // Must be an index (Long), regex (String) and replacement pattern (String)
+               throw new Exception("Expected 3 arguments 'index,regex,replacement'");
+            }
+            signal      = peripheral.getSignalFromIndex((int)((Long) evalConstantArg(args[0], Type.Long)).longValue());
+            regex       = (String) evalConstantArg(args[1], Type.String);
+            replacement = (String) evalConstantArg(args[2], Type.String);
+            continue;
+         } while(false);
+         
+         if (signal != null) {
+            return new SignalDescriptionNode(signal, regex, replacement);
+         }
+         else {
+            return new StringConstantNode("Signal not found");
+         }
+      }
+      
+      /**
+       * Create Expression node providing information about a signal.
+       * 
+       * @param fProvider  Peripheral to locate signals
+       * @param arg        Constant expression evaluating to<br>
+       * <li> Name of signal (a String)
+       * <li> (optional) regex for pattern matching (String)
+       * <li> (optional) replacement pattern for use with regex to modify result (String)<br>
+       * <br>
+       * If arg is null then no modification is done.<br>
+       * Examples<br>
+       * Signal description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b><br>
+       * Signal example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b><br>
+       * Example filter:     <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       * Example replacement: <b>"$1 mapped to $3"</b><br>
+       * 
+       * @return  SignalDescriptionNode if signal found <br>
+       *          StringConstantNode("Signal not found") if signal not found
+       * 
+       * @throws Exception
+       */
+      public static ExpressionNode createNodeFromName(Peripheral peripheral, ExpressionNode arg) throws Exception {
+         Signal signal;
+         String regex       = null;
+         String replacement = null;
+         
+         if (arg == null) {
+            throw new Exception("Expected index for signal (an integer)");
+         }
+         do {
+            if (arg.fType != Type.List) {
+               // Must be a single name (String)
+               signal      = peripheral.getSignal((String) evalConstantArg(arg, Type.String));
+               continue;
+            }
+            ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+            if (args.length != 3) {
+               // Must be an name (String), regex (String) and a replacement pattern (String)
+               throw new Exception("Expected 3 arguments 'name,regex,replacement'");
+            }
+            signal      = peripheral.getSignal((String) evalConstantArg(args[0], Type.String));
+            regex       = (String) evalConstantArg(args[1], Type.String);
+            replacement = (String) evalConstantArg(args[2], Type.String);
+            continue;
+         } while(false);
+         
+         if (signal != null) {
+            return new SignalDescriptionNode(signal, regex, replacement);
+         }
+         else {
+            return new StringConstantNode("Signal not found");
+         }
+      }
+   }
+   
+   static class PinMappingNode extends ExpressionNode {
+
+      Signal fSignal;
+      
+      PinMappingNode(Signal signal) {
+         super(Type.String);
+         fSignal = signal;
+      }
+
+      @Override
+      Object eval() throws Exception {
+         Pin pin = null;
+         if (fSignal != null) {
+            pin = fSignal.getMappedPin();
+         }
+         String pinName = "";
+         if (pin != Pin.UNASSIGNED_PIN) {
+            pinName = pin.getName();
+         }
+         return pinName;
+      }
+   }
+   
+   static class MappedPinsListNode extends ExpressionNode {
+
+      final Peripheral fPeripheral;
+      final String     fRegex;
+      final String     fReplacement;
+
+      /**
+       * Create Expression node providing information about mapped signals.
+       * 
+       * @param fProvider  Peripheral to locate signals
+       * @param arg        Constant expression evaluating to<br>
+       * <li> (optional) String regex for filtering on pin name
+       * <li> (optional) String replacement pattern for use with regex to produce modify pin information
+       * 
+       * If no arg is null then no filtering is done and all mapped pins are returned.
+       * 
+       * @return MappedPinsListNode providing a comma-separated String result when evaluated
+       * 
+       * @throws Exception
+       */
+      MappedPinsListNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
+         super(Type.String);
+         
+         fPeripheral     = peripheral;
+         
+         if (arg == null) {
+            // Unfiltered list
+            fRegex       = null;
+            fReplacement = null;
+            return;
+         }
+         if (arg.fType != Type.List) {
+            // Filtered list
+            fRegex       = (String) evalConstantArg(arg, Type.String);
+            fReplacement = null;
+            return;
+         }
+         ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+         if (args.length != 2) {
+            throw new Exception("Expected 2 arguments, 'regex,replacement'");
+         }
+         // Filtered list with modified values
+         fRegex       = (String) evalConstantArg(args[0], Type.String);
+         fReplacement = (String) evalConstantArg(args[1], Type.String);
+      }
+
+      @Override
+      Object eval() throws Exception {
+
+         Pin[] mappedPins = fPeripheral.getMappedPins();
+         StringBuilder sb = new StringBuilder();
+
+         Pattern pattern = null;
+         if (fRegex != null) {
+            pattern = Pattern.compile(fRegex);
+         }
+         for (Pin pin:mappedPins) {
+            if (pin == null) {
+               continue;
+            }
+            String pinName = pin.getName();
+            if (pattern != null) {
+               Matcher matcher = pattern.matcher(pinName);
+               if (!matcher.matches()) {
+                  continue;
+               }
+               if (fReplacement != null) {
+                  pinName = matcher.replaceAll(fReplacement);
+               }
+            }
+            if (!sb.isEmpty()) {
+               sb.append(",");
+            }
+            sb.append(pinName);
+         }
+         return sb.toString();
+      }
+   }
+   
+   static class SignalsListNode extends ExpressionNode {
+
+      final Peripheral fPeripheral;
+      final String     fRegex;
+      final String     fReplacement;
+      
+      /**
+       * Create Expression node providing information about signals.
+       * 
+       * @param fProvider  Peripheral to locate signals
+       * @param arg        Constant expression evaluating to<br>
+       * <li> (optional) String regex for filtering on mapped signal description
+       * <li> (optional) String replacement pattern for use with regex to produce modify result<br>
+       * <br>
+       * If arg is null then no filtering is done and all mapped signals are returned.<br>
+       * Examples<br>
+       * Signal description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b><br>
+       * Signal example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b><br>
+       * Example filter:     <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       * Example replacement: <b>"$1 mapped to $3"</b><br>
+       * 
+       * @return SignalsListNode providing a comma-separated String result when evaluated
+       * 
+       * @throws Exception
+       */
+      SignalsListNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
+         super(Type.String);
+         fPeripheral     = peripheral;
+         if (arg == null) {
+            fRegex       = null;
+            fReplacement = null;
+            return;
+         }
+         if (arg.fType != Type.List) {
+            fRegex       = (String) evalConstantArg(arg, Type.String);
+            fReplacement = null;
+            return;
+         }
+         ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+         if (args.length != 2) {
+            throw new Exception("Expected 2 arguments");
+         }
+         fRegex       = (String) evalConstantArg(args[0], Type.String);
+         fReplacement = (String) evalConstantArg(args[1], Type.String);
+      }
+      
+      @Override
+      Object eval() throws Exception {
+         
+         Signal[] signals = fPeripheral.getMappedSignals();
+         StringBuilder sb = new StringBuilder();
+         
+         Pattern pattern = null;
+         if (fRegex != null) {
+            pattern = Pattern.compile(fRegex);
+         }
+         for (Signal signal:signals) {
+            if (signal == null) {
+               continue;
+            }
+            // Description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b>
+            // Example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b>
+            // Example filter: "^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"
+            // Example replacement: "$1 mapped to $3"
+            String description = signal.getMapDescription();
+            if (pattern != null) {
+               Matcher matcher = pattern.matcher(description);
+               if (!matcher.matches()) {
+                  continue;
+               }
+               if (fReplacement != null) {
+                  description = matcher.replaceAll(fReplacement);
+               }
+            }
+            if (!sb.isEmpty()) {
+               sb.append(",");
+            }
+            sb.append(description);
+         }
+         return sb.toString();
+      }
+   }
+   
+   static class UnaryMinusNode extends UnaryExpressionNode {
+
+      UnaryMinusNode(ExpressionNode left) {
          super(left, left.fType);
       }
 
@@ -1538,7 +1989,16 @@ public class Expression implements IModelChangeListener {
          super(Type.List);
          fList = expressions;
       }
-
+      
+      /**
+       * Get list of expressions
+       * 
+       * @return
+       */
+      public ExpressionNode[] getExpressionList() {
+         return fList;
+      }
+      
       @Override
       Object eval() throws Exception {
          Object[] result = new Object[fList.length];
@@ -1636,12 +2096,19 @@ public class Expression implements IModelChangeListener {
    /** Indicates the expression is constant */
    private Boolean fIsConstant;
    
+   /** Cached value for expression */
    private Object fCurrentValue;
 
+   /** Disables caching of expression value i.e. expression is always re-evaluated when used */
+   private boolean neverCacheValue = false;
+   
+   /** Listeners that need to be notified of expression changes */
    private ArrayList<IExpressionChangeListener> fListeners = new ArrayList<IExpressionChangeListener>();
 
+   /** Variable used by expression */
    private ArrayList<Variable> fVariables;
 
+   /** Controls operation of parser */
    private Mode fMode;
 
    /**
@@ -1656,13 +2123,13 @@ public class Expression implements IModelChangeListener {
    static ExpressionNode wrapConstant(Object constantValue) throws Exception {
       
       if (constantValue instanceof Long) {
-         return new LongNode((Long)constantValue);
+         return new LongConstantNode((Long)constantValue);
       }
       if (constantValue instanceof Double) {
-         return new DoubleNode((Double)constantValue);
+         return new DoubleConstantNode((Double)constantValue);
       }
       if (constantValue instanceof String) {
-         return new StringNode((String)constantValue);
+         return new StringConstantNode((String)constantValue);
       }
       if (constantValue instanceof Boolean) {
          return new BooleanNode((Boolean)constantValue);
@@ -1820,7 +2287,7 @@ public class Expression implements IModelChangeListener {
          }
       }
       else {
-         if (fVariables.size()>0) {
+         if ((fVariables != null) && fVariables.size()>0) {
             sb.append("Calculated from ");
          }
          else {
@@ -1905,7 +2372,7 @@ public class Expression implements IModelChangeListener {
     */
    public Object getValue() throws Exception {
       InitPhase initPhase = fVarProvider.getDeviceInfo().getInitialisationPhase();
-      if ((fCurrentValue == null) || (initPhase.isEarlierThan( InitPhase.VariableAndGuiPropagationAllowed))) {
+      if ((fCurrentValue == null) || neverCacheValue || (initPhase.isEarlierThan( InitPhase.VariableAndGuiPropagationAllowed))) {
          // Always evaluate if needed or when loading settings
          fCurrentValue = evaluate();
       }
@@ -2058,7 +2525,7 @@ public class Expression implements IModelChangeListener {
       try {
          return (Boolean) exp.getValue();
       } catch (ClassCastException e) {
-         throw new Exception("Expected boolean result for condition", e);
+         throw new Exception("Expected boolean result for condition '"+expression+"'", e);
       }
    }
 
@@ -2148,6 +2615,36 @@ public class Expression implements IModelChangeListener {
       } catch (Exception e) {
          e.printStackTrace();
       }
+   }
+
+   /**
+    * Causes the expression to be re-evaluated on every use
+    */
+   public void setNeverCacheValue() {
+      neverCacheValue = true;
+   }
+
+   /**
+    * Checks if the expression should be re-evaluated on every use
+    */
+   public boolean isNeverCached() {
+      return neverCacheValue;
+   }
+
+   public static ExpressionNode createConstantNode(Object res) throws Exception {
+      if (res instanceof String) {
+         return new StringConstantNode((String)res);
+      }
+      if (res instanceof Long) {
+         return new LongConstantNode((Long)res);
+      }
+      if (res instanceof Double) {
+         return new DoubleConstantNode((Double)res);
+      }
+      if (res instanceof Boolean) {
+         return new BooleanConstantNode((Boolean)res);
+      }
+      throw new Exception("Unexpected constant type");
    }
 
 }

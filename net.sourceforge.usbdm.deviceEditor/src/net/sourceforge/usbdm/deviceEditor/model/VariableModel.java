@@ -130,6 +130,9 @@ public abstract class VariableModel extends EditableModel implements IModelChang
          return null;
       }
       if (status.getSeverity().greaterThan(fVariable.getErrorPropagate())) {
+       if (fVariable.isLogging()) {
+          System.err.println(getName()+".getPropagatedStatus()" + status);
+       }
          return status;
       }
       return null;
@@ -138,10 +141,10 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    @Override
    Status getStatus() {
       Status rv =  super.getStatus();
-      if ((rv != null) && rv.greaterThan(Severity.INFO)) {
-         return rv;
+      if ((rv == null) || rv.lessThan(Severity.INFO)) {
+         rv = fVariable.getStatus();
       }
-      return fVariable.getStatus();
+      return rv;
    }
 
    @Override

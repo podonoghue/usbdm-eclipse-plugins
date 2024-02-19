@@ -145,13 +145,13 @@ public class BooleanVariable extends VariableWithChoices {
       return (fFalse==null)?"false":fFalse.getValue();
    }
 
-   @Override
-   public void notifyListeners(int properties) {
-      if (fValue != null) {
-         updateTargets(fValue?fTrue:fFalse);
-      }
-      super.notifyListeners(properties);
-   }
+//   @Override
+//   public void notifyListeners(int properties) {
+//      if (fValue != null) {
+//         updateTargets(fValue?fTrue:fFalse);
+//      }
+//      super.notifyListeners(properties);
+//   }
    
    /**
     * Set variable value as Boolean<br>

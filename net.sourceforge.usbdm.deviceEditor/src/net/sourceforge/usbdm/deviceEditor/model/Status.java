@@ -18,6 +18,18 @@ public class Status {
       }
 
       /**
+       * Checks if the level is less than the given level <br>
+       * Null is treated as greater than ERROR i.e. always false
+       * 
+       * @param other
+       * 
+       * @return this&lt;=other?
+       */
+      public boolean lessThanOrEqual(Severity other) {
+         return (other != null) && (this.ordinal() <= other.ordinal());
+      }
+
+      /**
        * Checks if the level is greater than the given level
        * Null is treated as less than OK i.e. result is true
        * 
@@ -132,7 +144,18 @@ public class Status {
     * 
     * @param level   Severity level to compare to
     * 
-    * @return true if level is less than level given
+    * @return true if level is &lt;= level given
+    */
+   public boolean lessThanOrEqual(Severity level) {
+      return fSeverity.lessThanOrEqual(level);
+   }
+   
+   /**
+    * Indicates if the severity if less than the given level
+    * 
+    * @param level   Severity level to compare to
+    * 
+    * @return true if level is &lt; level given
     */
    public boolean lessThan(Severity level) {
       return fSeverity.lessThan(level);

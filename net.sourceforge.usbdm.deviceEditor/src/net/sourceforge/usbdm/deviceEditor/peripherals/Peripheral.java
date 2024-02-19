@@ -301,6 +301,17 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
+    * Get signal belonging to peripheral by name
+    * 
+    * @param signalName Name of signal to locate
+    * 
+    * @return Signal or null if signal doesn't belong to peripheral (or doesn't exist at all)
+    */
+   public Signal getSignal(String signalName) {
+      return fSignals.get(signalName);
+   }
+
+   /**
     * Add an interrupt number for this peripheral
     * 
     * @param irqNum
@@ -1101,6 +1112,64 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
       rv.add(fInfoTable);
       return rv;
+   }
+   
+   /**
+    * Get signal by index form main signal info table i.e. signals for peripheral
+    * 
+    * @param index Index into table
+    * 
+    * @return Signal or null if not found
+    */
+   public Signal getSignalFromIndex(int index) {
+      if (index>=fInfoTable.table.size()) {
+         return null;
+      }
+      return fInfoTable.table.get(index);
+   }
+   
+   /**
+    * Get a list of signals that belong to this peripheral ordered by index.
+    * Empty indices are indicated by a null entry.
+    * 
+    * @return
+    */
+   public Signal[] getMappedSignals() {
+      ArrayList<Signal> signals = new ArrayList<Signal>();
+      for (int index = 0; index<fInfoTable.table.size(); index++) {
+         Signal signal = fInfoTable.table.elementAt(index);
+         if ((signal == null) || (signal == Signal.DISABLED_SIGNAL)) {
+            signals.add(null);
+         }
+         else {
+            signals.add(signal);
+         }
+      }
+      return signals.toArray(new Signal[signals.size()]);
+   }
+   
+   /**
+    * Get a list of pins for mapped signals that belong to this peripheral ordered by index.
+    * Empty indices are indicated by a null entry.
+    * 
+    * @return
+    */
+   public Pin[] getMappedPins() {
+      ArrayList<Pin> pins = new ArrayList<Pin>();
+      for (int index = 0; index<fInfoTable.table.size(); index++) {
+         Signal signal = fInfoTable.table.elementAt(index);
+         if ((signal == null) || (signal == Signal.DISABLED_SIGNAL)) {
+            pins.add(null);
+            continue;
+         }
+         Pin pin = signal.getMappedPin();
+         if (pin == Pin.UNASSIGNED_PIN) {
+            pins.add(null);
+            continue;
+         }
+         pins.add(pin);
+      }
+      return pins.toArray(new Pin[pins.size()]);
    }
    
    /**

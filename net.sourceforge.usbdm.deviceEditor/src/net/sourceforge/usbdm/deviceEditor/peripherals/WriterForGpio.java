@@ -351,7 +351,7 @@ public class WriterForGpio extends PeripheralWithState {
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
       try {
-         for (IrqVariable var : irqVariables) {
+         for (IrqVariable var : fIrqVariables) {
             modifyVectorTable(vectorTable, var, "Port");
          }
       } catch (Exception e) {

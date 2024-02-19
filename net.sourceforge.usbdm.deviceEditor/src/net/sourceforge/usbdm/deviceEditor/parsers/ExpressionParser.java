@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
@@ -12,12 +13,19 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.FormatNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LongConstantNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LowercaseNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.MappedPinsListNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PinMappingNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ReplaceAllNode;
-import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.SignalDescriptionNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.SignalsListNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringConstantNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.UppercaseNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -69,8 +77,10 @@ public class ExpressionParser {
    // Operating mode
    private Mode fMode = Mode.EvaluateImmediate;
 
-   // Listener for changes in variables
-   private Expression fListener;
+   /* Expression using this parser.
+      Will be added as a listener for changes in variables
+   */
+   private Expression fExpression;
 
    /**
     * Peek at next character without advancing
@@ -191,6 +201,9 @@ public class ExpressionParser {
     */
    private ExpressionNode getFunction(String functionName) throws Exception {
       
+      if (functionName.equalsIgnoreCase("Variable")) {
+         System.err.println("Found it");
+      }
       Character ch = skipSpace();
       if (ch != '(') {
          throw new Exception("Expected '(' before function arguments");
@@ -199,11 +212,15 @@ public class ExpressionParser {
       // Discard '(' or ','
       getNextCh();
       
-      // Note this may be a CommaListNode
-      ExpressionNode arg = parseSubExpression();
-      
       ch = skipSpace();
       
+      // Note this may be a CommaListNode
+      ExpressionNode arg = null;
+      if (ch != ')') {
+         // Note this may be a CommaListNode
+         arg = parseSubExpression();
+         ch = skipSpace();
+      }
       if ((ch==null) || (ch != ')')) {
          throw new Exception("Expected ')' after function arguments");
       }
@@ -222,6 +239,13 @@ public class ExpressionParser {
 //         String key = fProvider.makeKey((String)argValue);
 //         return Expression.VariableNode.create(fListener, key, null, null);
 //      }
+      
+      // Useful to have peripheral if available
+      Peripheral peripheral = null;
+      if (fProvider instanceof Peripheral) {
+         peripheral = (Peripheral)fProvider;
+      }
+      
       if ("Ordinal".equalsIgnoreCase(functionName)) {
          return new Expression.OrdinalNode(arg);
       }
@@ -235,58 +259,143 @@ public class ExpressionParser {
          return new Expression.ExpandPinListNode(arg);
       }
       if ("Exists".equalsIgnoreCase(functionName)) {
-         if (!(arg instanceof StringNode)) {
-            throw new Exception("Expected name of signal (a string)");
-         }
-         // Do early evaluation
-         StringNode sArg = (StringNode) arg;
-         Variable var = fProvider.safeGetVariable(sArg.toString());
+         // Immediate check if variable exists (during parsing)
+         // Does early evaluation
+         String varName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         Variable var = fProvider.safeGetVariable(varName);
          return new BooleanNode(var != null);
       }
       if ("SignalExists".equalsIgnoreCase(functionName)) {
-         if (!(arg instanceof StringNode)) {
-            throw new Exception("Expected name of signal (a string)");
-         }
-         StringNode sArg = (StringNode) arg;
-         Signal signal = fProvider.getDeviceInfo().safeFindSignal(sArg.toString());
+         // Immediate check if signal exists (during parsing)
+         // Does early evaluation
+         String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         Signal signal = fProvider.getDeviceInfo().safeFindSignal(signalName);
          return new BooleanNode(signal!=null);
       }
-      if ("SignalMapped".equalsIgnoreCase(functionName)) {
-         if (!(arg instanceof StringNode)) {
-            throw new Exception("Expected name of signal (a string)");
-         }
-         StringNode sArg = (StringNode) arg;
-         Signal signal = fProvider.getDeviceInfo().safeFindSignal(sArg.toString());
-         return new BooleanNode(signal.getMappedPin() == Pin.UNASSIGNED_PIN);
+      if ("Variable".equalsIgnoreCase(functionName)) {
+         // Variable from string
+         String varName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         return VariableNode.create(fExpression, varName, null, null);
       }
       if ("PinExists".equalsIgnoreCase(functionName)) {
-         if (!(arg instanceof StringNode)) {
-            throw new Exception("Expected name of pin (a string)");
-         }
-         StringNode sArg = (StringNode) arg;
-         Pin pin = fProvider.getDeviceInfo().findPin(sArg.toString());
+         // Immediate check if pin exists (during parsing)
+         // Does early evaluation
+         String pinName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         Pin pin = fProvider.getDeviceInfo().findPin(pinName);
          return new BooleanNode(pin!=null);
+      }
+      if ("SignalDescription".equalsIgnoreCase(functionName)) {
+         // Dynamic description of signal from signal name
+         // The name must be a String constant
+         // This is a dynamic expression as description of signal may change
+         // Example description "TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)"
+         if (peripheral == null) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         ExpressionNode node = SignalDescriptionNode.createNodeFromName(peripheral, arg);
+
+         if (node instanceof SignalDescriptionNode) {
+            ((SignalDescriptionNode)node).getSignal().addListener(fExpression);
+         }
+         return node;
+      }
+      if ("SignalDescriptionFromIndex".equalsIgnoreCase(functionName)) {
+         // Dynamic description of signal from info table index
+         // The index must be a Long constant
+         // This is a dynamic expression as description of signal may change
+         // Example description "TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)"
+         if (peripheral == null) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         ExpressionNode node = SignalDescriptionNode.createNodeFromIndex(peripheral, arg);
+         
+         if (node instanceof SignalDescriptionNode) {
+            ((SignalDescriptionNode)node).getSignal().addListener(fExpression);
+         }
+         return node;
+      }
+      if ("MappedPinFromIndex".equalsIgnoreCase(functionName)) {
+         // Dynamic description of mapped pin from info table index
+         // The index must be a constant
+         // This is an expression as mapping may change
+         if (!(arg instanceof LongConstantNode)) {
+            throw new Exception("Expected index for signal (an integer)");
+         }
+         if (!arg.isConstant()) {
+            throw new Exception("Index must be a constant " + arg);
+         }
+         LongConstantNode sArg = (LongConstantNode) arg;
+         Long value = (Long) sArg.eval();
+         if (value == null) {
+            throw new Exception("Invalid index " + sArg);
+         }
+         long index = value;
+         
+         if (peripheral == null) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         Signal signal = peripheral.getSignalFromIndex((int)index);
+         if (signal != null) {
+            signal.addListener(fExpression);
+            return new PinMappingNode(signal);
+         }
+         else {
+            return new StringConstantNode("Unused");
+         }
+      }
+      if ("OnlyMappablePinOfSignal".equalsIgnoreCase(functionName)) {
+         // Constant name of ONLY mappable pin for given signal selected by name
+         // Name of signal must be a constant String
+         // This is an constant
+         if (!(fProvider instanceof Peripheral)) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         String signalName = (String) Expression.evalConstantArg(arg, Type.String);
+         Signal signal = peripheral.getDeviceInfo().getSignal(signalName);
+         if (signal == null) {
+            throw new Exception("Non-existent signal '"+signalName+"'");
+         }
+         Pin pin = signal.getOnlyMappablePin();
+         if (pin == null) {
+            throw new Exception("Signal '"+signalName+"' not mappable to pin");
+         }
+         return new StringConstantNode(pin.getName());
+      }
+      if ("MappedPinList".equalsIgnoreCase(functionName)) {
+         // Dynamic list of mapped pins from info table index
+         // This is an expression as mapping may change
+         if (!(fProvider instanceof Peripheral)) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         for (Entry<String, Signal> map:peripheral.getSignals().entrySet()) {
+            Signal s = map.getValue();
+            s.addListener(fExpression);
+         }
+         return new MappedPinsListNode(peripheral, arg);
+      }
+      if ("SignalList".equalsIgnoreCase(functionName)) {
+         if (!(fProvider instanceof Peripheral)) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         Peripheral p = (Peripheral)fProvider;
+         
+         for (Entry<String, Signal> map:p.getSignals().entrySet()) {
+            Signal s = map.getValue();
+            s.addListener(fExpression);
+         }
+         return new SignalsListNode(p, arg);
       }
       if ("Prettify".equalsIgnoreCase(functionName)) {
          return new PrettyNode(arg);
       }
+      if ("ToUpperCase".equalsIgnoreCase(functionName)) {
+         return new UppercaseNode(arg);
+      }
       if ("ToLowerCase".equalsIgnoreCase(functionName)) {
-         if (arg.fType != Type.String) {
-            throw new Exception("Expected name to ToLowerCase (a string)");
-         }
          return new LowercaseNode(arg);
       }
       if ("ReplaceAll".equalsIgnoreCase(functionName)) {
-//         if (arg.fType != Type.String) {
-//            throw new Exception("Expected name to ToUpperCase (a string)");
-//         }
          return new ReplaceAllNode(arg);
-      }
-      if ("ToUpperCase".equalsIgnoreCase(functionName)) {
-         if (arg.fType != Type.String) {
-            throw new Exception("Expected name to ToUpperCase (a string)");
-         }
-         return new UppercaseNode(arg);
       }
       if ("Format".equalsIgnoreCase(functionName)) {
          return new FormatNode(arg);
@@ -309,11 +418,17 @@ public class ExpressionParser {
       if (ch == null) {
          return null;
       }
-      boolean forceEvaluate = (fMode != Mode.CheckIdentifierExistance);
+      boolean immediateVariable = false;
       if (ch == '@') {
-         forceEvaluate = true;
+         // '@' Should only be used in conditions and like to control parsing XML
+         if (fMode != Mode.CheckIdentifierExistance) {
+            System.err.println("Warning: Using '@' (immediate evaluation) in mode " + fMode.toString() +
+                  ", exp = '" + fExpression + "'" );
+         }
+         immediateVariable = true;
          ch = getNextCh();
       }
+      boolean forceEvaluate = immediateVariable || (fMode != Mode.CheckIdentifierExistance);
       if ((ch != null) && (Character.isJavaIdentifierStart(ch) || (ch == '/'))) {
          // Valid start character
          
@@ -409,7 +524,11 @@ public class ExpressionParser {
          Variable var = fProvider.safeGetVariable(varKey);
          return new BooleanNode(var != null);
       }
-      return Expression.VariableNode.create(fListener, key, modifier, index);
+      ExpressionNode expNode = Expression.VariableNode.create(fExpression, key, modifier, index);
+      if (fMode == Mode.EvaluateImmediate) {
+         return Expression.createConstantNode(expNode.eval());
+      }
+      return expNode;
    }
    
    /**
@@ -442,9 +561,9 @@ public class ExpressionParser {
       };
       String val = sb.toString();
       if (isDouble) {
-         return new Expression.DoubleNode(EngineeringNotation.parse(val));
+         return new Expression.DoubleConstantNode(EngineeringNotation.parse(val));
       }
-      return new Expression.LongNode(EngineeringNotation.parseAsLong(val));
+      return new Expression.LongConstantNode(EngineeringNotation.parseAsLong(val));
    }
    
    /**
@@ -478,7 +597,7 @@ public class ExpressionParser {
          throw new Exception("Unterminated string");
       }
       getNextCh();;
-      return new Expression.StringNode(sb.toString());
+      return new Expression.StringConstantNode(sb.toString());
    }
    
    /**
@@ -502,7 +621,7 @@ public class ExpressionParser {
       if (result != null) {
          return result;
       }
-      throw new Exception("Number or Identifier expected");
+      throw new Exception("Identifier, number or string literal expected");
    }
 
    private boolean isBoolean(ExpressionNode target) {
@@ -551,7 +670,7 @@ public class ExpressionParser {
                break;
             case '-' :
                okResult = isFloatOrInteger(result);
-               result = new Expression.UnaryMinueNode(result);
+               result = new Expression.UnaryMinusNode(result);
                break;
             case '!' :
                okResult = isBoolean(result);
@@ -1118,7 +1237,7 @@ public class ExpressionParser {
       fMode              = mode;
       fProvider          = varProvider;
       fExpressionString  = null;
-      fListener          = expression;
+      fExpression          = expression;
    }
 
    /**
@@ -1136,9 +1255,6 @@ public class ExpressionParser {
       if (expression == null) {
          return new Expression.BooleanNode(true);
       }
-//      if (expression.contains("mcg_sc_fcrdiv")) {
-//         System.err.println("Found it " + expression);
-//      }
       fExpressionString = expression;
       fIndex = 0;
       try {

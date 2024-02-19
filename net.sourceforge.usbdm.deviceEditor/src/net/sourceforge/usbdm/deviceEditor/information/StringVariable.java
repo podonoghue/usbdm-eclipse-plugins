@@ -6,11 +6,13 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class StringVariable extends Variable {
 
-   /** Value in user format - created as needed */
-   private StringBuilder fValue = null;
+//   /** Value in user format - created as needed */
+//   private StringBuilder fValue = null;
    
-   /** Value in user format (cached) */
-   protected String fCachedValue = "Not initialised";
+//   /** Value in user format (cached) */
+//   protected String fCachedValue = "Not initialised";
+//
+   String fValue = "Not initialised";
    
    /** Default value of variable */
    protected String fDefault;
@@ -41,18 +43,18 @@ public class StringVariable extends Variable {
       setDefault(value.toString());
    }
 
-   /**
-    * Adds additional text to the variable.
-    * 
-    * @param additionalText Text to append
-    */
-   public void append(Object additionalText) {
-      if (fValue == null) {
-         fValue = new StringBuilder(fCachedValue);
-      }
-      fValue.append(additionalText.toString());
-      fCachedValue = null;
-   }
+//   /**
+//    * Adds additional text to the variable.
+//    *
+//    * @param additionalText Text to append
+//    */
+//   public void append(Object additionalText) {
+//      if (fValue == null) {
+//         fValue = new StringBuilder(fCachedValue);
+//      }
+//      fValue.append(additionalText.toString());
+//      fCachedValue = null;
+//   }
    
    @Override
    public String getSubstitutionValue() {
@@ -90,8 +92,8 @@ public class StringVariable extends Variable {
       if (getPersistentValue() == value) {
          return false;
       }
-      fValue = null;
-      fCachedValue = value;
+      fValue = value;
+//      fCachedValue = value;
       return true;
    }
    
@@ -107,9 +109,10 @@ public class StringVariable extends Variable {
          return setValueQuietly((String)null);
       }
       if (value instanceof StringBuilder) {
-         fValue = (StringBuilder)value;
-         fCachedValue = null;
-         return true;
+         throw new RuntimeException("Opps");
+//         fValue = (StringBuilder)value;
+//         fCachedValue = null;
+//         return true;
       }
       return setValueQuietly(value.toString());
    }
@@ -131,10 +134,15 @@ public class StringVariable extends Variable {
 
    @Override
    public String getPersistentValue() {
-      if ((fCachedValue == null) && (fValue != null)) {
-         fCachedValue = fValue.toString();
+      if ((getReference() != null) && (getReference().isNeverCached())) {
+         try {
+            fValue = getReference().getValueAsString();
+         } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
       }
-      return fCachedValue;
+      return fValue;
    }
 
    @Override

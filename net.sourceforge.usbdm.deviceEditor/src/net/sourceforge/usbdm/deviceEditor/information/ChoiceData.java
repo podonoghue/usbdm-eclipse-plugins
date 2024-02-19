@@ -167,14 +167,17 @@ public class ChoiceData {
     * @return data value or null if none
     */
    public String getName() {
-      if (fName == null) {
-         try {
-            return fNameExpression.getValueAsString();
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
+      if (fName != null) {
+         return fName;
       }
-      return fName;
+      try {
+         String name = fNameExpression.getValueAsString();
+//         System.err.println("Dynamic name = '" + name + "'");
+         return name;
+      } catch (Exception e) {
+         e.printStackTrace();
+         return "Error in evaluation";
+      }
    }
    
    /**
@@ -308,4 +311,18 @@ public class ChoiceData {
    public String getToolTip() {
       return fTooltip;
    }
+
+   /**
+    * Checks if choice is dependent on the given expression
+    * 
+    * @param expression
+    * @return
+    */
+   public boolean isDependentOn(Expression expression) {
+      if ((fNameExpression == expression) || (fReference == expression) || (fEnabledBy == expression)) {
+         return true;
+      }
+      return false;
+   }
+
 }

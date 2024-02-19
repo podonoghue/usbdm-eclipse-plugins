@@ -30,7 +30,6 @@ import net.sourceforge.usbdm.deviceEditor.editor.PinPullEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
-import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor.TreeColumnInformation;
 
 /**
  * Represents a editor tab containing information for a peripheral

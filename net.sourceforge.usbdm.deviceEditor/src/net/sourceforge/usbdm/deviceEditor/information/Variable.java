@@ -1604,7 +1604,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          }
       }
       if (setStatusQuietly(info.status)) {
-         info.properties |= IModelChangeListener.PROPERTY_STATUS;
+         if ((getErrorPropagate()==null)||getErrorPropagate().greaterThan(Severity.OK)) {
+            info.properties |= IModelChangeListener.PROPERTY_STATUS;
+         }
       }
 
       if ((info.origin != null) && !info.origin.isBlank()) {
@@ -1631,6 +1633,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    public void update(VariableUpdateInfo info, Expression expression) {
       
       if ((expression == null) && info.doFullUpdate) {
+         expression = getReference();
+      }
+      if ((getReference() != null) && (getReference().isNeverCached())) {
          expression = getReference();
       }
       boolean checkUpdate =
@@ -1661,7 +1666,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    protected final void updateAndNotify(Expression expression) {
       if (fLogging) {
-         System.err.println("Logging: "+this.toString()+".updateAndNotify("+expression+")");
+         System.err.println(this.toString()+".updateAndNotify("+expression+")");
       }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();
@@ -1708,7 +1713,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    @Override
    final public void expressionChanged(Expression expression) {
 //      System.err.println(getName()+".expressionChanged("+expression+")");
-
+      if (fLogging) {
+         String cause = (expression == null)?"null":expression.getExpressionStr();
+         System.err.println(getName()+".expressionChanged("+cause+")");
+      }
       if (getDeviceInfo().getInitialisationPhase() == InitPhase.VariablePropagationSuspended) {
          return;
       }
@@ -1911,7 +1919,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Sets variable logging
     * 
-    * @param logging true tpo enable logging
+    * @param logging True to enable logging
     */
    public void setLogging(boolean logging) {
       if (logging) {
@@ -1938,7 +1946,11 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (fAssociatedSignalName == null) {
          return null;
       }
-      return fDeviceInfo.getSignals().get(fAssociatedSignalName);
+      Signal signal = fDeviceInfo.getSignals().get(fAssociatedSignalName);
+      if (signal == null) {
+         System.err.println("Warning, associated signal '"+fAssociatedSignalName+"' not found");
+      }
+      return signal;
    }
 
 }

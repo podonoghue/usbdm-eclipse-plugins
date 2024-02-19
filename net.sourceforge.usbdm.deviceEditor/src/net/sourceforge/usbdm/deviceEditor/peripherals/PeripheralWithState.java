@@ -57,6 +57,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /** Variable representing signals associated with this peripheral */
    protected PeripheralSignalsVariable fPeripheralSignalsVar;
 
+   /** Variables representing interrupts associated with this peripheral */
+   protected ArrayList<IrqVariable> fIrqVariables = new ArrayList<IrqVariable>();
+
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
 //      System.err.println("Creating "+basename+instance+" "+this.getClass());
@@ -286,19 +289,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          return;
       }
       String template;
+      template = fMenuData.getTemplate("definitions", "", this);
+      if (!template.isBlank()) {
+         documentUtilities.write(substitute(template));
+      }
       template = fMenuData.getTemplate("usbdm", "", this);
       if (!template.isBlank()) {
-//         documentUtilities.write("// usbdm\n");
          documentUtilities.write(substitute(template));
       }
       template = fMenuData.getTemplate("commonInfo", "", this);
       if (!template.isBlank()) {
-//         documentUtilities.write("// commonInfo\n");
          documentUtilities.write(substitute(template));
       }
       template = fMenuData.getTemplate("basicInfo", "", this);
       if (!template.isBlank()) {
-//         documentUtilities.write("// basicInfo\n");
          documentUtilities.write(substitute(template));
       }
    }
@@ -451,7 +455,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
       try {
-         for (IrqVariable var : irqVariables) {
+         for (IrqVariable var : fIrqVariables) {
             modifyVectorTable(vectorTable, var, getClassBaseName());
          }
       } catch (Exception e) {
@@ -573,15 +577,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
    
-   protected ArrayList<IrqVariable> irqVariables = new ArrayList<IrqVariable>();
-   
    /**
     * Add a Variable describing a IRQ handler setting
     * 
     * @param variable
     */
    public void addIrqVariable(IrqVariable variable) {
-      irqVariables.add(variable);
+      fIrqVariables.add(variable);
    }
 
    /**
@@ -590,7 +592,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param variable
     */
    public List<IrqVariable> getIrqVariables(IrqVariable variable) {
-      return irqVariables;
+      return fIrqVariables;
    }
 
    public void instantiateAliases() throws Exception {
