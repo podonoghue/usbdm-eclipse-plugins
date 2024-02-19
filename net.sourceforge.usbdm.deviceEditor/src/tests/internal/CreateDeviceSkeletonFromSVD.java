@@ -518,7 +518,7 @@ public class CreateDeviceSkeletonFromSVD {
    void writeSettersAndGetters() {
       resultSb.append(
             "\n" +
-            "   <!-- ____ Setters and Getters ____________ -->\n");
+            "   <!-- ____ Getters and Setters ____________ -->\n");
       
       if (fieldNameList.size() == 0) {
          // No fields!
@@ -529,6 +529,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Set %description\n" +
+          "         \\t * (%(field))\n" +
           "         \\t *\n" +
           "         %paramDescription\n" +
           "         \\t */\n" +
@@ -541,6 +542,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Get %description\n" +
+          "         \\t * (%(field))\n" +
           "         \\t *\n" +
           "         \\t * @return %tooltip\n" +
           "         \\t */\n" +
@@ -553,6 +555,7 @@ public class CreateDeviceSkeletonFromSVD {
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Clear %description\n" +
+          "         \\t * (%(field))\n" +
           "         \\t *\n" +
           "         \\t */\n" +
           "         \\tstatic void clear%(name)() {\n" +
@@ -566,6 +569,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
             "         \\t * Set %description\n" +
+            "         \\t * (%(field))\n" +
             "         \\t *\n" +
             "         %paramDescription\n" +
             "         \\t */\n" +
@@ -578,6 +582,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
             "         \\t * Get %description\n" +
+            "         \\t * (%(field))\n" +
             "         \\t *\n" +
             "         \\t * @return %tooltip\n" +
             "         \\t */\n" +
@@ -590,6 +595,7 @@ public class CreateDeviceSkeletonFromSVD {
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
             "         \\t * Clear %description\n" +
+            "         \\t * (%(field))\n" +
             "         \\t *\n" +
             "         \\tstatic void clear%(name)(int index) {\n" +
             "         \\t   $(_basename)->%(context) = $(_basename)->%(context)|%mask;\n" +
@@ -778,185 +784,7 @@ public class CreateDeviceSkeletonFromSVD {
    
    void writeInitClass() {
       
-      resultSb.append("\n   <!-- ____ class $(_Structname)BasicInfo ____________ -->\n");
-      
-      String openBasicInfoClass = ""
-            + "\n"
-            + "   <template where=\"basicInfo\" ><![CDATA[\n"
-            + "      class $(_Structname)BasicInfo {\n"
-            + "      \\t\n"
-            + "      public:\\n\n"
-            + "   ]]></template>\n"
-            + "\n";
-
-      resultSb.append (openBasicInfoClass);
-      
       writeHandlers();
-      
-//    resultSb.append("\n   <!-- ________ Interrupt handling ____________________________ -->\n");
-//      String irqDeclaration =
-//            "\n"                                                                                                  +
-//            "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n"         +
-//            "      variables=\"irqHandlingMethod\"\n"                                                             +
-//            "   ><![CDATA[\n"                                                                                     +
-//            "       \\t//! Common class based callback code has been generated for this class of peripheral\n"    +
-//            "       \\tstatic constexpr bool irqHandlerInstalled = %symbolicExpression;\n"                        +
-//            "       \\t\\n\n"                                                                                     +
-//            "   ]]></variableTemplate>\n"                                                                         +
-//            "\n"                                                                                                  +
-//            "   <template where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\" >\n"    +
-//            "   <![CDATA[\n"                                                                                      +
-//            "      \\t/**\n"                                                                                      +
-//            "      \\t * Type definition for $(_Baseclass) interrupt call back.\n"                                +
-//            "      \\t */\n"                                                                                      +
-//            "      \\ttypedef void (*CallbackFunction)($(irq_parameters));\n"                                     +
-//            "      \\t\n"                                                                                         +
-//            "      \\t/**\n"                                                                                      +
-//            "      \\t * Callback to catch unhandled interrupt\n"                                                 +
-//            "      \\t */\n"                                                                                      +
-//            "      \\tstatic void unhandledCallback($(irq_dummy_parameters)) {\n"                                 +
-//            "      \\t   setAndCheckErrorCode(E_NO_HANDLER);\n"                                                   +
-//            "      \\t}\n"                                                                                        +
-//            "      \\t\\n\n"                                                                                      +
-//            "   ]]>\n"                                                                                            +
-//            "   </template>\n";
-
-//      String irqCallbackFunctionPtrSingle =
-//           "\n"                                                                                                   +
-//           "   <template codeGenCondition=\"irqHandlingMethod\" >\n"                                              +
-//           "   <![CDATA[\n"                                                                                       +
-//           "      \\t/** Callback function for ISR */\n"                                                          +
-//           "      \\tstatic CallbackFunction sCallback;\n"                                                        +
-//           "      \\t\n"                                                                                          +
-//           "      \\t/**\n"                                                                                       +
-//           "      \\t * Set interrupt callback function.\n"                                                       +
-//           "      \\t *\n"                                                                                        +
-//           "      \\t * @param[in]  $(_basename)Callback Callback function to execute on interrupt\n"             +
-//           "      \\t *                             Use nullptr to remove callback.\n"                            +
-//           "      \\t */\n"                                                                                       +
-//           "      \\tstatic void setCallback(CallbackFunction $(_basename)Callback) {\n"                          +
-//           "      \\t   if ($(_basename)Callback == nullptr) {\n"                                                 +
-//           "      \\t      $(_basename)Callback = unhandledCallback;\n"                                           +
-//           "      \\t   }\n"                                                                                      +
-//           "      \\t   // Allow either no handler set yet or removing handler\n"                                 +
-//           "      \\t   usbdm_assert(\n"                                                                          +
-//           "      \\t         (sCallback == unhandledCallback) || ($(_basename)Callback == unhandledCallback),\n" +
-//           "      \\t         \"Handler already set\");\n"                                                        +
-//           "      \\t   sCallback = $(_basename)Callback;\n"                                                      +
-//           "      \\t}\n"                                                                                         +
-//           "      \\t\n"                                                                                          +
-//           "      \\t/**\n"                                                                                       +
-//           "      \\t * $(_BASENAME) interrupt handler -  Calls $(_BASENAME) callback\n"                          +
-//           "      \\t */\n"                                                                                       +
-//           "      \\tstatic void irqHandler() {\n"                                                                +
-//           "      \\t\n"                                                                                          +
-//           "      \\t   //.....IRQ handler code here..........\n"                                                 +
-//           "      \\t\n"                                                                                          +
-//           "      \\t   // Clear interrupt flag\n"                                                                +
-//           "      \\t   //.....\n"                                                                                +
-//           "      \\t   // Execute call-back\n"                                                                   +
-//           "      \\t   sCallback($(irq_call));\n"                                                                +
-//           "      \\t}\n"                                                                                         +
-//           "      \\t\\n\n"                                                                                       +
-//           "   ]]>\n"                                                                                             +
-//           "   </template>\n"                                                                                     +
-//           "";
-      
-//      String irqStaticDefinitionSingle =
-//            "\n" +
-//            "   <template key=\"/HARDWARE/StaticObjects\" codeGenCondition=\"irqHandlingMethod\" >\n"                            +
-//            "   <![CDATA[\n"                                                                                                     +
-//            "      \\t\n"                                                                                                        +
-//            "      \\t/**\n"                                                                                                     +
-//            "      \\t * Callback for programmatically set handler for $(_Class)\n"                                              +
-//            "      \\t */\n"                                                                                                     +
-//            "      \\t$(_Class)Info::CallbackFunction $(_Class)Info::sCallback = $(_Structname)BasicInfo::unhandledCallback;\n"  +
-//            "      \\t\\n\n"                                                                                                     +
-//            "   ]]>\n"                                                                                                           +
-//            "   </template>\n"                                                                                                   +
-//            "";
-//
-//      String irqCallbackFunctionPtrMultiple =
-//            "\n"+
-//            "   <variableTemplate codeGenCondition=\"irqHandlingMethod\"\n"                                                +
-//            "      variables=\"irq_enum\"\n"                                                                                +
-//            "   ><![CDATA[\n"                                                                                                +
-//            "      \\t/** Callback function for ISR */\n"                                                                   +
-//            "      \\tstatic CallbackFunction sCallbacks[irqCount];\n"                                                      +
-//            "      \\t\n"                                                                                                   +
-//            "      \\t/**\n"                                                                                                +
-//            "      \\t * Set interrupt callback function.\n"                                                                +
-//            "      \\t *\n"                                                                                                 +
-//            "      %paramDescription\n"                                                                                     +
-//            "      \\t * @param      $(_basename)Callback Callback function to execute on interrupt\n"                      +
-//            "      \\t *                             Use nullptr to remove callback.\n"                                     +
-//            "      \\t */\n"                                                                                                +
-//            "      \\tstatic void setCallback(%param0, CallbackFunction $(_basename)Callback) {\n"                          +
-//            "      \\t   if ($(_basename)Callback == nullptr) {\n"                                                          +
-//            "      \\t      $(_basename)Callback = unhandledCallback;\n"                                                    +
-//            "      \\t   }\n"                                                                                               +
-//            "      \\t   // Allow either no handler set yet or removing handler\n"                                          +
-//            "      \\t   usbdm_assert(\n"                                                                                   +
-//            "      \\t         (sCallbacks[%paramName0] == unhandledCallback) || ($(_basename)Callback == unhandledCallback),\n" +
-//            "      \\t         \"Handler already set\");\n"                                                                 +
-//            "      \\t   sCallbacks[%paramName0] = $(_basename)Callback;\n"                                                 +
-//            "      \\t}\n"                                                                                                  +
-//            "      \\t\\n\n"                                                                                                +
-//            "   ]]>\n"                                                                                                      +
-//            "   </variableTemplate>\n"                                                                                              +
-//            "\n"+
-//            "   <template key=\"/$(_BASENAME)/InitMethod\" discardRepeats=\"true\" codeGenCondition=\"irqHandlingMethod\" >\n"  +
-//            "   <![CDATA[\n"                                                               +
-//            "      \\t/**\n"                                                               +
-//            "      \\t * $(_BASENAME) interrupt handler -  Calls $(_BASENAME) callback\n"  +
-//            "      \\t *\n"                                                                +
-//            "      \\t * @tparam channel Channel number\n"                                 +
-//            "      \\t */\n"                                                               +
-//            "      \\ttemplate<unsigned channel>\n"                                        +
-//            "      \\tstatic void irqHandler() {\n"                                        +
-//            "      \\t\n"                                                                  +
-//            "      \\t   // Execute call-back\n"                                           +
-//            "      \\t   Info::sCallbacks[channel]($(irq_call));\n"                        +
-//            "      \\t}\n"                                                                 +
-//            "      \\t\\n\n"                                                               +
-//            "   ]]>\n"                                                                     +
-//            "   </template>\n"                                                             +
-//            "";
-//
-//      String irqStaticDefinitionMultiple =
-//            "\n"+
-//            "   <template key=\"/HARDWARE/StaticObjects\" codeGenCondition=\"irqHandlingMethod\" >\n"             +
-//            "   <![CDATA[\n"                                                                                      +
-//            "      \\t/**\n"                                                                                      +
-//            "      \\t * Callback table of programmatically set handlers for $(_Class)\n"                         +
-//            "      \\t */\n"                                                                                      +
-//            "      \\t$(_Class)Info::CallbackFunction $(_Class)Info::sCallbacks[] = {\\n\n"                       +
-//            "   ]]></template>\n"                                                                                 +
-//            "\n"+
-//            "   <for keys=\"ch\" dim=\"=_irqCount\" >\n"                                                          +
-//            "      <template key=\"/HARDWARE/StaticObjects\" codeGenCondition=\"irqHandlingMethod\" ><![CDATA[\n" +
-//            "         \\t   $(_Class)Info::unhandledCallback,\\n\n"                                               +
-//            "      ]]></template>\n"                                                                              +
-//            "   </for>\n"                                                                                         +
-//            "\n"+
-//            "   <template key=\"/HARDWARE/StaticObjects\" codeGenCondition=\"irqHandlingMethod\" ><![CDATA[\n"    +
-//            "      \\t};\\n\\n\n"                                                                                 +
-//            "   ]]></template>\n"                                                                                 +
-//            "\n"                                                                                                  +
-//            "";
-//
-//      if (irqsUsed) {
-//         int numVectors = peripheral.getInterruptEntries().size();
-//         resultSb.append (irqDeclaration);
-//         if (numVectors == 1) {
-//            resultSb.append (irqCallbackFunctionPtrSingle);
-//            resultSb.append (irqStaticDefinitionSingle);
-//         }
-//         else {
-//            resultSb.append (irqCallbackFunctionPtrMultiple);
-//            resultSb.append (irqStaticDefinitionMultiple);
-//         }
-//      }
       
       final String open_init_class =
          "   <!-- ________ %s Init class ____________________________ -->\n" +
@@ -1305,7 +1133,7 @@ public class CreateDeviceSkeletonFromSVD {
       String configureMethodIrq = ""
             + "   <template codeGenCondition=\"irqHandlingMethod\" >\n"
             + "   <![CDATA[\n"
-            + "      \\t   // Only set call-backs if feature enabled\n"
+            + "      \\t   // Configure call-backs\n"
             + "      \\t   setCallback(init.callbackFunction);\n"
             + "      \\t   enableNvicInterrupts(init.irqlevel);\n"
             + "      \\t\\n\n"
@@ -1487,17 +1315,7 @@ public class CreateDeviceSkeletonFromSVD {
             "   </template>\n";
 
       resultSb.append(closeInitClass);
-      
-      String closeBasicInfoClass =
-            "\n" +
-            "   <template where=\"basicInfo\" >\n" +
-            "   <![CDATA[\n" +
-            "      }; // class $(_Structname)BasicInfo\n" +
-            "      \\t\\n\n" +
-            "   ]]>\n" +
-            "   </template>\n";
-
-      resultSb.append(closeBasicInfoClass);
+     
    }
    
    void writeCommon() {
@@ -1576,112 +1394,23 @@ public class CreateDeviceSkeletonFromSVD {
     ******************************************************/
    private void writeHandlers() {
       
-      final String irqHandlerStatusText = ""
+      final String irqHandlingOpeningText = "\n"
             + "   <!-- ____ Interrupt handling _____________ -->\n"
             + "\n"
-            + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n"
-            + "      variables=\"/$(_STRUCTNAME)/generateSharedIrqInfo\"\n"
-            + "   ><![CDATA[\n"
-            + "       \\t//! Common class based callback code has been generated for this class of peripheral\n"
-            + "       \\tstatic constexpr bool irqHandlerInstalled = %symbolicExpression;\n"
-            + "       \\t\\n\n"
-            + "   ]]></variableTemplate>\n";
-      
-      final String typeDefOpeningText = "\n"
-         + "   <template where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\" >\n"
-         + "   <![CDATA[\n";
-      final String typeDefTemplate = ""
-         + "      \\t/**\n"
- /* D */ + "      \\t * Type for %s call back function.\n"
-         + "      \\t */\n"
- /* C */ + "      \\ttypedef void (*%s)($(irq_parameters));\n"
-         + "      \\t\n";
-      final String typeDefClosingTemplate = ""
-         + "      \\t/**\n"
-         + "      \\t * Callback to catch unhandled interrupt\n"
-         + "      \\t */\n"
-         + "      \\tstatic void unhandledCallback($(irq_dummy_parameters)) {\n"
-         + "      \\t   setAndCheckErrorCode(E_NO_HANDLER);\n"
-         + "      \\t}\n"
-         + "      \\t\\n\n"
-         + "   ]]>\n"
-         + "   </template>\n";
-
-      //________________________________________________________________________________________________
-      
-      final String irqHandlingOpeningText = "\n"
             + "   <template codeGenCondition=\"irqHandlingMethod\" >\n"
-            + "   <![CDATA[\n";
-      final String irqHandlingTemplate = ""
-  /* D */   + "      \\t/** Callback function for %s */\n"
-  /* T C */ + "      \\tstatic %s %s;\n"
-            + "      \\t\n"
+            + "   <![CDATA[\n"
             + "      \\t/**\n"
-  /* D */   + "      \\t * %s interrupt handler\n"
+            + "      \\t * $(_Class) interrupt handler\n"
             + "      \\t * Passes control to call-back function\n"
             + "      \\t */\n"
-  /* I */   + "      \\tstatic void %s() {\n"
+            + "      \\tstatic void irqHandler() {\n"
             + "      \\t\n"
             + "      \\t   // Execute call-back\n"
-  /* C */   + "      \\t   %s($(irq_call));\n"
+            + "      \\t   sCallback($(irq_call));\n"
             + "      \\t}\n"
-            + "      \\t\n";
-      final String setHandlerTemplate = ""
-            + "      \\t/**\n"
-  /* D */   + "      \\t * Set %s callback function.\n"
-            + "      \\t *\n"
-            + "      \\t * @param $(_basename)Callback Callback function to execute on interrupt\n"
-            + "      \\t *                        Use nullptr to remove callback.\n"
-            + "      \\t */\n"
-  /* T */   + "      \\tstatic void setCallback(%s $(_basename)Callback) {\n"
-            + "      \\t   if ($(_basename)Callback == nullptr) {\n"
-  /* T */   + "      \\t      $(_basename)Callback = (%s)unhandledCallback;\n"
-            + "      \\t   }\n"
-            + "      \\t   // Allow either no handler set yet or removing handler\n"
-            + "      \\t   usbdm_assert(\n"
-  /* C */   + "      \\t         ((void*)%s == (void*)unhandledCallback) ||\n"
-            + "      \\t         ((void*)$(_basename)Callback == (void*)unhandledCallback),\n"
-            + "      \\t         \"Handler already set\");\n"
-  /* C */   + "      \\t   %s = $(_basename)Callback;\n"
-            + "      \\t}\n"
-            + "      \\t\n";
-      
-      final String irqHandlingClosingTemplate = ""
             + "      \\t\\n\n"
             + "   ]]>\n"
             + "   </template>\n";
-      
-      //________________________________________________________________________________________________
-      
-      final String staticOpeningText = "\n"
-            + "   <template key=\"/HARDWARE/StaticObjects\" codeGenCondition=\"irqHandlingMethod\" >\n"
-            + "   <![CDATA[\n";
-      final String staticTemplate = ""
-            + "      \\t\n"
-            + "      \\t/**\n"
-  /* D */   + "      \\t * Callback function for %s\n"
-            + "      \\t */\n"
-/* T C T */ + "      \\t$(_Class)Info::%s $(_Class)Info::%s = (%s)$(_Class)Info::unhandledCallback;\n"
-            + "      \\t\n";
-      final String staticClosingTemplate = ""
-            + "      \\t\\n\n"
-            + "   ]]>\n"
-            + "   </template>\n\n";
-
-      //________________________________________________________________________________________________
-      
-//      final String enumOpeningTemplate = "\n"
-//            + "   <choiceOption key=\"irq_enum\" condition=\"=_irqCount>1\"\n"
-//            + "      valueFormat=\"%s\"\n"
-//            + "      hidden=\"true\"\n"
-//            + "      derived=\"true\"\n"
-//            + "      typeName=\"$(_Class)IrqNum\"\n"
-//            + "      description=\"$(_Class) Interrupt indices\"\n"
-//            + "      toolTip=\"Used to identify peripheral interrupt\" >\n";
-//      final String enumTemplate        = ""
-///* V E N */  + "      <choice value=%-4s enum=%-15s name=\"%s\" />\n";
-//      final String enumClosingTemplate = ""
-//            + "   </choiceOption>\n";
       
       //________________________________________________________________________________________________
       
@@ -1700,17 +1429,9 @@ public class CreateDeviceSkeletonFromSVD {
 //         irqEnumSb = new StringBuilder();
 //      }
       
-      typeDefSb.append(irqHandlerStatusText);
-      
-      typeDefSb.append(typeDefOpeningText);
       irqHandlerSb.append(irqHandlingOpeningText);
-      staticSb.append(staticOpeningText);
-//      if (irqEnumSb != null) {
-//         irqEnumSb.append(enumOpeningTemplate);
-//      }
-//      int index=0;
       for (InterruptEntry entry:entries) {
-         String description      = entry.getCDescription();
+//         String description      = entry.getCDescription();
          String irqVectorName    = entry.getName();
          
          if (irqVectorName.startsWith(pName+"_")) {
@@ -1733,50 +1454,9 @@ public class CreateDeviceSkeletonFromSVD {
          }
          callbackType = Character.toUpperCase(callbackType.charAt(0))+callbackType.substring(1);
 //         String callbackName = Character.toLowerCase(callbackType.charAt(0))+callbackType.substring(1);
-         String callbackName = "sCallback";
+//         String callbackName = "sCallback";
          
-         typeDefSb.append(String.format(typeDefTemplate,
-               description,
-               callbackType
-               ));
-         irqHandlerSb.append(String.format(irqHandlingTemplate,
-               description,
-               callbackType,
-               callbackName,
-               description,
-               irqHandlerName,
-               callbackName
-               ));
-         irqHandlerSb.append(String.format(setHandlerTemplate,
-               description,
-               callbackType,
-               callbackType,
-               callbackName,
-               callbackName
-               ));
-         staticSb.append(String.format(staticTemplate,
-               description,
-               callbackType,
-               callbackName,
-               callbackType
-               ));
-//         if (irqEnumSb != null) {
-//            irqEnumSb.append(String.format(enumTemplate,
-//                  "\""+index+"\"",
-//                  "\""+irqVectorName+"\"",
-//                  description
-//                  ));
-//         }
-//         index++;
       }
-      typeDefSb.append(typeDefClosingTemplate);
-      irqHandlerSb.append(irqHandlingClosingTemplate);
-      staticSb.append(staticClosingTemplate);
-//      if (irqEnumSb != null) {
-//         irqEnumSb.append(enumClosingTemplate);
-//      }
-      //________________________________________________________________________________________________
-      
       resultSb.append(typeDefSb.toString());
       resultSb.append(irqHandlerSb.toString());
       resultSb.append(staticSb.toString());
@@ -1807,7 +1487,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "I2S",
 //         "KBI",
 //         "LPTMR",
-         "LPUART",
+//         "LPUART",
 //         "LLWU",
 //         "MCM",
 //         "OSC",
@@ -1826,9 +1506,9 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SMC",
 //         "SPI",
 //         "SIM",
-//         "TSI",
+         "TSI",
 //         "TRNG",
-         "UART",
+//         "UART",
 //         "VREF",
 //         "USB",
 //         "USBDCD",
@@ -1925,8 +1605,8 @@ public class CreateDeviceSkeletonFromSVD {
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
-    doAllPeripherals("FRDM_KL27Z", "mkl");
-//    doAllPeripherals("FRDM_K20D50M", "mk");
+//    doAllPeripherals("FRDM_KL27Z", "mkl");
+    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");

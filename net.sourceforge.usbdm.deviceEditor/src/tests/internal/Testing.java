@@ -1,5 +1,8 @@
 package tests.internal;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Testing {
 
    static String wrapText(String text, final int maxColumn) {
@@ -49,7 +52,24 @@ public class Testing {
       return lineBuffer.toString();
    }
    
-   public static void main(String[] args) {
+   static void regexTest(String text, String regex, String replacement) {
+      System.err.println("==========================================");
+      System.err.println("text        = '" + text + "'");
+      System.err.println("regex       = '" + regex + "'");
+      System.err.println("replacement = '" + replacement + "'");
+      Pattern p = Pattern.compile(regex);
+      Matcher m = p.matcher(text);
+      String result = "Failed match";
+      if (m.matches()) {
+         result = text;
+         if (replacement != null) {
+            result = m.replaceAll(replacement);
+         }
+      }
+      System.err.println("result     => '" + result + "'");
+   }
+   
+   static void doWrapTests() {
       
       String testString1 = ""
             + "Canterbury raised some\n   eye brows"
@@ -63,5 +83,32 @@ public class Testing {
             + "Used to identify peripheral interrupt";
       System.out.println(wrapText(testString2, 40));
    }
-
+   
+   static class RegexTest {
+      final String regex;
+      final String text;
+      final String replacement;
+      RegexTest(String text, String regex, String replacement) {
+         this.text        = text;
+         this.regex       = regex;
+         this.replacement = replacement;
+      }
+   }
+   
+   static void doRegexTests() {
+      RegexTest regexTests[] = {
+            new RegexTest("SPI0_PCS3|TestSpi|PTC4|All in|Spi3In",   "^SPI0_(PCS\\d)\\|(.*?)\\|(.*?)\\|(.*?)$",   "$1 (also known as $2) is mapped to $3" ),
+            new RegexTest("TSI0_CH0|Touch 1|xx|Touch 1 (x)|Touchy", "^TSI0_(CH\\d)\\|(.*?)\\|(.*?)\\|(.*?)$",    "$1" ),
+            new RegexTest("TSI0_CH0|Touch 1|xx|Touch 1 (x)|Touchy", "^(?:.*?\\|){4}+(.*)$", "$1"),
+            
+            
+      };
+      for (RegexTest test : regexTests) {
+         regexTest(test.text, test.regex, test.replacement);
+      }
+   }
+   
+   public static void main(String[] args) {
+      doRegexTests();
+   }
 }
