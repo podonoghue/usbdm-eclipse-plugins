@@ -279,14 +279,14 @@
       <peripheral baseName="DMA"      instance="0"        instanceList="DMA0" version="dma0_4ch">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDma" />
          <clock clockEnable="SIM->SCGC7 = SIM->SCGC7 | SIM_SCGC7_DMA0_MASK;" clockDisable="SIM->SCGC7 = SIM->SCGC7 &amp; ~SIM_SCGC7_DMA0_MASK;" />
-         <irq num="DMA0_CH0_IRQn" />
-         <irq num="DMA0_CH1_IRQn" />
-         <irq num="DMA0_CH2_IRQn" />
-         <irq num="DMA0_CH3_IRQn" />
+         <irq num="DMA0_Ch0_IRQn" />
+         <irq num="DMA0_Ch1_IRQn" />
+         <irq num="DMA0_Ch2_IRQn" />
+         <irq num="DMA0_Ch3_IRQn" />
          <irq num="DMA0_Error_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="DMA0"             key="/DMA0/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="5"                key="/DMA0/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="DMA0_CH0_IRQn;DMA0_CH1_IRQn;DMA0_CH2_IRQn;DMA0_CH3_IRQn;DMA0_Error_IRQn" key="/DMA0/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="DMA0_Ch0_IRQn;DMA0_Ch1_IRQn;DMA0_Ch2_IRQn;DMA0_Ch3_IRQn;DMA0_Error_IRQn" key="/DMA0/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/DMA0/_present" />
          <param type="BooleanVariable"        name="dma_attr_dmod_present"          value="true"             key="/DMA0/dma_attr_dmod_present" />
          <param type="BooleanVariable"        name="dma_attr_dsize_present"         value="true"             key="/DMA0/dma_attr_dsize_present" />
@@ -547,11 +547,11 @@
       <peripheral baseName="FTFL"     instance=""         instanceList="FTFL" version="ftfl_32k_flexrom">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash" />
          <clock clockEnable="SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_FTFL_MASK;" clockDisable="SIM->SCGC6 = SIM->SCGC6 &amp; ~SIM_SCGC6_FTFL_MASK;" />
-         <irq num="FTF_Command_IRQn" />
-         <irq num="FTF_ReadCollision_IRQn" />
+         <irq num="FTFL_Command_IRQn" />
+         <irq num="FTFL_ReadCollision_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="FTFL"             key="/FTFL/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="2"                key="/FTFL/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="FTF_Command_IRQn;FTF_ReadCollision_IRQn" key="/FTFL/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="FTFL_Command_IRQn;FTFL_ReadCollision_IRQn" key="/FTFL/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/FTFL/_present" />
          <param type="BooleanVariable"        name="ftfl_fccob_ccob_present"        value="true"             key="/FTFL/ftfl_fccob_ccob_present" />
          <param type="LongVariable"           name="ftfl_fccob_dim"                 value="12"               key="/FTFL/ftfl_fccob_dim" />
@@ -1731,13 +1731,13 @@
       <peripheral baseName="PIT"      instance=""         instanceList="PIT"  version="pit_4ch">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit" />
          <clock clockEnable="SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_PIT_MASK;" clockDisable="SIM->SCGC6 = SIM->SCGC6 &amp; ~SIM_SCGC6_PIT_MASK;" />
-         <irq num="PIT0_IRQn" />
-         <irq num="PIT1_IRQn" />
-         <irq num="PIT2_IRQn" />
-         <irq num="PIT3_IRQn" />
+         <irq num="PIT_Ch0_IRQn" />
+         <irq num="PIT_Ch1_IRQn" />
+         <irq num="PIT_Ch2_IRQn" />
+         <irq num="PIT_Ch3_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="PIT"              key="/PIT/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="4"                key="/PIT/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="PIT0_IRQn;PIT1_IRQn;PIT2_IRQn;PIT3_IRQn" key="/PIT/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="PIT_Ch0_IRQn;PIT_Ch1_IRQn;PIT_Ch2_IRQn;PIT_Ch3_IRQn" key="/PIT/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/PIT/_present" />
          <param type="LongVariable"           name="pit_channel_dim"                value="4"                key="/PIT/pit_channel_dim" />
          <param type="BooleanVariable"        name="pit_cval_present"               value="true"             key="/PIT/pit_cval_present" />

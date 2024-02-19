@@ -245,7 +245,7 @@
          <param type="StringVariable"         name="_instanceList"                  value=""                 key="/Console/_instanceList" />
          <param type="StringVariable"         name="_irqNums"                       value=""                 key="/Console/_irqNums" />
       </peripheral>
-      <peripheral baseName="DAC"      instance="0"        instanceList="DAC0" version="dac0_16dat_fifo16_0x400cc000">
+      <peripheral baseName="DAC"      instance="0"        instanceList="DAC0" version="dac0_16dat_fifo16_aips1">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac" />
          <irq num="DAC0_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="DAC0"             key="/DAC0/_instanceList" />
@@ -286,26 +286,26 @@
       </peripheral>
       <peripheral baseName="DMA"      instance="0"        instanceList="DMA0" version="dma0_32ch_ears">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDma" />
-         <irq num="DMA0_CH0_DMA16_IRQn" />
-         <irq num="DMA0_CH1_DMA17_IRQn" />
-         <irq num="DMA0_CH2_DMA18_IRQn" />
-         <irq num="DMA0_CH3_DMA19_IRQn" />
-         <irq num="DMA0_CH4_DMA20_IRQn" />
-         <irq num="DMA0_CH5_DMA21_IRQn" />
-         <irq num="DMA0_CH6_DMA22_IRQn" />
-         <irq num="DMA0_CH7_DMA23_IRQn" />
-         <irq num="DMA0_CH8_DMA24_IRQn" />
-         <irq num="DMA0_CH9_DMA25_IRQn" />
-         <irq num="DMA0_CH10_DMA26_IRQn" />
-         <irq num="DMA0_CH11_DMA27_IRQn" />
-         <irq num="DMA0_CH12_DMA28_IRQn" />
-         <irq num="DMA0_CH13_DMA29_IRQn" />
-         <irq num="DMA0_CH14_DMA30_IRQn" />
-         <irq num="DMA0_CH15_DMA31_IRQn" />
+         <irq num="DMA0_Ch0_16_IRQn" />
+         <irq num="DMA0_Ch1_17_IRQn" />
+         <irq num="DMA0_Ch2_18_IRQn" />
+         <irq num="DMA0_Ch3_19_IRQn" />
+         <irq num="DMA0_Ch4_20_IRQn" />
+         <irq num="DMA0_Ch5_21_IRQn" />
+         <irq num="DMA0_Ch6_22_IRQn" />
+         <irq num="DMA0_Ch7_23_IRQn" />
+         <irq num="DMA0_Ch8_24_IRQn" />
+         <irq num="DMA0_Ch9_25_IRQn" />
+         <irq num="DMA0_Ch10_26_IRQn" />
+         <irq num="DMA0_Ch11_27_IRQn" />
+         <irq num="DMA0_Ch12_28_IRQn" />
+         <irq num="DMA0_Ch13_29_IRQn" />
+         <irq num="DMA0_Ch14_30_IRQn" />
+         <irq num="DMA0_Ch15_31_IRQn" />
          <irq num="DMA0_Error_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="DMA0"             key="/DMA0/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="17"               key="/DMA0/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="DMA0_CH0_DMA16_IRQn;DMA0_CH1_DMA17_IRQn;DMA0_CH2_DMA18_IRQn;DMA0_CH3_DMA19_IRQn;DMA0_CH4_DMA20_IRQn;DMA0_CH5_DMA21_IRQn;DMA0_CH6_DMA22_IRQn;DMA0_CH7_DMA23_IRQn;DMA0_CH8_DMA24_IRQn;DMA0_CH9_DMA25_IRQn;DMA0_CH10_DMA26_IRQn;DMA0_CH11_DMA27_IRQn;DMA0_CH12_DMA28_IRQn;DMA0_CH13_DMA29_IRQn;DMA0_CH14_DMA30_IRQn;DMA0_CH15_DMA31_IRQn;DMA0_Error_IRQn" key="/DMA0/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="DMA0_Ch0_16_IRQn;DMA0_Ch1_17_IRQn;DMA0_Ch2_18_IRQn;DMA0_Ch3_19_IRQn;DMA0_Ch4_20_IRQn;DMA0_Ch5_21_IRQn;DMA0_Ch6_22_IRQn;DMA0_Ch7_23_IRQn;DMA0_Ch8_24_IRQn;DMA0_Ch9_25_IRQn;DMA0_Ch10_26_IRQn;DMA0_Ch11_27_IRQn;DMA0_Ch12_28_IRQn;DMA0_Ch13_29_IRQn;DMA0_Ch14_30_IRQn;DMA0_Ch15_31_IRQn;DMA0_Error_IRQn" key="/DMA0/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/DMA0/_present" />
          <param type="BooleanVariable"        name="dma_attr_dmod_present"          value="true"             key="/DMA0/dma_attr_dmod_present" />
          <param type="BooleanVariable"        name="dma_attr_dsize_present"         value="true"             key="/DMA0/dma_attr_dsize_present" />
@@ -978,11 +978,11 @@
       </peripheral>
       <peripheral baseName="FTFE"     instance=""         instanceList="FTFE" version="ftfe_128k_flexrom_xacch">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash" />
-         <irq num="FTF_Command_IRQn" />
-         <irq num="FTF_ReadCollision_IRQn" />
+         <irq num="FTFE_Command_IRQn" />
+         <irq num="FTFE_ReadCollision_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="FTFE"             key="/FTFE/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="2"                key="/FTFE/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="FTF_Command_IRQn;FTF_ReadCollision_IRQn" key="/FTFE/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="FTFE_Command_IRQn;FTFE_ReadCollision_IRQn" key="/FTFE/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/FTFE/_present" />
          <param type="BooleanVariable"        name="ftfe_facsn_numsg_present"       value="true"             key="/FTFE/ftfe_facsn_numsg_present" />
          <param type="BooleanVariable"        name="ftfe_facsn_present"             value="true"             key="/FTFE/ftfe_facsn_present" />
@@ -3629,13 +3629,13 @@
       </peripheral>
       <peripheral baseName="PIT"      instance=""         instanceList="PIT"  version="pit_4ch_ltmr64">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit" />
-         <irq num="PIT0_IRQn" />
-         <irq num="PIT1_IRQn" />
-         <irq num="PIT2_IRQn" />
-         <irq num="PIT3_IRQn" />
+         <irq num="PIT_Ch0_IRQn" />
+         <irq num="PIT_Ch1_IRQn" />
+         <irq num="PIT_Ch2_IRQn" />
+         <irq num="PIT_Ch3_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="PIT"              key="/PIT/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="4"                key="/PIT/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="PIT0_IRQn;PIT1_IRQn;PIT2_IRQn;PIT3_IRQn" key="/PIT/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="PIT_Ch0_IRQn;PIT_Ch1_IRQn;PIT_Ch2_IRQn;PIT_Ch3_IRQn" key="/PIT/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/PIT/_present" />
          <param type="LongVariable"           name="pit_channel_dim"                value="4"                key="/PIT/pit_channel_dim" />
          <param type="BooleanVariable"        name="pit_cval_present"               value="true"             key="/PIT/pit_cval_present" />

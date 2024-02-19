@@ -543,7 +543,7 @@
          <param type="StringVariable"         name="_instanceList"                  value=""                 key="/Console/_instanceList" />
          <param type="StringVariable"         name="_irqNums"                       value=""                 key="/Console/_irqNums" />
       </peripheral>
-      <peripheral baseName="DAC"      instance="0"        instanceList="DAC0;DAC1" version="dac0_16dat_fifo16_0x400cc000">
+      <peripheral baseName="DAC"      instance="0"        instanceList="DAC0;DAC1" version="dac0_16dat_fifo16_aips1">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac" />
          <irq num="DAC0_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="DAC0;DAC1"        key="/DAC0/_instanceList" />
@@ -582,7 +582,7 @@
          <param type="BooleanVariable"        name="dac_sr_present"                 value="true"             key="/DAC0/dac_sr_present" />
          <param type="StringVariable"         name="structName"                     value="DAC"              key="/DAC0/structName" />
       </peripheral>
-      <peripheral baseName="DAC"      instance="1"        instanceList="DAC0;DAC1" version="dac0_16dat_fifo16_0x400cc000">
+      <peripheral baseName="DAC"      instance="1"        instanceList="DAC0;DAC1" version="dac0_16dat_fifo16_aips1">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac" />
          <irq num="DAC1_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="DAC0;DAC1"        key="/DAC1/_instanceList" />
@@ -623,26 +623,26 @@
       </peripheral>
       <peripheral baseName="DMA"      instance="0"        instanceList="DMA0" version="dma0_16ch">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDma" />
-         <irq num="DMA0_CH0_IRQn" />
-         <irq num="DMA0_CH1_IRQn" />
-         <irq num="DMA0_CH2_IRQn" />
-         <irq num="DMA0_CH3_IRQn" />
-         <irq num="DMA0_CH4_IRQn" />
-         <irq num="DMA0_CH5_IRQn" />
-         <irq num="DMA0_CH6_IRQn" />
-         <irq num="DMA0_CH7_IRQn" />
-         <irq num="DMA0_CH8_IRQn" />
-         <irq num="DMA0_CH9_IRQn" />
-         <irq num="DMA0_CH10_IRQn" />
-         <irq num="DMA0_CH11_IRQn" />
-         <irq num="DMA0_CH12_IRQn" />
-         <irq num="DMA0_CH13_IRQn" />
-         <irq num="DMA0_CH14_IRQn" />
-         <irq num="DMA0_CH15_IRQn" />
+         <irq num="DMA0_Ch0_IRQn" />
+         <irq num="DMA0_Ch1_IRQn" />
+         <irq num="DMA0_Ch2_IRQn" />
+         <irq num="DMA0_Ch3_IRQn" />
+         <irq num="DMA0_Ch4_IRQn" />
+         <irq num="DMA0_Ch5_IRQn" />
+         <irq num="DMA0_Ch6_IRQn" />
+         <irq num="DMA0_Ch7_IRQn" />
+         <irq num="DMA0_Ch8_IRQn" />
+         <irq num="DMA0_Ch9_IRQn" />
+         <irq num="DMA0_Ch10_IRQn" />
+         <irq num="DMA0_Ch11_IRQn" />
+         <irq num="DMA0_Ch12_IRQn" />
+         <irq num="DMA0_Ch13_IRQn" />
+         <irq num="DMA0_Ch14_IRQn" />
+         <irq num="DMA0_Ch15_IRQn" />
          <irq num="DMA0_Error_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="DMA0"             key="/DMA0/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="17"               key="/DMA0/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="DMA0_CH0_IRQn;DMA0_CH1_IRQn;DMA0_CH2_IRQn;DMA0_CH3_IRQn;DMA0_CH4_IRQn;DMA0_CH5_IRQn;DMA0_CH6_IRQn;DMA0_CH7_IRQn;DMA0_CH8_IRQn;DMA0_CH9_IRQn;DMA0_CH10_IRQn;DMA0_CH11_IRQn;DMA0_CH12_IRQn;DMA0_CH13_IRQn;DMA0_CH14_IRQn;DMA0_CH15_IRQn;DMA0_Error_IRQn" key="/DMA0/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="DMA0_Ch0_IRQn;DMA0_Ch1_IRQn;DMA0_Ch2_IRQn;DMA0_Ch3_IRQn;DMA0_Ch4_IRQn;DMA0_Ch5_IRQn;DMA0_Ch6_IRQn;DMA0_Ch7_IRQn;DMA0_Ch8_IRQn;DMA0_Ch9_IRQn;DMA0_Ch10_IRQn;DMA0_Ch11_IRQn;DMA0_Ch12_IRQn;DMA0_Ch13_IRQn;DMA0_Ch14_IRQn;DMA0_Ch15_IRQn;DMA0_Error_IRQn" key="/DMA0/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/DMA0/_present" />
          <param type="BooleanVariable"        name="dma_attr_dmod_present"          value="true"             key="/DMA0/dma_attr_dmod_present" />
          <param type="BooleanVariable"        name="dma_attr_dsize_present"         value="true"             key="/DMA0/dma_attr_dsize_present" />
@@ -1362,11 +1362,11 @@
       </peripheral>
       <peripheral baseName="FTFE"     instance=""         instanceList="FTFE" version="ftfe_128k_flexrom">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash" />
-         <irq num="FTF_Command_IRQn" />
-         <irq num="FTF_ReadCollision_IRQn" />
+         <irq num="FTFE_Command_IRQn" />
+         <irq num="FTFE_ReadCollision_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="FTFE"             key="/FTFE/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="2"                key="/FTFE/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="FTF_Command_IRQn;FTF_ReadCollision_IRQn" key="/FTFE/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="FTFE_Command_IRQn;FTFE_ReadCollision_IRQn" key="/FTFE/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/FTFE/_present" />
          <param type="BooleanVariable"        name="ftfe_fccob_ccob_present"        value="true"             key="/FTFE/ftfe_fccob_ccob_present" />
          <param type="LongVariable"           name="ftfe_fccob_dim"                 value="12"               key="/FTFE/ftfe_fccob_dim" />
@@ -3137,13 +3137,13 @@
       </peripheral>
       <peripheral baseName="PIT"      instance=""         instanceList="PIT"  version="pit_4ch_chain">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit" />
-         <irq num="PIT0_IRQn" />
-         <irq num="PIT1_IRQn" />
-         <irq num="PIT2_IRQn" />
-         <irq num="PIT3_IRQn" />
+         <irq num="PIT_Ch0_IRQn" />
+         <irq num="PIT_Ch1_IRQn" />
+         <irq num="PIT_Ch2_IRQn" />
+         <irq num="PIT_Ch3_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="PIT"              key="/PIT/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="4"                key="/PIT/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="PIT0_IRQn;PIT1_IRQn;PIT2_IRQn;PIT3_IRQn" key="/PIT/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="PIT_Ch0_IRQn;PIT_Ch1_IRQn;PIT_Ch2_IRQn;PIT_Ch3_IRQn" key="/PIT/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/PIT/_present" />
          <param type="LongVariable"           name="pit_channel_dim"                value="4"                key="/PIT/pit_channel_dim" />
          <param type="BooleanVariable"        name="pit_cval_present"               value="true"             key="/PIT/pit_cval_present" />
@@ -3487,6 +3487,7 @@
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC4&quot;,&quot;CMT&quot;" key="/CMT/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;CRC&quot;" key="/CRC/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC2&quot;,&quot;DAC0&quot;" key="/DAC0/_clockMask" />
+         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;DAC0_AIPS0&quot;" key="/DAC0_AIPS0/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC2&quot;,&quot;DAC1&quot;" key="/DAC1/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC7&quot;,&quot;DMA0&quot;" key="/DMA0/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;DMAMUX0&quot;" key="/DMAMUX0/_clockMask" />
@@ -3496,7 +3497,8 @@
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;FTF&quot;" key="/FTF/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;FTM0&quot;" key="/FTM0/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;FTM1&quot;" key="/FTM1/_clockMask" />
-         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC3&quot;,&quot;FTM2&quot;" key="/FTM2/_clockMask" />
+         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;FTM2&quot;" key="/FTM2/_clockMask" />
+         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC3&quot;,&quot;FTM2_AIPS1&quot;" key="/FTM2_AIPS1/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC3&quot;,&quot;FTM3&quot;" key="/FTM3/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC4&quot;,&quot;I2C0&quot;" key="/I2C0/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC4&quot;,&quot;I2C1&quot;" key="/I2C1/_clockMask" />
@@ -3511,7 +3513,8 @@
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC5&quot;,&quot;PORTC&quot;" key="/PORTC/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC5&quot;,&quot;PORTD&quot;" key="/PORTD/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC5&quot;,&quot;PORTE&quot;" key="/PORTE/_clockMask" />
-         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC3&quot;,&quot;RNGA&quot;" key="/RNGA/_clockMask" />
+         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;RNGA&quot;" key="/RNGA/_clockMask" />
+         <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC3&quot;,&quot;RNGA_AIPS1&quot;" key="/RNGA_AIPS1/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC6&quot;,&quot;RTC&quot;" key="/RTC/_clockMask" />
          <param type="StringVariable"         name="_clockMask"                     value="&quot;SCGC3&quot;,&quot;SDHC&quot;" key="/SDHC/_clockMask" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/SIM/_present" />
@@ -3547,10 +3550,10 @@
          <param type="BooleanVariable"        name="sim_scgc2_enet_present"         value="true"             key="/SIM/sim_scgc2_enet_present" />
          <param type="BooleanVariable"        name="sim_scgc2_present"              value="true"             key="/SIM/sim_scgc2_present" />
          <param type="BooleanVariable"        name="sim_scgc3_adc1_present"         value="true"             key="/SIM/sim_scgc3_adc1_present" />
-         <param type="BooleanVariable"        name="sim_scgc3_ftm2_present"         value="true"             key="/SIM/sim_scgc3_ftm2_present" />
+         <param type="BooleanVariable"        name="sim_scgc3_ftm2_aips1_present"   value="true"             key="/SIM/sim_scgc3_ftm2_aips1_present" />
          <param type="BooleanVariable"        name="sim_scgc3_ftm3_present"         value="true"             key="/SIM/sim_scgc3_ftm3_present" />
          <param type="BooleanVariable"        name="sim_scgc3_present"              value="true"             key="/SIM/sim_scgc3_present" />
-         <param type="BooleanVariable"        name="sim_scgc3_rnga_present"         value="true"             key="/SIM/sim_scgc3_rnga_present" />
+         <param type="BooleanVariable"        name="sim_scgc3_rnga_aips1_present"   value="true"             key="/SIM/sim_scgc3_rnga_aips1_present" />
          <param type="BooleanVariable"        name="sim_scgc3_sdhc_present"         value="true"             key="/SIM/sim_scgc3_sdhc_present" />
          <param type="BooleanVariable"        name="sim_scgc3_spi2_present"         value="true"             key="/SIM/sim_scgc3_spi2_present" />
          <param type="BooleanVariable"        name="sim_scgc4_cmp0_present"         value="true"             key="/SIM/sim_scgc4_cmp0_present" />
@@ -3575,7 +3578,7 @@
          <param type="BooleanVariable"        name="sim_scgc6_adc0_present"         value="true"             key="/SIM/sim_scgc6_adc0_present" />
          <param type="BooleanVariable"        name="sim_scgc6_can0_present"         value="true"             key="/SIM/sim_scgc6_can0_present" />
          <param type="BooleanVariable"        name="sim_scgc6_crc_present"          value="true"             key="/SIM/sim_scgc6_crc_present" />
-         <param type="BooleanVariable"        name="sim_scgc6_dac0_present"         value="true"             key="/SIM/sim_scgc6_dac0_present" />
+         <param type="BooleanVariable"        name="sim_scgc6_dac0_aips0_present"   value="true"             key="/SIM/sim_scgc6_dac0_aips0_present" />
          <param type="BooleanVariable"        name="sim_scgc6_dmamux0_present"      value="true"             key="/SIM/sim_scgc6_dmamux0_present" />
          <param type="BooleanVariable"        name="sim_scgc6_ftf_present"          value="true"             key="/SIM/sim_scgc6_ftf_present" />
          <param type="BooleanVariable"        name="sim_scgc6_ftm0_present"         value="true"             key="/SIM/sim_scgc6_ftm0_present" />

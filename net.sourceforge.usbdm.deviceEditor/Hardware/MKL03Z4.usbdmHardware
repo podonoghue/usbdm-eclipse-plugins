@@ -139,10 +139,10 @@
       <peripheral baseName="FTFA"     instance=""         instanceList="FTFA" version="ftfa">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash" />
          <clock clockEnable="SIM->SCGC6 = SIM->SCGC6 | SIM_SCGC6_FTF_MASK;" clockDisable="SIM->SCGC6 = SIM->SCGC6 &amp; ~SIM_SCGC6_FTF_MASK;" />
-         <irq num="FTF_Command_IRQn" />
+         <irq num="FTFA_Command_IRQn" />
          <param type="StringVariable"         name="_instanceList"                  value="FTFA"             key="/FTFA/_instanceList" />
          <param type="LongVariable"           name="_irqCount"                      value="1"                key="/FTFA/_irqCount" />
-         <param type="StringVariable"         name="_irqNums"                       value="FTF_Command_IRQn" key="/FTFA/_irqNums" />
+         <param type="StringVariable"         name="_irqNums"                       value="FTFA_Command_IRQn" key="/FTFA/_irqNums" />
          <param type="BooleanVariable"        name="_present"                       value="true"             key="/FTFA/_present" />
          <param type="BooleanVariable"        name="ftfa_fccob_ccob_present"        value="true"             key="/FTFA/ftfa_fccob_ccob_present" />
          <param type="LongVariable"           name="ftfa_fccob_dim"                 value="12"               key="/FTFA/ftfa_fccob_dim" />
