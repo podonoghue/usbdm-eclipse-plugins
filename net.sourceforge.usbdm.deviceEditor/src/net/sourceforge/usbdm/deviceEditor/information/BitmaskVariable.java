@@ -202,14 +202,14 @@ public class BitmaskVariable extends LongVariable {
 
       String[] tBitnames;
       if ((fRawBitNames != null)&&(fRawBitNames.startsWith("@"))) {
-         tBitnames     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitNames, getProvider()), ",");
+         tBitnames     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitNames.substring(1), getProvider()), ",");
       }
       else {
          tBitnames     = PinListExpansion.expandPinList(fRawBitNames, ",");
       }
       String[] tDescriptions;
       if ((fRawBitDescriptions != null)&&(fRawBitDescriptions.startsWith("@"))) {
-         tDescriptions     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitDescriptions, getProvider()), ",");
+         tDescriptions     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitDescriptions.substring(1), getProvider()), ",");
       }
       else {
          tDescriptions     = PinListExpansion.expandPinList(fRawBitDescriptions, ",");

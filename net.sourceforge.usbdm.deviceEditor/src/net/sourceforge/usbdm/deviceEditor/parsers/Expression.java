@@ -23,6 +23,8 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visit
 import net.sourceforge.usbdm.deviceEditor.parsers.ExpressionParser.Mode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public class Expression implements IModelChangeListener {
 
@@ -1242,7 +1244,7 @@ public class Expression implements IModelChangeListener {
        * @param fProvider  Peripheral to locate signals
        * @param arg        Constant expression evaluating to<br>
        * <li> (optional) String regex for filtering on pin name
-       * <li> (optional) String replacement pattern for use with regex to produce modify pin information
+       * <li> (optional) String replacement pattern for use with regex to produce modified pin information
        * 
        * If no arg is null then no filtering is done and all mapped pins are returned.
        * 
@@ -1356,7 +1358,7 @@ public class Expression implements IModelChangeListener {
       }
       
       @Override
-      Object eval() throws Exception {
+      String eval() throws Exception {
          
          Signal[] signals = fPeripheral.getMappedSignals();
          StringBuilder sb = new StringBuilder();
@@ -1385,6 +1387,79 @@ public class Expression implements IModelChangeListener {
             }
             if (!sb.isEmpty()) {
                sb.append(",");
+            }
+            sb.append(description);
+         }
+//         System.err.println("SignalsListNode.eval() => '"+sb.toString()+"'");
+         return sb.toString();
+      }
+   }
+   
+   static class VectorsListNode extends ExpressionNode {
+
+      final Peripheral fPeripheral;
+      final String     fRegex;
+      final String     fReplacement;
+      
+      /**
+       * Create Expression node providing information about signals.
+       * 
+       * @param fProvider  Peripheral to locate vectors
+       * @param arg        Constant expression evaluating to<br>
+       * <li> (optional) String regex for filtering on vector description
+       * <li> (optional) String replacement pattern for use with regex to produce modify result<br>
+       * <br>
+       * If arg is null then no filtering is done and all vectors are returned.<br>
+       * Examples<br>
+       * Information <b>"name|index|C-description|handler-name|peripherals[,peripheral]"</b><br>
+       * Example:    <b>"PORTCD|3|Port interrupt||PORTC,PORTD"</b><br>
+       * Example pattern: <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       * Example replacement: <b>"$1 used by $5"</b><br>
+       * 
+       * @return SignalsListNode providing a comma-separated String result when evaluated
+       * 
+       * @throws Exception
+       */
+      VectorsListNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
+         super(Type.String);
+         fPeripheral     = peripheral;
+         if (arg == null) {
+            fRegex       = null;
+            fReplacement = null;
+            return;
+         }
+         if (arg.fType != Type.List) {
+            fRegex       = (String) evalConstantArg(arg, Type.String);
+            fReplacement = null;
+            return;
+         }
+         ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+         if (args.length != 2) {
+            throw new Exception("Expected 2 arguments");
+         }
+         fRegex       = (String) evalConstantArg(args[0], Type.String);
+         fReplacement = (String) evalConstantArg(args[1], Type.String);
+      }
+      
+      @Override
+      String eval() throws Exception {
+
+         Pattern pattern = null;
+         if (fRegex != null) {
+            pattern = Pattern.compile(fRegex);
+         }
+         VectorTable vectorTable = fPeripheral.getDeviceInfo().getDevicePeripherals().getVectorTable();
+         StringBuilder sb = new StringBuilder();
+         for (InterruptEntry entry:vectorTable.getEntries()) {
+            if (entry == null) {
+               continue;
+            }
+            String description = entry.getInformation(pattern, fReplacement);
+            if (description == null) {
+               continue;
+            }
+            if (!sb.isEmpty()) {
+               sb.append(';');
             }
             sb.append(description);
          }

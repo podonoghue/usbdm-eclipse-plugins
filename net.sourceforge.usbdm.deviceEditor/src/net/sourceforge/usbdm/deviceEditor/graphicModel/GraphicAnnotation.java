@@ -97,4 +97,9 @@ public class GraphicAnnotation extends GraphicBaseVariable {
       sb.append(String.format("%-60s", params.toString()));
    }
 
+   @Override
+   public int getDrawPriority() {
+      return 2000;
+   }
+
 }

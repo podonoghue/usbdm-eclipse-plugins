@@ -1266,7 +1266,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                continue;
             }
             vectorTable.addEntry(entry);
-            if (((entry.getPeripheral() == null) || (entry.getPeripheral().size() == 0)) &&
+            if (((entry.getPeripherals() == null) || (entry.getPeripherals().size() == 0)) &&
                   !entry.getName().equals("SWI")) {
                System.err.println("Vector Entry " + entry.getName() + ", Per = none!!");
             }

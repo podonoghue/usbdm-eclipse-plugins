@@ -15,12 +15,8 @@ Device,MKL05Z32VLF4,KL05P48M48SF1RM,LQFP_48,,,,,,,,,,,,,,,,,,
 Device,FRDM_KL05Z,KL05P48M48SF1RM,FRDM_KL05Z,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,
 Key,Pin,Pkg FRDM_KL05Z,Pkg LQFP_48,Pkg QFN_32,Pkg LQFP_32,Pkg QFN_24,Reset,ALT0,ALT1,ALT2,ALT3,Sort,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,Internal,Internal,Internal,PIT_CH0,,,,,,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,Internal,Internal,PIT_CH1,,,,,,,,,,,,,,
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,,,-2,Internal,Internal,Internal
 Pin,BANDGAP,Internal,Internal,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,,,-1,Internal,Internal,Internal
-,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,
 Pin,PTB6/LPTMR0_ALT3,D6,p1,p1,p1,p1,DISABLED,DISABLED,PTB6/LPTMR0_ALT3,TPM0_CH3,TPM_CLKIN1,1,,,,,,,,,
 Pin,PTB7,D7,p2,p2,p2,p2,DISABLED,DISABLED,PTB7,TPM0_CH2,,2,,,,,,,,,
 Pin,PTA14,*,p3,*,*,*,DISABLED,DISABLED,PTA14,,TPM_CLKIN0,3,,,,,,,,,

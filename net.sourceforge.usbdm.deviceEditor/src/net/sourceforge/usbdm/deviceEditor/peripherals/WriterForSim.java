@@ -34,8 +34,8 @@ public class WriterForSim extends PeripheralWithState {
             Register reg = (Register) cluster;
             for (Field f:reg.getFields()) {
 //               Pattern p = Pattern.compile("SCGC%");
-               String key = makeKey("/"+f.getName()+"/_clockMask");
-               addOrIgnoreParam(key, "&quot;"+reg.getName()+"&quot;,&quot;"+f.getName()+"&quot;");
+               String key = makeKey("/"+f.getName()+"/_clockInfo");
+               addOrIgnoreParam(key, reg.getName()+","+f.getName());
             }
          }
       }

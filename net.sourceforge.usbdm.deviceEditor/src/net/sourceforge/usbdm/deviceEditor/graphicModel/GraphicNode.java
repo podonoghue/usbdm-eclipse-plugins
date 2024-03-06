@@ -28,15 +28,18 @@ public class GraphicNode extends GraphicBaseVariable {
    }
 
    public static GraphicNode create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) throws Exception {
-      
-      String paramsArray[] = params.split(",");
-      int x = originX+Integer.parseInt(paramsArray[0].trim());
-      int y = originY+Integer.parseInt(paramsArray[1].trim());
+      try {
+         String paramsArray[] = params.split(",");
+         int x = originX+Integer.parseInt(paramsArray[0].trim());
+         int y = originY+Integer.parseInt(paramsArray[1].trim());
 
-      GraphicNode t = new GraphicNode(x, y, id, canEdit, var);
+         GraphicNode t = new GraphicNode(x, y, id, canEdit, var);
 
-      t.addInputsAndOutputs(2, paramsArray, 10, 10);
-      return t;
+         t.addInputsAndOutputs(2, paramsArray, 10, 10);
+         return t;
+      } catch (Exception e) {
+         throw new Exception("Expected parameters 'x,y [, in/out...]'", e);
+      }
    }
 
    @Override
@@ -63,6 +66,9 @@ public class GraphicNode extends GraphicBaseVariable {
       }
       if ((getStyle()&NOVALUE) == 0) {
          Variable var = getVariable();
+//         if (var.getName().contains("cop_timeout")) {
+//            System.err.println("Found it " + var.getName());
+//         }
          if ((var instanceof LongVariable) || (var instanceof DoubleVariable)) {
             if (label.length() != 0) {
                label.append(", ");
@@ -93,6 +99,11 @@ public class GraphicNode extends GraphicBaseVariable {
       StringBuilder params = new StringBuilder();
       params.append(String.format(" params=\"%4d,%4d\" ", x, y));
       sb.append(String.format("%-60s", params.toString()));
+   }
+
+   @Override
+   public int getDrawPriority() {
+      return MID_PRIORITY+10;
    }
 
 }

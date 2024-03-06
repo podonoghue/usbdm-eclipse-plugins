@@ -193,27 +193,12 @@ public class ClockSelectionFigure {
          Arrays.sort(getObjects(), new Comparator<Graphic>() {
             @Override
             public int compare(Graphic o1, Graphic o2) {
-               // Boxes first
-               if (o1 instanceof GraphicBox) {
-                  if (!(o2 instanceof GraphicBox)) {
-                     return -1;
-                  }
-                  return (o1.x - o2.x);
+
+               int res = o1.getDrawPriority()-o2.getDrawPriority();
+               if (res != 0) {
+                  return res;
                }
-               if (o2 instanceof GraphicBox) {
-                  return 1;
-               }
-               
-               // Connectors next
-               if (o1 instanceof GraphicConnector) {
-                  if (!(o2 instanceof GraphicConnector)) {
-                     return -1;
-                  }
-                  return 0;
-               }
-               if (o2 instanceof GraphicConnector) {
-                  return 1;
-               }
+               // Order by x co-ord
                return (o1.x - o2.x);
             }
          });

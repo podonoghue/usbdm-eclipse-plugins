@@ -556,7 +556,6 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t/**\n" +
           "         \\t * Clear %description\n" +
           "         \\t * (%(field))\n" +
-          "         \\t *\n" +
           "         \\t */\n" +
           "         \\tstatic void clear%(name)() {\n" +
           "         \\t   %register = %register|%mask;\n" +
@@ -596,7 +595,7 @@ public class CreateDeviceSkeletonFromSVD {
             "         \\t/**\n" +
             "         \\t * Clear %description\n" +
             "         \\t * (%(field))\n" +
-            "         \\t *\n" +
+            "         \\t */\n" +
             "         \\tstatic void clear%(name)(int index) {\n" +
             "         \\t   $(_basename)->%(context) = $(_basename)->%(context)|%mask;\n" +
             "         \\t}\n" +
@@ -829,6 +828,13 @@ public class CreateDeviceSkeletonFromSVD {
          "      \\t */\n" +
          "      \\tclass Init {\n" +
          "      \\t\n" +
+         "      \\tprivate:\n" +
+         "      \\t   /**\n" +
+         "      \\t    * Prevent implicit parameter conversions\n" +
+         "      \\t    */\n" +
+         "      \\t   template <typename... Types>\n" +
+         "      \\t   constexpr Init(Types...) = delete;\n" +
+         "      \\t\n" +
          "      \\tpublic:\n" +
          "      \\t   /**\n" +
          "      \\t    * Copy Constructor\n" +
@@ -849,8 +855,9 @@ public class CreateDeviceSkeletonFromSVD {
       final String initIrqMemberTemplate = "\n"
             + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\"\n"
             + "      variables=\"irqHandlingMethod\"\n"
+            + "      linePadding=\"xxx\"\n"
             + "   ><![CDATA[\n"
-            + "      \\t   /// %description\n"
+            + "      %multilineDescription\n"
             + "      \\t   %params = nullptr;\\n\\n\n"
             + "   ]]></variableTemplate>\n";
       
@@ -945,8 +952,9 @@ public class CreateDeviceSkeletonFromSVD {
             "\n" +
             "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\"\n" +
             "      variables=\"/PCR/nvic_irqLevel,irqLevel\"\n" +
+            "      linePadding=\"xxx\"\n" +
             "   ><![CDATA[\n" +
-            "      \\t   /// %%description\n" +
+            "      %%multilineDescription\n" +
             "      \\t   %%paramType %%registerName0 = %%defaultValue;\n" +
             "      \\t\\n\n" +
             "   ]]></variableTemplate>\n";
@@ -1125,7 +1133,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t */\n"
             + "      \\tstatic void configure(const Init &init) {\n"
             + "      \\t\n"
-            + "      \\t   // Enable peripheral clock\n"
+            + "      \\t   // Enable peripheral\n"
             + "      \\t   enable();\n"
             + "      \\t\\n\n"
             + "   ]]></template>\n";
@@ -1137,7 +1145,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t   setCallback(init.callbackFunction);\n"
             + "      \\t   enableNvicInterrupts(init.irqlevel);\n"
             + "      \\t\\n\n"
-            + "   ]]></template>\n";
+            + "   ]]>\n"
+            + "   </template>\n";
       
       resultSb.append(String.format(configureMethod));
       resultSb.append(String.format(configureMethodIrq));
@@ -1486,7 +1495,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "I2C",
 //         "I2S",
 //         "KBI",
-//         "LPTMR",
+         "LPTMR",
 //         "LPUART",
 //         "LLWU",
 //         "MCM",
@@ -1506,7 +1515,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SMC",
 //         "SPI",
 //         "SIM",
-         "TSI",
+//         "TSI",
 //         "TRNG",
 //         "UART",
 //         "VREF",
@@ -1604,9 +1613,9 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
-//    doAllPeripherals("FRDM_KL25Z", "mkl");
+    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
-    doAllPeripherals("FRDM_K20D50M", "mk");
+//    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");

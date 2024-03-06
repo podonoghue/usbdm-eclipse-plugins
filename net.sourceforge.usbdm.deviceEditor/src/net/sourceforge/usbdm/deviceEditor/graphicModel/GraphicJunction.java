@@ -80,4 +80,9 @@ public class GraphicJunction extends GraphicBaseVariable {
       sb.append(String.format("%-60s", params.toString()));
    }
 
+   @Override
+   public int getDrawPriority() {
+      return LOW_PRIORITY;
+   }
+
 }

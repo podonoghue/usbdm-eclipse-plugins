@@ -10,10 +10,6 @@ Key,Pin,Pkg FRDM_K28F,Pkg BGA_169_MK28F,Pkg WLCSP_210_MK28F,Reset,ALT0,ALT1,ALT2
 Pin,TEMP_SENSOR,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,Internal,ADC0_SE27/CMP0_IN6/CMP1_IN6,,,,,,,,,
 Pin,CMP_DAC,Internal,Internal,Internal,CMP0_IN7/CMP1_IN7,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,Internal,PIT_CH0,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,PIT_CH1,,,,,,,,,
-Pin,PIT_CH2,Internal,Internal,Internal,PIT_CH2,,,,,,,,,
-Pin,PIT_CH3,Internal,Internal,Internal,PIT_CH3,,,,,,,,,
 Pin,ADC0_DM0,*,L2,N13,ADC0_DM0/ADC0_SE17,,,,,,,,,39
 Pin,ADC0_DM1,ADC0_DM1,L1,*,ADC0_DM1/ADC0_SE18,,,,,,,,,49
 Pin,ADC0_DM3,*,N2,P13,ADC0_DM3/ADC0_SE20,,,,,,,,,41

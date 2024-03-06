@@ -10,10 +10,6 @@ Key,Pin,Pkg LQFP_64,Pkg FRDM_K20D50M,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5
 Pin,TEMP_SENSOR,Internal,Internal,ADC0_SE26/ADC1_SE26,,,,,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,ADC0_SE27/ADC1_SE27/CMP0_IN6/CMP1_IN6/CMP2_IN6,,,,,,,,,,,,,
 Pin,CMP_DAC,Internal,Internal,CMP0_IN7/CMP1_IN7/CMP2_IN7,,,,,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,PIT_CH0,,,,,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,PIT_CH1,,,,,,,,,,,,,
-Pin,PIT_CH2,Internal,Internal,PIT_CH2,,,,,,,,,,,,,
-Pin,PIT_CH3,Internal,Internal,PIT_CH3,,,,,,,,,,,,,
 Pin,PTE0,p1,D1,ADC1_SE4a,,ADC1_SE4a,PTE0,,UART1_TX,,TRACE_CLKOUT,I2C1_SDA,RTC_CLKOUT,,0,E4,1
 Pin,PTE1/LLWU_P0,p2,D0,ADC1_SE5a,,ADC1_SE5a,PTE1/LLWU_P0,,UART1_RX,,TRACE_D3,I2C1_SCL,,,1,E3,2
 Pin,VDD1,p3,VDD1,VDD1,,,,,,,,,,,4,E7,3

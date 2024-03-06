@@ -31,7 +31,7 @@ public class PinListDialogue extends Dialog {
    private final String[]  fPinList;
    private final Integer[] fSignalIndexList;
    
-   private static final String PIN_TEMPLATE = "%s => %s"; 
+   private static final String PIN_TEMPLATE = "%s => %s";
    /**
     * Create dialogue displaying a set of pin selection spinners
     * 
@@ -86,9 +86,12 @@ public class PinListDialogue extends Dialog {
             fCombos[i].setItems(fPinList);
             if (i<initialSelections.length) {
                int signalIndex = Integer.parseInt(initialSelections[i]);
-               Signal entry = pinTable.elementAt(signalIndex);
-               String item = String.format(PIN_TEMPLATE, entry.getName(), entry.getFirstMappedPinInformation().getPin().getName());
-               int sel = fCombos[i].indexOf(item);
+               Signal signal = pinTable.elementAt(signalIndex);
+               int sel = -1;
+               if (signal != null) {
+                  String item = String.format(PIN_TEMPLATE, signal.getName(), signal.getMapDescription());
+                  sel = fCombos[i].indexOf(item);
+               }
                if (sel > 0) {
                   fCombos[i].select(sel);
                }
@@ -141,7 +144,7 @@ public class PinListDialogue extends Dialog {
 //      shell.setText("Device Editor");
 //      shell.setLayout(new FillLayout());
 //      shell.setSize(600, 200);
-//      
+//
 //      String selection = "1  , 2,3    ,4, 29";
 //      while(true) {
 //         PinListDialogue editor;// = new PinListDialogue(shell, 8, selection);
@@ -151,11 +154,11 @@ public class PinListDialogue extends Dialog {
 //         selection = editor.getResult();
 //         System.err.println("res = " + selection);
 //      }
-//      
+//
 //      while (!shell.isDisposed()) {
 //          if (!display.readAndDispatch()) display.sleep();
 //      }
-//      
+//
 //      shell.open();
 //      while (!shell.isDisposed()) {
 //         if (!display.readAndDispatch())

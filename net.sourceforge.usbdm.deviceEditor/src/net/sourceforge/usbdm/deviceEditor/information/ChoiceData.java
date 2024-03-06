@@ -39,6 +39,9 @@ public class ChoiceData {
 
    /** Tool-tip to use with choice */
    private String fTooltip;
+
+   /** Signal associated with this choice */
+   private Signal fAssociatedSignal;
    
    /**
     * 
@@ -47,6 +50,9 @@ public class ChoiceData {
     * @param enumName   Suffix for code enum generation e.g. yyy => ENUM_yyy
     * @param codeValue  Code fragment for this enum e.g. getPeripheralClock()
     * @param reference  Reference to another variable associated with this choice or multi-value constants
+    * @param enabledBy  Expression enabling this choice
+    * @param pinMap     PinMap associated with this choice
+    * @param provider   Provider (for expressions)
     * 
     * @throws Exception
     */
@@ -323,6 +329,24 @@ public class ChoiceData {
          return true;
       }
       return false;
+   }
+
+   /**
+    * Set Signal associated with this choice
+    * 
+    * @param associatedSignal Signal to associate
+    */
+   public void setAssociatedSignal(Signal associatedSignal) {
+      fAssociatedSignal = associatedSignal;
+   }
+
+   /**
+    * Get Signal associated with this choice
+    * 
+    * @return Associated signal or null if none
+    */
+   public Signal getAssociatedSignal() {
+      return fAssociatedSignal;
    }
 
 }

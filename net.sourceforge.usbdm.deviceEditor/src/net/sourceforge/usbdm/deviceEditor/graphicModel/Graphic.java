@@ -7,10 +7,15 @@ import org.eclipse.swt.widgets.Display;
 
 public abstract class Graphic {
    
+   public static final int LOW_PRIORITY  = 100;
+   public static final int MID_PRIORITY  = 1000;
+   public static final int HIGH_PRIORITY = 2000;
+   
    public static enum Height        {small, large};
    public static enum ShowValue     {quiet};
    public static enum Orientation   {normal, rot90, rot180, rot270, mirror, rot90mirror, rot180mirror, rot270mirror, };
    public static enum Type          {variableBox, box, choice, mux, connector, node, junction, label, reference, annotation, group};
+   
    public static final int NONE     =0b0000;
    public static final int NONAME   =0b0001;
    public static final int NOVALUE  =0b0010;
@@ -134,6 +139,9 @@ public abstract class Graphic {
                   }
                   else if ("NOVALUE".equalsIgnoreCase(style)) {
                      this.style |= NOVALUE;
+                  }
+                  else {
+                     System.err.println("Unexpected style '"+style+"'");
                   }
                }
             }
@@ -472,6 +480,14 @@ from global to graphic relative
          styleString = ","+styleString;
       }
       sb.append(String.format("%-32s", "id=\""+id+styleString+"\" "));
+   }
+
+   /**
+    * Get priority for drawing this object
+    * Higher values => drawn later
+    */
+   public int getDrawPriority() {
+      return MID_PRIORITY;
    }
 
 }

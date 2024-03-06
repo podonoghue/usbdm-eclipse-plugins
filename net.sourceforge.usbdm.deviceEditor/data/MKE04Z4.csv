@@ -40,10 +40,6 @@ Pin,PTA5,23,1,1,PTA5,RESET_b,,GPIOA_5,IRQ,TCLK1,RESET_b,,,,,23,,,,
 Pin,PTA4,24,2,2,PTA4,SWD_DIO,,GPIOA_4,ACMP0_OUT,SWD_DIO,,,,,,24,,,,
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,ADC0_SE22,,,,,,,,,,,-2,Internal,Internal,Internal
 Pin,BANDGAP,Internal,Internal,Internal,Internal,ADC0_SE23,,,,,,,,,,,-1,Internal,Internal,Internal
-Pin,PIT_CH0,Internal,Internal,Internal,Internal,PIT_CH0,,,,,,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,Internal,PIT_CH1,,,,,,,,,,,,,,
-Pin,PIT_CH2,Internal,Internal,Internal,Internal,PIT_CH2,,,,,,,,,,,,,,
-Pin,PIT_CH3,Internal,Internal,Internal,Internal,PIT_CH3,,,,,,,,,,,,,,
 Pin,ACMP0_O,Internal,Internal,Internal,Internal,DISABLED,,FTM2_FLT0,PWT_IN2,FTM2_TRIG0,,,,,,,,,,
 Pin,ACMP1_O,Internal,Internal,Internal,Internal,DISABLED,,FTM2_FLT3,PWT_IN3,FTM2_TRIG0,,,,,,,,,,
 Pin,FTM0_CH0,Internal,Internal,Internal,Internal,DISABLED,,FTM2_TRIG1,,,,,,,,,,,,

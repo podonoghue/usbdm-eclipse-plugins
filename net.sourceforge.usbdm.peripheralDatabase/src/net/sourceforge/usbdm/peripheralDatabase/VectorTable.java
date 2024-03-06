@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
+
 public abstract class VectorTable extends ModeControl {
    
    protected InterruptEntry[]   interrupts        = new InterruptEntry[256];
@@ -86,7 +88,7 @@ public abstract class VectorTable extends ModeControl {
          if (interruptEntry == null) {
             continue;
          }
-         if (interruptEntry.getPeripheral().contains(peripheral)) {
+         if (interruptEntry.getPeripherals().contains(peripheral)) {
             return interruptEntry;
          }
       }
@@ -105,8 +107,8 @@ public abstract class VectorTable extends ModeControl {
          if (!currentEntry.getName().equalsIgnoreCase(entry.getName())) {
             throw new Exception("InterruptEntry changed name");
          }
-         ArrayList<Peripheral> currentPeripherals = currentEntry.getPeripheral();
-         for( Peripheral peripheral:entry.getPeripheral()) {
+         ArrayList<Peripheral> currentPeripherals = currentEntry.getPeripherals();
+         for( Peripheral peripheral:entry.getPeripherals()) {
             if (currentPeripherals.contains(peripheral)) {
                // Refers to same peripheral - ignore
                continue;
@@ -217,7 +219,33 @@ public abstract class VectorTable extends ModeControl {
    }
 
    /**
+    * Get generic name of handler for vector table index<br>
+    * This name is constructed from the name of the vector e.g. FormatError_Handler, QSPI_IRQHandler
+    * 
+    * @param index
+    * 
+    * @return
+    */
+   public String getGenericHandlerName(int index) {
+      if (interrupts[index] == null) {
+         return null;
+      }
+      // Construct default from name
+      String handlerName = interrupts[index].getName();
+      if (handlerName == null) {
+         throw new RuntimeException("Irq entry without name!");
+      }
+      if (index<firstIrqIndex) {
+         return handlerName = handlerName+EXCEPTION_HANDLER_SUFFIX;
+      }
+      else {
+         return handlerName = handlerName+EXCEPTION_IRQ_SUFFIX;
+      }
+   }
+
+   /**
     * Get name of handler for vector table index<br>
+    * This name may be overridden
     * e.g. FormatError_Handler, QSPI_IRQHandler
     * 
     * @param index
@@ -233,19 +261,21 @@ public abstract class VectorTable extends ModeControl {
       if (handlerName != null) {
          return handlerName;
       }
-      // Construct default from name
-      handlerName = interrupts[index].getName();
-      if (handlerName == null) {
-         throw new RuntimeException("Irq entry without name!");
-      }
-      if (index<firstIrqIndex) {
-         return handlerName = handlerName+EXCEPTION_HANDLER_SUFFIX;
-      }
-      else {
-         return handlerName = handlerName+EXCEPTION_IRQ_SUFFIX;
-      }
+      return getGenericHandlerName(index);
    }
 
+   /**
+    * Clear information about handler names
+    */
+   public void resetHandlerNames() {
+      for (InterruptEntry i:interrupts) {
+         if (i != null) {
+            i.setHandlerName(null);
+            i.setHandlerMode(Mode.NotInstalled);
+         }
+      }
+   }
+   
    /**
     * Get handler enum name<br>
     * e.g. AccessError_IRQn

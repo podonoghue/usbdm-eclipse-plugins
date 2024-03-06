@@ -1,13 +1,11 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
@@ -20,7 +18,7 @@ import net.sourceforge.usbdm.jni.UsbdmException;
 public class WriterForTsi extends PeripheralWithState {
    // Number of inputs each comparator multiplexor has
    static final int NUMBER_OF_INPUTS = 15;
-   static final String PIN_FORMAT    = "constexpr %s %-25s = %-14s %s\n";
+   static final String PIN_FORMAT    = "\t   %-25s = %-16s %s\n";
 
 
    public WriterForTsi(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
@@ -88,11 +86,11 @@ public class WriterForTsi extends PeripheralWithState {
          enumName = tsiEnumPatternVar.getValueAsString();
       }
       else {
-         enumName = "TsiChannel";
+         enumName = "TsiInput";
       }
-      String commentRoot = "///< ";
+//      String commentRoot = "///< ";
       ArrayList<InfoTable> signalTables = getSignalTables();
-      HashSet<String> usedIdentifiers = new HashSet<String>();
+//      HashSet<String> usedIdentifiers = new HashSet<String>();
 
       StringBuffer inputsStringBuilder       = new StringBuffer();
       for (InfoTable signalTable:signalTables) {
@@ -119,46 +117,15 @@ public class WriterForTsi extends PeripheralWithState {
             
             String trailingComment  = pin.getNameWithLocation();
             String pinName = enumName+"_"+prettyPinName(pin.getName());
-            String inputIdentifier = "";
-            String mapName = enumName+"_"+index;
+//            String inputIdentifier = "";
+//            String mapName = enumName+"_"+prettyPinName(pin.getName());
             
             
             String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier().trim());
             if (!cIdentifier.isBlank()) {
-               inputIdentifier =  enumName+"_"+cIdentifier;
+//               inputIdentifier =  enumName+"_"+cIdentifier;
                String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
                writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
-            }
-            if (mappingInfo.getMux() == MuxSelection.fixed) {
-               // Fixed pin mapping
-               trailingComment = commentRoot+"Fixed pin  "+trailingComment;
-               boolean inUse = !usedIdentifiers.add(pinName);
-               if (inUse) {
-                  pinName = "// "+pinName;
-               }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, enumName, pinName, mapName+";", trailingComment));
-               if (!inputIdentifier.isBlank()) {
-                  inUse = !usedIdentifiers.add(inputIdentifier);
-                  if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier;
-                  }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, enumName, inputIdentifier, mapName+";", trailingComment));
-               }
-            }
-            else if (mappingInfo.isSelected()) {
-               trailingComment = commentRoot+"Mapped pin "+trailingComment;
-               boolean inUse = !usedIdentifiers.add(pinName);
-               if (inUse) {
-                  pinName = "// "+pinName;
-               }
-               inputsStringBuilder.append(String.format(PIN_FORMAT, enumName, pinName, mapName+";", trailingComment));
-               if (!inputIdentifier.isBlank()) {
-                  inUse = !usedIdentifiers.add(inputIdentifier);
-                  if (inUse) {
-                     inputIdentifier = "// "+inputIdentifier;
-                  }
-                  inputsStringBuilder.append(String.format(PIN_FORMAT, enumName, inputIdentifier, mapName+";", trailingComment));
-               }
             }
 //            if (mappingInfo.getMux() == MuxSelection.fixed) {
 //               // Fixed pin mapping
@@ -167,13 +134,12 @@ public class WriterForTsi extends PeripheralWithState {
 //               if (inUse) {
 //                  pinName = "// "+pinName;
 //               }
-//               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+";", trailingComment));
 //               if (!inputIdentifier.isBlank()) {
 //                  inUse = !usedIdentifiers.add(inputIdentifier);
 //                  if (inUse) {
 //                     inputIdentifier = "// "+inputIdentifier;
 //                  }
-//                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+";", trailingComment));
+////                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
 //               }
 //            }
 //            else if (mappingInfo.isSelected()) {
@@ -182,13 +148,12 @@ public class WriterForTsi extends PeripheralWithState {
 //               if (inUse) {
 //                  pinName = "// "+pinName;
 //               }
-//               inputsStringBuilder.append(String.format(PIN_FORMAT, pinName, mapName+";", trailingComment));
 //               if (!inputIdentifier.isBlank()) {
 //                  inUse = !usedIdentifiers.add(inputIdentifier);
 //                  if (inUse) {
 //                     inputIdentifier = "// "+inputIdentifier;
 //                  }
-//                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+";", trailingComment));
+////                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
 //               }
 //            }
          }

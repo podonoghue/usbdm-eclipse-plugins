@@ -78,8 +78,6 @@ Pin,PTD7,p32,p48,A2,p64,DISABLED,,DISABLED,GPIOD_7,SPI1_MISO,LPUART0_TX,,SPI1_MO
 ,,,,,,,,,,,,,,,
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,Internal,Internal,PIT_CH0,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,Internal,PIT_CH1,,,,,,,,,
 ,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),,,,,,,,,,,,

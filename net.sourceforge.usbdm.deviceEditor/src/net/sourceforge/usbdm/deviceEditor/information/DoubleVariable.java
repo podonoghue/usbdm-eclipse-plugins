@@ -255,7 +255,7 @@ public class DoubleVariable extends Variable {
    
    @Override
    public String getValueAsBriefString() {
-      return formatValueAsString(getValueAsLong(), getUnits());
+      return formatValueAsString(getValueAsDouble(), getUnits());
    }
    
    @Override

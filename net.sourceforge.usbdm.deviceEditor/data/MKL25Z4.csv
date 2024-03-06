@@ -100,8 +100,6 @@ Pin,PTD7,p80,p64,p48,p32,D33,DISABLED,,DISABLED,PTD7,SPI1_MISO,UART0_TX,,SPI1_MO
 ,,,,,,,,,,,,,,,,
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,Internal,Internal,Internal,PIT_CH0,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,Internal,Internal,PIT_CH1,,,,,,,,,
 Pin,CMP0_O,Internal,Internal,Internal,Internal,Internal,Disabled,,UART0_RX,UART1_RX,TPM1_CH0,TPM2_CH0,TPM2_TRIG0,TPM2_FLT0,,
 ,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),,,,,,,,,,,,,

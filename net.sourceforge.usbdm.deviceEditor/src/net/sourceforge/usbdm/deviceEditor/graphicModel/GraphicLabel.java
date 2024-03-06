@@ -73,4 +73,10 @@ public class GraphicLabel extends GraphicBaseVariable {
       return p;
    }
 
+   @Override
+   public int getDrawPriority() {
+      return HIGH_PRIORITY;
+   }
+
+
 }

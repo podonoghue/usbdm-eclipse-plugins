@@ -25,6 +25,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringConstantNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.UppercaseNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VectorsListNode;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
@@ -82,6 +83,66 @@ public class ExpressionParser {
    */
    private Expression fExpression;
 
+   /**
+    * Generate error message about operands
+    * 
+    * @param operand Operand to describe
+    * @param msg     Message to include
+    * 
+    * @return  Formated error message
+    */
+   private static String makeOperandMessage(ExpressionNode operand, String msg) {
+
+      String description  = "Failed to eval";
+      if (operand == null) {
+         description = "null";
+      }
+      else {
+         try {
+            description  = operand.eval().toString();
+         } catch (Exception e) {
+         }
+         description  = description+" ("+operand.fType.toString()+")\n";
+      }
+      return msg+"\n"+description;
+   }
+   
+   /**
+    * Generate error message about operands
+    * 
+    * @param leftOperand    Left operand
+    * @param rightOperand   Right operand
+    * @param msg     Message to include
+    * 
+    * @return  Formated error message
+    */
+   private static String makeOperandMessage(ExpressionNode leftOperand, ExpressionNode rightOperand, String msg) {
+
+      String leftDesc  = "Failed to eval";
+      String rightDesc = "Failed to eval";
+      if (leftOperand == null) {
+         leftDesc = "null";
+      }
+      else {
+         try {
+            leftDesc  = "'"+leftOperand.eval().toString()+"'";
+         } catch (Exception e) {
+         }
+         leftDesc  = leftDesc+" ("+leftOperand.fType.toString()+")\n";
+      }
+      if (rightOperand == null) {
+         rightDesc = "null";
+      }
+      else {
+         try {
+            rightDesc = "'"+rightOperand.eval().toString()+"'";
+         } catch (Exception e) {
+         }
+         rightDesc = rightDesc+" ("+rightOperand.fType.toString()+")\n";
+      }
+      return msg+"\n"+"Left operand  = "+leftDesc+"Right operand = "+rightDesc;
+   }
+   
    /**
     * Peek at next character without advancing
     * 
@@ -284,6 +345,21 @@ public class ExpressionParser {
          Pin pin = fProvider.getDeviceInfo().findPin(pinName);
          return new BooleanNode(pin!=null);
       }
+      if ("IndexOfSignal".equalsIgnoreCase(functionName)) {
+         // Constant index of a given signal in current peripheral
+         if (peripheral == null) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         Signal[] signals = peripheral.getMappedSignals();
+         String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         for(int index=0; index<signals.length; index++) {
+            Signal signal = signals[index];
+            if (signalName.equalsIgnoreCase(signal.getName())) {
+               return new LongConstantNode(index);
+            }
+         }
+         throw new Exception("Signal '" + signalName + "' not found in peripheral " + peripheral.getName());
+      }
       if ("SignalDescription".equalsIgnoreCase(functionName)) {
          // Dynamic description of signal from signal name
          // The name must be a String constant
@@ -347,7 +423,7 @@ public class ExpressionParser {
          // Constant name of ONLY mappable pin for given signal selected by name
          // Name of signal must be a constant String
          // This is an constant
-         if (!(fProvider instanceof Peripheral)) {
+         if (peripheral == null) {
             throw new Exception("Provider not a peripheral " + fProvider);
          }
          String signalName = (String) Expression.evalConstantArg(arg, Type.String);
@@ -364,7 +440,7 @@ public class ExpressionParser {
       if ("MappedPinList".equalsIgnoreCase(functionName)) {
          // Dynamic list of mapped pins from info table index
          // This is an expression as mapping may change
-         if (!(fProvider instanceof Peripheral)) {
+         if (peripheral == null) {
             throw new Exception("Provider not a peripheral " + fProvider);
          }
          for (Entry<String, Signal> map:peripheral.getSignals().entrySet()) {
@@ -374,19 +450,46 @@ public class ExpressionParser {
          return new MappedPinsListNode(peripheral, arg);
       }
       if ("SignalList".equalsIgnoreCase(functionName)) {
-         if (!(fProvider instanceof Peripheral)) {
+         if (peripheral == null) {
             throw new Exception("Provider not a peripheral " + fProvider);
          }
-         Peripheral p = (Peripheral)fProvider;
-         
-         for (Entry<String, Signal> map:p.getSignals().entrySet()) {
+         for (Entry<String, Signal> map:peripheral.getSignals().entrySet()) {
             Signal s = map.getValue();
             s.addListener(fExpression);
          }
-         return new SignalsListNode(p, arg);
+         return new SignalsListNode(peripheral, arg);
       }
       if ("Prettify".equalsIgnoreCase(functionName)) {
          return new PrettyNode(arg);
+      }
+      if ("IrqVectors".equalsIgnoreCase(functionName)) {
+         // Vector information
+         // Example args: ("^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$","$1 used by $5")
+         if (peripheral == null) {
+            throw new Exception("Provider not a peripheral " + fProvider);
+         }
+         return new VectorsListNode(peripheral, arg);
+      }
+      if ("Count".equalsIgnoreCase(functionName)) {
+         String list = null;
+         String delimiter = ",";
+         if (arg == null) {
+            throw new Exception("Expected arguments (string [,delimiter])");
+         }
+         if (arg.fType != Type.List) {
+            // Single arg=list
+            list = (String) Expression.evalConstantArg(arg, Type.String);
+         }
+         else {
+            ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+            if (args.length != 2) {
+               throw new Exception("Expected 2 arguments");
+            }
+            // args = list,delimiter
+            list      = (String) Expression.evalConstantArg(args[0], Type.String);
+            delimiter = (String) Expression.evalConstantArg(args[1], Type.String);
+         }
+         return new LongConstantNode(list.split(delimiter).length);
       }
       if ("ToUpperCase".equalsIgnoreCase(functionName)) {
          return new UppercaseNode(arg);
@@ -395,6 +498,10 @@ public class ExpressionParser {
          return new LowercaseNode(arg);
       }
       if ("ReplaceAll".equalsIgnoreCase(functionName)) {
+         /*
+          * Does Pattern.compile(text).matcher(regex).replaceAll(replacement)
+          * arg = ("text","regex","replacement")
+          */
          return new ReplaceAllNode(arg);
       }
       if ("Format".equalsIgnoreCase(functionName)) {
@@ -779,7 +886,7 @@ public class ExpressionParser {
    private ExpressionNode parseSum() throws Exception {
       
       ExpressionNode leftOperand = parseTerm();
-
+      ExpressionNode rightOperand = null;
       do {
          Character ch = skipSpace();
          if (ch == null) {
@@ -790,7 +897,7 @@ public class ExpressionParser {
             getNextCh();;
             failed = true;
             if (isFloatOrInteger(leftOperand)||isString(leftOperand)) {
-               ExpressionNode rightOperand = parseTerm();
+               rightOperand = parseTerm();
                if ((leftOperand.fType != rightOperand.fType) &&
                      ((leftOperand.fType == Type.Double)||(rightOperand.fType == Type.Double))) {
                   // Promote both to Double
@@ -807,7 +914,7 @@ public class ExpressionParser {
             getNextCh();;
             failed = true;
             if (isFloatOrInteger(leftOperand)) {
-               ExpressionNode rightOperand = parseTerm();
+               rightOperand = parseTerm();
                if (leftOperand.fType != rightOperand.fType) {
                   leftOperand  = CastToDoubleNode.promoteIfNeeded(leftOperand);
                   rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
@@ -822,7 +929,7 @@ public class ExpressionParser {
             return leftOperand;
          }
          if (failed) {
-            throw new Exception("Unexpected data type for operand Sum");
+            throw new Exception(makeOperandMessage(leftOperand, rightOperand, "Unexpected data type for operand Sum"));
          }
       } while (true);
    }
@@ -873,7 +980,7 @@ public class ExpressionParser {
          }
       } while (true);
    }
-   
+
    /**
     * Accepts  compare : shift [['<'|'<='|'>']'>='] shift]
     * 
@@ -907,7 +1014,7 @@ public class ExpressionParser {
             rightOperand = CastToDoubleNode.promoteIfNeeded(rightOperand);
          }
          if (leftOperand.fType != rightOperand.fType) {
-            throw new Exception("Incompatible operands in Comparison");
+            throw new Exception(makeOperandMessage(leftOperand, rightOperand, "Incompatible operands in Comparison"));
          }
          OpType opType;
          if (ch == '<') {
@@ -991,9 +1098,7 @@ public class ExpressionParser {
             rightOp.forEach(checkType);
          }
          else if (leftOperand.fType != rightOperand.fType) {
-            throw new Exception("Incompatible operand types in Equality\n"
-                  + "Left  = '" + leftOperand.eval()+"'\n"
-                  + "Right = '" + rightOperand.eval() + "'");
+            throw new Exception(makeOperandMessage(leftOperand, rightOperand, "Incompatible operand types in Equality"));
          }
          if (ch == '=') {
             leftOperand = new Expression.EqualNode(leftOperand,rightOperand);
@@ -1142,14 +1247,14 @@ public class ExpressionParser {
          if ((ch == null) || (ch != '|')) {
             throw new Exception("Expected '|'");
          }
-         getNextCh();;
+         getNextCh();
          
          if (!isBoolean(leftOperand)) {
-            throw new Exception("Unexpected data type for operand in Logical-OR");
+            throw new Exception("Unexpected data type for left operand in Logical-OR");
          }
          ExpressionNode rightOperand = parseLogicalAnd();
          if (!(isBoolean(rightOperand))) {
-            throw new Exception("Unexpected data type for operand in Logical-OR");
+            throw new Exception("Unexpected data type for right operand in Logical-OR");
          }
          leftOperand = new Expression.LogicalOrNode(leftOperand, rightOperand);
       } while (true);
@@ -1182,7 +1287,7 @@ public class ExpressionParser {
       getNextCh();;
       ExpressionNode falseExp = parseSubExpression();
       if (falseExp.fType != trueExp.fType) {
-         throw new Exception("Incompatible operands");
+         throw new Exception(makeOperandMessage(falseExp, trueExp, "Incompatible operands"));
       }
       return new Expression.TernaryNode(control, trueExp, falseExp);
    }

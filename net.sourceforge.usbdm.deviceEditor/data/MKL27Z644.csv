@@ -82,8 +82,6 @@ Pin,PTD7,D15/ONBOARD_SCL,p64,p32,p48,A2,DISABLED,I2C1_SCL,,GPIOD_7,SPI1_MISO,LPU
 ,,,,,,,,,,,,,,,,,,,,,,
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,Internal,Internal,Internal,PIT_CH0,,,,,,,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,Internal,Internal,PIT_CH1,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),,,,,,,,,,,,,,,,,,,
 Peripheral,MCG,,,,,,,,,,,,,,,,,,,,,

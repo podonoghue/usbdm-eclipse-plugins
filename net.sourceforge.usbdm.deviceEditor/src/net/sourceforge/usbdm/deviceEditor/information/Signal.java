@@ -647,7 +647,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       for (MappingInfo mappingInfo: mappingInfoSet) {
          Pin tPin = mappingInfo.getPin();
          if (tPin != Pin.UNASSIGNED_PIN) {
-            if (pin != null) {
+            if ((pin != null)&&(pin != tPin)) {
                // Multiple mappable pins
                return null;
             }
@@ -696,10 +696,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get a information about signal and mapped pin. <br>
+    * Get a information about signal and <b>only</b> mappable pin. <br>
     * Returns a string of format<br>
-    * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b>
-    * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b>
+    * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier|only-mappable-pin"</b>
+    * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput|PTB3"</b>
     * 
     * @return
     */
@@ -722,8 +722,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (pin != Pin.UNASSIGNED_PIN) {
          pinName = pin.getNameWithLocation();
       }
+      String onlyMappablePin = getOnlyMappablePin().getName();
       String combinedDescription = (signalDesc.isBlank()?signalName:signalDesc)+" ["+pinName+"]";
-      return signalName+"|"+signalDesc+"|"+pinName+"|"+combinedDescription+"|"+codeIdentifier;
+      return signalName+"|"+signalDesc+"|"+pinName+"|"+combinedDescription+"|"+codeIdentifier+"|"+onlyMappablePin;
    }
 
  }

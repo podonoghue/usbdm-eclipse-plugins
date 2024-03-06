@@ -139,7 +139,8 @@ public abstract class VariableWithChoices extends Variable {
 
       ArrayList<ChoiceData> choices = new ArrayList<ChoiceData>();
       for (int index=0; index<choiceData.length; index++) {
-         if (!choiceData[index].isEnabled(getProvider())) {
+         if (fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended) &&
+               !choiceData[index].isEnabled(getProvider())) {
             continue;
          }
          choices.add(choiceData[index]);
@@ -423,7 +424,7 @@ public abstract class VariableWithChoices extends Variable {
             targetVar.notifyListeners(info1.properties);
          }
       } catch (Exception e) {
-         Exception t = new Exception("Failed to update from Expression '"+referenceExpression+"'", e);
+         Exception t = new Exception("Failed to update from Expression '"+referenceExpression+"' to target '"+target+"'", e);
          t.printStackTrace();
       }
       updateChoicesAvailable();

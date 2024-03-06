@@ -361,9 +361,11 @@ public class ParseMenuXML extends XML_BaseParser {
       private String[] fValues = null;
 
       // Iteration count 0..(fValueList-1)
-      private int iter = 0;
+      private int fIterationCount = 0;
 
       private VariableProvider fProvider;
+
+      private String fIterationVar;
 
       /**
        * Construct for-loop element to keep track of substitutions
@@ -372,15 +374,17 @@ public class ParseMenuXML extends XML_BaseParser {
        * @param keys    List of keys e.g. "keyA,keyB"
        * @param values  List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
        * @param delimiter Delimiter to separate multiple keys/values
+       * @param iterationVar
        * 
        * @throws Exception
        */
-      public ForLoop(VariableProvider provider, String keys, Object values, char delimiter) throws Exception {
+      public ForLoop(VariableProvider provider, String keys, Object values, char delimiter, String iterationVar) throws Exception {
          if (keys.contains(",")) {
             throw new ForloopException("Can't have ',' in keys '" + keys + "'");
          }
-         fProvider = provider;
-         fKeys       = splitValues(keys, ':', true);
+         fProvider      = provider;
+         fKeys          = splitValues(keys, ':', true);
+         fIterationVar  = iterationVar;
          
          if (values instanceof String) {
 //            if (values.toString().contains("\"")) {
@@ -418,17 +422,17 @@ public class ParseMenuXML extends XML_BaseParser {
        * @throws Exception
        */
       public String doSubstitution(String text) throws Exception {
-         if (iter>=fValueList.length) {
+         if (fIterationCount>=fValueList.length) {
             throw new ForloopException("doSubstitution() called after for-loop completed");
          }
          if (fValues == null) {
-            fValues = splitValues(fValueList[iter], ':', true);
+            fValues = splitValues(fValueList[fIterationCount], ':', true);
          }
          if (fValues.length != fKeys.length) {
             System.err.println("fValueList = \n" + Arrays.toString(fValueList));
             System.err.println("fKeys      = \n" + Arrays.toString(fKeys));
             throw new ForloopException(
-                  "Number of values '" + fValueList[iter]+
+                  "Number of values '" + fValueList[fIterationCount]+
                   "' does not match number of keys = "+fKeys.length);
          }
          for (int index=0; index<fKeys.length; index++) {
@@ -446,18 +450,21 @@ public class ParseMenuXML extends XML_BaseParser {
             }
             text = text.replace("%("+fKeys[index].trim()+")", value);
          }
+         if (fIterationVar != null) {
+            text = text.replace("%("+fIterationVar.trim()+")", Integer.toString(fIterationCount));
+         }
          return text;
       }
 
       public boolean next() throws ForloopException {
-         if (iter>=fValueList.length) {
+         if (fIterationCount>=fValueList.length) {
             throw new ForloopException("next() called after for-loop completed");
          }
          fValues = null;
-         if (iter < fValueList.length) {
-            iter++;
+         if (fIterationCount < fValueList.length) {
+            fIterationCount++;
          }
-         return (iter < fValueList.length);
+         return (fIterationCount < fValueList.length);
       }
    }
 
@@ -498,11 +505,12 @@ public class ParseMenuXML extends XML_BaseParser {
        * @param keys      List of keys e.g. "keyA,keyB"
        * @param values    List of values e.g. "valA0,valB0;valA1,valB1;valA2,valB2"
        * @param delimiter Delimiter to separate multiple keys/values
+       * @param iterationVar
        * 
        * @throws Exception If keys and values are unmatched
        */
-      public void createLevel(VariableProvider fProvider, String keys, Object values, char delimiter) throws Exception {
-         ForLoop loop = new ForLoop(fProvider, keys, values, delimiter);
+      public void createLevel(VariableProvider fProvider, String keys, Object values, char delimiter, String iterationVar) throws Exception {
+         ForLoop loop = new ForLoop(fProvider, keys, values, delimiter, iterationVar);
          forStack.push(loop);
       }
 
@@ -574,6 +582,8 @@ public class ParseMenuXML extends XML_BaseParser {
 
    private long uniqueNameCounter = 0;
    
+   private ArrayList<Variable> fEquationVariables = null;
+
    /**
     * Convenience method to apply for-loop substitutions
     * 
@@ -689,6 +699,7 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       String    keys           = getAttributeAsString(element, "keys");
+      String    iterationVar   = getAttributeAsString(element, "iterationVar");
       Object    values         = getAttribute(element, "values");
       Character delimiter      = getAttributeAsCharacter(element, "delimiter", ';');
       Boolean   stripSemicolon = getAttributeAsBoolean(element, "stripSemicolon", false);
@@ -706,11 +717,11 @@ public class ParseMenuXML extends XML_BaseParser {
          int end;
          if (dims.length == 1) {
             start = 0;
-            end   = dims[0].intValue();
+            end   = dims[0];
          }
          else if (dims.length == 2) {
             start = dims[0];
-            end   = dims[1]; // +1 fix!
+            end   = dims[1] + 1;
          }
          else {
             throw new Exception("Illegal dim value '"+dims+"' for <for> '"+keys+"'");
@@ -742,7 +753,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
       
-      fForStack.createLevel(fProvider, keys, values, delimiter);
+      fForStack.createLevel(fProvider, keys, values, delimiter, iterationVar);
       do {
          if (graphicWrapper != null) {
             graphicWrapper.parseGraphicBoxOrGroup(parentModel, element);
@@ -1745,7 +1756,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /// Format string with parameters: description, tool-tip, enumClass, body
-   String enumTemplate = ""
+   public final static String enumTemplate = ""
        /*                  */ + " \\t/**\n"
        /*  Description     */ + " \\t * %s\n"
        /*  Variable names  */ + " \\t * (%s)\n"
@@ -1757,7 +1768,7 @@ public class ParseMenuXML extends XML_BaseParser {
        /*                  */ + " \\t};\\n\\n\n";
 
    /// Format string with parameters: description, tool-tip, enumClass, body
-   String constantTemplate = ""
+   public final static String constantTemplate = ""
          + "      \\t/**\n"
          + "      \\t * %s\n"
          + "      \\t *\n"
@@ -1765,11 +1776,128 @@ public class ParseMenuXML extends XML_BaseParser {
          + "      \\t */\n"
          + "      %s\\n\\n\n";
    
-   String guardedEnumTemplate = ""
+   public final static String guardedEnumTemplate = ""
          + "#if %s\n"
          + "%s"
          + "#endif\\n\\n\n";
 
+   static class ChoiceEnumBuilder extends TemplateInformation.EnumBuilder {
+      
+      private final VariableWithChoices fVariable;
+      private final String              fBaseType;
+      private final String              fValueFormat;
+      private final String              fEnumText;
+      private final String              fEnumGuard;
+
+      public ChoiceEnumBuilder(ParseMenuXML parser, Element varElement, VariableWithChoices variable) throws Exception {
+         fBaseType   = parser.getAttributeAsString(varElement, "baseType");
+         fEnumText   = parser.getAttributeAsString(varElement, "enumText", null);
+         fEnumGuard  = parser.getAttributeAsString(varElement, "enumGuard");
+         fVariable   = variable;
+
+         String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
+         fValueFormat = parser.getAttributeAsString(varElement, "valueFormat", macroName+"(%s)");
+      }
+      
+      @Override
+      public String build() throws Exception {
+
+         String fTypeName     = fVariable.getTypeName();
+         String description   = escapeString(fVariable.getDescriptionAsCode());
+         String tooltip       = escapeString(fVariable.getToolTipAsCode());
+
+         StringBuilder body = new StringBuilder();
+
+         String enumClass  = Character.toUpperCase(fTypeName.charAt(0)) + fTypeName.substring(1);
+
+         ArrayList<String> enumNamesList = new ArrayList<String>();
+         ArrayList<String> valuesList    = new ArrayList<String>();
+         ArrayList<String> commentsList  = new ArrayList<String>();
+         int enumNameMax    = 0;
+         int valueMax       = 0;
+
+         ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
+         lists.add(fVariable.getChoiceData());
+         lists.add(fVariable.getHiddenChoiceData());
+         for (ChoiceData[] choiceData:lists) {
+            if (choiceData == null) {
+               continue;
+            }
+            for (int index=0; index<choiceData.length; index++) {
+               ChoiceData choice = choiceData[index];
+               String enumName = choice.getEnumName();
+               if ((enumName == null) || enumName.isBlank()) {
+                  throw new Exception("enumTemplate - enum data is incomplete in choice '" + choice.getName() + "' ='"+fVariable+"'");
+               }
+               if (enumName.equals("-deleted-")) {
+                  continue;
+               }
+               String completeEnumName = enumClass+"_"+enumName;
+               enumNamesList.add(completeEnumName);
+               enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
+
+               String[] valueFormats = fValueFormat.split(",");
+               String[] vals         = choice.getValue().split(",");
+               if (valueFormats.length != vals.length) {
+                  throw new Exception("valueFormat '"+fValueFormat+"' does not match value '"+vals[index]+"'" );
+               }
+               StringBuilder sb = new StringBuilder();
+               for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
+                  if (valIndex>0) {
+                     sb.append('|');
+                  }
+                  sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
+               }
+               String completeValue = sb.toString()+",";
+               valuesList.add(completeValue);
+               valueMax = Math.max(valueMax, completeValue.length());
+               commentsList.add(choice.getName());
+               
+               Signal signal = choice.getAssociatedSignal();
+               if (signal != null) {
+                  String codeName = signal.getCodeIdentifier();
+                  if ((codeName != null)&&!codeName.isBlank()) {
+                     valuesList.add(completeEnumName+",");
+                     commentsList.add(choice.getName());
+                     valueMax = Math.max(valueMax, completeEnumName.length()+1);
+                     completeEnumName = enumClass+"_"+codeName;
+                     enumNamesList.add(completeEnumName);
+                     enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
+                  }
+               }
+               
+            }
+
+         }
+         // Create enums body
+         for (int index=0; index<enumNamesList.size(); index++) {
+               body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
+         }
+         // Add enum text
+         if (fEnumText != null) {
+            
+            String enumText = fEnumText;
+            enumText = enumText.replace("%(typeName)",  fTypeName);
+            enumText = enumText.replaceAll("\\\\n",  "XXXX");
+            
+            body.append(enumText+"\n");
+         }
+         String baseType = "";
+         if (fBaseType != null) {
+            baseType = " : "+fBaseType;
+         }
+         // Create enum declaration
+         String entireEnum = String.format(ParseMenuXML.enumTemplate, description, fVariable.getName(), tooltip, enumClass, baseType, body.toString());
+         
+         if (fEnumGuard != null) {
+            // Add guard
+            entireEnum = String.format(guardedEnumTemplate, fEnumGuard, entireEnum);
+         }
+         return entireEnum;
+      }
+      
+   };
+   
    /**
     * Generate full enum for variable with choices
     * 
@@ -1780,19 +1908,35 @@ public class ParseMenuXML extends XML_BaseParser {
    private void generateEnum(Element varElement, VariableWithChoices variable) throws Exception {
 
       String typeName  = variable.getTypeName();
-      if (typeName==null) {
+      if ((typeName == null) || typeName.isBlank()) {
          return;
       }
-      boolean createAsConstants = getAttributeAsBoolean(varElement, "createAsConstants", false);
       
-      String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
-
-      if (!createAsConstants &&
-         (fPeripheral != null) &&
+      if ((fPeripheral != null) &&
          fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
          return;
       }
+
+      // Default namespace for enums
+      String namespace = "definitions";
+      
+      String templateKey = getAttributeAsString(varElement, "templateKey");
+      if (templateKey != null) {
+         // If named enum => override default namespace to 'all'
+         namespace = "all";
+      }
+      // Can specify a namespace
+      namespace = getAttributeAsString(varElement, "namespace", namespace);
+
+      TemplateInformation templateInfo = addTemplate(templateKey, namespace, null);
+
+      ChoiceEnumBuilder ceb = new ChoiceEnumBuilder(this, varElement, variable);
+      templateInfo.setBuilder(ceb);
+//      templateInfo.addText(ceb.build());
+
+      /*
+      String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
 
       String baseType = getAttributeAsString(varElement, "baseType");
       if (baseType != null) {
@@ -1824,10 +1968,6 @@ public class ParseMenuXML extends XML_BaseParser {
 
       StringBuilder body = new StringBuilder();
 
-      // Use typeName attribute
-      if ((typeName == null) || typeName.isBlank()) {
-         throw new Exception("typeName is missing in " + variable);
-      }
       String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
 
       ArrayList<String> enumNamesList = new ArrayList<String>();
@@ -1914,10 +2054,11 @@ public class ParseMenuXML extends XML_BaseParser {
          entireEnum = String.format(guardedEnumTemplate, enumGuard, entireEnum);
       }
       templateInfo.addText(entireEnum);
+      */
    }
 
    /**
-    * Generate full enum for variable with choices
+    * Generate full enum for BitmaskVariable
     * 
     * @param varElement
     * @param variable
@@ -2628,6 +2769,22 @@ public class ParseMenuXML extends XML_BaseParser {
       parseCommonAttributes(parent, varElement, variable);
 
    }
+   
+   /**
+    * Parse &lt;StringOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception
+    */
+   private void parsePrint(BaseModel parent, Element varElement) throws Exception {
+
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      String text = getAttributeAsString(varElement, "text");
+      System.err.println(text);
+   }
+   
    /**
     * Parse &lt;StringOption&gt; element<br>
     * 
@@ -2639,7 +2796,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!checkCondition(varElement)) {
          return;
       }
-      String key = getKeyAttribute(varElement);
+      String   key = getKeyAttribute(varElement);
       Variable var = fProvider.safeGetVariable(key);
       System.err.print(String.format("%-40s", "<printVar> key ='"+key+"', "));
       if (var == null) {
@@ -3790,6 +3947,15 @@ public class ParseMenuXML extends XML_BaseParser {
          substitutions.add(new StringPair("%valueExpression",            valueExpressionSb.toString()));
       }
       
+      // Equation variables are applied immediately as they do not exist during code generation
+      if (fEquationVariables != null) {
+         for (Variable equationVariable:fEquationVariables) {
+            String from = "$("+equationVariable.getName()+")";
+            String to   = equationVariable.getSubstitutionValue();
+            substitutions.add(new StringPair(from , to));
+         }
+      }
+      
       String immediateVariables  = getAttributeAsString(element, "immediateVariables");
       
       if (immediateVariables != null) {
@@ -3798,9 +3964,13 @@ public class ParseMenuXML extends XML_BaseParser {
             if (var == null) {
                throw new Exception("Variable not found for immediateVariables, var='" + immediateVariable + "'");
             }
-            String from = "$("+immediateVariable+")";
-            String to   = var.getSubstitutionValue();
-            substitutions.add(new StringPair(from , to));
+            if (!fEquationVariables.contains(var)) {
+               System.err.println("Immediate variable '"+immediateVariable+"' not an equation based variable");
+//               throw new Exception("Immediate variable '"+immediateVariable+"' not an equation based variable");
+            }
+//            String from = "$("+immediateVariable+")";
+//            String to   = var.getSubstitutionValue();
+//            substitutions.add(new StringPair(from , to));
          }
       }
       return substitutions;
@@ -3921,35 +4091,40 @@ public class ParseMenuXML extends XML_BaseParser {
          if ((key != null) && !"all".equalsIgnoreCase(where)) {
             throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
          }
-         if (("usbdm".equals(where))) {
+         if ("static".equals(where)) {
+            // Static objects in hardware.cpp
+            key            = "/HARDWARE/StaticObjects";
+            namespace      = "all"; // Anywhere (but ends up in hardware.cpp)
+         }
+         else if ("usbdm".equals(where)) {
             // Before peripheral class in pinmapping.h
             // Usually enums etc.
             key            = null;
             namespace      = "usbdm"; // Before peripheral class in pinmapping.h
             // discardRepeats is individual ?
          }
-         else if (("commonInfo".equals(where))) {
+         else if ("commonInfo".equals(where)) {
             // One for each type of peripheral
             // e.g. FtmCommonInfo  ($(_Baseclass)CommonInfo)
             key            = null;
             namespace      = "commonInfo"; // Within peripheral info class in pinmapping.h
             discardRepeats = fPeripheral.getBaseName();
          }
-         else if (("basicInfo".equals(where))) {
+         else if ("basicInfo".equals(where)) {
             // e.g. FtmBasicInfo ($(_Structname)BasicInfo)
             // One for each variant (structure type) of a peripheral
             key            =  null;
             namespace      = "basicInfo"; // Before peripheral class in pinmapping.h
             discardRepeats = fProvider.getVariable("structName").getValueAsString();
          }
-         else if (("info".equals(where))) {
+         else if ("info".equals(where)) {
             // e.g. Ftm0Info ($(_Class)Info)
             // One for each instance of a peripheral
             key            = null;     // No key
             namespace      = "info";   // Within peripheral info class in pinmapping.h
             discardRepeats = "false";  // Can't repeat anyway as unique to peripheral
          }
-         else if (("all".equals(where))) {
+         else if ("all".equals(where)) {
             // Arbitrary location
             // Key necessary
             namespace      = "all"; // Arbitrary location
@@ -4060,7 +4235,12 @@ public class ParseMenuXML extends XML_BaseParser {
          if ((key != null) && !"all".equalsIgnoreCase(where)) {
             throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
          }
-         if ("usbdm".equals(where)) {
+         if ("static".equals(where)) {
+            // Static objects in hardware.cpp
+            key            = "/HARDWARE/StaticObjects";
+            namespace      = "all"; // Anywhere (but ends up in hardware.cpp)
+         }
+         else if ("usbdm".equals(where)) {
             // Before peripheral class in pinmapping.h
             key            = null;
             namespace      = "usbdm"; // Before peripheral class in pinmapping.h
@@ -4380,6 +4560,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "stringOption") {
          parseStringOption(parentModel, element);
       }
+      else if (tagName == "print") {
+         parsePrint(parentModel, element);
+      }
       else if (tagName == "printVar") {
          parsePrintVar(parentModel, element);
       }
@@ -4491,23 +4674,31 @@ public class ParseMenuXML extends XML_BaseParser {
       Object expression  = getAttribute(element, "value");
       boolean isConstant = getAttributeAsBoolean(element, "constant", false);
       Variable var = fProvider.safeGetVariable(key);
-
+      
       if (var == null) {
-         if (expression instanceof Long) {
-            var = new LongVariable(expression.toString(), key);
-         }
-         else if (expression instanceof Double) {
-            var = new DoubleVariable(expression.toString(), key);
-         }
-         else if (expression instanceof Boolean) {
-            var = new BooleanVariable(expression.toString(), key);
+         if (expression == null) {
+            var = new StringVariable(null, key);
+            expression = "-empty-";
          }
          else if (expression instanceof String) {
-            var = new StringVariable(expression.toString(), key);
+            var = new StringVariable(null, key);
+         }
+         else if (expression instanceof Long) {
+            var = new LongVariable(null, key);
+         }
+         else if (expression instanceof Double) {
+            var = new DoubleVariable(null, key);
+         }
+         else if (expression instanceof Boolean) {
+            var = new BooleanVariable(null, key);
          }
          else {
             throw new Exception("Unexpected type for expression result. Type = "+expression.getClass()+", eqn = "+expression);
          }
+         if (fEquationVariables == null) {
+            fEquationVariables = new ArrayList<Variable>();
+         }
+         fEquationVariables.add(var);
          fProvider.addVariable(var);
          var.setConstant(isConstant);
          var.setDerived(true);
@@ -4515,56 +4706,6 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       var.setValue(expression);
    }
-
-   //   private void parseDialogue(BaseModel parentModel, Element element) throws Exception {
-   //
-   //      ClockSelectionFigure figure = new ClockSelectionFigure(fProvider, 0 /* getIntAttribute(element, "clockConfigIndex" */);
-   //
-   //      ButtonModel bm = new ButtonModel(parentModel, "A Button");
-   //      return;
-   //
-   //      OpenGraphicModel model = new OpenGraphicModel(
-   //            parentModel,
-   //            getKeyAttribute(element),
-   //            fProvider.safeGetVariable(getKeyAttribute(element, "var")),
-   //            figure);
-   //
-   //      model.setToolTip(getToolTip(element));
-   //      model.setSimpleDescription(getAttributeAsString(element, "description"));
-   //
-   //      for (Node node = element.getFirstChild();
-   //            node != null;
-   //            node = node.getNextSibling()) {
-   //         if (node.getNodeType() != Node.ELEMENT_NODE) {
-   //            continue;
-   //         }
-   //         Element boxElement = (Element) node;
-   //         if (!checkCondition(boxElement)) {
-   //            // Discard element
-   //            continue;
-   //         }
-   //         String tagName = boxElement.getTagName();
-   //         if (tagName == "graphicBox") {
-   //            parseGraphicBoxOrGroup(parentModel, 0, 0, figure, boxElement);
-   //            continue;
-   //         }
-   //         if (tagName == "graphicGroup") {
-   //            parseGraphicBoxOrGroup(parentModel, 0, 0, figure, boxElement);
-   //            continue;
-   //         }
-   //         if (tagName == "equation") {
-   //            parseEquation(boxElement);
-   //            continue;
-   //         }
-   //         if (tagName == "for") {
-   //            GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, figure);
-   //            parseForLoop(parentModel, boxElement, graphicWrapper);
-   //            continue;
-   //         }
-   //         throw new Exception("Expected tag = <graphicBox>, found = <"+tagName+">");
-   //      }
-   //   }
-
 
    static class GraphicWrapper {
       final int                  fBoxX, fBoxY;
@@ -4627,7 +4768,7 @@ public class ParseMenuXML extends XML_BaseParser {
          String tagName = graphic.getTagName();
          if (tagName == "graphicItem") {
             String id     = getAttributeAsString(graphic,     "id");
-            String varKey = getKeyAttribute(graphic,  "var");
+            String varKey = getKeyAttribute(graphic,          "var");
             String type   = getAttributeAsString(graphic,     "type");
             String edit   = getAttributeAsString(graphic,     "edit");
             String params = getAttributeAsString(graphic,     "params");
@@ -4759,7 +4900,7 @@ public class ParseMenuXML extends XML_BaseParser {
       return templateInfo;
    }
 
-   private void addClosingTemplate() {
+   private void addClosingTemplate() throws Exception {
       ArrayList<TemplateInformation> templateList = fTemplateInfos.get("commonInfo.");
       if (templateList != null) {
          // Add closing template
@@ -4787,7 +4928,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    
-   private void addOpeningTemplate(String templateKey, ArrayList<TemplateInformation> templateList) {
+   private void addOpeningTemplate(String templateKey, ArrayList<TemplateInformation> templateList) throws Exception {
       if (templateKey.startsWith("commonInfo.")) {
          // Add opening template
 //         System.err.println("Starting " + templateKey);
@@ -5003,6 +5144,15 @@ public class ParseMenuXML extends XML_BaseParser {
                   getAttributeAsString(element, "pinMap"),
                   fProvider
                   );
+            String associatedSignal = getAttributeAsString(element, "signal");
+            if (associatedSignal != null) {
+               Signal signal = fPeripheral.getSignal(associatedSignal);
+               if (signal == null) {
+                  throw new Exception("Unable to find signal '"+associatedSignal+
+                        "' associated with choice '" + getAttributeAsString(element, "name"));
+               }
+               entry.setAssociatedSignal(signal);
+            }
             entry.setToolTip(getToolTip(element));
             if (hidden) {
                hiddenEntries.add(entry);
@@ -5074,27 +5224,39 @@ public class ParseMenuXML extends XML_BaseParser {
             }
 
             Integer index = 0;
-            fForStack.createLevel(fProvider, keys, values, delimiter);
+            fForStack.createLevel(fProvider, keys, values, delimiter, null);
             do {
-               if (!checkCondition(element)) {
-                  continue;
+               if (checkCondition(element)) {
+                  // %(i) default to index of choice
+                  String value      = getAttributeAsString(element, "value",      "%(i)").replace("%(i)", index.toString());
+                  String name       = getAttributeAsString(element, "name",       "Choice %(i)").replace("%(i)", index.toString());
+                  String eNum       = getAttributeAsString(element, "enum",       "").replace("%(i)", index.toString());
+                  String enabledBy  = getAttributeAsString(element, "enabledBy",  null);
+                  if (enabledBy != null) {
+                     enabledBy  = enabledBy.replace("%(i)", index.toString());
+                  }
+                  ChoiceData entry = new ChoiceData(
+                        name,
+                        value,
+                        eNum,
+                        null,
+                        null,
+                        enabledBy,
+                        null,
+                        fProvider
+                        );
+                  String associatedSignal = getAttributeAsString(element, "signal");
+                  if (associatedSignal != null) {
+                     associatedSignal = associatedSignal.replace("%(i)", index.toString());
+                     Signal signal = fPeripheral.getSignal(associatedSignal);
+                     if (signal == null) {
+                        throw new Exception("Unable to find signal '"+associatedSignal+
+                              "' associated with choiceExpansion '" + getAttributeAsString(element, "name"));
+                     }
+                     entry.setAssociatedSignal(signal);
+                  }
+                  entries.add(entry);
                }
-               // %(i) default to index of choice
-               String value  = getAttributeAsString(element, "value", "%(i)").replace("%(i)", index.toString());
-               String name   = getAttributeAsString(element, "name",  "Choice %(i)").replace("%(i)", index.toString());
-               String eNum   = getAttributeAsString(element, "enum",  "").replace("%(i)", index.toString());;
-
-               ChoiceData entry = new ChoiceData(
-                     name,
-                     value,
-                     eNum,
-                     null,
-                     null,
-                     null,
-                     null,
-                     fProvider
-                     );
-               entries.add(entry);
                index++;
             } while (fForStack.next());
             
@@ -5600,6 +5762,20 @@ public class ParseMenuXML extends XML_BaseParser {
       children.removeAll(deletedChildren);
    }
 
+   void deleteEquationVariables() {
+      if (fEquationVariables == null) {
+         return;
+      }
+      for (Variable var:fEquationVariables) {
+         boolean present = safeGetVariable(var.getKey()) != null;
+         if (!present) {
+            System.err.println("Failed to remove variable "+var.getName());
+            return;
+         }
+         fProvider.removeVariable(var);
+      }
+   }
+   
    /**
     * Parse configuration from document
     * 
@@ -5632,6 +5808,7 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("No <peripheralPage> found in XML");
       }
       parser.addClosingTemplate();
+      parser.deleteEquationVariables();
       return new MenuData(parser.fRootModel, parser.fTemplateInfos, parser.fValidators, parser.fProjectActionList);
    }
 

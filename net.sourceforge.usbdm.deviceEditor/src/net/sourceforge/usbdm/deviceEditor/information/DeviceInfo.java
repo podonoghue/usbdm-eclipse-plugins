@@ -166,6 +166,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /** Data obtained from the Menu description file */
    private MenuData fMenuData;
 
+   /** Cached device peripherals from SVD */
+   private DevicePeripherals fDevicePeripherals = null;
+
    /** Variable provider for project variable (does not include peripherals) */
    private VariableProvider fVariableProvider = null;
 
@@ -450,6 +453,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if ((fDeviceSubFamily != null) && (fDeviceSubFamily.compareTo(deviceSubFamily) == 0)) {
          return;
       }
+      // Clear cached peripherals
+      fDevicePeripherals = null;
+      
       fDeviceSubFamily = deviceSubFamily;
       
       if (fDeviceFamily == null) {
@@ -1813,7 +1819,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param settings   Settings to load from (updated with information based on variant and subfamily for system files)
     */
    public void loadInitialSettings(Device device, Settings settings) {
-      System.err.println("Loading initial settings");
+      System.out.println("Loading initial settings");
       try {
          // Device variant
          String variantName = settings.get(USBDMPROJECT_VARIANT_SETTING_KEY);
@@ -1873,7 +1879,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param settings   Settings to load from
     */
    public void loadRemainingSettings(Device device, Settings settings) {
-      System.err.println("Loading remaining settings");
+      System.out.println("Loading remaining settings");
       try {
 
          // Create dependencies between variables and peripherals
@@ -2181,8 +2187,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       SubMonitor progress = SubMonitor.convert(monitor, getPeripherals().size()*100);
       progress.subTask("Modifying vector table");
       
-      // Update vector table
+      // Update vector table with names of custom handlers
       VectorTable vectorTable = devicePeripherals.getVectorTable();
+      vectorTable.resetHandlerNames();
       for (String peripheralName:getPeripherals().keySet()) {
          getPeripherals().get(peripheralName).modifyVectorTable(vectorTable);
          progress.worked(100);
@@ -2244,6 +2251,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
       subMonitor.subTask("Parsing project action files");
       DevicePeripherals devicePeripherals = getDevicePeripherals();
+
+      // Regenerate Vector information
+      generateVectorTable(devicePeripherals, subMonitor.newChild(10));
+      
       Path headerfilePath   = projectDirectory.resolve(UsbdmConstants.PROJECT_INCLUDE_FOLDER).resolve(devicePeripherals.getName()+".h");
       subMonitor.worked(10);
       ModeControl.setUseNamesInFieldMacros(true);
@@ -2252,9 +2263,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       // Generate pinmapping.h etc
       WriteFamilyCpp writer = new WriteFamilyCpp();
       writer.writeCppFiles(project, this, subMonitor.newChild(10));
-      
-      // Regenerate information for vectors.cpp
-      generateVectorTable(devicePeripherals, subMonitor.newChild(10));
       
       StringBuilder actionRecord = new StringBuilder();
       actionRecord.append("Actions for regenerating project files\n\n");
@@ -2531,20 +2539,24 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /**
     * Get peripheral information from SVD file<br>
-    * This is a time consuming operation.
+    * This is a time consuming operation but is cached.
     * 
     * @return Peripheral information
     * 
     * @throws UsbdmException
     */
    public DevicePeripherals getDevicePeripherals() throws UsbdmException {
-      DevicePeripheralsFactory factory           = new DevicePeripheralsFactory();
-      DevicePeripherals        devicePeripherals = factory.getDevicePeripherals(fDeviceSubFamily);
+      
+      if (fDevicePeripherals != null) {
+         return fDevicePeripherals;
+      }
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      fDevicePeripherals = factory.getDevicePeripherals(fDeviceSubFamily);
 //      System.out.println("Device sub family = "+fDeviceSubFamily);
-      if (devicePeripherals == null) {
+      if (fDevicePeripherals == null) {
          throw new UsbdmException("Failed to create devicePeripherals from SVD for \'"+ fDeviceSubFamily + "\'");
       }
-      return devicePeripherals;
+      return fDevicePeripherals;
    }
    
    /**

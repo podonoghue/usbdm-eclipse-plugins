@@ -22,6 +22,22 @@ public class TemplateInformation {
    /** Condition to evaluate during code generation */
    private String fCodeGenerationCondition;
 
+   static abstract class EnumBuilder {
+      /**
+       * Build the text of the enum
+       * 
+       * @return String for enum
+       * 
+       * @throws Exception
+       */
+      public abstract String build() throws Exception;
+   }
+   
+   /**
+    * Builder for enum templates
+    */
+   private EnumBuilder fEnumBuilder = null;
+
    /**
     * Construct template
     * 
@@ -30,10 +46,11 @@ public class TemplateInformation {
     * @param namespace                 Namespace for template (info, usbdm, class)
     */
    public TemplateInformation(String key, String nameSpace, String codeGenerationCondition) {
-      fKey        = key;
-      fNameSpace  = nameSpace;
-      fBuilder    = new StringBuilder(100);
-      fText       = null;
+      fEnumBuilder = null;
+      fKey         = key;
+      fNameSpace   = nameSpace;
+      fBuilder     = new StringBuilder(100);
+      fText        = null;
       fCodeGenerationCondition = codeGenerationCondition;
    }
    
@@ -44,12 +61,29 @@ public class TemplateInformation {
     * The text is processed \n => newline char etc.
     * 
     * @param contents Text to append
+    * 
+    * @throws Exception
     */
-   public void addText(String contents) {
-      
+   public void addText(String contents) throws Exception {
+      if (fEnumBuilder != null) {
+         throw new Exception("Adding text to template with builder, key='"+fKey+"'");
+      }
       contents = contents.trim();  // Discard leading and trailing white space
 
       StringBuilder sb = new StringBuilder();
+      fBuilder.append(addText(sb, contents));
+   }
+   
+   /**
+    * Append text to template.
+    * The text is processed \n => newline char etc.
+    * 
+    * @param contents Text to append
+    * @return
+    * 
+    * @throws Exception
+    */
+   public static String addText(StringBuilder sb, String contents) throws Exception {
       State state = State.Text;
       
       for(int index = 0; index<contents.length(); index++) {
@@ -109,7 +143,7 @@ public class TemplateInformation {
             break;
          }
       }
-      fBuilder.append(sb.toString());
+      return sb.toString();
    }
    
    /**
@@ -126,17 +160,22 @@ public class TemplateInformation {
     * @throws Exception
     */
    public String getExpandedText(VariableProvider varProvider) {
+      if (fEnumBuilder != null) {
+         try {
+            String contents = fEnumBuilder.build().trim();
+            StringBuilder sb = new StringBuilder();
+            fBuilder.append(addText(sb, contents));
+            return sb.toString();
+         } catch (Exception e) {
+            return "Enum builder failed" + e.getMessage();
+         }
+      }
+      
       if (fText == null) {
          // Convert to string on first use
          fText = fBuilder.toString();
          fBuilder = null;
       }
-//      if (varProvider.getName().contains("MCM") && (fCodeGenerationCondition!=null) && fCodeGenerationCondition.contains("generateSharedIrqInfo")) {
-//         System.err.println("Found it "+varProvider.getName()+", '"+fCodeGenerationCondition+"'");
-//      }
-//      if (fText.contains("Flash0K_eeprom32K")) {
-//         System.err.println("Found it");
-//      }
       if (fCodeGenerationCondition != null) {
          try {
             Boolean condition = Expression.getValueAsBoolean(fCodeGenerationCondition, varProvider);
@@ -169,5 +208,8 @@ public class TemplateInformation {
       }
       return "T["+text+"]";
    }
-   
+
+   public void setBuilder(EnumBuilder enumBuilder) {
+      fEnumBuilder = enumBuilder;
+   }
 }

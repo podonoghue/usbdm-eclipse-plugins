@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,11 +14,9 @@ import net.sourceforge.usbdm.deviceEditor.editor.BaseLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -27,7 +24,7 @@ import net.sourceforge.usbdm.jni.UsbdmException;
 /**
  * Class encapsulating the code for writing an instance of LLWU
  */
-public class WriterForLlwu extends PeripheralWithState implements Customiser {
+public class WriterForLlwu extends PeripheralWithState {
 
    /** Key used to save/restore identifier used for code generation */
    private final String PIN_MODE_KEY  = "$peripheral$"+getName()+"_pinMode";
@@ -92,7 +89,7 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       p = Pattern.compile("M(\\d+)");
       m = p.matcher(function.getSignalName());
       if (m.matches()) {
-         return Integer.parseInt(m.group(1))+16;
+         return Integer.parseInt(m.group(1))+32;
       }
       throw new RuntimeException("Signal does not match expected pattern " + function.getSignalName());
    }
@@ -119,8 +116,8 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       super.writeDeclarations(hardwareDeclarationInfo);
       
       String enumName    = getClassName()+"Pin";
-      String commentRoot = "///< ";
-      HashSet<String> usedEnumIdentifiers = new HashSet<String>();
+//      String commentRoot = "///< ";
+//      HashSet<String> usedEnumIdentifiers = new HashSet<String>();
       
       // Generate enums for llwu pin inputs (signals)
       StringBuffer sb = new StringBuffer();
@@ -143,18 +140,18 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             continue;
          }
          // Found fixed or mapped pin
-         String trailingComment  = pin.getNameWithLocation();
+//         String trailingComment  = pin.getNameWithLocation();
          String cIdentifier      = makeCTypeIdentifier(signal.getCodeIdentifier());
          String pinName = enumName+"_"+prettyPinName(pin.getName());
 //         String mapName = enumName+"_"+index;
-         if (mappingInfo.getMux() == MuxSelection.fixed) {
-            // Fixed pin mapping
-            trailingComment = "Fixed pin  "+trailingComment;
-         }
-         else {
-            trailingComment = "Mapped pin "+trailingComment;
-         }
-         trailingComment = commentRoot + trailingComment;
+//         if (mappingInfo.getMux() == MuxSelection.fixed) {
+//            // Fixed pin mapping
+//            trailingComment = "Fixed pin  "+trailingComment;
+//         }
+//         else {
+//            trailingComment = "Mapped pin "+trailingComment;
+//         }
+//         trailingComment = commentRoot + trailingComment;
 
 //         sb.append(String.format(PIN_FORMAT, pinName, mapName+',', trailingComment));
 
@@ -168,13 +165,13 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             else {
                writeTypeDeclaration(hardwareDeclarationInfo, "", description, cIdentifier, type, pin.getNameWithLocation());
             }
-            String enumIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
-            boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
-            if (inUse) {
-               // Repeated value comment out
-               enumIdentifier = "// "+enumIdentifier;
-            }
-            sb.append(String.format(PIN_FORMAT, enumIdentifier, pinName+",", trailingComment));
+//            String enumIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
+//            boolean inUse = !usedEnumIdentifiers.add(enumIdentifier);
+//            if (inUse) {
+//               // Repeated value comment out
+//               enumIdentifier = "// "+enumIdentifier;
+//            }
+//            sb.append(String.format(PIN_FORMAT, enumIdentifier, pinName+",", trailingComment));
          }
       }
       // Create or replace Input Pin Mapping variable as needed
@@ -195,43 +192,43 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
             }
          }
          
-         sb = new StringBuffer();
-         int peripheralCount = 0;
-         for (String deviceNames:peripherals) {
-            if ((deviceNames != null) && !deviceNames.isBlank()) {
-               for (String deviceName:deviceNames.split("/")) {
-                  String mapName    = enumName+"_"+peripheralCount;
-                  String moduleName = makeCTypeIdentifier(enumName+"_"+prettyPinName(deviceName));
-                  boolean inUse = !usedEnumIdentifiers.add(moduleName);
-                  if (inUse) {
-                     moduleName = "// "+moduleName;
-                  }
-                  sb.append(String.format("      %"+(-maximumNameLength)+"s = %-13s %s\n",  moduleName, mapName+",", ""));
-                  
-                  Peripheral peripheral = fDeviceInfo.getPeripherals().get(deviceName);
-                  if (peripheral != null) {
-                     String identifier = peripheral.getCodeIdentifier();
-                     if (!identifier.isBlank()) {
-                        identifier = makeCTypeIdentifier(enumName+"_"+identifier);
-                        inUse = !usedEnumIdentifiers.add(identifier);
-                        if (inUse) {
-                           identifier = "// "+identifier;
-                        }
-                        String description = peripheral.getUserDescription();
-                        if (description.isBlank()) {
-                           description = peripheral.getDescription();
-                        }
-                        if (!description.isBlank()) {
-                           description = "///< "+description;
-                        }
-                        sb.append(String.format(PIN_FORMAT,  identifier, mapName+",", description));
-                     }
-                  }
-               }
-            }
-            peripheralCount++;
-         }
-         fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputModuleMapping"), sb.toString(), true);
+//         sb = new StringBuffer();
+//         int peripheralCount = 0;
+//         for (String deviceNames:peripherals) {
+//            if ((deviceNames != null) && !deviceNames.isBlank()) {
+//               for (String deviceName:deviceNames.split("/")) {
+//                  String mapName    = enumName+"_"+peripheralCount;
+//                  String moduleName = makeCTypeIdentifier(enumName+"_"+prettyPinName(deviceName));
+//                  boolean inUse = !usedEnumIdentifiers.add(moduleName);
+//                  if (inUse) {
+//                     moduleName = "// "+moduleName;
+//                  }
+//                  sb.append(String.format("      %"+(-maximumNameLength)+"s = %-13s %s\n",  moduleName, mapName+",", ""));
+//
+//                  Peripheral peripheral = fDeviceInfo.getPeripherals().get(deviceName);
+//                  if (peripheral != null) {
+//                     String identifier = peripheral.getCodeIdentifier();
+//                     if (!identifier.isBlank()) {
+//                        identifier = makeCTypeIdentifier(enumName+"_"+identifier);
+//                        inUse = !usedEnumIdentifiers.add(identifier);
+//                        if (inUse) {
+//                           identifier = "// "+identifier;
+//                        }
+//                        String description = peripheral.getUserDescription();
+//                        if (description.isBlank()) {
+//                           description = peripheral.getDescription();
+//                        }
+//                        if (!description.isBlank()) {
+//                           description = "///< "+description;
+//                        }
+//                        sb.append(String.format(PIN_FORMAT+"yyy",  identifier, mapName+",", description));
+//                     }
+//                  }
+//               }
+//            }
+//            peripheralCount++;
+//         }
+//         fDeviceInfo.addOrUpdateStringVariable("Input Pin Mapping", makeKey("InputModuleMapping"), sb.toString(), true);
       }
    }
    
@@ -387,103 +384,35 @@ public class WriterForLlwu extends PeripheralWithState implements Customiser {
       return modifierEditingSupport;
    }
 
-   @Override
-   public void modifyPeripheral() throws Exception {
-      // Update list of devices
-      Variable devicesListVar = safeGetVariable(makeKey("/SIM/llwu_device_list"));
-      if (devicesListVar == null) {
-         devicesListVar = safeGetVariable(makeKey("device_list"));
-      }
-      if (devicesListVar != null) {
-         String devices = devicesListVar.getValueAsString();
-         if (!devices.isBlank() && !devices.equalsIgnoreCase("none")) {
-            peripherals = devices.split(";");
-            for (int index=0; index<peripherals.length; index++) {
-               String peripheralDescription = "Peripheral "+peripherals[index];
-               if (peripherals[index].isBlank()) {
-                  // No device for this slot
-                  peripherals[index] = null;
-                  peripheralDescription = "";
-               }
-               Variable meEntry = safeGetVariable(makeKey("llwu_me_wume"+index));
-               if (meEntry != null) {
-                  meEntry.setDescription(peripheralDescription);
-                  if (peripheralDescription.isBlank()) {
-                     meEntry.setHidden(true);
-                  }
-               }
-            }
-         }
-      }
-      
-      // Update list of pins
-//      ArrayList<ChoiceData> choiceData = new ArrayList<ChoiceData>();
-//      InfoTable signalTable = getUniqueSignalTable();
-//      for (int index = 0; index<=31; index++) {
-//         Variable peEntry = safeGetVariable(makeKey("llwu_pe"+((index/4)+1)+"_wupe"+index));
-////         ((VariableWithChoices)peEntry).getField(PIN_FORMAT)
-//         if (peEntry == null) {
-//            continue;
-//         }
-//         if (index<signalTable.table.size()) {
-//            // peEntry MUST exists and needs to be modified or cleared
-//            Signal signal = signalTable.table.get(index);
-//            String pinName = null;
-//            String enumName = null;
-//            if ((signal != null) && (signal != Signal.DISABLED_SIGNAL)) {
-//               final StringBuilder nameCollector = new StringBuilder();
-//               TreeSet<MappingInfo> mapping = signal.getPinMapping();
-//               mapping.forEach(new Consumer<MappingInfo>() {
-//
-//                  @Override
-//                  public void accept(MappingInfo mapInfo) {
-//                     Pin pin = mapInfo.getPin();
-//                     if ((pin != Pin.UNASSIGNED_PIN) && pin.isAvailableInPackage()) {
-//                        if (nameCollector.length() > 0) {
-//                           nameCollector.append("/" + pin.getName());
-//                        }
-//                        nameCollector.append(pin.getName());
-//                     }
+//   @Override
+//   public void modifyPeripheral() throws Exception {
+//      // Update list of devices
+//      Variable devicesListVar = safeGetVariable(makeKey("/SIM/llwu_device_list"));
+//      if (devicesListVar == null) {
+//         devicesListVar = safeGetVariable(makeKey("device_list"));
+//      }
+//      if (devicesListVar != null) {
+//         String devices = devicesListVar.getValueAsString();
+//         if (!devices.isBlank() && !devices.equalsIgnoreCase("none")) {
+//            peripherals = devices.split(";");
+//            for (int index=0; index<peripherals.length; index++) {
+//               String peripheralDescription = "Peripheral "+peripherals[index];
+//               if (peripherals[index].isBlank()) {
+//                  // No device for this slot
+//                  peripherals[index] = null;
+//                  peripheralDescription = "";
+//               }
+//               Variable meEntry = safeGetVariable(makeKey("llwu_me_wume"+index));
+//               if (meEntry != null) {
+//                  meEntry.setDescription(peripheralDescription);
+//                  if (peripheralDescription.isBlank()) {
+//                     meEntry.setHidden(true);
 //                  }
-//               });
-//               if (!nameCollector.toString().isEmpty()) {
-//                  pinName  = "Pin " + nameCollector.toString();
-//                  enumName = Integer.toString(index);
 //               }
 //            }
-//            if (pinName == null) {
-//               // Input not used
-//               peEntry.setHidden(true);
-//               // Can't remove variable as already generated template includes reference
-//               // removeVariable(peEntry);
-//            }
-//            else {
-//               // Input associated with pin
-//               peEntry.setDescription(pinName);
-//               peEntry.setTypeName("LlwuPinMode");
-//               enumName = prettyPinName(enumName);
-//               ChoiceData entry = new ChoiceData(pinName, Integer.toString(index), enumName);
-//               choiceData.add(entry);
-//            }
-//         }
-//         else {
-//            // peEntry MAY exists and needs to be cleared if so
-//            if (peEntry != null) {
-//               peEntry.setHidden(true);
-//            }
 //         }
 //      }
-      // Choice used if FILT is disabled
-//      choiceData.add(new ChoiceData("Disabled", "LlwuPin(0)"));
-//      for(int index=0; index<6; index++) {
-//         ChoiceVariable filter = (ChoiceVariable) safeGetVariable(makeKey("llwu_filt"+index+"_filtsel"));
-//         if (filter != null) {
-//            filter.setTypeName("LlwuPin");
-//            filter.setChoiceData(choiceData);
-//            filter.setValue(choiceData.get(0).getName());
-////            filter.setDisabledValue(choiceData.get(0).getName());
-//         }
-//      }
-      fMenuData.prune();
-   }
+//
+//      fMenuData.prune();
+//   }
 }

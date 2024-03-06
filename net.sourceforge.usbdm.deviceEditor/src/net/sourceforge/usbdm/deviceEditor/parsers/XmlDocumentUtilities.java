@@ -184,7 +184,11 @@ public class XmlDocumentUtilities {
       if (!current.isOpen()) {
          throw new RuntimeException("Attempt to add attribute to closed tag");
       }
-      String attr = attribute+"=\""+value+"\"";
+      char delimiter='"';
+      if (value.contains("\"")) {
+         delimiter = '\'';
+      }
+      String attr = attribute+"="+delimiter+value+delimiter;
       fWriter.write(getpadding(padding)+attr);
       padding = max(1,extraPadding+fAttrWidth-attr.length());
    }

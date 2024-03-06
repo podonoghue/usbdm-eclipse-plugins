@@ -10,10 +10,6 @@ Key,Pin,pkg BGA_121,pkg LQFP_100,pkg LQFP_64,pkg BGA_64,Reset,Default,ALT0,ALT1,
 Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,ADC0_SE26/ADC1_SE26,,,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,Internal,Internal,ADC0_SE27/ADC1_SE27/CMP0_IN6/CMP1_IN6,,,,,,,,,,,
 Pin,CMP_DAC,Internal,Internal,Internal,Internal,CMP0_IN7/CMP1_IN7,,,,,,,,,,,
-Pin,PIT_CH0,Internal,Internal,Internal,Internal,PIT_CH0,,,,,,,,,,,
-Pin,PIT_CH1,Internal,Internal,Internal,Internal,PIT_CH1,,,,,,,,,,,
-Pin,PIT_CH2,Internal,Internal,Internal,Internal,PIT_CH2,,,,,,,,,,,
-Pin,PIT_CH3,Internal,Internal,Internal,Internal,PIT_CH3,,,,,,,,,,,
 Pin,PTE0,E4,p1,p1,A1,ADC1_SE4a,,ADC1_SE4a,PTE0/CLKOUT32K,SPI1_PCS1,UART1_TX,,,I2C1_SDA,RTC_CLKOUT,,0
 Pin,PTE1,E3,p2,p2,B1,ADC1_SE5a,,ADC1_SE5a,PTE1/LLWU_P0,SPI1_SOUT,UART1_RX,,,I2C1_SCL,SPI1_SIN,,1
 Pin,PTE2,E2,p3,*,*,ADC1_SE6a,,ADC1_SE6a,PTE2/LLWU_P1,SPI1_SCK,UART1_CTS_b,,,,,,2

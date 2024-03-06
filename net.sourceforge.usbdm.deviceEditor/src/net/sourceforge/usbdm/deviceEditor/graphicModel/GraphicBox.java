@@ -144,4 +144,9 @@ public class GraphicBox extends Graphic {
       sb.append(String.format("%-60s", params.toString()));
    }
 
+   @Override
+   public int getDrawPriority() {
+      return LOW_PRIORITY;
+   }
+
 }

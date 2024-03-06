@@ -260,4 +260,9 @@ class GraphicConnector extends GraphicBaseVariable {
          sb.append(String.format("%-90s", params.toString()));
       }
       
+      @Override
+      public int getDrawPriority() {
+         return LOW_PRIORITY+10;
+      }
+
    }

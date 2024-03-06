@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
    public class InterruptEntry {
 
@@ -10,16 +12,20 @@ import java.util.ArrayList;
        */
       public static enum Mode {
          /** Use system name for handler e.g. PIT0_IRQHandler */
-         NotInstalled,     
+         NotInstalled,
          /** Use class name for handler e.g. USBDM::Rtc::irqAlarmHandler */
-         ClassMethod,      
+         ClassMethod,
       };
       
       private int                    fIndex;
       private String                 fName;
-      private String                 fHandlerName; // This is a transient property and not written to SVD
       private String                 fDescription;
       private ArrayList<Peripheral>  fAssociatedPeripheral = new ArrayList<Peripheral>();
+      
+      // This is a transient property and not written to SVD
+      private String                 fHandlerName;
+      
+      // This is a transient property and not written to SVD
       private Mode                   fMode = Mode.NotInstalled;
       
       public InterruptEntry() {
@@ -37,8 +43,8 @@ import java.util.ArrayList;
        * Note: handlerName is a transient property and not written to SVD
        */
       public InterruptEntry(String name, int number, String handlerName, String description) {
-         this.fIndex      = number;     
-         this.fName        = name;    
+         this.fIndex      = number;
+         this.fName        = name;
          this.fHandlerName = handlerName;
          this.fDescription = description;
       }
@@ -55,35 +61,35 @@ import java.util.ArrayList;
       }
       
       /**
-       * @return the index number
+       * @return the Vector index number to set
        */
       public int getIndexNumber() {
          return fIndex;
       }
 
       /**
-       * @param fIndex number the number to set
+       * @param fIndex number Vector index number to set
        */
       public void setIndexNumber(int number) {
          this.fIndex = number;
       }
 
       /**
-       * @return the name
+       * @return Name of vector
        */
       public String getName() {
          return fName;
       }
 
       /**
-       * @param name the name to set
+       * @param name The name to set
        */
       public void setName(String name) {
          this.fName = name;
       }
 
       /**
-       * @return the name of the handler
+       * @return Name of the handler
        */
       public String getHandlerName() {
          return fHandlerName;
@@ -143,7 +149,7 @@ import java.util.ArrayList;
        */
       private void writeSVD(PrintWriter writer, int indent, boolean writeOwner) {
          if (indent<0) {
-            // Write on single line 
+            // Write on single line
             writer.print(              "<interrupt>");
             writer.print(String.format("<name>%s</name>", fName));
             writer.print(String.format("<description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
@@ -156,7 +162,7 @@ import java.util.ArrayList;
             writer.println(            "</interrupt>");
          }
          else {
-            // Write on multiple lines 
+            // Write on multiple lines
             final String indenter = RegisterUnion.getIndent(indent);
             writer.println(              indenter+"<interrupt>");
             writer.println(String.format(indenter+"   <name>%s</name>", fName));
@@ -212,13 +218,67 @@ import java.util.ArrayList;
          sb.append(")");
          return sb.toString();
       }
-      
+
+      /**
+       * Add associated peripheral
+       * 
+       * @param peripheral
+       */
       public void addPeripheral(Peripheral peripheral) {
          fAssociatedPeripheral.add(peripheral);
       }
       
-      public ArrayList<Peripheral> getPeripheral() {
+      /**
+       * Get associated peripherals
+       * 
+       * @return Array of associated peripherals
+       */
+      public ArrayList<Peripheral> getPeripherals() {
          return fAssociatedPeripheral;
+      }
+
+      /**
+       * Get information about vector after pattern matching<br>
+       * Information <b>"name|index|C-description|handler-name|peripherals[,peripheral]"</b><br>
+       * Example:    <b>"PORTCD|3|Port interrupt||PORTC,PORTD"</b><br>
+       * Example pattern: <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       * Example replacement: <b>"$1 used by $5"</b><br>
+       * 
+       * @param pattern       Pattern used to match to vector information (may be null)
+       * @param replacement   Replacement (may be null)
+       * 
+       * @return  Result   Result after matching/replacement or null if failed match
+       */
+      public String getInformation(Pattern pattern, String replacement) {
+         StringBuilder sb = new StringBuilder();
+         
+         sb.append(getName());
+         sb.append('|');
+         sb.append(getIndexNumber());
+         sb.append('|');
+         sb.append(getCDescription());
+         sb.append('|');
+         sb.append(getHandlerName());
+         sb.append('|');
+         boolean firstPeripheral = true;
+         for (Peripheral p:getPeripherals()) {
+            if (!firstPeripheral) {
+               sb.append(',');
+            }
+            sb.append(p.getName());
+            firstPeripheral = false;
+         }
+         String description = sb.toString();
+         if (pattern != null) {
+            Matcher matcher = pattern.matcher(description);
+            if (!matcher.matches()) {
+               return null;
+            }
+            if (replacement != null) {
+               description = matcher.replaceAll(replacement);
+            }
+         }
+         return description;
       }
       
    };

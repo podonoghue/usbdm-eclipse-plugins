@@ -431,7 +431,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       documentUtilities.writeParam("/"+getName()+"/_instanceList", "StringVariable", fInstanceList);
 
       if (getIrqCount()>0) {
-         documentUtilities.writeParam("/"+getName()+"/_irqCount", "LongVariable", Integer.toString(getIrqCount()));
+         documentUtilities.writeParam("/"+getName()+"/_hardwareIrqCount", "LongVariable", Integer.toString(getIrqCount()));
       }
       if (getIrqNums() != null) {
          StringBuilder sb = new StringBuilder();
@@ -443,7 +443,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             sb.append(irqNum);
             needSeparator = true;
          }
-         documentUtilities.writeParam("/"+getName()+"/_irqNums", "StringVariable", sb.toString());
+         documentUtilities.writeParam("/"+getName()+"/_hardwareIrqNums", "StringVariable", sb.toString());
       }
       if (this instanceof PeripheralWithState) {
          PeripheralWithState pws = (PeripheralWithState) this;
