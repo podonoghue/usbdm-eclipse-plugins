@@ -42,8 +42,8 @@ Pin,TEMP_SENSOR,Internal,Internal,Internal,Internal,ADC0_SE22,,,,,,,,,,,-2,Inter
 Pin,BANDGAP,Internal,Internal,Internal,Internal,ADC0_SE23,,,,,,,,,,,-1,Internal,Internal,Internal
 Pin,ACMP0_O,Internal,Internal,Internal,Internal,DISABLED,,FTM2_FLT0,PWT_IN2,FTM2_TRIG0,,,,,,,,,,
 Pin,ACMP1_O,Internal,Internal,Internal,Internal,DISABLED,,FTM2_FLT3,PWT_IN3,FTM2_TRIG0,,,,,,,,,,
-Pin,FTM0_CH0,Internal,Internal,Internal,Internal,DISABLED,,FTM2_TRIG1,,,,,,,,,,,,
-Pin,FTMSYNC,Internal,Internal,Internal,Internal,DISABLED,,FTM2_TRIG2,,,,,,,,,,,,
+Pin,FTM0_CH0,Internal,Internal,Internal,Internal,FTM2_TRIG1,,,,,,,,,,,,,,
+Pin,FTMSYNC,Internal,Internal,Internal,Internal,FTM2_TRIG2,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),,,,,,,,,,,,,,,,,
 Peripheral,RTC,SIM->SCGC,,,,,,,,,,,,,,,,,,
