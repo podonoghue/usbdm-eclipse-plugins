@@ -1058,7 +1058,8 @@ public class ParseMenuXML extends XML_BaseParser {
       if (existingVariable == null) {
          // New variable
          try {
-            newVariable = (Variable) clazz.getConstructor(String.class, String.class).newInstance(name, key);
+            Constructor<?> constructor = clazz.getConstructor(VariableProvider.class, String.class, String.class);
+            newVariable = (Variable) constructor.newInstance(fProvider, name, key);
             fProvider.addVariable(newVariable);
             newVariable.setProvider(fProvider);
          } catch (Exception e) {
@@ -1164,7 +1165,7 @@ public class ParseMenuXML extends XML_BaseParser {
             Variable addToVar = safeGetVariable(varName);
             if (addToVar == null) {
                // Create new list
-               addToVar = new StringVariable(null, fProvider.makeKey(varName));
+               addToVar = new StringVariable(fProvider, null, fProvider.makeKey(varName));
                fProvider.addVariable(addToVar);
                addToVar.setValue(variable.getName());
 //               System.err.println("'addToVar' target variable not found, '" + addToVarName);
@@ -3081,7 +3082,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String type        = getAttributeAsString(element, "type", "Boolean");
       String expression  = getAttributeAsString(element, "expression");
       
-      Variable var = Variable.createVariableWithNamedType(name, key, type+"Variable", 0);
+      Variable var = Variable.createVariableWithNamedType(fProvider, name, key, type+"Variable", 0);
       fProvider.addVariable(var);
       
       var.setLogging(getAttributeAsBoolean(element, "logging", false));
@@ -3185,7 +3186,7 @@ public class ParseMenuXML extends XML_BaseParser {
                System.err.println("Warning: Old style 'Integer' type for '" + key + "'");
                type = "Long";
             }
-            var = Variable.createVariableWithNamedType(indexedName, indexedKey, type+"Variable", results[index]);
+            var = Variable.createVariableWithNamedType(fProvider, indexedName, indexedKey, type+"Variable", results[index]);
             var.setDescription(description);
             var.setHidden(isHidden);
             var.setDerived(true);
@@ -4642,7 +4643,7 @@ public class ParseMenuXML extends XML_BaseParser {
                public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
                   if (action instanceof ProjectConstant) {
                      ProjectConstant constant = (ProjectConstant) action;
-                     Variable var = new StringVariable(constant.getId(), constant.getId());
+                     Variable var = new StringVariable(fProvider, constant.getId(), constant.getId());
                      var.setValue(constant.getValue());
                      fProvider.addVariable(var);
                   }
@@ -4677,20 +4678,20 @@ public class ParseMenuXML extends XML_BaseParser {
       
       if (var == null) {
          if (expression == null) {
-            var = new StringVariable(null, key);
+            var = new StringVariable(fProvider, null, key);
             expression = "-empty-";
          }
          else if (expression instanceof String) {
-            var = new StringVariable(null, key);
+            var = new StringVariable(fProvider, null, key);
          }
          else if (expression instanceof Long) {
-            var = new LongVariable(null, key);
+            var = new LongVariable(fProvider, null, key);
          }
          else if (expression instanceof Double) {
-            var = new DoubleVariable(null, key);
+            var = new DoubleVariable(fProvider, null, key);
          }
          else if (expression instanceof Boolean) {
-            var = new BooleanVariable(null, key);
+            var = new BooleanVariable(fProvider, null, key);
          }
          else {
             throw new Exception("Unexpected type for expression result. Type = "+expression.getClass()+", eqn = "+expression);

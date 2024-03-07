@@ -267,10 +267,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
       else {
          fClockEnable  = clockEnable;
-         Variable var = new StringVariable("clockEnable", makeKey("clockEnable"), fClockEnable.replaceAll("\\\\n", "\n      "));
+         Variable var = new StringVariable(this, "clockEnable", makeKey("clockEnable"), fClockEnable.replaceAll("\\\\n", "\n      "));
          addVariable(var);
          fClockDisable = clockDisable;
-         addVariable(new StringVariable("clockDisable", makeKey("clockDisable"), fClockDisable.replaceAll("\\\\n", "\n      ")));
+         addVariable(new StringVariable(this, "clockDisable", makeKey("clockDisable"), fClockDisable.replaceAll("\\\\n", "\n      ")));
       }
    }
    

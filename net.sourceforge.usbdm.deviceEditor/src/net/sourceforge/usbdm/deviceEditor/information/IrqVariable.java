@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IrqVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
 
 public class IrqVariable extends BooleanVariable {
@@ -13,8 +14,8 @@ public class IrqVariable extends BooleanVariable {
    /** Class handler name */
    private String fClassHandler = null;
 
-   public IrqVariable(String name, String key) {
-      super(name, key);
+   public IrqVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
       setTrueValue(new ChoiceData("Installed", "$"+Mode.ClassMethod.name()));
       setFalseValue(new ChoiceData("Not installed", "$"+Mode.NotInstalled.name()));
    }

@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.MemoryType;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 public class DeviceLinkerInformation {
@@ -169,12 +170,13 @@ public class DeviceLinkerInformation {
    
    /**
     * Adds the device linker and memory map information to the paramMap
+    * @param provider    Variable provider
     * 
     * @param deviceName  Name of device to get memory map for
     * @param paramMap    Map to add information to
     * @throws Exception
     */
-   public static void addLinkerMemoryMap(String deviceName, VariableMap paramMap) throws Exception {
+   public static void addLinkerMemoryMap(VariableProvider provider, String deviceName, VariableMap paramMap) throws Exception {
 
       DeviceDatabase deviceDatabase = DeviceDatabase.getDeviceDatabase(TargetType.T_ARM);
       Device device = deviceDatabase.getDevice(deviceName);
@@ -315,21 +317,21 @@ public class DeviceLinkerInformation {
       
       if ((ramHigh != null) && (ramLow != null)) {
          // Assume separate regions for Stack and Heap.
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/stackSize",     "0x"+Long.toHexString((ramHigh.end-ramHigh.start+1)/2)), false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/heapSize",      "0x"+Long.toHexString((ramLow.end-ramLow.start+1)/2)),   false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramLowerSize",  "0x"+Long.toHexString(ramLow.end-ramLow.start+1)),       true);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramUpperSize",  "0x"+Long.toHexString(ramHigh.end-ramHigh.start+1)),     true);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/stackSize",     "0x"+Long.toHexString((ramHigh.end-ramHigh.start+1)/2)), false);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/heapSize",      "0x"+Long.toHexString((ramLow.end-ramLow.start+1)/2)),   false);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/ramLowerSize",  "0x"+Long.toHexString(ramLow.end-ramLow.start+1)),       true);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/ramUpperSize",  "0x"+Long.toHexString(ramHigh.end-ramHigh.start+1)),     true);
       }
       else  {
          // Assume single RAM region
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/stackSize",     "0x"+Long.toHexString(ramSize/4)), false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/heapSize",      "0x"+Long.toHexString(ramSize/4)), false);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramLowerSize",  "0x"+Long.toHexString(0)),         true);
-         updateVariable(paramMap, new LongVariable(null, "/LINKER/ramUpperSize",  "0x"+Long.toHexString(0)),         true);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/stackSize",     "0x"+Long.toHexString(ramSize/4)), false);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/heapSize",      "0x"+Long.toHexString(ramSize/4)), false);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/ramLowerSize",  "0x"+Long.toHexString(0)),         true);
+         updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/ramUpperSize",  "0x"+Long.toHexString(0)),         true);
       }
-      updateVariable(paramMap, new StringVariable(null, "/LINKER/information",  memoryMap.toString()),             true);
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flashSize",    "0x"+Long.toHexString(flashSize)), true);
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/ramSize",      "0x"+Long.toHexString(ramSize)),   true);
+      updateVariable(paramMap, new StringVariable(provider, null, "/LINKER/information",  memoryMap.toString()),             true);
+      updateVariable(paramMap, new LongVariable(  provider, null, "/LINKER/flashSize",    "0x"+Long.toHexString(flashSize)), true);
+      updateVariable(paramMap, new LongVariable(  provider, null, "/LINKER/ramSize",      "0x"+Long.toHexString(ramSize)),   true);
 
       StringBuilder sb = new StringBuilder();
       if (flexRamRegions.size()>0) {
@@ -340,10 +342,10 @@ public class DeviceLinkerInformation {
          sb.append(LINKER_FLEXNVM_REGION);
          flexNvmSize = flexNvmRegions.get(0).end-flexNvmRegions.get(0).start+1;
       }
-      updateVariable(paramMap, new StringVariable(null, "/LINKER/extraRegions", sb.toString()), true);
+      updateVariable(paramMap, new StringVariable(provider, null, "/LINKER/extraRegions", sb.toString()), true);
 
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flexRamSize",      "0x"+Long.toHexString(flexRamSize)),   true);
-      updateVariable(paramMap, new LongVariable(  null, "/LINKER/flexNvmSize",      "0x"+Long.toHexString(flexNvmSize)),   true);
+      updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/flexRamSize",      "0x"+Long.toHexString(flexRamSize)),   true);
+      updateVariable(paramMap, new LongVariable(provider, null, "/LINKER/flexNvmSize",      "0x"+Long.toHexString(flexNvmSize)),   true);
 
       String subFamily = device.getFamily();
       
@@ -361,9 +363,9 @@ public class DeviceLinkerInformation {
          mapFilename      = "MemoryMap-mk.ld";
          vectorsFilename  = "vectors-cm4.cpp";
       }
-      updateVariable(paramMap, new StringVariable(null, "/LINKER/scriptFilename",   scriptFilename),  true);
-      updateVariable(paramMap, new StringVariable(null, "/LINKER/mapFilename",      mapFilename),     true);
-      updateVariable(paramMap, new StringVariable(null, "/LINKER/vectorsFilename",  vectorsFilename), true);
+      updateVariable(paramMap, new StringVariable(provider, null, "/LINKER/scriptFilename",   scriptFilename),  true);
+      updateVariable(paramMap, new StringVariable(provider, null, "/LINKER/mapFilename",      mapFilename),     true);
+      updateVariable(paramMap, new StringVariable(provider, null, "/LINKER/vectorsFilename",  vectorsFilename), true);
    }
 
 }

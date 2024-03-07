@@ -719,19 +719,19 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       Variable var = safeGetVariable(key);
       if (var == null) {
          if (value == null) {
-            var = new BooleanVariable(null, key);
+            var = new BooleanVariable(this, null, key);
             var.setValue(true);
          }
          else if (value instanceof Boolean) {
-            var = new BooleanVariable(null, key);
+            var = new BooleanVariable(this, null, key);
             var.setValue(value);
          }
          else if ((value instanceof Long)||(value instanceof Integer)) {
-            var = new LongVariable(null, key);
+            var = new LongVariable(this, null, key);
             var.setValue(value);
          }
          else if (value instanceof String) {
-            var = new StringVariable(null, key);
+            var = new StringVariable(this, null, key);
             var.setValue(value);
          }
          else {
@@ -757,7 +757,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void addParam(String name, String key, String type, Object value) throws Exception {
       key = makeKey(key);
-      Variable var = Variable.createVariableWithNamedType(name, key, type, value);
+      Variable var = Variable.createVariableWithNamedType(this, name, key, type, value);
       addVariable(var);
       fParamList.add(key);
       var.setDerived(true);

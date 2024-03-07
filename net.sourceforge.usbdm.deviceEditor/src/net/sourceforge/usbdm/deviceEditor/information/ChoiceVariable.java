@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class ChoiceVariable extends VariableWithChoices {
@@ -30,8 +31,8 @@ public class ChoiceVariable extends VariableWithChoices {
     * @param name Name to display to user.
     * @param key  Key for variable
     */
-   public ChoiceVariable(String name, String key) {
-      super(name, key);
+   public ChoiceVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
    
    @Override

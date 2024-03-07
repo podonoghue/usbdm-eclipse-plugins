@@ -214,7 +214,7 @@ public class BitmaskDialogue extends Dialog {
       
       while(true) {
 
-         BitmaskVariable var = new BitmaskVariable("Name", "Key");
+         BitmaskVariable var = new BitmaskVariable(null, "Name", "Key");
          var.init(
                testData[index].permittedBits,
                testData[index].bitList,

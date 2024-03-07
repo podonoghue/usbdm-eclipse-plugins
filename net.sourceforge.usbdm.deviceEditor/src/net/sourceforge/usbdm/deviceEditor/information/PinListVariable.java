@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinListVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class PinListVariable extends StringVariable {
 
@@ -34,8 +35,8 @@ public class PinListVariable extends StringVariable {
     * @param name
     * @param key
     */
-   public PinListVariable(String name, String key) {
-      super(name, key);
+   public PinListVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
    @Override

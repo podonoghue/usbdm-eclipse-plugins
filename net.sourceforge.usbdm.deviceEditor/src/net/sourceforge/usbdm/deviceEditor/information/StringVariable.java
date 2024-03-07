@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class StringVariable extends Variable {
 
@@ -23,22 +24,24 @@ public class StringVariable extends Variable {
    /**
     * Constructor
     * 
-    * @param name Name to display to user. If null then default value is derived from key.
-    * @param key  Key for variable
+    * @param provider   Provider holding this variable
+    * @param name       Name to display to user. (If null then default value is derived from key).
+    * @param key        Key for variable.
     */
-   public StringVariable(String name, String key) {
-      super(name, key);
+   public StringVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
    /**
     * Constructor
     * 
-    * @param name    Name to display to user.
-    * @param key     Key for variable
-    * @param value   Value to use may be a StringBuilder otherwise value.toString() is used.
+    * @param provider   Provider holding this variable
+    * @param name       Name to display to user. (If null then default value is derived from key).
+    * @param key        Key for variable.
+    * @param value      Value to use may be a StringBuilder otherwise value.toString() is used.
     */
-   public StringVariable(String name, String key, Object value) {
-      super(name, key);
+   public StringVariable(VariableProvider provider, String name, String key, Object value) {
+      super(provider, name, key);
       setValueQuietly(value);
       setDefault(value.toString());
    }

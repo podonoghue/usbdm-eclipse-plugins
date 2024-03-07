@@ -647,6 +647,23 @@ public class ParseFamilyCSV {
 
 		final HashMap<String, String> instanceLists = new HashMap<String, String>();
 		
+//		fPeripheralMap.forEach(new BiConsumer<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>() {
+//
+//         @Override
+//         public void accept(String t, net.sourceforge.usbdm.peripheralDatabase.Peripheral u) {
+//            System.err.print(t+",");
+//         }
+//      });
+//      System.err.println();
+      // Attach information from device database
+//      for (Entry<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> entry:fPeripheralMap.entrySet()) {
+//         String name = entry.getKey();
+////         net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral = entry.getValue();
+//         Peripheral peripheral = fDeviceInfo.getPeripherals().get(name);
+//         if (peripheral == null) {
+//            System.err.println("Peripheral '"+name+"' not in device");
+//         }
+//      }
 		// Attach information from device database
 		for (Entry<String, Peripheral> entry:fDeviceInfo.getPeripherals().entrySet()) {
 			Peripheral peripheral = entry.getValue();

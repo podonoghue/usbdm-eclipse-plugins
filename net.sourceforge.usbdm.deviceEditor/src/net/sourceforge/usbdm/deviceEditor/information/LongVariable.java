@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class LongVariable extends Variable {
    
@@ -48,24 +49,26 @@ public class LongVariable extends Variable {
    private int fRadix = 10;
    
    /**
-    * Construct a variable representing a long value
+    * Constructor
     * 
-    * @param name Name to display to user.
-    * @param key  Key for variable
+    * @param provider   Provider holding this variable
+    * @param name       Name to display to user. (If null then default value is derived from key).
+    * @param key        Key for variable.
     */
-   public LongVariable(String name, String key) {
-      super(name, key);
+   public LongVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
-
+   
    /**
     * Constructor
     * 
-    * @param name  Name to display to user.
-    * @param key   Key for variable
-    * @param value Initial value and default
+    * @param provider   Provider holding this variable
+    * @param name       Name to display to user. (If null then default value is derived from key).
+    * @param key        Key for variable.
+    * @param value      Initial value and default
     */
-   public LongVariable(String name, String key, Object value) {
-      super(name, key);
+   public LongVariable(VariableProvider provider, String name, String key, Object value) {
+      super(provider, name, key);
       setValue(value);
       setDefault(value);
    }

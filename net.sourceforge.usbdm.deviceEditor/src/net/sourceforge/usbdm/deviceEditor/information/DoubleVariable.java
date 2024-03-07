@@ -10,6 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class DoubleVariable extends Variable {
    
@@ -43,23 +44,10 @@ public class DoubleVariable extends Variable {
     * @param name Name to display to user.
     * @param key  Key for variable
     */
-   public DoubleVariable(String name, String key) {
-      super(name, key);
+   public DoubleVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
-   /**
-    * Constructor
-    * 
-    * @param name  Name to display to user.
-    * @param key   Key for variable
-    * @param value Initial value and default
-    */
-   public DoubleVariable(String name, String key, Object value) {
-      super(name, key);
-      setValue(value);
-      setDefault(value);
-   }
-   
    @Override
    public String toString() {
       return String.format("Variable(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());

@@ -50,8 +50,8 @@ public class PllValidator extends IndexedValidator {
       VDIV_MAX     = (Long)it.next();
       PLL_POST_DIV = (Long)it.next();
 
-      addVariable(new LongVariable(null, "/MCG/pll_vdiv_min",     Long.toString(VDIV_MIN)));
-      addVariable(new LongVariable(null, "/MCG/pll_post_divider", Long.toString(PLL_POST_DIV)));
+      addVariable(new LongVariable(peripheral, null, "/MCG/pll_vdiv_min",     Long.toString(VDIV_MIN)));
+      addVariable(new LongVariable(peripheral, null, "/MCG/pll_post_divider", Long.toString(PLL_POST_DIV)));
 
       try {
          // Update PRDIV0 and VDIV0 limits

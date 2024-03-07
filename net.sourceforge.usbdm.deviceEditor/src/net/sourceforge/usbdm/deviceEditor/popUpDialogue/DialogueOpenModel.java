@@ -40,7 +40,7 @@ public class DialogueOpenModel extends EditableModel implements CellEditorProvid
          StringBuilder description = new StringBuilder();
 
          Path workspacePath   = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile().toPath();
-         Path projectFilePath = Variable.getDeviceInfo().getProjectSettingsPath();
+         Path projectFilePath = fVar.getDeviceInfo().getProjectSettingsPath();
          description.append(workspacePath.relativize(projectFilePath).toString() + " - ");
 
          description.append(getDescription());

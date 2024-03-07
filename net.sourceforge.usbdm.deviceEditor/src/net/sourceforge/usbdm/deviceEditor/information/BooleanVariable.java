@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
  
 public class BooleanVariable extends VariableWithChoices {
    
@@ -26,8 +27,8 @@ public class BooleanVariable extends VariableWithChoices {
     * @param name Name to display to user.
     * @param key  Key for variable
     */
-   public BooleanVariable(String name, String key) {
-      super(name, key);
+   public BooleanVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
    
    /**
@@ -37,8 +38,8 @@ public class BooleanVariable extends VariableWithChoices {
     * @param key  Key for variable
     * @param value Initial value and default
     */
-   public BooleanVariable(String name, String key, Object value) {
-      super(name, key);
+   public BooleanVariable(VariableProvider provider, String name, String key, Object value) {
+      super(provider, name, key);
       setValue(value);
       setDefault(value);
    }

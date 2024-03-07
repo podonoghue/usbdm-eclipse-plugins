@@ -7,17 +7,18 @@ import net.sourceforge.usbdm.deviceEditor.model.TimeVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class TimeVariable extends LongVariable {
 
    Expression fPeriodExpression = null;
    
-   public TimeVariable(String name, String key) {
-      super(name, key);
+   public TimeVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
-   public TimeVariable(String name, String key, Object value) {
-      super(name, key, value);
+   public TimeVariable(VariableProvider provider, String name, String key, Object value) {
+      super(provider, name, key, value);
    }
    
    /**

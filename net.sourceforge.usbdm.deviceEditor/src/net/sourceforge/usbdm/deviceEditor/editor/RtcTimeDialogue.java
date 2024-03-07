@@ -105,7 +105,7 @@ public class RtcTimeDialogue extends Dialog {
       shell.setSize(800, 800);
       shell.setLayout(new RowLayout());
 
-      LongVariable var = new LongVariable("A variable", "/avar");
+      LongVariable var = new LongVariable(null, null, "A variable", "/avar");
       while(true) {
          RtcTimeDialogue editor = new RtcTimeDialogue(shell, var);
          if  (editor.open() != OK) {

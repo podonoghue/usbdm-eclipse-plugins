@@ -8,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 public class PeripheralSignalsVariable extends Variable {
 
    public PeripheralSignalsVariable(PeripheralWithState peripheral) {
-      super(peripheral.getName(), peripheral.makeKey("_signals"));
+      super(peripheral, peripheral.getName(), peripheral.makeKey("_signals"));
       setToolTip("Signals associated with this peripheral");
    }
 

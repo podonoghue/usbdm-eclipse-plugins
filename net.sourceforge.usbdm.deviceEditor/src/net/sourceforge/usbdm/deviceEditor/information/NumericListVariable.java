@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.NumericListVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class NumericListVariable extends StringVariable {
 
@@ -22,8 +23,8 @@ public class NumericListVariable extends StringVariable {
     * @param name
     * @param key
     */
-   public NumericListVariable(String name, String key) {
-      super(name, key);
+   public NumericListVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
    @Override

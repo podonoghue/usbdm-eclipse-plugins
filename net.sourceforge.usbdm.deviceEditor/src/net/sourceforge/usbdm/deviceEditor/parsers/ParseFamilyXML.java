@@ -246,7 +246,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             String key   = element.getAttribute("key");
             String type  = element.getAttribute("type");
             String value = element.getAttribute("value");
-            Variable var = Variable.createVariableWithNamedType(name, key, type, value);
+            Variable var = Variable.createVariableWithNamedType(fDeviceInfo.getProvider(), name, key, type, value);
             peripheral.addVariable(var);
             var.setDerived(true);
             var.setConstant();

@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public abstract class VariableWithChoices extends Variable {
 
@@ -21,8 +22,8 @@ public abstract class VariableWithChoices extends Variable {
    /** Name of table to produce in C code */
    private String fTableName;
    
-   public VariableWithChoices(String name, String key) {
-      super(name, key);
+   public VariableWithChoices(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
    
    /**
@@ -139,7 +140,7 @@ public abstract class VariableWithChoices extends Variable {
 
       ArrayList<ChoiceData> choices = new ArrayList<ChoiceData>();
       for (int index=0; index<choiceData.length; index++) {
-         if (fDeviceInfo.getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended) &&
+         if (getDeviceInfo().getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationSuspended) &&
                !choiceData[index].isEnabled(getProvider())) {
             continue;
          }
@@ -350,7 +351,7 @@ public abstract class VariableWithChoices extends Variable {
       if (choiceData == null) {
          return;
       }
-      if (fDeviceInfo.getInitialisationPhase().isEarlierThan(InitPhase.VariablePropagationAllowed)) {
+      if (getDeviceInfo().getInitialisationPhase().isEarlierThan(InitPhase.VariablePropagationAllowed)) {
          return;
       }
       if (fLogging) {

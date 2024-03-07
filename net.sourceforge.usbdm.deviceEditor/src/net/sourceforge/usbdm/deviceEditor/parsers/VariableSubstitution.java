@@ -43,7 +43,7 @@ public class VariableSubstitution implements ISubstitutionMap {
       if (var != null) {
          throw new RuntimeErrorException(null, "Variable already exists");
       }
-      var = new StringVariable(name, key);
+      var = new StringVariable(null, name, key);
       var.setValue(value);
       var.setDerived(isDerived);
       fMap.put(key, var);

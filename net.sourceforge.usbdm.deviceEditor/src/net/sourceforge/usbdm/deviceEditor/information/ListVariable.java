@@ -2,11 +2,12 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ListVariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class ListVariable extends StringVariable {
 
-   public ListVariable(String name, String key) {
-      super(name, key);
+   public ListVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
    @Override

@@ -57,6 +57,7 @@ public class LlwuValidate extends PeripheralValidator {
     *  <li>InputPeripherals
     */
    private void doPeripheralNames() {
+      // TODO check if this is used
       if (donePinNames) {
          return;
       }
@@ -76,7 +77,7 @@ public class LlwuValidate extends PeripheralValidator {
             sb.append(llwuPeripheralLine);
          }
       }
-      StringVariable llwuPeripheralsVar = new StringVariable("InputPeripherals", getPeripheral().makeKey("InputPeripherals"));
+      StringVariable llwuPeripheralsVar = new StringVariable(getPeripheral(), "InputPeripherals", getPeripheral().makeKey("InputPeripherals"));
       llwuPeripheralsVar.setValue(sb.toString());
       llwuPeripheralsVar.setDerived(true);
       getPeripheral().addVariable(llwuPeripheralsVar);

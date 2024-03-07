@@ -170,7 +170,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    private DevicePeripherals fDevicePeripherals = null;
 
    /** Variable provider for project variable (does not include peripherals) */
-   private VariableProvider fVariableProvider = null;
+   private final VariableProvider fVariableProvider = new VariableProvider("Common_Settings", this) {
+      
+      // Add change lister to mark editor dirty
+      @Override
+      public void addVariable(Variable variable) {
+         super.addVariable(variable);
+         variable.addListener(DeviceInfo.this);
+      }
+   };
 
    /** File name extension for project file */
    public static final String PROJECT_FILE_EXTENSION = ".usbdmProject";
@@ -209,7 +217,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Create empty device information
     */
    private DeviceInfo() {
-      Variable.setDeviceInfo(this);
    }
 
    public static Path findFile(Path filePath) throws Exception {
@@ -393,14 +400,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    private void loadDeviceDescription(ParseFamilyXML parser) throws Exception {
 
       System.out.println("DeviceInfo.loadDeviceDescription()");
-      fVariableProvider = new VariableProvider("Common_Settings", this) {
-         // Add change lister to mark editor dirty
-         @Override
-         public void addVariable(Variable variable) {
-            super.addVariable(variable);
-            variable.addListener(DeviceInfo.this);
-         }
-      };
+      
       // Add device sub-family as variable
       addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
 
@@ -1571,7 +1571,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          // Use legacy method to obtain device name from variant name
          deviceName = getDeviceName(fPreciseName);
       }
-      DeviceLinkerInformation.addLinkerMemoryMap(deviceName, fVariables);
+      DeviceLinkerInformation.addLinkerMemoryMap(fVariableProvider, deviceName, fVariables);
       setDirty();
    }
    
@@ -1865,6 +1865,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
    }
 
+   
    /**
     * Load remaining persistent settings
     * This includes:
@@ -1929,7 +1930,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                else {
                   // Load persistent value (parameter)
 //               System.err.println("Creating Variable "+key+"("+value+")");
-                  var = new StringVariable(key, key);
+                  var = new StringVariable(fVariableProvider, key, key);
                   var.setPersistentValue(value);
                   var.setDerived(true);
                   addVariable(var);
@@ -2298,7 +2299,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          deviceInfo = DeviceInfo.create(project, device, subMonitor.newChild(10));
          if (deviceInfo != null) {
             // Generate C++ code
-            BooleanVariable initialBuildVariable = new BooleanVariable("", "/Common_Settings/Initial_Build");
+            BooleanVariable initialBuildVariable =
+                  new BooleanVariable(deviceInfo.fVariableProvider, "", "/Common_Settings/Initial_Build");
             initialBuildVariable.setValue(true);
             initialBuildVariable.setDerived(true);
             deviceInfo.addVariable(initialBuildVariable);
@@ -2381,7 +2383,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param isDerived Indicates whether the variable (if added) is derived (calculated) for user controlled
     */
    public void addOrUpdateStringVariable(String name, String key, String value, boolean isDerived) {
-      fVariables.addOrUpdateVariable(name, key, value, isDerived);
+      fVariables.addOrUpdateVariable(fVariableProvider, name, key, value, isDerived);
    }
    
    /**
@@ -2686,6 +2688,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       if ((properties & PROPERTY_VALUE) != 0) {
          setDirty();
       }
+   }
+
+   /**
+    * Get device variable provider
+    * 
+    * @return
+    */
+   public VariableProvider getProvider() {
+      return fVariableProvider;
    }
 
 

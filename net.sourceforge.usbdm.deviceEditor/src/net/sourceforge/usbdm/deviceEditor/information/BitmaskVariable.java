@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class BitmaskVariable extends LongVariable {
 
@@ -50,8 +51,8 @@ public class BitmaskVariable extends LongVariable {
     * 
     * @throws Exception
     */
-   public BitmaskVariable(String name, String key) throws Exception {
-      super(name, key);
+   public BitmaskVariable(VariableProvider provider, String name, String key) throws Exception {
+      super(provider, name, key);
    }
 
    @Override

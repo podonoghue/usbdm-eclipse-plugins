@@ -1,14 +1,16 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+
 public class ClockSelectionVariable extends ChoiceVariable {
 
-   public ClockSelectionVariable(String name, String key) {
-      super(name, key);
+   public ClockSelectionVariable(VariableProvider provider, String name, String key) {
+      super(provider, name, key);
    }
 
    @Override
    public boolean setValueQuietly(int value) {
-      fDeviceInfo.setActiveClockSelection(value);
+      getDeviceInfo().setActiveClockSelection(value);
       return super.setValueQuietly(value);
    }
 

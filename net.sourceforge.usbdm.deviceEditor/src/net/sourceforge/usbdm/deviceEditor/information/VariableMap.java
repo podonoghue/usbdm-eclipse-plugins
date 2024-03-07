@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 import net.sourceforge.usbdm.deviceEditor.parsers.ExtendedVariableSubstitutionMap;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
 public class VariableMap {
@@ -146,16 +147,17 @@ public class VariableMap {
     * If there is already a variable with the same key then it is preserved and its value modified,
     *  otherwise a new StringVariable is created.
     * 
-    * @param name    Name for a new variable if created.
-    * @param key     Key for variable
-    * @param value   Value for variable
+    * @param provider   If variable needs to be added
+    * @param name       Name for a new variable if created.
+    * @param key        Key for variable
+    * @param value      Value for variable
     * 
     * @return The existing or newly added variable
     */
-   public Variable addOrUpdateVariable(String name, String key, String value, boolean isDerived) {
+   public Variable addOrUpdateVariable(VariableProvider provider, String name, String key, String value, boolean isDerived) {
       Variable var = fMap.get(key);
       if (var == null) {
-         var = new StringVariable(name, key);
+         var = new StringVariable(provider, name, key);
          var.setDerived(isDerived);
          fMap.put(key, var);
       }
@@ -170,13 +172,14 @@ public class VariableMap {
     *  otherwise a new StringVariable is created.<br>
     * The name for a new variable is created from the key.
     * 
+    * @param provider   If variable needs to be added
     * @param key     Key for variable. Also used to create name.
     * @param value   Value for variable
     * 
     * @return The existing or newly added variable
     */
-   public Variable addOrUpdateVariable(String key, String value, boolean isDerived) {
-      return addOrUpdateVariable(null, key, value, isDerived);
+   public Variable addOrUpdateVariable(VariableProvider provider, String key, String value, boolean isDerived) {
+      return addOrUpdateVariable(provider, null, key, value, isDerived);
    }
 
    /**
