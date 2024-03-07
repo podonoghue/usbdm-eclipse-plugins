@@ -248,7 +248,7 @@ public abstract class VectorTable extends ModeControl {
     * This name may be overridden
     * e.g. FormatError_Handler, QSPI_IRQHandler
     * 
-    * @param index
+    * @param index Index in vector table
     * 
     * @return
     */
@@ -264,6 +264,18 @@ public abstract class VectorTable extends ModeControl {
       return getGenericHandlerName(index);
    }
 
+   /**
+    * Indicate sif a custom name has been set for interrupt
+    * 
+    * @param index Index in vector table
+    * 
+    * @return true if set
+    */
+   public boolean isCustomName(int index) {
+      
+      return (interrupts[index]!= null) && (interrupts[index].getHandlerName() != null);
+   }
+   
    /**
     * Clear information about handler names
     */

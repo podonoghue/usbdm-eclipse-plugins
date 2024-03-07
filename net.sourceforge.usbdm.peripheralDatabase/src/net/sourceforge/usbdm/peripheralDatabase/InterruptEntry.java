@@ -100,6 +100,9 @@ import java.util.regex.Pattern;
        * This overrides the default name created from the name of the vector
        */
       public void setHandlerName(String handlerName) {
+//         if (handlerName != null) {
+//            System.err.println("New handler = '"+handlerName+"'");
+//         }
          fHandlerName = handlerName;
       }
 

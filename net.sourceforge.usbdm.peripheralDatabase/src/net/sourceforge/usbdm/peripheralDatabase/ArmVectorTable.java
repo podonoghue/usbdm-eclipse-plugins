@@ -165,11 +165,12 @@ public abstract class ArmVectorTable extends VectorTable {
       writer.write(EXTERNAL_HANDLER_BANNER);
 
       for (int index=2; index<=lastEntry; index++) {
-         String handlerName       = getGenericHandlerName(index);
-         String customHandlerName = getHandlerName(index);
          // Only write for entries that haven't been customised
-         if ((handlerName != null) && (handlerName.equals(customHandlerName))) {
-            writer.write(String.format(EXTERNAL_HANDLER_TEMPLATE, handlerName+"(void);", getHandlerDescription(index)));
+         if (!isCustomName(index)) {
+            String handlerName       = getGenericHandlerName(index);
+            if (handlerName != null) {
+               writer.write(String.format(EXTERNAL_HANDLER_TEMPLATE, handlerName+"(void);", getHandlerDescription(index)));
+            }
          }
       }
       writer.write('\n');
