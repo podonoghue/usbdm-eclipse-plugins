@@ -39,7 +39,7 @@ public class IrqVariable extends BooleanVariable {
    
    @Override
    public String getValueAsString() {
-      return getValueAsBoolean()?"Interrupts supported":"Interrupts not supported";
+      return getValueAsBoolean()?"Interrupt trampoline installed":"Interrupt trampoline not installed";
    }
    
    @Override

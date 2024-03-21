@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
@@ -212,7 +214,7 @@ public class PdbValidate extends PeripheralValidator {
          doDacValidate(variable, index);
       }
       // Validate Pulse outputs
-      for (int index=0; index<NumPreTriggers; index++) {
+      for (int index=0; index<NumPulseOutputs; index++) {
          doPulseValidate(variable, index);
       }
    }
@@ -225,10 +227,29 @@ public class PdbValidate extends PeripheralValidator {
       NumDacIntervalTriggers  = (int)getLongVariable("NumDacIntervalTriggers").getValueAsLong();
       NumPulseOutputs         = (int)getLongVariable("NumPulseOutputs").getValueAsLong();
       
-      final String[] externalVariables = {
-            "/SIM/system_bus_clock[]",
-      };
+      ArrayList<String> externalVariables = new ArrayList<String>();
+      externalVariables.add("/SIM/system_bus_clock[]");
+      externalVariables.add("pdb_mod_period");
+      externalVariables.add("pdb_idly_delay");
+      
+      // Each channel (ADC)
+      for (int channel=0; channel<NumChannels; channel++) {
+         // Each SC1x/Rx set
+         for (int pretrigger=0; pretrigger<NumPreTriggers; pretrigger++) {
+            externalVariables.add("pdb_ch"+channel+"_dly"+pretrigger+"_delay");
+         }
+      }
+      // Each DAC triggers
+      for (int dacNum=0; dacNum<NumDacIntervalTriggers; dacNum++) {
+         externalVariables.add("pdb_int"+dacNum+"_delay");
+      }
+      // Each Pulse outputs (CMP)
+      for (int cmpNum=0; cmpNum<NumPulseOutputs; cmpNum++) {
+         externalVariables.add("pdb_po"+cmpNum+"_dly1_delay");
+         externalVariables.add("pdb_po"+cmpNum+"_dly2_delay");
+      }
       addToWatchedVariables(externalVariables);
+//      System.err.println("Watched:" + externalVariables.toString());
       
       // Don't add default dependencies
       return false;

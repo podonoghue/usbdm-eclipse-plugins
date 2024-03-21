@@ -88,7 +88,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
    private boolean fIsHidden;
 
-   private String fDataValue;
+//   private String fDataValue;
 
    /** Target for clock selector */
    private String fTarget = null;
@@ -895,24 +895,24 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    public boolean isHidden() {
       return fIsHidden;
    }
-
-   /**
-    * Set data value
-    * 
-    * @param value
-    */
-   public void setDataValue(String value) {
-      fDataValue = value;
-   }
-
-   /**
-    * Get data value
-    * 
-    * @return data value
-    */
-   public String getDataValue() {
-      return fDataValue;
-   }
+//
+//   /**
+//    * Set data value
+//    *
+//    * @param value
+//    */
+//   public void setDataValue(String value) {
+//      fDataValue = value;
+//   }
+//
+//   /**
+//    * Get data value
+//    *
+//    * @return data value
+//    */
+//   public String getDataValue() {
+//      return fDataValue;
+//   }
 
    /**
     * Get tool-tip as multi-line comment
@@ -1026,9 +1026,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       if (field.equals("value")) {
          rv = getSubstitutionValue();
       }
-      if (field.equals("data")) {
-         rv = getDataValue();
-      }
+//      if (field.equals("data")) {
+//         rv = getDataValue();
+//      }
       if (field.equals("definition")) {
          rv = getDefinitionValue();
       }

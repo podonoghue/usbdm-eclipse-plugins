@@ -40,8 +40,8 @@ public class ChoiceData {
    /** Tool-tip to use with choice */
    private String fTooltip;
 
-   /** Signal associated with this choice */
-   private Signal fAssociatedSignal;
+   /** Hardware associated with this choice */
+   private String fAssociatedHardware;
    
    /**
     * 
@@ -332,21 +332,21 @@ public class ChoiceData {
    }
 
    /**
-    * Set Signal associated with this choice
+    * Set name of hardware associated with this choice (either signal or peripheral)
     * 
-    * @param associatedSignal Signal to associate
+    * @param associatedHardware Name of hardware to associate
     */
-   public void setAssociatedSignal(Signal associatedSignal) {
-      fAssociatedSignal = associatedSignal;
+   public void setAssociatedHardware(String associatedHardware) {
+      fAssociatedHardware = associatedHardware;
    }
 
    /**
-    * Get Signal associated with this choice
+    * Get name of hardware associated with this choice
     * 
-    * @return Associated signal or null if none
+    * @return Name or null if none
     */
-   public Signal getAssociatedSignal() {
-      return fAssociatedSignal;
+   public String getAssociatedHardware() {
+      return fAssociatedHardware;
    }
 
 }

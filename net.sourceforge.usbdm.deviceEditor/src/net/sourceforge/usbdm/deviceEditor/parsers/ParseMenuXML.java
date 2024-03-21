@@ -27,6 +27,7 @@ import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ClipboardVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ClockMultiplexorVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ClockSelectionVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
@@ -1570,6 +1571,26 @@ public class ParseMenuXML extends XML_BaseParser {
       generateTable(varElement, variable);
    }
 
+   private void parseClipboard(BaseModel parent, Element varElement) throws Exception {
+      
+      if (!checkCondition(varElement)) {
+         return;
+      }
+      ClipboardVariable variable = (ClipboardVariable)createVariable(varElement, ClipboardVariable.class);
+      parseCommonAttributes(parent, varElement, variable);
+      variable.setDerived(true);
+      variable.setLocked(true);
+      
+      String text = getText(varElement).strip();
+      if (text.startsWith("=")) {
+         text = Expression.getValueAsString(text.substring(1), fProvider);
+      }
+//    List<StringPair> substitutions = getTemplateSubstitutions(varElement, null);
+//      text = doTemplateSubstitutions(text, substitutions);
+      text = text.replaceAll("(\n)?\\s*?\\\\t", "$1   ");
+      variable.setValue(text);
+   }
+
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
@@ -1697,6 +1718,13 @@ public class ParseMenuXML extends XML_BaseParser {
          + "      \\t};\n"
          + "#endif\\n\\n\n";
 
+   /**
+    * Generate table of information attached to choice
+    * 
+    * @param varElement
+    * @param variable
+    * @throws Exception
+    */
    private void generateTable(Element varElement, VariableWithChoices variable) throws Exception {
 
       String tableName = getAttributeAsString(varElement, "tableName", null);
@@ -1789,16 +1817,47 @@ public class ParseMenuXML extends XML_BaseParser {
       private final String              fValueFormat;
       private final String              fEnumText;
       private final String              fEnumGuard;
+      private final DeviceInfo          fDeviceInfo;
 
       public ChoiceEnumBuilder(ParseMenuXML parser, Element varElement, VariableWithChoices variable) throws Exception {
+         
          fBaseType   = parser.getAttributeAsString(varElement, "baseType");
          fEnumText   = parser.getAttributeAsString(varElement, "enumText", null);
          fEnumGuard  = parser.getAttributeAsString(varElement, "enumGuard");
          fVariable   = variable;
-
+         fDeviceInfo = parser.fPeripheral.getDeviceInfo();
          String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
          fValueFormat = parser.getAttributeAsString(varElement, "valueFormat", macroName+"(%s)");
       }
+      
+      static class CheckRepeats {
+         ArrayList<String> namesList = new ArrayList<String>();
+         
+         /**
+          * Add name to list of not already present
+          * 
+          * @param name Name to add
+          * 
+          * @return  TRUE => Added to list, FALSE => already present
+          */
+         boolean add(String name) {
+            for (String existingName:namesList) {
+               if (existingName.equalsIgnoreCase(name)) {
+                  return false;
+               }
+            }
+            namesList.add(name);
+            return true;
+         }
+
+         public Object get(int index) {
+            return namesList.get(index);
+         }
+
+         public int size() {
+            return namesList.size();
+         }
+      };
       
       @Override
       public String build() throws Exception {
@@ -1811,7 +1870,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
          String enumClass  = Character.toUpperCase(fTypeName.charAt(0)) + fTypeName.substring(1);
 
-         ArrayList<String> enumNamesList = new ArrayList<String>();
+         CheckRepeats enumNamesList      = new CheckRepeats();
          ArrayList<String> valuesList    = new ArrayList<String>();
          ArrayList<String> commentsList  = new ArrayList<String>();
          int enumNameMax    = 0;
@@ -1854,21 +1913,74 @@ public class ParseMenuXML extends XML_BaseParser {
                valueMax = Math.max(valueMax, completeValue.length());
                commentsList.add(choice.getName());
                
-               Signal signal = choice.getAssociatedSignal();
-               if (signal != null) {
-                  String codeName = signal.getCodeIdentifier();
-                  if ((codeName != null)&&!codeName.isBlank()) {
-                     valuesList.add(completeEnumName+",");
-                     commentsList.add(choice.getName());
-                     valueMax = Math.max(valueMax, completeEnumName.length()+1);
-                     completeEnumName = enumClass+"_"+codeName;
-                     enumNamesList.add(completeEnumName);
-                     enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
+               String hardwareName = choice.getAssociatedHardware();
+               if (hardwareName != null) {
+                  Object hardware = null;
+                  
+                  if ((hardwareName != null)&&(!hardwareName.isBlank())) {
+                     // Try Signal
+                     hardware = fDeviceInfo.getSignal(hardwareName);
+                     if (hardware == null) {
+                        // Try Peripheral
+                        hardware = fDeviceInfo.getPeripheral(hardwareName);
+                     }
+                     if (hardware == null) {
+                        throw new Exception("Unable to find signal or peripheral '"+hardwareName+
+                              "' associated with choice '" + fVariable);
+                     }
+                  }
+                  if (hardware instanceof Signal) {
+                     Signal signal = (Signal) hardware;
+                     if (signal != null) {
+                        String codeName = signal.getCodeIdentifier();
+                        if ((codeName != null)&&!codeName.isBlank()) {
+                           String newEnumName = enumClass+"_"+codeName;
+                           if (enumNamesList.add(newEnumName)) {
+                              enumNameMax     = Math.max(enumNameMax, newEnumName.length());
+                              valuesList.add(completeEnumName+",");
+                              commentsList.add(choice.getName());
+                              valueMax = Math.max(valueMax, completeEnumName.length()+1);
+                           }
+                        }
+                        Pin pin = signal.getMappedPin();
+                        String pinName = null;
+                        if ((pin != null)&&(pin != Pin.UNASSIGNED_PIN)) {
+                           pinName = pin.getName();
+                        }
+                        if ((pinName != null)&&!pinName.isBlank()) {
+                           String newEnumName = enumClass+"_"+pinName;
+                           if (enumNamesList.add(newEnumName)) {
+                              enumNamesList.add(newEnumName);
+                              enumNameMax     = Math.max(enumNameMax, newEnumName.length());
+                              valuesList.add(completeEnumName+",");
+                              commentsList.add(choice.getName());
+                              valueMax = Math.max(valueMax, completeEnumName.length()+1);
+                           }
+                        }
+                     }
+                  }
+                  else if (hardware instanceof Peripheral) {
+                     Peripheral peripheral = (Peripheral) hardware;
+                     if (peripheral != null) {
+                        String codeName = peripheral.getCodeIdentifier();
+                        if ((codeName != null)&&!codeName.isBlank()) {
+                           String newEnumName = enumClass+"_"+codeName;
+                           if (enumNamesList.add(newEnumName)) {
+                              enumNamesList.add(newEnumName);
+                              enumNameMax     = Math.max(enumNameMax, newEnumName.length());
+                              valuesList.add(completeEnumName+",");
+                              commentsList.add(choice.getName());
+                              valueMax = Math.max(valueMax, completeEnumName.length()+1);
+                           }
+                        }
+                     }
+                  }
+                  else {
+                     throw new Exception("Unexpected hardware type for '"+hardwareName+
+                           "' associated with choice '" + fVariable);
                   }
                }
-               
             }
-
          }
          // Create enums body
          for (int index=0; index<enumNamesList.size(); index++) {
@@ -2823,7 +2935,7 @@ public class ParseMenuXML extends XML_BaseParser {
                System.err.print("'");
             }
             System.err.print(value);
-            if (value.length()>30) {
+            if (value.length()>50) {
                System.err.println();
             }
             else {
@@ -3241,6 +3353,9 @@ public class ParseMenuXML extends XML_BaseParser {
 //      if (controlVar.getName().contains("comswap")) {
 //         System.err.println("Found it '"+controlVar+"'");
 //      }
+      if (controlVar instanceof IrqVariable) {
+         return "callbackFunction";
+      }
       String register = null;
       String variableKey  = controlVar.getBaseNameFromKey();
       String registerName = controlVar.getRegister();
@@ -3384,6 +3499,8 @@ public class ParseMenuXML extends XML_BaseParser {
       
       // Number of non-default params - may be trimmed if some variables don't exist
       Long numberOfNonDefaultParams = getLongAttribute(element, "nonDefaultParams", 1);
+      
+      StringBuilder variableKeys = new StringBuilder();
       
       // Check for variable list to process
       String variablesAttribute = null;
@@ -3564,7 +3681,9 @@ public class ParseMenuXML extends XML_BaseParser {
                macro = Variable.getBaseNameFromKey(variableKey).toUpperCase();
                mask  = macro+"_MASK";
             }
-            
+            if (variable instanceof DoubleVariable) {
+               mask = "";
+            }
             if (!mask.isBlank()) {
                
                if (maskSb.length()>0) {
@@ -3804,7 +3923,10 @@ public class ParseMenuXML extends XML_BaseParser {
             substitutions.add(0, new StringPair("%tooltip"+index,                 tooltip));
             substitutions.add(0, new StringPair("%valueExpression"+index,         valueExpression));
             substitutions.add(0, new StringPair("%variable"+index,                variableKey));
-            
+            if (!variableKeys.isEmpty()) {
+               variableKeys.append(",");
+            }
+            variableKeys.append(Variable.getBaseNameFromKey(variableKey));
             if (index == 0) {
                substitutions.add(new StringPair("%baseType",                baseType));
                substitutions.add(new StringPair("%defaultValue",            defaultValue));
@@ -3815,7 +3937,6 @@ public class ParseMenuXML extends XML_BaseParser {
                substitutions.add(new StringPair("%registerNAME",            registerNAMEN));
                substitutions.add(new StringPair("%shortDescription",        shortDescription));
                substitutions.add(new StringPair("%tooltip",                 tooltip));
-               substitutions.add(new StringPair("%variable",                variableKey));
             }
          }
          substitutions.add(new StringPair("%multilineDescription",             multilineDescription.toString()));
@@ -3946,6 +4067,7 @@ public class ParseMenuXML extends XML_BaseParser {
          substitutions.add(new StringPair("%symbolicExpression",         symbolicExpressionSb.toString()));
          
          substitutions.add(new StringPair("%valueExpression",            valueExpressionSb.toString()));
+         substitutions.add(new StringPair("%variables",                  variableKeys.toString()));
       }
       
       // Equation variables are applied immediately as they do not exist during code generation
@@ -4539,6 +4661,9 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (tagName == "binaryOption") {
          parseBinaryOption(parentModel, element);
+      }
+      else if (tagName == "clipboard") {
+         parseClipboard(parentModel, element);
       }
       else if (tagName == "pinMapOption") {
          parsePinmapOption(parentModel, element);
@@ -5145,15 +5270,21 @@ public class ParseMenuXML extends XML_BaseParser {
                   getAttributeAsString(element, "pinMap"),
                   fProvider
                   );
-            String associatedSignal = getAttributeAsString(element, "signal");
-            if (associatedSignal != null) {
-               Signal signal = fPeripheral.getSignal(associatedSignal);
-               if (signal == null) {
-                  throw new Exception("Unable to find signal '"+associatedSignal+
-                        "' associated with choice '" + getAttributeAsString(element, "name"));
-               }
-               entry.setAssociatedSignal(signal);
-            }
+            entry.setAssociatedHardware(getAttributeAsString(element, "signal", null));
+//            String associatedHardware = getAttributeAsString(element, "signal");
+//            if ((associatedHardware != null)&&(!associatedHardware.isBlank())) {
+//               // Try Signal
+//               Object hardware = fPeripheral.getDeviceInfo().getSignal(associatedHardware);
+//               if (hardware == null) {
+//                  // Try Peripheral
+//                  hardware = fPeripheral.getDeviceInfo().getPeripheral(associatedHardware);
+//               }
+//               if (hardware == null) {
+//                  throw new Exception("Unable to find signal '"+associatedHardware+
+//                        "' associated with choice '" + getAttributeAsString(element, "name"));
+//               }
+//               entry.setAssociatedHardware(hardware);
+//            }
             entry.setToolTip(getToolTip(element));
             if (hidden) {
                hiddenEntries.add(entry);
@@ -5184,7 +5315,7 @@ public class ParseMenuXML extends XML_BaseParser {
             if (!element.hasAttribute("keys") || !(element.hasAttribute("dim") || element.hasAttribute("values"))) {
                throw new Exception("<choiceExpansion> must have keys with either dim and values attributes "+element);
             }
-            
+            String iterVariable  = getAttributeAsString(element, "iterationVar", "i");
             String keys          = getAttributeAsString(element, "keys");
             Object values        = getAttribute(element, "values");
             Integer[] dims       = getAttributeAsListOfInteger(element, "dim");
@@ -5225,7 +5356,7 @@ public class ParseMenuXML extends XML_BaseParser {
             }
 
             Integer index = 0;
-            fForStack.createLevel(fProvider, keys, values, delimiter, null);
+            fForStack.createLevel(fProvider, keys, values, delimiter, iterVariable);
             do {
                if (checkCondition(element)) {
                   // %(i) default to index of choice
@@ -5246,16 +5377,21 @@ public class ParseMenuXML extends XML_BaseParser {
                         null,
                         fProvider
                         );
-                  String associatedSignal = getAttributeAsString(element, "signal");
-                  if (associatedSignal != null) {
-                     associatedSignal = associatedSignal.replace("%(i)", index.toString());
-                     Signal signal = fPeripheral.getSignal(associatedSignal);
-                     if (signal == null) {
-                        throw new Exception("Unable to find signal '"+associatedSignal+
-                              "' associated with choiceExpansion '" + getAttributeAsString(element, "name"));
-                     }
-                     entry.setAssociatedSignal(signal);
-                  }
+                  String associatedHardware = getAttributeAsString(element, "signal");
+                  entry.setAssociatedHardware(associatedHardware);
+//                  if ((associatedHardware != null)&&(!associatedHardware.isBlank())) {
+//                     // Try Signal
+//                     Object hardware = fPeripheral.getDeviceInfo().getSignal(associatedHardware);
+//                     if (hardware == null) {
+//                        // Try Peripheral
+//                        hardware = fPeripheral.getDeviceInfo().getPeripheral(associatedHardware);
+//                     }
+//                     if (hardware == null) {
+//                        throw new Exception("Unable to find hardware '"+associatedHardware+
+//                              "' associated with choice '" + getAttributeAsString(element, "name"));
+//                     }
+//                     entry.setAssociatedHardware(hardware);
+//                  }
                   entries.add(entry);
                }
                index++;

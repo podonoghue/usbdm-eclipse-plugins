@@ -167,7 +167,7 @@ public abstract class Graphic {
    public boolean isSelected() {
       return fSelected;
    }
-   
+
    public void setSelected(boolean selected) {
       fSelected = selected;
    }

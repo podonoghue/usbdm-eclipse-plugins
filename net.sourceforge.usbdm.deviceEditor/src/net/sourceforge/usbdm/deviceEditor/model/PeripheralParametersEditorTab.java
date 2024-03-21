@@ -3,6 +3,9 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -84,6 +87,7 @@ public class PeripheralParametersEditorTab implements IEditor {
          CTabItem tabItem = new CTabItem(fTabFolder, SWT.NONE);
          tabItem.setText(pageModel.getName());
          tabItem.setToolTipText(pageModel.getToolTip());
+         
          if (pageModel instanceof TreeViewModel) {
             TreeEditor treeEditor = new TreeEditor() {
                @Override
@@ -126,6 +130,18 @@ public class PeripheralParametersEditorTab implements IEditor {
             tabItem.setControl(treeEditor.createControl(fTabFolder));
             treeEditor.setModel(pageModel);
             treeEditor.getViewer().addFilter(new MyViewFilter());
+            TreeViewer viewer = treeEditor.getViewer();
+            viewer.addDoubleClickListener(new IDoubleClickListener() {
+               
+               @Override
+               public void doubleClick(DoubleClickEvent event) {
+                  TreeSelection selection = (TreeSelection) event.getSelection();
+                  Object element = selection.getFirstElement();
+                  if (element instanceof DoubleClickEventHandler) {
+                     ((DoubleClickEventHandler)element).handleEvent(element);
+                  }
+              }
+           });
          }
          else {
             System.err.println("Unexpected page mode type");

@@ -91,6 +91,7 @@ public class ExpressionParser {
     * 
     * @return  Formated error message
     */
+   @SuppressWarnings("unused")
    private static String makeOperandMessage(ExpressionNode operand, String msg) {
 
       String description  = "Failed to eval";
@@ -326,12 +327,29 @@ public class ExpressionParser {
          Variable var = fProvider.safeGetVariable(varName);
          return new BooleanNode(var != null);
       }
+      if ("HardwareExists".equalsIgnoreCase(functionName)) {
+         // Immediate check if signal or peripheral exists (during parsing)
+         // Does early evaluation
+         String hardwareName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         boolean result =
+               (fProvider.getDeviceInfo().getSignal(hardwareName) != null) ||
+               (fProvider.getDeviceInfo().getPeripheral(hardwareName) != null);
+//         System.err.println("HardwareExists("+hardwareName+") => " + result);
+         return new BooleanNode(result);
+      }
       if ("SignalExists".equalsIgnoreCase(functionName)) {
          // Immediate check if signal exists (during parsing)
          // Does early evaluation
          String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Signal signal = fProvider.getDeviceInfo().safeFindSignal(signalName);
          return new BooleanNode(signal!=null);
+      }
+      if ("PeripheralExists".equalsIgnoreCase(functionName)) {
+         // Immediate check if peripheral exists (during parsing)
+         // Does early evaluation
+         String peripheralName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         Peripheral periph = fProvider.getDeviceInfo().getPeripheral(peripheralName);
+         return new BooleanNode(periph!=null);
       }
       if ("Variable".equalsIgnoreCase(functionName)) {
          // Variable from string

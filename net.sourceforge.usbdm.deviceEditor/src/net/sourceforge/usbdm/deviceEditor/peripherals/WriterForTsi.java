@@ -1,15 +1,11 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -75,92 +71,92 @@ public class WriterForTsi extends PeripheralWithState {
     * @param documentUtilities
     * @throws IOException
     */
-   @Override
-   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
-
-      super.writeDeclarations(hardwareDeclarationInfo);
-      
-      StringVariable tsiEnumPatternVar = (StringVariable) safeGetVariable("/TSI/tsiEnumType");
-      final String enumName;
-      if (tsiEnumPatternVar != null) {
-         enumName = tsiEnumPatternVar.getValueAsString();
-      }
-      else {
-         enumName = "TsiInput";
-      }
-//      String commentRoot = "///< ";
-      ArrayList<InfoTable> signalTables = getSignalTables();
+//   @Override
+//   protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
+//
+//      super.writeDeclarations(hardwareDeclarationInfo);
+//
+//      StringVariable tsiEnumPatternVar = (StringVariable) safeGetVariable("/TSI/tsiEnumType");
+//      final String enumName;
+//      if (tsiEnumPatternVar != null) {
+//         enumName = tsiEnumPatternVar.getValueAsString();
+//      }
+//      else {
+//         enumName = "TsiInput";
+//      }
+////      String commentRoot = "///< ";
+//      ArrayList<InfoTable> signalTables = getSignalTables();
 //      HashSet<String> usedIdentifiers = new HashSet<String>();
 
-      StringBuffer inputsStringBuilder       = new StringBuffer();
-      for (InfoTable signalTable:signalTables) {
-         int index = -1;
-         for (Signal signal:signalTable.table) {
-            index++;
-            if (index >= NUMBER_OF_INPUTS) {
-               break;
-            }
-            if (signal == null) {
-               continue;
-            }
-            MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
-            if (mappingInfo == MappingInfo.UNASSIGNED_MAPPING) {
-               continue;
-            }
-            Pin pin = mappingInfo.getPin();
-            if (pin == Pin.UNASSIGNED_PIN) {
-               continue;
-            }
-            if (!pin.isAvailableInPackage()) {
-               continue;
-            }
-            
-            String trailingComment  = pin.getNameWithLocation();
-            String pinName = enumName+"_"+prettyPinName(pin.getName());
-//            String inputIdentifier = "";
-//            String mapName = enumName+"_"+prettyPinName(pin.getName());
-            
-            
-            String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier().trim());
-            if (!cIdentifier.isBlank()) {
-//               inputIdentifier =  enumName+"_"+cIdentifier;
-               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
-               writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
-            }
-//            if (mappingInfo.getMux() == MuxSelection.fixed) {
-//               // Fixed pin mapping
-//               trailingComment = commentRoot+"Fixed pin  "+trailingComment;
-//               boolean inUse = !usedIdentifiers.add(pinName);
-//               if (inUse) {
-//                  pinName = "// "+pinName;
-//               }
-//               if (!inputIdentifier.isBlank()) {
-//                  inUse = !usedIdentifiers.add(inputIdentifier);
-//                  if (inUse) {
-//                     inputIdentifier = "// "+inputIdentifier;
-//                  }
-////                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
-//               }
+//      StringBuffer inputsStringBuilder       = new StringBuffer();
+//      for (InfoTable signalTable:signalTables) {
+//         int index = -1;
+//         for (Signal signal:signalTable.table) {
+//            index++;
+//            if (index >= NUMBER_OF_INPUTS) {
+//               break;
 //            }
-//            else if (mappingInfo.isSelected()) {
-//               trailingComment = commentRoot+"Mapped pin "+trailingComment;
-//               boolean inUse = !usedIdentifiers.add(pinName);
-//               if (inUse) {
-//                  pinName = "// "+pinName;
-//               }
-//               if (!inputIdentifier.isBlank()) {
-//                  inUse = !usedIdentifiers.add(inputIdentifier);
-//                  if (inUse) {
-//                     inputIdentifier = "// "+inputIdentifier;
-//                  }
-////                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
-//               }
+//            if (signal == null) {
+//               continue;
 //            }
-         }
-         // Create or replace Input Mapping variable as needed
-         fDeviceInfo.addOrUpdateStringVariable("Input Mapping", makeKey("InputMapping"), inputsStringBuilder.toString(), true);
-      }
-   }
+//            MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
+//            if (mappingInfo == MappingInfo.UNASSIGNED_MAPPING) {
+//               continue;
+//            }
+//            Pin pin = mappingInfo.getPin();
+//            if (pin == Pin.UNASSIGNED_PIN) {
+//               continue;
+//            }
+//            if (!pin.isAvailableInPackage()) {
+//               continue;
+//            }
+//
+//            String trailingComment  = pin.getNameWithLocation();
+//            String pinName = enumName+"_"+prettyPinName(pin.getName());
+////            String inputIdentifier = "";
+////            String mapName = enumName+"_"+prettyPinName(pin.getName());
+//
+//
+//            String cIdentifier = makeCTypeIdentifier(signal.getCodeIdentifier().trim());
+//            if (!cIdentifier.isBlank()) {
+////               inputIdentifier =  enumName+"_"+cIdentifier;
+//               String type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Pin", pinName);
+//               writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
+//            }
+////            if (mappingInfo.getMux() == MuxSelection.fixed) {
+////               // Fixed pin mapping
+////               trailingComment = commentRoot+"Fixed pin  "+trailingComment;
+////               boolean inUse = !usedIdentifiers.add(pinName);
+////               if (inUse) {
+////                  pinName = "// "+pinName;
+////               }
+////               if (!inputIdentifier.isBlank()) {
+////                  inUse = !usedIdentifiers.add(inputIdentifier);
+////                  if (inUse) {
+////                     inputIdentifier = "// "+inputIdentifier;
+////                  }
+//////                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
+////               }
+////            }
+////            else if (mappingInfo.isSelected()) {
+////               trailingComment = commentRoot+"Mapped pin "+trailingComment;
+////               boolean inUse = !usedIdentifiers.add(pinName);
+////               if (inUse) {
+////                  pinName = "// "+pinName;
+////               }
+////               if (!inputIdentifier.isBlank()) {
+////                  inUse = !usedIdentifiers.add(inputIdentifier);
+////                  if (inUse) {
+////                     inputIdentifier = "// "+inputIdentifier;
+////                  }
+//////                  inputsStringBuilder.append(String.format(PIN_FORMAT, inputIdentifier, mapName+",", trailingComment));
+////               }
+////            }
+//         }
+//         // Create or replace Input Mapping variable as needed
+//         fDeviceInfo.addOrUpdateStringVariable("Input Mapping", makeKey("InputMapping"), inputsStringBuilder.toString(), true);
+//      }
+//   }
 
    @Override
    public String getTitle() {

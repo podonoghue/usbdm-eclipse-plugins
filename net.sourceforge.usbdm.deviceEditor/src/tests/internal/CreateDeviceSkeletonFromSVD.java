@@ -203,9 +203,6 @@ public class CreateDeviceSkeletonFromSVD {
    static abstract class VisitRegisters {
 
       static String stripRegisteName(String name) {
-//         if (name.contains("RXIMR")) {
-//            System.err.println("Found it "+name);
-//         }
          name = name.replaceAll("^([^,]*).*", "$1");
          name = name.replace("%s", "");
          return name;
@@ -271,50 +268,17 @@ public class CreateDeviceSkeletonFromSVD {
    void writePreamble() {
 
       final String suppress = "\n"
-         + "   <constant key=\"suppressInstance\"          type=\"Boolean\" value=\"false\"     />\n";
+         + "   <equation key=\"suppressInstance\"           value=\"false\"     />\n";
       final String pre = "\n"
-         + "   <constant key=\"irq_parameters\"            type=\"String\"  value='\"\"'        />\n"
-         + "   <constant key=\"irq_dummy_parameters\"      type=\"String\"  value='\"\"'        />\n"
-         + "   <constant key=\"irq_call\"                  type=\"String\"  value='\"\"'        />\n"
-         + "   <constant key=\"generateDefault\"           type=\"Boolean\" value=\"false\"     />\n"
-         + "   <constant key=\"configureInStartupDefault\" type=\"Boolean\" value=\"false\"     />\n"
-         + "   <xi:include href=\"enablePeripheral.xml\"  />\n"
+         + "   <equation key=\"irq_parameters\"             value=\"\"          />\n"
+         + "   <equation key=\"irq_dummy_parameters\"       value=\"\"          />\n"
+         + "   <equation key=\"irq_call\"                   value=\"\"          />\n"
+         + "   <equation key=\"generateDefault\"            value=\"false\"     />\n"
+         + "   <equation key=\"configureInStartupDefault\"  value=\"false\"     />\n"
+         + "   <xi:include href=\"enablePeripheral.xml\"    />\n"
          + "   <title />\n"
          + "";
 
-//      final String usefulInfo = "\n"
-//         + "<!-- ____ General substitutions ____\n"
-//         + "    *  $(_NAME)         => e.g FTM2 => FTM2\n"
-//         + "    *  $(_name)         => e.g FTM2 => ftm2\n"
-//         + "    *  $(_BASENAME)     => e.g FTM0 => FTM, PTA => PT\n"
-//         + "    *  $(_basename)     => e.g FTM0 => ftm, PTA => pt\n"
-//         + "    *  $(_Class)        => e.g FTM2 => Ftm2\n"
-//         + "    *  $(_Baseclass)    => e.g FTM0 => Ftm\n"
-//         + "    *  $(_instance)     => e.g FTM0 => 0, PTA => A\n"
-//         + "-->\n"
-//         + "\n"
-//         + "<!-- ____ Template substitutions ________\n"
-//         + "    *\n"
-//         + "    * <li>%paramExpression            Parameters ORed together e.g. adcPretrigger|adcRefSel\n"
-//         + "    * <li>%valueExpression            Numeric variable value e.g. 0x3\n"
-//         + "    * <li>%symbolicExpression[index]  Symbolic formatted value e.g. AdcCompare_Disabled\n"
-//         + "    * <li>%variable[index]            Variable name /ADC0/adc_sc2_acfe\n"
-//         + "    * <li>%macro[index](value)        C register macro e.g. ADC_SC2_ACFGT(value)\n"
-//         + "    * <li>%description[index]         Description from controlVar e.g. Compare Function Enable\n"
-//         + "    * <li>%shortDescription[index]    Short description from controlVar e.g. Compare Function Enable\n"
-//         + "    * <li>%tooltip[index]             Tool-tip from controlVar e.g. Each bit disables the GPIO function\n"
-//         + "    * <li>%params                     Formatted parameter list for function\n"
-//         + "    * <li>%paramDescription[index]    Tool-tip from controlVar formatted as param description @param ...\n"
-//         + "    * <li>%paramType[index]           Based on typeName e.g. AdcCompare (or uint32_t)\n"
-//         + "    * <li>%paramName[index]           Based on typeName with lower-case first letter adcCompare\n"
-//         + "    * <li>%fieldAssignment            Expression of form '%register <= (%register & ~%mask)|%paramExpression\n"
-//         + "    * <li>%maskingExpression          Based on variable etc. Similar to (%register&%mask)\n"
-//         + "    * <li>%mask[index]                From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. \"SIM_SOPT_REG_MASK\" (_MASK is added)\n"
-//         + "    * <li>%register[index]            Register associated with variable e.g. adc->APCTL1\n"
-//         + "    * <li>%registerName[index]        Name of corresponding register (lowercase for Init()) e.g. apctl1\n"
-//         + "    * <li>%registerNAME[index]        Name of corresponding register (uppercase for Init()) e.g. APCTL1 <br><br>\n"
-//         + "-->\n";
-      
       final String simExtra = "\n"
          + "   <xi:include href=\"_simCommon.xml\" />\n";
       
@@ -338,8 +302,7 @@ public class CreateDeviceSkeletonFromSVD {
       String classDecl =
             "\n"+
             "   <!-- ____ Class Declaration ________ -->\n" +
-            "   <constant key=\"_class_declaration\" type=\"String\"\n" +
-            "      value='\"$(_Class)Info : public $(_Structname)BasicInfo\"' />\n";
+            "   <constant key=\"_class_declaration\" type=\"String\" value='\"$(_Class)Info : public $(_Structname)BasicInfo\"' />\n";
       resultSb.append(classDecl);
    }
 
@@ -430,8 +393,8 @@ public class CreateDeviceSkeletonFromSVD {
                resultSb.append("\n      typeName=\""+ enumName + "\"\n");
                resultSb.append("      baseType=\""+ getRegisterCType((field.getBitwidth()+7)/8) + "\"\n");
             }
-            resultSb.append("      description=\"" + fieldDescription + "\"\n");
             resultSb.append("      toolTip=\"" + toolTip + "\"\n");
+            resultSb.append("      description=\"" + fieldDescription + "\"\n");
             if (!readOnlyField) {
                resultSb.append("      value=\"0\"\n");
             }
@@ -454,8 +417,8 @@ public class CreateDeviceSkeletonFromSVD {
             resultSb.append("\n      typeName=\"" +  enumName +"\"\n");
             resultSb.append("      baseType=\""+ getRegisterCType((reg.getWidth()+7)/8) + "\"\n");
 
-            resultSb.append("      description=\"" + fieldDescription + "\"\n");
-            resultSb.append("      toolTip=\"" + toolTip + "\" >\n");
+            resultSb.append("      toolTip=\"" + toolTip + "\"\n");
+            resultSb.append("      description=\"" + fieldDescription + "\" >\n");
 
             String defaultValue = null;
             if (enumerations.isEmpty()) {
@@ -552,10 +515,13 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t\\n\n" +
           "      ]]></variableTemplate>\n"+
           "      <variableTemplate variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
+          "         tooltipPadding=\"x*x\"" +
           "      ><![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Clear %description\n" +
           "         \\t * (%(field))\n" +
+          "         \\t * \n" +
+          "         \\t * %tooltip\n" +
           "         \\t */\n" +
           "         \\tstatic void clear%(name)() {\n" +
           "         \\t   %register = %register|%mask;\n" +
@@ -591,10 +557,13 @@ public class CreateDeviceSkeletonFromSVD {
             "         \\t\\n\n" +
             "      ]]></variableTemplate>\n"+
             "      <variableTemplate variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
+            "         tooltipPadding=\"x*x\"" +
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
             "         \\t * Clear %description\n" +
             "         \\t * (%(field))\n" +
+            "         \\t * \n" +
+            "         \\t * %tooltip\n" +
             "         \\t */\n" +
             "         \\tstatic void clear%(name)(int index) {\n" +
             "         \\t   $(_basename)->%(context) = $(_basename)->%(context)|%mask;\n" +
@@ -785,7 +754,7 @@ public class CreateDeviceSkeletonFromSVD {
       
       writeHandlers();
       
-      final String open_init_class =
+      final String open_init_class ="\n"+
          "   <!-- ________ %s Init class ____________________________ -->\n" +
          "\n" +
          "   <template where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\" >\n" +
@@ -945,12 +914,12 @@ public class CreateDeviceSkeletonFromSVD {
          }
          resultSb.append(res);
       }
-      resultSb.append("      \"");
+      resultSb.append("      ;\n               %paramType  : /PCR/nvic_irqLevel                                   :   %defaultValue   \"");
       resultSb.append(memberDeclaration);
 
       String irqLevelTemplate =
             "\n" +
-            "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\"\n" +
+            "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n" +
             "      variables=\"/PCR/nvic_irqLevel,irqLevel\"\n" +
             "      linePadding=\"xxx\"\n" +
             "   ><![CDATA[\n" +
@@ -981,6 +950,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "   ><![CDATA[\n"
             + "      \\t   /**\n"
             + "      \\t    * Constructor for %description\n"
+            + "      \\t    * (%variables)\n"
             + "      \\t    *\n"
             + "      \\t    * @tparam   Types\n"
             + "      \\t    * @param    rest\n"
@@ -990,52 +960,54 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t   template <typename... Types>\n"
  /* T C */  + "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n"
             + "      \\t\n"
- /* C C */  + "      \\t      this->%paramName0 = %paramExpression;\n"
+ /* C C */  + "      \\t      this->%paramName = %paramExpression;\n"
             + "      \\t   }\\n\\n\n"
             + "   ]]></variableTemplate>\n";
       
       resultSb.append(initIrqConstructor);
       
-      String irqHandlerConstructorTemplate =
-            "\n" +
-            "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\"\n" +
-            "      variables=\"/PCR/nvic_irqLevel\"\n" +
-            "      linePadding=\"xxx\"\n" +
-            "   ><![CDATA[\n" +
-            "      \\t   /**\n" +
-            "      \\t    * Constructor for %description\n" +
-            "      \\t    *\n" +
-            "      \\t    * @tparam   Types\n" +
-            "      \\t    * @param    rest\n" +
-            "      \\t    *\n" +
-            "      %paramDescription\n" +
-            "      \\t    */\n" +
-            "      \\t   template <typename... Types>\n" +
-            "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n" +
-            "      \\t\n" +
-            "      \\t      %registerName = %paramExpression;\n" +
-            "      \\t   }\\n\\n\n" +
-            "   ]]></variableTemplate>\n";
-
-      if (irqsUsed) {
-         resultSb.append(irqHandlerConstructorTemplate);
-      }
-      
+////      String irqHandlerConstructorTemplate =
+////            "\n" +
+////            "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedIrqInfo\"\n" +
+////            "      variables=\"/PCR/nvic_irqLevel\"\n" +
+////            "      linePadding=\"xxx\"\n" +
+////            "   ><![CDATA[\n" +
+////            "      \\t   /**\n" +
+////            "      \\t    * Constructor for %description\n" +
+////            "      \\t    * (%variables)\n" +
+////            "      \\t    *\n" +
+////            "      \\t    * @tparam   Types\n" +
+////            "      \\t    * @param    rest\n" +
+////            "      \\t    *\n" +
+////            "      %paramDescription\n" +
+////            "      \\t    */\n" +
+////            "      \\t   template <typename... Types>\n" +
+////            "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n" +
+////            "      \\t\n" +
+////            "      \\t      %registerName = %paramExpression;\n" +
+////            "      \\t   }\\n\\n\n" +
+////            "   ]]></variableTemplate>\n";
+////
+//      if (irqsUsed) {
+//         resultSb.append(irqHandlerConstructorTemplate);
+//      }
+//
       /*
        *   Create Constructors
        */
       String constructorListTemplateForEnumeratedFields = ""
           + "\n"
           + "   <for keys=\"r\"\n"
-          + "      values=\""
-          + "%s\" >\n"
+          + "      values=\"/PCR/nvic_irqLevel;"
+          + "%s;\n"
+          + "            \" >\n"
           + "      <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n"
           + "         variables=\"%%(r)\"\n"
           + "         linePadding=\"xxx\" >\n"
           + "      <![CDATA[\n"
           + "         \\t   /**\n"
           + "         \\t    * Constructor for %%description\n"
-          + "         \\t    * (%%(r))\n"
+          + "         \\t    * (%%variables)\n"
           + "         \\t    *\n"
           + "         \\t    * @tparam   Types\n"
           + "         \\t    * @param    rest\n"
@@ -1111,7 +1083,7 @@ public class CreateDeviceSkeletonFromSVD {
        * Create configure methods
        */
       
-      String configureMethod = ""
+      String configureMethod = "\n"
             + "   <!-- ____ Init class Configure method ____ -->\n"
             + "\n"
             + "   <template codeGenCondition=\"enablePeripheralSupport\" >\n"
@@ -1136,15 +1108,14 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t   // Enable peripheral\n"
             + "      \\t   enable();\n"
             + "      \\t\\n\n"
-            + "   ]]></template>\n";
+            + "   ]]>\n"
+            + "   </template>\n";
 
       String configureMethodIrq = ""
-            + "   <template codeGenCondition=\"irqHandlingMethod\" >\n"
+            + "   <template codeGenCondition=\"irqHandlingMethod\" condition=\"irqHandlingMethod\" >\n"
             + "   <![CDATA[\n"
             + "      \\t   // Configure call-backs\n"
-            + "      \\t   setCallback(init.callbackFunction);\n"
-            + "      \\t   enableNvicInterrupts(init.irqlevel);\n"
-            + "      \\t\\n\n"
+            + "      \\t   setCallback(init.callbackFunction);\\n\n"
             + "   ]]>\n"
             + "   </template>\n";
       
@@ -1229,15 +1200,9 @@ public class CreateDeviceSkeletonFromSVD {
       
       createFieldList.visit();
       resultSb.append(configureMethodPreamble);
-      boolean firstRegiserFieldList = true;
+      resultSb.append("      values=\" irqLevel                                               : enableNvicInterrupts(init.irqlevel)");
       for (String registerFieldList : (String[]) createFieldList.getResult()) {
-         if (firstRegiserFieldList) {
-            resultSb.append("      values=\"");
-            firstRegiserFieldList = false;
-         }
-         else {
-            resultSb.append(";\n              ");
-         }
+         resultSb.append(" ;\n              ");
          resultSb.append(registerFieldList);
       }
       resultSb.append(configureMethodPostamble);
@@ -1252,7 +1217,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <variableTemplate codeGenCondition=\"enablePeripheralSupport\"\n"
             + "      separator=\",\"\n"
             + "      terminator=\",\"\n"
-            + "      variables=\"%s\" >\n"
+            + "      variables=\"%s\n"
+            + "            irqLevel\" >\n "
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Default initialisation value for $(_Class)\n"
@@ -1261,7 +1227,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\tstatic constexpr Init DefaultInitValue = {%%initExpression\n"
             + "      \\t};\n"
             + "      \\t\\n\n"
-            + "   ]]></variableTemplate>\n";
+            + "   ]]>\n"
+            + "   </variableTemplate>\n";
       
       VisitRegisters createInitValueFieldList = new VisitRegisters(peripheral) {
          
@@ -1495,11 +1462,11 @@ public class CreateDeviceSkeletonFromSVD {
 //         "I2C",
 //         "I2S",
 //         "KBI",
-         "LPTMR",
+//         "LPTMR",
 //         "LPUART",
 //         "LLWU",
 //         "MCM",
-//         "OSC",
+         "OSC",
 //         "PDB",
 //         "PIT",
 //         "PMC",
@@ -1608,12 +1575,12 @@ public class CreateDeviceSkeletonFromSVD {
    
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("STM32F030", "mke");
-//      doAllPeripherals("FRDM_KE04Z", "mke");
+      doAllPeripherals("FRDM_KE04Z", "mke");
 //      doAllPeripherals("FRDM_KE06Z", "mke");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
-    doAllPeripherals("FRDM_KL25Z", "mkl");
+//    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
 //    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");

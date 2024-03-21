@@ -1914,7 +1914,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                if (var != null) {
                   if (!var.isDerived()) {
                      // Load persistent value associated with variable
-                     var.setPersistentValue(value);
+                     try {
+                        var.setPersistentValue(value);
+                     } catch (Exception e) {
+                        System.err.println("Exception: "+e.getMessage());
+                        e.printStackTrace();
+                     }
                   }
                }
                else if (key.startsWith("$")) {
@@ -2235,6 +2240,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       Activator.log(actionRecord.toString());
    }
+   
    /**
     * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project
     * 
@@ -2699,6 +2705,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return fVariableProvider;
    }
 
+   /**
+    * Get named peripheral
+    * 
+    * @param peripheralName
+    * 
+    * @return Peripheral or null if it does not exist
+    */
+   public Peripheral getPeripheral(String peripheralName) {
+      return fPeripheralsMap.get(peripheralName);
+   }
 
 //   /**
 //    * Test main

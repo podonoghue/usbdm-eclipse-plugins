@@ -85,7 +85,6 @@ public class TemplateInformation {
     */
    public static String addText(StringBuilder sb, String contents) throws Exception {
       State state = State.Text;
-      
       for(int index = 0; index<contents.length(); index++) {
          char ch = contents.charAt(index);
          
@@ -135,6 +134,7 @@ public class TemplateInformation {
             }
             else if (ch == 'n') {
                sb.append("\n");
+               state = State.DiscardAfterNewline;
             }
             else {
                sb.append('\\');
