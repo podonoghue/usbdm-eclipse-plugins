@@ -325,12 +325,14 @@ public abstract class VariableWithChoices extends Variable {
    public void addInternalListeners() throws Exception {
       // Listen to choice expressions
       ChoiceData[] data = getChoiceData();
-      for (ChoiceData choiceData:data) {
-         try {
-            choiceData.addListener(this);
-         } catch (Exception e) {
-            System.err.println("Failed to add internal listener to choice variable '" + this.getName() + "'");
-            System.err.println("Choice '" + choiceData.getName() + "', ref= '" + choiceData.getReference() + "'");
+      if (data != null) {
+         for (ChoiceData choiceData:data) {
+            try {
+               choiceData.addListener(this);
+            } catch (Exception e) {
+               System.err.println("Failed to add internal listener to choice variable '" + this.getName() + "'");
+               System.err.println("Choice '" + choiceData.getName() + "', ref= '" + choiceData.getReference() + "'");
+            }
          }
       }
       super.addInternalListeners();

@@ -153,7 +153,7 @@ public class ChoiceVariable extends VariableWithChoices {
 //         System.err.println("getValueAsString() illegal index, "+getName()+" ind = "+index);
 //         index = 0;
 //      }
-      if ((index<0) || (index>=choices.length)) {
+      if ((index<0) || (choices==null) || (index>=choices.length)) {
          return "Illegal choice value";
       }
       return choices[index];

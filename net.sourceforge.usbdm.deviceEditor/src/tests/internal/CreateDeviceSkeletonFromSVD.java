@@ -917,21 +917,6 @@ public class CreateDeviceSkeletonFromSVD {
       resultSb.append("      ;\n               %paramType  : /PCR/nvic_irqLevel                                   :   %defaultValue   \"");
       resultSb.append(memberDeclaration);
 
-      String irqLevelTemplate =
-            "\n" +
-            "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n" +
-            "      variables=\"/PCR/nvic_irqLevel,irqLevel\"\n" +
-            "      linePadding=\"xxx\"\n" +
-            "   ><![CDATA[\n" +
-            "      %%multilineDescription\n" +
-            "      \\t   %%paramType %%registerName0 = %%defaultValue;\n" +
-            "      \\t\\n\n" +
-            "   ]]></variableTemplate>\n";
-            
-      if (irqsUsed) {
-         resultSb.append(String.format(irqLevelTemplate));
-      }
-      
       /*
        *   Create Irq Constructors
        */
@@ -1279,7 +1264,7 @@ public class CreateDeviceSkeletonFromSVD {
       
       createInitValueFieldList.visit();
       
-      resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString(), ""));
+      resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString()+",", ""));
    
       String closeInitClass =
             "\n" +
@@ -1466,7 +1451,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "LPUART",
 //         "LLWU",
 //         "MCM",
-         "OSC",
+//         "OSC",
 //         "PDB",
 //         "PIT",
 //         "PMC",
@@ -1483,7 +1468,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SPI",
 //         "SIM",
 //         "TSI",
-//         "TRNG",
+         "TRNG",
 //         "UART",
 //         "VREF",
 //         "USB",
@@ -1575,7 +1560,7 @@ public class CreateDeviceSkeletonFromSVD {
    
    public static void main(String[] args) throws Exception {
 //      doAllPeripherals("STM32F030", "mke");
-      doAllPeripherals("FRDM_KE04Z", "mke");
+//      doAllPeripherals("FRDM_KE04Z", "mke");
 //      doAllPeripherals("FRDM_KE06Z", "mke");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
@@ -1587,6 +1572,7 @@ public class CreateDeviceSkeletonFromSVD {
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
 //      doAllPeripherals("FRDM_K82F", "mk");
+    doAllPeripherals("FRDM_KW41Z", "mkw");
    }
 
 }

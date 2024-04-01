@@ -797,11 +797,11 @@ public class Expression implements IModelChangeListener {
          String s = ((String) fArg.eval()).strip();
          String res = s;
          if (s.length()>2) {
-            if (s.matches("[A-Z0-9]+")) {
+            if (s.matches("[A-Z_0-9]+")) {
                // All upper-case
                res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
             }
-            else if (s.matches("[a-z0-9]+")) {
+            else if (s.matches("[a-z_0-9]+")) {
                // All lower-case
                res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
             }
@@ -1323,7 +1323,7 @@ public class Expression implements IModelChangeListener {
        * @param fProvider  Peripheral to locate signals
        * @param arg        Constant expression evaluating to<br>
        * <li> (optional) String regex for filtering on mapped signal description
-       * <li> (optional) String replacement pattern for use with regex to produce modify result<br>
+       * <li> (optional) String replacement pattern for use with regex to produce modified result<br>
        * <br>
        * If arg is null then no filtering is done and all mapped signals are returned.<br>
        * Examples<br>
@@ -1391,6 +1391,10 @@ public class Expression implements IModelChangeListener {
             sb.append(description);
          }
 //         System.err.println("SignalsListNode.eval() => '"+sb.toString()+"'");
+         String res = sb.toString();
+         if (res.isBlank()) {
+            System.err.println("Warning SignalsListNode "+fPeripheral+" is empty");
+         }
          return sb.toString();
       }
    }

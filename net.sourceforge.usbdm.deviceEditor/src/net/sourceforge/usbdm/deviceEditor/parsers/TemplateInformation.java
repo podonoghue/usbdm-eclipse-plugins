@@ -167,7 +167,7 @@ public class TemplateInformation {
             fBuilder.append(addText(sb, contents));
             return sb.toString();
          } catch (Exception e) {
-            return "Enum builder failed" + e.getMessage();
+            return "Enum builder failed, reason: " + e.getMessage();
          }
       }
       

@@ -63,8 +63,8 @@ public class WriterForFtm extends PeripheralWithState {
          if (pin == Pin.UNASSIGNED_PIN) {
             continue;
          }
-         String cIdentifier = signal.getCodeIdentifier();
-         if ((cIdentifier == null) || cIdentifier.isBlank()) {
+         String cIdentifierList = signal.getCodeIdentifier();
+         if ((cIdentifierList == null) || cIdentifierList.isBlank()) {
             continue;
          }
          if (!pin.isAvailableInPackage()) {
@@ -73,11 +73,13 @@ public class WriterForFtm extends PeripheralWithState {
          String trailingComment  = pin.getNameWithLocation();
          String type = String.format("%s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          String constType = "const "+ type;
-         if (signal.getCreateInstance()) {
-            writeVariableDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, constType, trailingComment);
-         }
-         else {
-            writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
+         for (String cIdentifier:cIdentifierList.split("/")) {
+            if (signal.getCreateInstance()) {
+               writeVariableDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, constType, trailingComment);
+            }
+            else {
+               writeTypeDeclaration(hardwareDeclarationInfo, "", signal.getUserDescription(), cIdentifier, type, trailingComment);
+            }
          }
       }
       

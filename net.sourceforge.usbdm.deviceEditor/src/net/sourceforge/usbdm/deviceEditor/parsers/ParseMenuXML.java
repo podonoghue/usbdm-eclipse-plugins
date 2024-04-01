@@ -57,6 +57,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalPinMapping;
 import net.sourceforge.usbdm.deviceEditor.model.TitleModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.ChoiceEnumBuilder.CheckRepeats.Info;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -1785,13 +1786,28 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /// Format string with parameters: description, tool-tip, enumClass, body
-   public final static String enumTemplate = ""
+   public final static String fullEnumTemplate = ""
        /*                  */ + " \\t/**\n"
        /*  Description     */ + " \\t * %s\n"
        /*  Variable names  */ + " \\t * (%s)\n"
        /*                  */ + " \\t *\n"
        /*  Tooltip         */ + " \\t * %s\n"
        /*                  */ + " \\t */\n"
+       /*  type,enumtype   */ + " \\tenum %s%s {\n"
+       /*  body            */ + " %s"
+       /*                  */ + " \\t};\\n\\n\n";
+
+   /// Format string with parameters: description, tool-tip, enumClass, body
+   public final static String prefixTemplate = ""
+       /*                  */ + " \\t/**\n"
+       /*  Description     */ + " \\t * %s\n"
+       /*  Variable names  */ + " \\t * (%s)\n"
+       /*                  */ + " \\t *\n"
+       /*  Tooltip         */ + " \\t * %s\n"
+       /*                  */ + " \\t */\n";
+
+   /// Format string with parameters: description, tool-tip, enumClass, body
+   public final static String enumTemplate = ""
        /*  type,enumtype   */ + " \\tenum %s%s {\n"
        /*  body            */ + " %s"
        /*                  */ + " \\t};\\n\\n\n";
@@ -1818,9 +1834,11 @@ public class ParseMenuXML extends XML_BaseParser {
       private final String              fEnumText;
       private final String              fEnumGuard;
       private final DeviceInfo          fDeviceInfo;
+      private final boolean             fGenerateAsConstants;
 
       public ChoiceEnumBuilder(ParseMenuXML parser, Element varElement, VariableWithChoices variable) throws Exception {
          
+         fGenerateAsConstants = parser.getAttributeAsBoolean(varElement, "generateAsConstants", false);
          fBaseType   = parser.getAttributeAsString(varElement, "baseType");
          fEnumText   = parser.getAttributeAsString(varElement, "enumText", null);
          fEnumGuard  = parser.getAttributeAsString(varElement, "enumGuard");
@@ -1831,26 +1849,49 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       static class CheckRepeats {
-         ArrayList<String> namesList = new ArrayList<String>();
+         
+         static class Info {
+            
+         final String fName;
+         final String fValue;
+         final String fComment;
+            
+            Info(String name, String value, String comment) {
+               fName    = name;
+               fValue   = value;
+               fComment = comment;
+            }
+         };
+         
+         ArrayList<Info> namesList = new ArrayList<Info>();
+         
+         int valueWidth    = 0;
+         int nameWidth     = 0;
          
          /**
-          * Add name to list of not already present
+          * Add entry to list of not already present
           * 
-          * @param name Name to add
+          * @param name       Name of  enum/constant
+          * @param value      Value for enum/constant
+          * @param comment    Comment for enum/constant
           * 
-          * @return  TRUE => Added to list, FALSE => already present
+          * @return  TRUE => Added to list, FALSE => Entry with same name already present
           */
-         boolean add(String name) {
-            for (String existingName:namesList) {
-               if (existingName.equalsIgnoreCase(name)) {
-                  return false;
+         Info add(String name, String value, String comment) {
+            for (Info existingName:namesList) {
+               if (existingName.fName.equalsIgnoreCase(name)) {
+                  return null;
                }
             }
-            namesList.add(name);
-            return true;
+            nameWidth  = Math.max(nameWidth,  name.length()+2);
+            valueWidth = Math.max(valueWidth, value.length()+2);
+            
+            Info entry  = new Info(name, value, comment);
+            namesList.add(entry);
+            return entry;
          }
 
-         public Object get(int index) {
+         public Info get(int index) {
             return namesList.get(index);
          }
 
@@ -1863,18 +1904,12 @@ public class ParseMenuXML extends XML_BaseParser {
       public String build() throws Exception {
 
          String fTypeName     = fVariable.getTypeName();
-         String description   = escapeString(fVariable.getDescriptionAsCode());
-         String tooltip       = escapeString(fVariable.getToolTipAsCode());
 
          StringBuilder body = new StringBuilder();
 
          String enumClass  = Character.toUpperCase(fTypeName.charAt(0)) + fTypeName.substring(1);
 
-         CheckRepeats enumNamesList      = new CheckRepeats();
-         ArrayList<String> valuesList    = new ArrayList<String>();
-         ArrayList<String> commentsList  = new ArrayList<String>();
-         int enumNameMax    = 0;
-         int valueMax       = 0;
+         CheckRepeats enumNamesList = new CheckRepeats();
 
          ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
          lists.add(fVariable.getChoiceData());
@@ -1893,9 +1928,7 @@ public class ParseMenuXML extends XML_BaseParser {
                   continue;
                }
                String completeEnumName = enumClass+"_"+enumName;
-               enumNamesList.add(completeEnumName);
-               enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
-
+               
                String[] valueFormats = fValueFormat.split(",");
                String[] vals         = choice.getValue().split(",");
                if (valueFormats.length != vals.length) {
@@ -1908,11 +1941,13 @@ public class ParseMenuXML extends XML_BaseParser {
                   }
                   sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
                }
-               String completeValue = sb.toString()+",";
-               valuesList.add(completeValue);
-               valueMax = Math.max(valueMax, completeValue.length());
-               commentsList.add(choice.getName());
+               String completeValue = sb.toString();
                
+               Info entry  = enumNamesList.add(completeEnumName, completeValue, choice.getName());
+               if (entry == null) {
+                  throw new Exception("Repeated base enum!");
+               }
+
                String hardwareName = choice.getAssociatedHardware();
                if (hardwareName != null) {
                   Object hardware = null;
@@ -1932,14 +1967,15 @@ public class ParseMenuXML extends XML_BaseParser {
                   if (hardware instanceof Signal) {
                      Signal signal = (Signal) hardware;
                      if (signal != null) {
-                        String codeName = signal.getCodeIdentifier();
-                        if ((codeName != null)&&!codeName.isBlank()) {
-                           String newEnumName = enumClass+"_"+codeName;
-                           if (enumNamesList.add(newEnumName)) {
-                              enumNameMax     = Math.max(enumNameMax, newEnumName.length());
-                              valuesList.add(completeEnumName+",");
-                              commentsList.add(choice.getName());
-                              valueMax = Math.max(valueMax, completeEnumName.length()+1);
+                        String codeNames = signal.getCodeIdentifier();
+                        if ((codeNames != null)&&!codeNames.isBlank()) {
+                           for (String codeName:codeNames.split("/")) {
+                              String newEnumName = enumClass+"_"+codeName;
+                              String desc = signal.getUserDescription();
+                              if ((desc == null)||desc.isBlank()) {
+                                 desc = choice.getName();
+                              }
+                              entry = enumNamesList.add(newEnumName, completeValue, desc);
                            }
                         }
                         Pin pin = signal.getMappedPin();
@@ -1949,28 +1985,20 @@ public class ParseMenuXML extends XML_BaseParser {
                         }
                         if ((pinName != null)&&!pinName.isBlank()) {
                            String newEnumName = enumClass+"_"+pinName;
-                           if (enumNamesList.add(newEnumName)) {
-                              enumNamesList.add(newEnumName);
-                              enumNameMax     = Math.max(enumNameMax, newEnumName.length());
-                              valuesList.add(completeEnumName+",");
-                              commentsList.add(choice.getName());
-                              valueMax = Math.max(valueMax, completeEnumName.length()+1);
-                           }
+                           String desc = "Pin "+pinName;
+                           entry = enumNamesList.add(newEnumName, completeValue, desc);
                         }
                      }
                   }
                   else if (hardware instanceof Peripheral) {
                      Peripheral peripheral = (Peripheral) hardware;
                      if (peripheral != null) {
-                        String codeName = peripheral.getCodeIdentifier();
-                        if ((codeName != null)&&!codeName.isBlank()) {
-                           String newEnumName = enumClass+"_"+codeName;
-                           if (enumNamesList.add(newEnumName)) {
-                              enumNamesList.add(newEnumName);
-                              enumNameMax     = Math.max(enumNameMax, newEnumName.length());
-                              valuesList.add(completeEnumName+",");
-                              commentsList.add(choice.getName());
-                              valueMax = Math.max(valueMax, completeEnumName.length()+1);
+                        String codeNames = peripheral.getCodeIdentifier();
+                        if ((codeNames != null)&&!codeNames.isBlank()) {
+                           for(String codeName:codeNames.split("/")) {
+                              String newEnumName = enumClass+"_"+codeName;
+                              String desc = choice.getName();
+                              entry = enumNamesList.add(newEnumName, completeEnumName, desc);
                            }
                         }
                      }
@@ -1984,7 +2012,15 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          // Create enums body
          for (int index=0; index<enumNamesList.size(); index++) {
-               body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
+            Info entry = enumNamesList.get(index);
+            if (fGenerateAsConstants) {
+               body.append(String.format("\\tstatic constexpr %s %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
+                     fBaseType, entry.fName, entry.fValue+";", entry.fComment));
+            }
+            else {
+               body.append(String.format("\\t   %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
+                     entry.fName, entry.fValue+",", entry.fComment));
+            }
          }
          // Add enum text
          if (fEnumText != null) {
@@ -1999,14 +2035,30 @@ public class ParseMenuXML extends XML_BaseParser {
          if (fBaseType != null) {
             baseType = " : "+fBaseType;
          }
-         // Create enum declaration
-         String entireEnum = String.format(ParseMenuXML.enumTemplate, description, fVariable.getName(), tooltip, enumClass, baseType, body.toString());
+         StringBuilder sb = new StringBuilder();
+         
+         String description   = escapeString(fVariable.getDescriptionAsCode());
+         String tooltip       = escapeString(fVariable.getToolTipAsCode());
+
+         // Prefix with comments
+         sb.append(String.format(prefixTemplate, description, fVariable.getName(), tooltip));
+         
+         if (fGenerateAsConstants) {
+            sb.append(body);
+            sb.append("\\n\\n");
+         }
+         else {
+            sb.append(String.format(enumTemplate, enumClass, baseType, body.toString()));
+         }
+         
+         // Create entire declaration
+         String entireDeclaration = sb.toString();
          
          if (fEnumGuard != null) {
-            // Add guard
-            entireEnum = String.format(guardedEnumTemplate, fEnumGuard, entireEnum);
+            // Surround with guard
+            entireDeclaration = String.format(guardedEnumTemplate, fEnumGuard, entireDeclaration);
          }
-         return entireEnum;
+         return entireDeclaration;
       }
       
    };
@@ -2046,128 +2098,6 @@ public class ParseMenuXML extends XML_BaseParser {
 
       ChoiceEnumBuilder ceb = new ChoiceEnumBuilder(this, varElement, variable);
       templateInfo.setBuilder(ceb);
-//      templateInfo.addText(ceb.build());
-
-      /*
-      String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
-
-      String baseType = getAttributeAsString(varElement, "baseType");
-      if (baseType != null) {
-         baseType = " : "+baseType;
-      }
-      else {
-         baseType = "";
-      }
-      // Default namespace for enums
-      String namespace = "definitions";
-      
-      String templateKey = getAttributeAsString(varElement, "templateKey");
-      if (templateKey != null) {
-         // If named enum => override default namespace to 'all'
-         namespace = "all";
-      }
-      // Can specify a namespace
-      namespace = getAttributeAsString(varElement, "namespace", namespace);
-
-      String description     = escapeString(variable.getDescriptionAsCode());
-      String tooltip         = escapeString(variable.getToolTipAsCode());
-
-      String valueFormat     = getAttributeAsString(varElement, "valueFormat");
-      if (valueFormat == null) {
-         valueFormat = macroName+"(%s)";
-      }
-
-      TemplateInformation templateInfo = addTemplate(templateKey, namespace, null);
-
-      StringBuilder body = new StringBuilder();
-
-      String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-
-      ArrayList<String> enumNamesList = new ArrayList<String>();
-      ArrayList<String> valuesList    = new ArrayList<String>();
-      ArrayList<String> commentsList  = new ArrayList<String>();
-      int enumNameMax    = 0;
-      int valueMax       = 0;
-
-      ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
-      lists.add(variable.getChoiceData());
-      lists.add(variable.getHiddenChoiceData());
-      for (ChoiceData[] choiceData:lists) {
-         if (choiceData == null) {
-            continue;
-         }
-         for (int index=0; index<choiceData.length; index++) {
-
-            String enumName = choiceData[index].getEnumName();
-            if ((enumName == null) || enumName.isBlank()) {
-               throw new Exception("enumTemplate - enum data is incomplete in choice '" + choiceData[index].getName() + "' ='"+variable+"'");
-            }
-            if (enumName.equals("-deleted-")) {
-               continue;
-            }
-            String completeEnumName = enumClass+"_"+enumName;
-            if (createAsConstants) {
-               completeEnumName = enumName;
-            }
-            else {
-               completeEnumName = enumClass+"_"+enumName;
-            }
-            enumNamesList.add(completeEnumName);
-            enumNameMax     = Math.max(enumNameMax, completeEnumName.length());
-
-            String[] valueFormats = valueFormat.split(",");
-            String[] vals         = choiceData[index].getValue().split(",");
-            if (valueFormats.length != vals.length) {
-               throw new Exception("valueFormat '"+valueFormat+"' does not match value '"+vals[index]+"'" );
-            }
-            StringBuilder sb = new StringBuilder();
-            for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
-               if (valIndex>0) {
-                  sb.append('|');
-               }
-               sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
-            }
-            String completeValue = sb.toString()+(createAsConstants?";":",");
-            //            valuesList.add(escapeString(completeValue));
-            valuesList.add(completeValue);
-            valueMax        = Math.max(valueMax, completeValue.length());
-
-            commentsList.add(choiceData[index].getName());
-         }
-
-      }
-      
-      // Create enums body
-      for (int index=0; index<enumNamesList.size(); index++) {
-         if (createAsConstants) {
-            body.append(String.format("\\tconstexpr %s %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", typeName, enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
-         }
-         else {
-            body.append(String.format("\\t   %-"+enumNameMax+"s = %-"+valueMax+"s ///< %s\n", enumNamesList.get(index), valuesList.get(index), commentsList.get(index)));
-         }
-      }
-      String enumText = getAttributeAsString(varElement, "enumText", null);
-      if (enumText != null) {
-         enumText = enumText.replace("%(typeName)",  typeName);
-         enumText = enumText.replaceAll("\\\\n",  "XXXX");
-         
-         body.append(enumText+"\n");
-      }
-      // Create enum declaration
-      String entireEnum;
-      if (createAsConstants) {
-         entireEnum = String.format(constantTemplate, description, tooltip, body.toString());
-      }
-      else {
-         entireEnum = String.format(enumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
-      }
-      String enumGuard = getAttributeAsString(varElement, "enumGuard");
-      if (enumGuard != null) {
-         // Add guard
-         entireEnum = String.format(guardedEnumTemplate, enumGuard, entireEnum);
-      }
-      templateInfo.addText(entireEnum);
-      */
    }
 
    /**
@@ -2260,7 +2190,7 @@ public class ParseMenuXML extends XML_BaseParser {
          body.append(enumText+"\n");
       }
       // Create enum declaration
-      String entireEnum = String.format(enumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
+      String entireEnum = String.format(fullEnumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
 
       String enumGuard = getAttributeAsString(varElement, "enumGuard");
       if (enumGuard != null) {
@@ -2322,7 +2252,7 @@ public class ParseMenuXML extends XML_BaseParser {
       // Create enum declaration
       String entireEnum;
 
-      entireEnum = String.format(enumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
+      entireEnum = String.format(fullEnumTemplate, description, variable.getName(), tooltip, enumClass, baseType, body.toString());
       String enumGuard = getAttributeAsString(varElement, "enumGuard");
       if (enumGuard != null) {
          // Add guard
@@ -2919,6 +2849,9 @@ public class ParseMenuXML extends XML_BaseParser {
          System.err.print("value = ");
          String split = getAttributeAsString(varElement, "split");
          String value = var.getValueAsString().replace("\\n", "\n").replace("\\t", "   ");
+         if (var.getValue() instanceof String) {
+            value = "\"" + value + "\"";
+         }
          if (split != null) {
             String[] ar = value.split(split);
             System.err.println();
@@ -5478,7 +5411,7 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (variable instanceof ChoiceVariable) {
             ChoiceVariable choiceVar = (ChoiceVariable)variable;
             choiceVar.setChoiceData(choiceInfo.entries, choiceInfo.hiddenEntries);
-            if (choiceInfo.defaultEntry != null) {
+            if ((choiceInfo.defaultEntry != null) && (choiceInfo.entries.size()>0)) {
                Object tmp;
                tmp = choiceVar.getDefault();
                if (tmp == null) {

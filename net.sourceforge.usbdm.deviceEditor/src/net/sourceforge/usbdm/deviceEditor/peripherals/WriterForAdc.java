@@ -16,14 +16,19 @@ import net.sourceforge.usbdm.jni.UsbdmException;
  */
 public class WriterForAdc extends PeripheralWithState {
 
-   /** Signals that use this writer */
-   protected InfoTable fDmFunctions = new InfoTable("InfoDM");
+   final int PGA_INDEX  = 2;
+   final int DP_INDEX   = 32;
+   final int DM_INDEX   = 36;
+   final int SEB_INDEX  = 40;
 
    /** Signals that use this writer */
-   protected InfoTable fDpFunctions = new InfoTable("InfoDP");
+//   protected InfoTable fDmFunctions = new InfoTable("InfoDM");
 
    /** Signals that use this writer */
-   protected InfoTable fBChannelFunctions = new InfoTable("InfoBChannels");
+//   protected InfoTable fDpFunctions = new InfoTable("InfoDP");
+
+   /** Signals that use this writer */
+//   protected InfoTable fBChannelFunctions = new InfoTable("InfoBChannels");
 
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
@@ -55,13 +60,56 @@ public class WriterForAdc extends PeripheralWithState {
    }
 
    /**
+    * Checks if a signal is a Positive differential input
+    * 
+    * @param signal
+    * 
+    * @return
+    */
+   boolean isPositiveDiffSignal(Signal signal) {
+      return (signal != Signal.DISABLED_SIGNAL) && signal.getName().matches("^ADC\\d_DP\\d$");
+   }
+
+   /**
+    * Checks if a signal is a Positive differential input
+    * 
+    * @param signal
+    * 
+    * @return
+    */
+   boolean isAChannelSignal(Signal signal) {
+      return (signal != Signal.DISABLED_SIGNAL) && signal.getName().matches("^ADC\\d_SE\\da$");
+   }
+
+   /**
+    * Checks if a signal is a Positive differential input
+    * 
+    * @param signal
+    * 
+    * @return
+    */
+   boolean isBChannelSignal(Signal signal) {
+      return (signal != Signal.DISABLED_SIGNAL) && signal.getName().matches("^ADC\\d_SE\\db$");
+   }
+
+   /**
+    * Checks if a signal is a Positive differential input
+    * 
+    * @param signal
+    * 
+    * @return
+    */
+   boolean isNegativeDiffSignal(Signal signal) {
+      return (signal != Signal.DISABLED_SIGNAL) && signal.getName().matches("^ADC\\d_DM\\d$");
+   }
+
+   /**
     * Write declarations for single-ended channels and single-ended use of (differential) PGA channels.
     * Note single-ended use of differential channels are also done as they have their own SE signal alias.
     * 
     * @param infoTable
     */
-   private void writeSingleEndedDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo, InfoTable infoTable) {
-
+   private void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo, InfoTable infoTable) {
       // Single-ended channels
       for (int index=0; index<infoTable.table.size(); index++) {
          Signal signal = infoTable.table.get(index);
@@ -79,18 +127,32 @@ public class WriterForAdc extends PeripheralWithState {
          if (cIdentifier.isBlank()) {
             continue;
          }
-         boolean bChannel = (infoTable == fBChannelFunctions);
-         
          String trailingComment  = pin.getNameWithLocation();
-         String description = signal.getUserDescription();
+         String description      = signal.getUserDescription();
          String type;
          if (isPgaSignal(signal)) {
             description = description + " (Programmable gain amplifier)";
             type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaChannel");
          }
+         else if (isPositiveDiffSignal(signal)) {
+            description = description + " (Differential)";
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"DiffChannel",
+                  "AdcChannelNum_Diff"+(index-DP_INDEX));
+         }
+         else if (isAChannelSignal(signal)) {
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel",
+                  "AdcChannelNum_Se"+(index)+"a");
+         }
+         else if (isBChannelSignal(signal)) {
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel",
+                  "AdcChannelNum_Se"+(index-SEB_INDEX+4)+"b");
+         }
+         else if (isNegativeDiffSignal(signal)) {
+            continue;
+         }
          else {
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel"+(bChannel?"B":""),
-                  "AdcChannelNum_"+(index&0x1F)+((index>0x1F)?"b":""));
+            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel",
+                  "AdcChannelNum_Se"+(index));
          }
          String constType = "const "+ type;
          String[] cIdentifiers = cIdentifier.split("/");
@@ -105,72 +167,82 @@ public class WriterForAdc extends PeripheralWithState {
       }
    }
 
-   /**
-    * Write declarations for differential channels and (differential) PGA channels
-    * 
-    * @param infoTable
-    */
-   private void writeDifferentialDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo, InfoTable dpInfoTable, InfoTable dmInfoTable) {
-
-      // Differential channels (including Pga) - recognised by having the same code name for DP and DM
-      for (int index=0; index<dpInfoTable.table.size(); index++) {
-         Signal dpSignal = dpInfoTable.table.get(index);
-         Signal dmSignal = dmInfoTable.table.get(index);
-         if ((dpSignal == null) || (dmSignal == null)) {
-            continue;
-         }
-         Pin dpPin = dpSignal.getFirstMappedPinInformation().getPin();
-         Pin dmPin = dmSignal.getFirstMappedPinInformation().getPin();
-         if ((dpPin == Pin.UNASSIGNED_PIN) || (dmPin == Pin.UNASSIGNED_PIN)) {
-            continue;
-         }
-         if (!dpPin.isAvailableInPackage() || !dmPin.isAvailableInPackage()) {
-            continue;
-         }
-         String dpIdentifier = dpSignal.getCodeIdentifier();
-         String dmIdentifier = dmSignal.getCodeIdentifier();
-//         if (isPgaSignal(dpSignal) && dmIdentifier.isBlank()) {
-//            // Assume pga_se or nothing - already handled
+//   /**
+//    * Write declarations for differential channels and (differential) PGA channels
+//    *
+//    * @param infoTable
+//    */
+//   private void writeDifferentialDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo, InfoTable dpInfoTable, InfoTable dmInfoTable) {
+//
+//      // Differential channels (including Pga) - recognised by having the same code name for DP and DM
+//      for (int index=0; index<dpInfoTable.table.size(); index++) {
+//         Signal dpSignal = dpInfoTable.table.get(index);
+//         Signal dmSignal = dmInfoTable.table.get(index);
+//         if ((dpSignal == null) || (dmSignal == null)) {
 //            continue;
 //         }
-         if (dpIdentifier.isBlank() && dmIdentifier.isBlank()) {
-            // Nothing
-            continue;
-         }
-         boolean unMatchedNames = !dpIdentifier.equals(dmIdentifier);
-         String cIdentifier = unMatchedNames?"error_"+dpIdentifier:dpIdentifier;
-         String dpDescription = dpSignal.getUserDescription();
-         String dmDescription = dmSignal.getUserDescription();
-         String type;
-         String error = "";
-         String trailingComment = dpPin.getNameWithLocation()+", "+dmPin.getNameWithLocation();
-         String description = dpDescription;
-         if (!dmDescription.equalsIgnoreCase(dpDescription)) {
-            if (!dpDescription.isBlank()) {
-               description += ", ";
-            }
-            description += dmDescription;
-         }
-         if (unMatchedNames) {
-            error = "Differential channel has unmatched input names '" + dpIdentifier + "', '" + dmIdentifier + "'";
-         }
-         if (isPgaSignal(dpSignal)) {
-            description = description + " (Differential programmable gain amplifier)";
-            type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaDiffChannel");
-         }
-         else {
-            description = description + " (Differential)";
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"DiffChannel", "AdcChannelNum_"+index);
-         }
-         String constType = "const "+ type;
-         if (dpSignal.getCreateInstance() || dmSignal.getCreateInstance()) {
-            writeVariableDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, constType, trailingComment);
-         }
-         else {
-            writeTypeDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, type, trailingComment);
-         }
-      }
-   }
+//         Pin dpPin = dpSignal.getFirstMappedPinInformation().getPin();
+//         Pin dmPin = dmSignal.getFirstMappedPinInformation().getPin();
+//         if ((dpPin == Pin.UNASSIGNED_PIN) || (dmPin == Pin.UNASSIGNED_PIN)) {
+//            continue;
+//         }
+//         if (!dpPin.isAvailableInPackage() || !dmPin.isAvailableInPackage()) {
+//            continue;
+//         }
+//         String dpIdentifier = dpSignal.getCodeIdentifier();
+//         String dmIdentifier = dmSignal.getCodeIdentifier();
+////         if (isPgaSignal(dpSignal) && dmIdentifier.isBlank()) {
+////            // Assume pga_se or nothing - already handled
+////            continue;
+////         }
+//         if (dpIdentifier.isBlank() && dmIdentifier.isBlank()) {
+//            // Nothing
+//            continue;
+//         }
+//         boolean unMatchedNames = !dpIdentifier.equals(dmIdentifier);
+//         if (unMatchedNames) {
+//            // Try to reconcile names - e.g. fredP vs fredM => fred
+//            String pName = dpIdentifier.replaceAll("^(.*)[Pp]", "$1");
+//            String mName = dmIdentifier.replaceAll("^(.*)[Mm]", "$1");
+//            unMatchedNames = !pName.equals(mName);
+//            if (!unMatchedNames) {
+//               dpIdentifier = pName;
+//               dmIdentifier = mName;
+//            }
+//         }
+//         String cIdentifier = unMatchedNames?"error_"+dpIdentifier:dpIdentifier;
+//         String dpDescription = dpSignal.getUserDescription();
+//         String dmDescription = dmSignal.getUserDescription();
+//         String type;
+//         String error = "";
+//         String trailingComment = dpPin.getNameWithLocation()+", "+dmPin.getNameWithLocation();
+//         String description = dpDescription;
+//         if (!dmDescription.equalsIgnoreCase(dpDescription)) {
+//            if (!dpDescription.isBlank()) {
+//               description += ", ";
+//            }
+//            description += dmDescription;
+//         }
+//         if (unMatchedNames) {
+//            error = "Differential channel has unmatched input names '" + dpIdentifier + "', '" + dmIdentifier + "'";
+//         }
+//         if (isPgaSignal(dpSignal)) {
+//            description = description + " (Differential programmable gain amplifier)";
+//            type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaDiffChannel");
+//         }
+//         else {
+//            description = description + " (Differential)";
+//            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"DiffChannel", "AdcChannelNum_Diff"+index);
+//         }
+//         String constType = "const "+ type;
+//         if (dpSignal.getCreateInstance() || dmSignal.getCreateInstance()) {
+//            writeVariableDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, constType, trailingComment);
+//         }
+//         else {
+//            writeTypeDeclaration(hardwareDeclarationInfo, error, description, cIdentifier, type, trailingComment);
+//         }
+//      }
+//   }
 
    @Override
    protected void writeDeclarations(HardwareDeclarationInfo hardwareDeclarationInfo) {
@@ -178,13 +250,13 @@ public class WriterForAdc extends PeripheralWithState {
       super.writeDeclarations(hardwareDeclarationInfo);
 
       // Single-ended channels (including Pga recognised by having no code name DM)
-      writeSingleEndedDeclarations(hardwareDeclarationInfo, fInfoTable);
+      writeDeclarations(hardwareDeclarationInfo, fInfoTable);
 
       // Single-ended B channels
-      writeSingleEndedDeclarations(hardwareDeclarationInfo, fBChannelFunctions);
+//      writeSingleEndedDeclarations(hardwareDeclarationInfo, fBChannelFunctions);
 
       // Differential channels (including Pga recognised by having the same code name for DP and DM)
-      writeDifferentialDeclarations(hardwareDeclarationInfo, fDpFunctions, fDmFunctions);
+//      writeDifferentialDeclarations(hardwareDeclarationInfo, fDpFunctions, fDmFunctions);
    }
 
    @Override
@@ -195,18 +267,29 @@ public class WriterForAdc extends PeripheralWithState {
       Matcher m = pUsual.matcher(signalName);
       int index = 0;
       if (m.matches()) {
+         String type = m.group(1);
          index = Integer.parseInt(m.group(2));
-//         String suffix = m.group(3);
-//         if ((suffix != null) && suffix.equalsIgnoreCase("b")) {
-//            index += 32;
-//         }
+         String suffix = m.group(3);
+
+         if ("SE".equals(type)) {
+            if ((suffix != null) && suffix.equalsIgnoreCase("b")) {
+               index += SEB_INDEX-4; // -4 as SE4b-SE7b
+            }
+            // else no adjustment
+         }
+         else if ("DM".equals(type)) {
+            index += DM_INDEX;
+         }
+         else if ("DP".equals(type)) {
+            index += DP_INDEX;
+         }
       }
       else {
          Matcher mPga = pPga.matcher(function.getSignalName());
          if (!mPga.matches()) {
             throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
          }
-         index = 2;
+         index = PGA_INDEX;
       }
       return index;
    }
@@ -214,10 +297,11 @@ public class WriterForAdc extends PeripheralWithState {
    @Override
    public boolean isPcrTableNeeded() {
       boolean required =
-            (fInfoTable.table.size() +
-                  fDpFunctions.table.size() +
-                  fDmFunctions.table.size() +
-                  fBChannelFunctions.table.size()) > 0;
+            (fInfoTable.table.size()
+//                  fBChannelFunctions.table.size() +
+//                  fDpFunctions.table.size() +
+//                  fDmFunctions.table.size()
+                  ) > 0;
                   return required;
    }
 
@@ -233,22 +317,22 @@ public class WriterForAdc extends PeripheralWithState {
          InfoTable table = null;
          // PGA input - may has DM/DP suffix
          //            System.out.println("Found " + function);
-         if (m.group(3) != null) {
-            // Has DM/DP suffix
-            String signalType = m.group(3);
-            if (signalType.equalsIgnoreCase("DM")) {
-               // Add entry in DM table
-               table = fDmFunctions;
-            }
-            else if (signalType.equalsIgnoreCase("DP")) {
-               // Add entry in DP table
-               table = fDpFunctions;
-            }
-         }
-         else {
+//         if (m.group(3) != null) {
+//            // Has DM/DP suffix
+//            String signalType = m.group(3);
+//            if (signalType.equalsIgnoreCase("DM")) {
+//               // Add entry in DM table
+//               table = fDmFunctions;
+//            }
+//            else if (signalType.equalsIgnoreCase("DP")) {
+//               // Add entry in DP table
+//               table = fDpFunctions;
+//            }
+//         }
+//         else {
             // Add entry in SE table
             table = fInfoTable;
-         }
+//         }
          // Add entry in SE table
          if (PGA_INDEX>=table.table.size()) {
             table.table.setSize(PGA_INDEX+1);
@@ -263,22 +347,22 @@ public class WriterForAdc extends PeripheralWithState {
          throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
       }
       int signalIndex = getSignalIndex(function);
-      String signalType = m.group(1);
-      String suffix = m.group(3);
-      if (signalType.equalsIgnoreCase("SE")) {
-         if ((suffix != null) && (suffix.equalsIgnoreCase("b"))) {
-            fFunctions = fBChannelFunctions;
-         }
-         else {
+//      String signalType = m.group(1);
+//      String suffix = m.group(3);
+//      if (signalType.equalsIgnoreCase("SE")) {
+//         if ((suffix != null) && (suffix.equalsIgnoreCase("b"))) {
+//            fFunctions = fBChannelFunctions;
+//         }
+//         else {
             fFunctions = super.fInfoTable;
-         }
-      }
-      else if (signalType.equalsIgnoreCase("DM")) {
-         fFunctions = fDmFunctions;
-      }
-      else if (signalType.equalsIgnoreCase("DP")) {
-         fFunctions = fDpFunctions;
-      }
+//         }
+//      }
+//      else if (signalType.equalsIgnoreCase("DM")) {
+//         fFunctions = fDmFunctions;
+//      }
+//      else if (signalType.equalsIgnoreCase("DP")) {
+//         fFunctions = fDpFunctions;
+//      }
       if (fFunctions == null) {
          throw new RuntimeException("Illegal function " + function.toString());
       }
@@ -296,9 +380,9 @@ public class WriterForAdc extends PeripheralWithState {
       public ArrayList<InfoTable> getSignalTables() {
          ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
          rv.add(fInfoTable);
-         rv.add(fDpFunctions);
-         rv.add(fDmFunctions);
-         rv.add(fBChannelFunctions);
+//         rv.add(fDpFunctions);
+//         rv.add(fDmFunctions);
+//         rv.add(fBChannelFunctions);
          return rv;
       }
       
