@@ -208,7 +208,7 @@ public class Expression implements IModelChangeListener {
       static final int MAX_DIMENSION = 4;
       
       static enum Modifier {
-         Value, Name, Code, Enum, Size,
+         Value, Name, Code, Enum, Size, Default, IsDefault,
       };
 
       /** Cached variable */
@@ -270,9 +270,6 @@ public class Expression implements IModelChangeListener {
        */
       public static ExpressionNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
          
-//         if (varName.contains("ftm_cnsc_secondOutput")) {
-//            System.err.println("VariableNode.create("+varName+")");
-//         }
          String name = varName;
          if (index != null) {
             // Use zero index to allow safe access to array variable
@@ -286,12 +283,7 @@ public class Expression implements IModelChangeListener {
          // Get variable to determine type
          // This may fail if the variable does not exist yet
          Variable var = owner.fVarProvider.safeGetVariable(name);
-//         if (name.contains("tsi_pen_pen")) {
-//            System.err.println("Found it");
-//         }
-//         if (var == null) {
-//            System.err.println("Warning - Unable to access var '"+varName+"', assuming string type");
-//         }
+         Modifier mod = null;
          if (modifier != null) {
             if ("name".equalsIgnoreCase(modifier)) {
                // .name  => Name from choice
@@ -309,25 +301,34 @@ public class Expression implements IModelChangeListener {
                // .size  => Number of choices
                return new VariableNode(owner, varName, Type.Long, Modifier.Size, index);
             }
+            else if ("isdefault".equalsIgnoreCase(modifier)) {
+               // .isdefault  => Is equal to default value
+               return new VariableNode(owner, varName, Type.Boolean, Modifier.IsDefault, index);
+            }
+            else if ("default".equalsIgnoreCase(modifier)) {
+               // .default  => Variable default value
+               mod = Modifier.Default;
+               // Falls through
+            }
             else {
                throw new Exception("Unexpected field for '" + var + "'");
             }
          }
          if (var instanceof ChoiceVariable) {
             // 'value' for a choice is the index
-            return new VariableNode(owner, varName, Type.Long, null, index);
+            return new VariableNode(owner, varName, Type.Long, mod, index);
          }
          if (var instanceof BooleanVariable) {
-            return new VariableNode(owner, varName, Type.Boolean, null, index);
+            return new VariableNode(owner, varName, Type.Boolean, mod, index);
          }
          if (var instanceof LongVariable) {
-            return new VariableNode(owner, varName, Type.Long, null, index);
+            return new VariableNode(owner, varName, Type.Long, mod, index);
          }
          if (var instanceof DoubleVariable) {
-            return new VariableNode(owner, varName, Type.Double, null, index);
+            return new VariableNode(owner, varName, Type.Double, mod, index);
          }
          if (var instanceof StringVariable) {
-            return new VariableNode(owner, varName, Type.String, null, index);
+            return new VariableNode(owner, varName, Type.String, mod, index);
          }
          if (var != null) {
             // Can't happen!!
@@ -422,33 +423,53 @@ public class Expression implements IModelChangeListener {
       Object eval() throws Exception {
          Variable var = getVar();
          if (fModifier != null) {
-            if (!(var instanceof VariableWithChoices)) {
-               throw new Exception("Expected choice variable '" + var + "'");
+            if (var instanceof VariableWithChoices) {
+               VariableWithChoices cv = (VariableWithChoices)var;
+               ChoiceData choiceData = cv.getCurrentChoice();
+               if (fModifier == Modifier.Size) {
+                  Long temp = (long) cv.getChoiceCount();
+                  return temp;
+               }
+               if (choiceData == null) {
+                  return "Nothing selected in choice";
+               }
+               switch (fModifier) {
+               case Code:
+                  // .code  => Code from choice
+                  return choiceData.getCodeValue();
+               case Enum:
+                  // .enum  => Enum name from choice
+                  return choiceData.getEnumName();
+               case Name:
+                  // .name  => Name from choice
+                  return choiceData.getName();
+               case Value:
+                  // .value => Value from choice
+                  return choiceData.getValue();
+               case Default:
+                  // .default => Variable default value
+                  return var.getDefault();
+               case IsDefault:
+                  // .isdefault => Variable current value is equal to default
+                  return var.getValue().equals(var.getDefault()) ;
+               default:
+                  return "Illegal field ." + fModifier;
+               }
             }
-            VariableWithChoices cv = (VariableWithChoices)var;
-            ChoiceData choiceData = cv.getCurrentChoice();
-            if (fModifier == Modifier.Size) {
-               Long temp = (long) cv.getChoiceCount();
-               return temp;
-            }
-            if (choiceData == null) {
-               return "Nothing selected in choice";
-            }
-            switch (fModifier) {
-            case Code:
-               // .code  => Code from choice
-               return choiceData.getCodeValue();
-            case Enum:
-               // .enum  => Enum name from choice
-               return choiceData.getEnumName();
-            case Name:
-               // .name  => Name from choice
-               return choiceData.getName();
-            case Value:
-               // .value => Value from choice
-               return choiceData.getValue();
-            default:
-               return "Impossible";
+            else {
+               switch (fModifier) {
+               case Value:
+                  // .value => Variable value
+                  return var.getValue();
+               case Default:
+                  // .default => Variable default value
+                  return var.getDefault();
+               case IsDefault:
+                  // .isdefault => Variable current value is equal to default
+                  return var.getValue().equals(var.getDefault()) ;
+               default:
+                  return "Illegal field ." + fModifier;
+               }
             }
          }
          else if (var instanceof ChoiceVariable) {
@@ -1311,7 +1332,7 @@ public class Expression implements IModelChangeListener {
       }
    }
    
-   static class SignalsListNode extends ExpressionNode {
+   static class SignalListNode extends ExpressionNode {
 
       final Peripheral fPeripheral;
       final String     fRegex;
@@ -1336,7 +1357,7 @@ public class Expression implements IModelChangeListener {
        * 
        * @throws Exception
        */
-      SignalsListNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
+      SignalListNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
          super(Type.String);
          fPeripheral     = peripheral;
          if (arg == null) {
@@ -1391,10 +1412,10 @@ public class Expression implements IModelChangeListener {
             sb.append(description);
          }
 //         System.err.println("SignalsListNode.eval() => '"+sb.toString()+"'");
-         String res = sb.toString();
-         if (res.isBlank()) {
-            System.err.println("Warning SignalsListNode "+fPeripheral+" is empty");
-         }
+//         String res = sb.toString();
+//         if (res.isBlank()) {
+//            System.err.println("Warning SignalListNode "+fPeripheral+" is empty");
+//         }
          return sb.toString();
       }
    }
@@ -2264,7 +2285,7 @@ public class Expression implements IModelChangeListener {
 //   }
    
    private void prelim() throws Exception {
-//      if (fExpressionStr.matches(".*\\|\\|\\(ftm_cnsc_mode\\[0.*")) {
+//      if (fExpressionStr.equals("(/Console/consoleEnable)&&(/Console/consoleDevice.name==\"Uart 0\")")) {
 //         System.err.println("Found it prelim("+fExpressionStr+")");
 //      }
       

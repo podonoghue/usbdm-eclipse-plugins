@@ -20,7 +20,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PinMappingNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.PrettyNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ReplaceAllNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.SignalDescriptionNode;
-import net.sourceforge.usbdm.deviceEditor.parsers.Expression.SignalsListNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.SignalListNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.StringConstantNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.Type;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.UppercaseNode;
@@ -263,9 +263,6 @@ public class ExpressionParser {
     */
    private ExpressionNode getFunction(String functionName) throws Exception {
       
-      if (functionName.equalsIgnoreCase("Variable")) {
-         System.err.println("Found it");
-      }
       Character ch = skipSpace();
       if (ch != '(') {
          throw new Exception("Expected '(' before function arguments");
@@ -475,7 +472,7 @@ public class ExpressionParser {
             Signal s = map.getValue();
             s.addListener(fExpression);
          }
-         return new SignalsListNode(peripheral, arg);
+         return new SignalListNode(peripheral, arg);
       }
       if ("Prettify".equalsIgnoreCase(functionName)) {
          return new PrettyNode(arg);
@@ -1234,11 +1231,11 @@ public class ExpressionParser {
          getNextCh();;
 
          if (!(isBoolean(leftOperand))) {
-            throw new Exception("Unexpected data type for operand in Logical-AND");
+            throw new Exception("Unexpected left operand data type for operand in Logical-AND");
          }
          ExpressionNode rightOperand = parseBitOr();
          if (!(isBoolean(rightOperand))) {
-            throw new Exception("Unexpected data type for operand in Logical-AND");
+            throw new Exception("Unexpected right operand data type for operand in Logical-AND");
          }
          leftOperand = new Expression.LogicalAndNode(leftOperand, rightOperand);
       } while (true);

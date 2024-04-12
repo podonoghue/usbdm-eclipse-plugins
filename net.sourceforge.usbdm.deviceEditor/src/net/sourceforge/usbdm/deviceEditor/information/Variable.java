@@ -1072,6 +1072,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    public void setReference(String reference) throws Exception {
+      if (fLogging) {
+         System.err.println("Logging: setReference("+reference+")");
+      }
       fReference = new Expression(reference, fProvider);
    }
   
@@ -1485,6 +1488,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 //      if (getKey().contains("osc_cr_range")) {
 //         System.err.println("Found it "+getKey());
 //      }
+      if (fLogging) {
+         System.err.println("Logging: addInternalListeners()");
+      }
       if (fReference != null) {
          fReference.addListener(this);
       }
@@ -1625,6 +1631,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public void update(VariableUpdateInfo info, Expression expression) {
       
+      if (fLogging) {
+         System.err.println("Logging: update("+((expression==null)?"null":expression.getExpressionStr())+")");
+      }
       if ((expression == null) && info.doFullUpdate) {
          expression = getReference();
       }
@@ -1659,7 +1668,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    protected final void updateAndNotify(Expression expression) {
       if (fLogging) {
-         System.err.println(this.toString()+".updateAndNotify("+expression+")");
+         System.err.println(this.toString()+".updateAndNotify("+((expression==null)?"null":expression.getExpressionStr())+")");
       }
       try {
          VariableUpdateInfo info = new VariableUpdateInfo();

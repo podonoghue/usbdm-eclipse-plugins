@@ -730,9 +730,6 @@ public class Cluster extends ModeControl implements Cloneable {
    public void writeSvd(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       final String indenter = RegisterUnion.getIndent(indent);
 
-      if (getName().startsWith("CCR")) {
-         System.err.println("Found it" );
-      }
       sortRegisters();
 
       writer.write(                 indenter+"<cluster>\n");

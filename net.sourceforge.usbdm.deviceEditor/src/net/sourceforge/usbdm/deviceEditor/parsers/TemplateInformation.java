@@ -14,7 +14,7 @@ public class TemplateInformation {
    private final String fNameSpace;
    
    /** Buffer to accumulate text contents for template */
-   private StringBuilder fBuilder;
+   private StringBuilder fStringBuilder;
    
    /** Processed text contents for template - cached */
    private String fText = null;
@@ -22,21 +22,10 @@ public class TemplateInformation {
    /** Condition to evaluate during code generation */
    private String fCodeGenerationCondition;
 
-   static abstract class EnumBuilder {
-      /**
-       * Build the text of the enum
-       * 
-       * @return String for enum
-       * 
-       * @throws Exception
-       */
-      public abstract String build() throws Exception;
-   }
-   
    /**
     * Builder for enum templates
     */
-   private EnumBuilder fEnumBuilder = null;
+   private TemplateContentBuilder fContentBuilder = null;
 
    /**
     * Construct template
@@ -46,11 +35,11 @@ public class TemplateInformation {
     * @param namespace                 Namespace for template (info, usbdm, class)
     */
    public TemplateInformation(String key, String nameSpace, String codeGenerationCondition) {
-      fEnumBuilder = null;
-      fKey         = key;
-      fNameSpace   = nameSpace;
-      fBuilder     = new StringBuilder(100);
-      fText        = null;
+      fContentBuilder = null;
+      fKey           = key;
+      fNameSpace     = nameSpace;
+      fStringBuilder = new StringBuilder(100);
+      fText          = null;
       fCodeGenerationCondition = codeGenerationCondition;
    }
    
@@ -65,13 +54,13 @@ public class TemplateInformation {
     * @throws Exception
     */
    public void addText(String contents) throws Exception {
-      if (fEnumBuilder != null) {
+      if (fContentBuilder != null) {
          throw new Exception("Adding text to template with builder, key='"+fKey+"'");
       }
       contents = contents.trim();  // Discard leading and trailing white space
 
       StringBuilder sb = new StringBuilder();
-      fBuilder.append(addText(sb, contents));
+      fStringBuilder.append(addText(sb, contents));
    }
    
    /**
@@ -160,34 +149,39 @@ public class TemplateInformation {
     * @throws Exception
     */
    public String getExpandedText(VariableProvider varProvider) {
-      if (fEnumBuilder != null) {
+      
+      String text = fText;
+      
+      if (fContentBuilder != null) {
          try {
-            String contents = fEnumBuilder.build().trim();
+            String contents = fContentBuilder.build().trim();
             StringBuilder sb = new StringBuilder();
-            fBuilder.append(addText(sb, contents));
-            return sb.toString();
+            fStringBuilder.append(addText(sb, contents));
+            text = sb.toString();
          } catch (Exception e) {
-            return "Enum builder failed, reason: " + e.getMessage();
+            e.printStackTrace();
+            return "Content builder failed, reason: " + e.getMessage();
          }
       }
-      
-      if (fText == null) {
-         // Convert to string on first use
-         fText = fBuilder.toString();
-         fBuilder = null;
+      else {
+         if (fText == null) {
+            // Convert to string on first use
+            fText = fStringBuilder.toString();
+            fStringBuilder = null;
+         }
+         text = fText;
       }
       if (fCodeGenerationCondition != null) {
          try {
             Boolean condition = Expression.getValueAsBoolean(fCodeGenerationCondition, varProvider);
-            if (condition) {
-               return fText;
+            if (!condition) {
+               return "";
             }
-            return "";
          } catch (Exception e) {
             e.printStackTrace();
          }
       }
-      return fText;
+      return text;
    }
 
    /**
@@ -203,13 +197,13 @@ public class TemplateInformation {
    @Override
    public String toString() {
       String text = fText;
-      if (fBuilder != null) {
-         text = fBuilder.toString();
+      if (fStringBuilder != null) {
+         text = fStringBuilder.toString();
       }
       return "T["+text+"]";
    }
 
-   public void setBuilder(EnumBuilder enumBuilder) {
-      fEnumBuilder = enumBuilder;
+   public void setBuilder(TemplateContentBuilder enumBuilder) {
+      fContentBuilder = enumBuilder;
    }
 }

@@ -194,12 +194,12 @@ public class BooleanVariable extends VariableWithChoices {
    public String getEnumValue() {
       if (getValueAsBoolean()) {
          if (fTrue == null) {
-            throw new RuntimeException("T not set");
+            throw new RuntimeException("fTrue value not set");
          }
          return makeEnum(fTrue.getEnumName());
       }
       if (fFalse == null) {
-         throw new RuntimeException("F not set");
+         throw new RuntimeException("fFalse value not set");
       }
       return makeEnum(fFalse.getEnumName());
 

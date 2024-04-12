@@ -12,16 +12,16 @@ public class ArmCM4VectorTable extends ArmVectorTable {
    }
 
    InterruptEntry defaultVectorTableEntries[] = {
-         new InterruptEntry("Reset",             -15,   null,                 "Reset Vector, invoked on Power up and warm reset"),
-         new InterruptEntry("NonMaskableInt",    -14,   "NMI_Handler",        "Non maskable Interrupt, cannot be stopped or preempted"),
-         new InterruptEntry("HardFault",         -13,   null,                 "Hard Fault, all classes of Fault"),
-         new InterruptEntry("MemoryManagement",  -12,   "MemManage_Handler",  "Memory Management, MPU mismatch, including Access Violation and No Match"),
-         new InterruptEntry("BusFault",          -11,   null,                 "Bus Fault, Pre-Fetch-, Memory Access Fault, other address/memory related Fault"),
-         new InterruptEntry("UsageFault",        -10,   null,                 "Usage Fault, i.e. Undef Instruction, Illegal State Transition"),
-         new InterruptEntry("SVCall",             -5,   "SVC_Handler",        "System Service Call via SVC instruction"),
-         new InterruptEntry("DebugMonitor",       -4,   "DebugMon_Handler",   "Debug Monitor"),
-         new InterruptEntry("PendSV",             -2,   null,                 "Pendable request for system service"),
-         new InterruptEntry("SysTick",            -1,   null,                 "System Tick Timer"),
+         new InterruptEntry("Reset",      -15,   null,   "Reset Vector, invoked on Power up and warm reset"),
+         new InterruptEntry("NMI",        -14,   null,   "Non maskable Interrupt, cannot be stopped or preempted"),
+         new InterruptEntry("HardFault",  -13,   null,   "Hard Fault, all classes of Fault"),
+         new InterruptEntry("MemManage",  -12,   null,   "Memory Management, MPU mismatch, including Access Violation and No Match"),
+         new InterruptEntry("BusFault",   -11,   null,   "Bus Fault, Pre-Fetch-, Memory Access Fault, other address/memory related Fault"),
+         new InterruptEntry("UsageFault", -10,   null,   "Usage Fault, i.e. Undef Instruction, Illegal State Transition"),
+         new InterruptEntry("SVC",         -5,   null,   "System Service Call via SVC instruction"),
+         new InterruptEntry("DebugMon",    -4,   null,   "Debug Monitor"),
+         new InterruptEntry("PendSV",      -2,   null,   "Pendable request for system service"),
+         new InterruptEntry("SysTick",     -1,   null,   "System Tick Timer"),
    };
 
    /*

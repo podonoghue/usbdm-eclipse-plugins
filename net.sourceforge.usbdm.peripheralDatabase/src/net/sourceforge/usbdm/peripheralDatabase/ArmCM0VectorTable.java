@@ -12,12 +12,12 @@ public class ArmCM0VectorTable extends ArmVectorTable {
    }
 
    InterruptEntry defaultVectorTableEntries[] = {
-         new InterruptEntry("Reset",             -15,   null,           "Reset Vector, invoked on Power up and warm reset"),
-         new InterruptEntry("NonMaskableInt",    -14,   "NMI_Handler",  "Non maskable Interrupt, cannot be stopped or preempted"),
-         new InterruptEntry("HardFault",         -13,   null,           "Hard Fault, all classes of Fault"),
-         new InterruptEntry("SVCall",             -5,   "SVC_Handler",  "System Service Call via SVC instruction"),
-         new InterruptEntry("PendSV",             -2,   null,           "Pendable request for system service"),
-         new InterruptEntry("SysTick",            -1,   null,           "System Tick Timer"),
+         new InterruptEntry("Reset",      -15,   null,   "Reset Vector, invoked on Power up and warm reset"),
+         new InterruptEntry("NMI",        -14,   null,   "Non maskable Interrupt, cannot be stopped or preempted"),
+         new InterruptEntry("HardFault",  -13,   null,   "Hard Fault, all classes of Fault"),
+         new InterruptEntry("SVC",         -5,   null,   "System Service Call via SVC instruction"),
+         new InterruptEntry("PendSV",      -2,   null,   "Pendable request for system service"),
+         new InterruptEntry("SysTick",     -1,   null,   "System Tick Timer"),
    };
 
    /*

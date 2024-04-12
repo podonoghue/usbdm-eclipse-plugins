@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -16,7 +18,8 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class ClockValidator_MCG_Lite extends IndexedValidator {
 
-   Variable       osc0_oscillatorRangeVar   = null;
+   private Variable        osc0_oscillatorRangeVar   = null;
+   private BooleanVariable allowUserClockTrimVar     = null;
 
    public ClockValidator_MCG_Lite(PeripheralWithState peripheral, Integer dimension) {
       super(peripheral, dimension);
@@ -28,16 +31,31 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
     */
    @Override
    protected void validate(Variable variable, int properties, int index) throws Exception {
-//      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
+      //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
+      if ((allowUserClockTrimVar != null)&&(variable == allowUserClockTrimVar)) {
+         Boolean allowUserClockTrim = allowUserClockTrimVar.getValueAsBoolean();
+
+         LongVariable system_slow_irc_clockVar = getLongVariable("system_slow_irc_clock[]");
+         LongVariable system_fast_irc_clockVar = getLongVariable("system_fast_irc_clock[]");
+         
+         system_slow_irc_clockVar.setLocked(!allowUserClockTrim);
+         system_fast_irc_clockVar.setLocked(!allowUserClockTrim);
+         if (!allowUserClockTrim) {
+            system_slow_irc_clockVar.setValue(system_slow_irc_clockVar.getDefault());
+            system_fast_irc_clockVar.setValue(system_fast_irc_clockVar.getDefault());
+         }
+         return;
+      }
+      
       // Check configuration name is valid C identifier
       StringVariable clockConfig = getStringVariable("ClockConfig[]");
-      clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum name");
+      clockConfig.setStatus(isValidCIdentifier(clockConfig.getValueAsString())?(String)null:"Illegal C enum value");
 
       // Enable whole category from clock enable variable
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[]");
       clockConfig.enable(enableClockConfigurationVar.getValueAsBoolean());
-
+      
       // C1
       //=================================
       Variable mcg_c1_clksVar            = getVariable("mcg_c1_clks[]");
@@ -143,7 +161,10 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
 
       osc0_peripheralName        = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
       osc0_oscillatorRangeVar    = safeGetVariable(osc0_peripheralName+"/oscillatorRange");
-      final String watchedVariables0[] = {
+      final String watchedVariables[] = {
+            "allowUserClockTrim",
+            "system_slow_irc_clock[]",
+            "system_fast_irc_clock[]",
             "ClockConfig[]",
             "mcgClockMode[]",
             osc0_peripheralName+"/oscillatorRange",
@@ -151,12 +172,14 @@ public class ClockValidator_MCG_Lite extends IndexedValidator {
             "mcg_mc_hirclpen[]",
             "/SMC/smc_pmctrl_runm[]",
       };
-      addSpecificWatchedVariables(watchedVariables0);
-
+      addSpecificWatchedVariables(watchedVariables);
+      
       // Hide from user
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
       enableClockConfigurationVar.setHidden(true);
       
+      allowUserClockTrimVar = safeGetBooleanVariable("allowUserClockTrim");
+
       // Don't add default dependencies
       return false;
    }

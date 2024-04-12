@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
        * Note: handlerName is a transient property and not written to SVD
        */
       public InterruptEntry(String name, int number, String handlerName, String description) {
-         this.fIndex      = number;
+         this.fIndex       = number;
          this.fName        = name;
          this.fHandlerName = handlerName;
          this.fDescription = description;
