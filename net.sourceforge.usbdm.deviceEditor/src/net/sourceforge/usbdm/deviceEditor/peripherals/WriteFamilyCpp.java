@@ -48,19 +48,23 @@ public class WriteFamilyCpp {
 //   private final static String HARDWARE_BASEFILENAME = "hardware";
 
    /** Key for include files needed in hardware.h **/
-   private final static String HARDWARE_FILE_INCLUDES_FILE_KEY = "/HARDWARE_H/IncludeFiles";
+   private final static String HARDWARE_H_INCLUDES_FILE_KEY = "/HARDWARE_H/IncludeFiles";
    
    /** Key for user object declarations needed in hardware.h **/
-   private final static String HARDWARE_FILE_DECLARATIONS_KEY = "/HARDWARE_H/Declarations";
+   private final static String HARDWARE_H_DECLARATIONS_KEY = "/HARDWARE_H/Declarations";
    
    /** Key for user object definitions needed in hardware.cpp **/
-   private final static String HARDWARE_FILE_DEFINITIONS_KEY = "/HARDWARE_CPP/Definitions";
+   private final static String HARDWARE_CPP_DEFINITIONS_KEY = "/HARDWARE_CPP/Definitions";
 
    /** Key for user object definitions needed in hardware.cpp **/
-   private final static String HARDWARE_FILE_PORT_INIT_KEY = "/HARDWARE_CPP/PortInitialisations";
+   private final static String HARDWARE_CPP_PORT_INIT_KEY = "/HARDWARE_CPP/PortInitialisations";
    
    /** Key for user object definitions needed in hardware.cpp **/
-   private final static String HARDWARE_FILE_PORT_INIT_ERRORS_KEY = "/HARDWARE_CPP/PortInitialisationsErrors";
+   private final static String HARDWARE_CPP_PORT_INIT_ERRORS_KEY = "/HARDWARE_CPP/PortInitialisationsErrors";
+   
+   /** Key for user object declarations needed in <peripheral>.h **/
+   private final static String PERIPHERAL_H_DECLARATIONS_KEY = "peripheral_h_definition";
+   
    /*
     * Macros
     * ==========================================================================
@@ -94,27 +98,74 @@ public class WriteFamilyCpp {
     *  class Adc0Info {
     *   ...
     *  };
-    *  class Adc1Info {
-    *   ...
-    *  };
     * </pre>
     * 
-    * @param writer
-    *           Where to write
+    * @param writer        Where to write by default (pin_mapping.h)
+    * @param mainGroup     Group handling for default output
+    * @param peripheral    Peripheral to process
     * 
     * @throws IOException
     */
-   private void writePeripheralInformationClass(DocumentUtilities writer, DocumentationGroups groups, Peripheral peripheral) throws IOException {
+   private void writePeripheralInformation(DocumentUtilities writer, DocumentationGroups mainGroup, Peripheral peripheral) throws IOException {
+
+      WriterInformation writerInformation = null;
+      boolean writeToPeriperalHeader = peripheral.generateDefinitionsInHeaderFile();
+      
+      String key = "/"+peripheral.getBaseName()+"/"+PERIPHERAL_H_DECLARATIONS_KEY;
+
       try {
-         groups.openGroup(peripheral);
-         peripheral.writeInfoClass(writer);
-      } catch (Exception e) {
+         if (writeToPeriperalHeader) {
+            // Writing to alternative header file
+            StringBuilder     sb                = new StringBuilder();
+            DocumentUtilities headerWriter      = new DocumentUtilities(sb);
+            writerInformation = new WriterInformation(headerWriter, null);
+            writerInformation.openGroup(peripheral);
+            peripheral.writeInfoClass(writerInformation);
+            writerInformation.closeGroup();
+            writerInformation.writer.flush();
+            
+            // Create or replace variable containing template
+            fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", key, sb.toString(), true);
+         }
+         else {
+            // Remove possible variable containing template
+            fDeviceInfo.removeVariableIfExists(key);
+            writerInformation = new WriterInformation(writer, mainGroup);
+            writerInformation.openGroup(peripheral);
+            peripheral.writeInfoClass(writerInformation);
+            writerInformation.writer.flush();
+         }
+      } catch (IOException e) {
          System.err.println("Failed to write Info for peripheral " + peripheral);
          e.printStackTrace();
       }
-      writer.flush();
    }
 
+   public static class WriterInformation {
+      
+      public final DocumentUtilities    writer;
+      public final DocumentationGroups  groups;
+      
+      public WriterInformation(
+            DocumentUtilities    writer,
+            DocumentationGroups  groups) {
+            this.writer = writer ;
+            this.groups = groups ;
+         }
+      
+      public void openGroup(Peripheral peripheral) throws IOException {
+         if (groups != null) {
+            groups.openGroup(peripheral);
+         }
+      }
+      
+      public void closeGroup() throws IOException {
+         if (groups != null) {
+            groups.closeGroup();
+         }
+      }
+   };
+   
    /**
     * Write all Peripheral Information Classes<br>
     * 
@@ -127,12 +178,12 @@ public class WriteFamilyCpp {
     *  };
     * </pre>
     * 
-    * @param writer
-    *           Where to write
+    * @param writer     Where to write
     * 
     * @throws IOException
     */
    private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
+      
       writer.writeOpenUsbdmNamespace();
 
       writer.openUsbdmDocumentationGroup();
@@ -142,8 +193,6 @@ public class WriteFamilyCpp {
       fDeviceInfo.writeNamespaceInfo(writer);
 
       writer.writeBanner("Peripheral Information Classes");
-
-      DocumentationGroups groups = new DocumentationGroups(writer);
 
       Collection<Peripheral> allperipherals = fDeviceInfo.getPeripherals().values();
       
@@ -176,10 +225,12 @@ public class WriteFamilyCpp {
       priorityClasses.add(Pattern.compile("ICS.*"));
       priorityClasses.add(Pattern.compile("SIM"));
       
+      DocumentationGroups documentationGroup = new DocumentationGroups(writer);
+      
       for (Pattern pattern : priorityClasses) {
          for (Peripheral peripheral : allperipherals) {
             if (pattern.matcher(peripheral.getName()).matches()) {
-               writePeripheralInformationClass(writer, groups, peripheral);
+               writePeripheralInformation(writer, documentationGroup, peripheral);
             }
          }
       }
@@ -192,67 +243,15 @@ public class WriteFamilyCpp {
             }
          }
          if (!excluded) {
-            writePeripheralInformationClass(writer, groups, peripheral);
+            writePeripheralInformation(writer, documentationGroup, peripheral);
          }
       }
-      groups.closeGroup();
+      documentationGroup.closeGroup();
       writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.write("\n");
       writer.flush();
    }
-
-   /**
-    * Get declarations for simple peripheral signals (e.g. GPIO,ADC,PWM) that
-    * are mapped to pins e.g.
-    * 
-    * <pre>
-    *    using adc_p53              = const USBDM::Adc1&lt;4&gt;;
-    *    using adc_p54              = const USBDM::Adc1&lt;5&gt;;
-    * </pre>
-    * 
-    * @param peripheral
-    *           Peripheral information
-    * @param mappedSignal
-    *           Information about the mapped signal being declared
-    * @param fnIndex
-    *           Index into list of multiple functions mapped to pin
-    * 
-    * @throws IOException
-    */
-//   private String getSignalDeclaration(Peripheral peripheral, MappingInfo mappedSignal, int fnIndex) throws IOException {
-//      StringBuffer sb = null;
-//
-//      if (!mappedSignal.isSelected()) {// &&
-//                                       // (mappedFunction.getMux()!=MuxSelection.mux1))
-//                                       // {
-//         return null;
-//      }
-//      String definition = peripheral.getDefinition(mappedSignal, fnIndex);
-//      if (definition == null) {
-//         return null;
-//      }
-//      if (mappedSignal.getPin().isAvailableInPackage()) {
-//         String aliasName = peripheral.getCodeIdentifier(mappedSignal);
-//         if (aliasName != null) {
-//            String declaration = peripheral.getAliasDeclaration(aliasName, mappedSignal, fnIndex);
-//            if (declaration != null) {
-//               if (sb == null) {
-//                  sb = new StringBuffer();
-//               }
-//               if (!recordAlias(aliasName)) {
-//                  // Comment out repeated aliases
-//                  sb.append("//");
-//               }
-//               sb.append(declaration);
-//            }
-//         }
-//      }
-//      if (sb == null) {
-//         return null;
-//      }
-//      return sb.toString();
-//   }
 
    private class DocumentationGroups {
       DocumentUtilities fWriter;
@@ -325,7 +324,7 @@ public class WriteFamilyCpp {
       // Save #include files for any user objects needed by peripherals in hardware.h
       if (hardwareDeclarationInfo.hardwareIncludeFiles.isEmpty()) {
          // None - delete variable
-         fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_INCLUDES_FILE_KEY);
+         fDeviceInfo.removeVariableIfExists(HARDWARE_H_INCLUDES_FILE_KEY);
       }
       else {
          // Append found #includes
@@ -335,27 +334,27 @@ public class WriteFamilyCpp {
             sb.append("" + i.next() + "\n");
          }
          // Create or replace variable
-         fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", HARDWARE_FILE_INCLUDES_FILE_KEY, sb.toString(), true);
+         fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", HARDWARE_H_INCLUDES_FILE_KEY, sb.toString(), true);
       }
 
       // Save declarations for any user objects needed by peripherals in hardware.h
       if (hardwareDeclarationInfo.hardwareDeclarations.toString().isBlank()) {
          // None - delete variable
-         fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DECLARATIONS_KEY);
+         fDeviceInfo.removeVariableIfExists(HARDWARE_H_DECLARATIONS_KEY);
       }
       else {
          // Create or replace variable
-         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DECLARATIONS_KEY, hardwareDeclarationInfo.hardwareDeclarations.toString(), true);
+         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_H_DECLARATIONS_KEY, hardwareDeclarationInfo.hardwareDeclarations.toString(), true);
       }
       
       // Save actual definitions for any user objects needed by peripherals in hardware.cpp
       if (hardwareDeclarationInfo.hardwareDefinitions.toString().isBlank()) {
          // None - delete variable
-         fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DEFINITIONS_KEY);
+         fDeviceInfo.removeVariableIfExists(HARDWARE_CPP_DEFINITIONS_KEY);
       }
       else {
          // Create or replace variable
-         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDeclarationInfo.hardwareDefinitions.toString(), true);
+         fDeviceInfo.addOrUpdateStringVariable("Definitions", HARDWARE_CPP_DEFINITIONS_KEY, hardwareDeclarationInfo.hardwareDefinitions.toString(), true);
       }
    }
 
@@ -395,10 +394,10 @@ public class WriteFamilyCpp {
       sb.append("   }\n");
       
       // Create or replace variable describing init. sequence
-      fDeviceInfo.addOrUpdateStringVariable("Port Initialisation", HARDWARE_FILE_PORT_INIT_KEY, sb.toString(), true);
+      fDeviceInfo.addOrUpdateStringVariable("Port Initialisation", HARDWARE_CPP_PORT_INIT_KEY, sb.toString(), true);
 
       // Create or replace error messages as needed
-      fDeviceInfo.addOrUpdateStringVariable("Port Initialisation Errors", HARDWARE_FILE_PORT_INIT_ERRORS_KEY, pcrInitialiser.getErrorMessages(), true);
+      fDeviceInfo.addOrUpdateStringVariable("Port Initialisation Errors", HARDWARE_CPP_PORT_INIT_ERRORS_KEY, pcrInitialiser.getErrorMessages(), true);
    }
 
    private final String DOCUMENTATION_OPEN = "///\n" + "/// @page PinSummary Pin Mapping\n";

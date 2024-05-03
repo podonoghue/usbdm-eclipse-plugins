@@ -202,7 +202,7 @@ public class CreateDeviceSkeletonFromSVD {
     */
    static abstract class VisitRegisters {
 
-      static String stripRegisteName(String name) {
+      static String stripRegisterName(String name) {
          name = name.replaceAll("^([^,]*).*", "$1");
          name = name.replace("%s", "");
          return name;
@@ -237,14 +237,15 @@ public class CreateDeviceSkeletonFromSVD {
 
          if (cluster instanceof Register) {
             Register reg = (Register)cluster;
-            visitor(reg, context+stripRegisteName(cluster.getName()));
+            visitor(reg, context);
+//            visitor(reg, context+stripRegisterName(cluster.getName()));
          }
          else {
             if (cluster.getDimension()>0) {
-               context = context+stripRegisteName(cluster.getName())+"[index].";
+               context = context+stripRegisterName(cluster.getName())+"[%%paramName0].";
             }
             else {
-               context = context+stripRegisteName(cluster.getName())+".";
+               context = context+stripRegisterName(cluster.getName())+".";
             }
             for (Cluster cl:cluster.getRegisters()) {
                getRegisterNames_Cluster(cl, context);
@@ -333,11 +334,11 @@ public class CreateDeviceSkeletonFromSVD {
             continue;
          }
          
-         String hidden = "";
+         String hiddenAndDerived = "";
          boolean readOnlyField = readOnlyRegister || (field.getAccessType() == AccessType.ReadOnly);
          
          if (readOnlyField) {
-            hidden = "\n      hidden=\"true\"";
+            hiddenAndDerived = "\n      hidden=\"true\""+"\n      derived=\"true\"";
          }
          String condition = "condition=\""+fieldName+"_present\"";
          String enabledBy = "\n      enabledBy=\"enablePeripheralSupport\"";
@@ -382,7 +383,7 @@ public class CreateDeviceSkeletonFromSVD {
             // Assume intOption
             resultSb.append("\n   <intOption key=\"" + fieldName + "\" " + condition);
             resultSb.append(enabledBy);
-            resultSb.append(hidden);
+            resultSb.append(hiddenAndDerived);
             resultSb.append(registerAttr);
             if (readOnlyField) {
                // Read-only so just return an integer
@@ -412,7 +413,7 @@ public class CreateDeviceSkeletonFromSVD {
             }
             resultSb.append("\n   <"+typeName+" key=\"" + fieldName + "\" " + condition);
             resultSb.append(enabledBy);
-            resultSb.append(hidden);
+            resultSb.append(hiddenAndDerived);
             resultSb.append(registerAttr);
             resultSb.append("\n      typeName=\"" +  enumName +"\"\n");
             resultSb.append("      baseType=\""+ getRegisterCType((reg.getWidth()+7)/8) + "\"\n");
@@ -520,7 +521,7 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t/**\n" +
           "         \\t * Clear %description\n" +
           "         \\t * (%(field))\n" +
-          "         \\t * \n" +
+          "         \\t *\n" +
           "         \\t * %tooltip\n" +
           "         \\t */\n" +
           "         \\tstatic void clear%(name)() {\n" +
@@ -530,43 +531,47 @@ public class CreateDeviceSkeletonFromSVD {
           "      ]]></variableTemplate>\n";
       
       final String indexedVariableTemplate =
-            "      <variableTemplate variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n" +
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\" nonDefaultParams=\"2\"\n" +
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
-            "         \\t * Set %description\n" +
+            "         \\t * Set %description1\n" +
             "         \\t * (%(field))\n" +
             "         \\t *\n" +
             "         %paramDescription\n" +
             "         \\t */\n" +
-            "         \\tstatic void set%(name)(int index, %params) {\n" +
-            "         \\t   $(_basename)->%(context) = ($(_basename)->%(context) & ~%mask)|%paramExpression;\n" +
+            "         \\tstatic void set%(name)(%params) {\n" +
+            "         \\t   %fieldAssignment1;\n" +
             "         \\t}\n" +
             "         \\t\\n\n" +
             "      ]]></variableTemplate>\n"+
-            "      <variableTemplate variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\"\n" +
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
-            "         \\t * Get %description\n" +
+            "         \\t * Get %description1\n" +
             "         \\t * (%(field))\n" +
             "         \\t *\n" +
-            "         \\t * @return %tooltip\n" +
+            "         %paramDescription0\n" +
+            "         \\t *\n" +
+            "         \\t * @return %tooltip1\n" +
             "         \\t */\n" +
-            "         \\tstatic %paramType get%(name)(int index) {\n" +
-            "         \\t   return %paramType($(_basename)->%(context)&%mask);\n" +
+            "         \\tstatic %paramType1 get%(name)(%param0) {\n" +
+            "         \\t   return %fieldExtract1;\n" +
             "         \\t}\n" +
             "         \\t\\n\n" +
             "      ]]></variableTemplate>\n"+
-            "      <variableTemplate variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
+            "      <variableTemplate variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
             "         tooltipPadding=\"x*x\"" +
             "      ><![CDATA[\n" +
             "         \\t/**\n" +
-            "         \\t * Clear %description\n" +
+            "         \\t * Clear %description1\n" +
             "         \\t * (%(field))\n" +
-            "         \\t * \n" +
+            "         \\t *\n" +
             "         \\t * %tooltip\n" +
+            "         \\t *\n" +
+            "         %paramDescription0\n" +
             "         \\t */\n" +
-            "         \\tstatic void clear%(name)(int index) {\n" +
-            "         \\t   $(_basename)->%(context) = $(_basename)->%(context)|%mask;\n" +
+            "         \\tstatic void clear%(name)(%param0) {\n" +
+            "         \\t   %register1 = %register1|%mask1;\n" +
             "         \\t}\n" +
             "         \\t\\n\n" +
             "      ]]></variableTemplate>\n";
@@ -579,12 +584,13 @@ public class CreateDeviceSkeletonFromSVD {
          @Override
          void visitor(Register register, String context) {
             
-            if ((register.getDimension()>0)||(context.contains("[index]"))) {
+            if ((register.getDimension()>0)||(context.contains("[%%paramName0]"))) {
                return;
             }
+            context = context+stripRegisterName(register.getName());
             boolean newRegister = true;
             System.err.println("Context = '"+context+"'");
-            String regName = stripRegisteName(register.getName());
+            String regName = stripRegisterName(register.getName());
             for (Field field:register.getFields()) {
                if (!firstField) {
                   resultSb.append(";\n");
@@ -620,19 +626,27 @@ public class CreateDeviceSkeletonFromSVD {
          @Override
          void visitor(Register register, String context) {
 
-            if ((register.getDimension()==0)&&(!context.contains("[index]"))) {
+            if ((register.getDimension()==0)&&(!context.contains("[%%paramName0]"))) {
                return;
             }
-            resultSb.append("\n");
             if (register.getDimension()>0) {
-               context = context+"[index]";
+               // Assume this is the actual register
+               context = context+"%s[%%paramName0]";
             }
-            String regName = stripRegisteName(register.getName());
+            else {
+               context = context+"%s";
+            }
+            String regName = stripRegisterName(register.getName());
+            if (!firstField) {
+               resultSb.append(";\n\n");
+               firstField = true;
+            }
             for (Field field:register.getFields()) {
                if (!firstField) {
                   resultSb.append(";\n");
                }
-               String fieldName  = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               String prefix = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_";
+               String fieldName  = prefix+"index,"+prefix+field.getName().toLowerCase()+"[]";
                String methodName = regName.toLowerCase()+"_"+field.getName().toLowerCase();
                String get   = "true";
                String set   = "true";
@@ -641,7 +655,7 @@ public class CreateDeviceSkeletonFromSVD {
                   set = "false";
                }
                firstField = false;
-               resultSb.append(String.format("         %-30s : %-5s : %-5s : %-5s : enableGettersAndSetters : %-20s : %s",
+               resultSb.append(String.format("         %-36s : %-5s : %-5s : %-5s : enableGettersAndSetters : %-25s : %s",
                      fieldName, set, get, clear, context, prettyName(methodName)));
             }
          }
@@ -663,10 +677,25 @@ public class CreateDeviceSkeletonFromSVD {
       }
       createIndexedFieldList.visit();
       String indexedResult = createIndexedFieldList.getResultAsString();
+      String preIndexedVariableTemplate = ""
+            + "   <choiceOption key=\"xxx_yyy_num\"\n"
+            + "      valueFormat=\"%s\"\n"
+            + "      hidden=\"true\"\n"
+            + "      derived=\"true\"\n"
+            + "      typeName=\"XXXPortNum\"\n"
+            + "      baseType=\"uint32_t\"\n"
+            + "      toolTip=\"Selects a XXXX\"\n"
+            + "      description=\"XXX Number\" >\n"
+            + "      <choiceExpansion  keys=\"index\" dim=\"=ZZZ\"\n"
+            + "         name=\"Slave Port %(index)\" value=\"%(index)\" enum=\"%(index)\" />\n"
+            + "   </choiceOption>\n"
+            + "\n"
+            + "";
       if (!indexedResult.isBlank()) {
+         resultSb.append(preIndexedVariableTemplate);
          resultSb.append(
                "\n" +
-               "   <for keys=\"field                     : set   : get   : clear : genCode                 : context                 : name\"\n" +
+               "   <for keys=\"field                     : set   : get   : clear : genCode                 : context              : name\"\n" +
                "        values=\"\n" + indexedResult + "\" >\n");
          resultSb.append(indexedVariableTemplate);
          resultSb.append("   </for>\n");
@@ -849,6 +878,7 @@ public class CreateDeviceSkeletonFromSVD {
             if (register.getAccessType() == AccessType.ReadOnly) {
                return;
             }
+            context = context+stripRegisterName(register.getName());
             String regName = register.getName().replace("%s", "");
             StringBuilder sb = new StringBuilder();
             int lineLength=0;
@@ -943,9 +973,9 @@ public class CreateDeviceSkeletonFromSVD {
             + "      %paramDescription\n"
             + "      \\t    */\n"
             + "      \\t   template <typename... Types>\n"
- /* T C */  + "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n"
+            + "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n"
             + "      \\t\n"
- /* C C */  + "      \\t      this->%paramName = %paramExpression;\n"
+            + "      \\t      this->%paramName = %paramExpression;\n"
             + "      \\t   }\\n\\n\n"
             + "   ]]></variableTemplate>\n";
       
@@ -984,7 +1014,7 @@ public class CreateDeviceSkeletonFromSVD {
           + "\n"
           + "   <for keys=\"r\"\n"
           + "      values=\"/PCR/nvic_irqLevel;"
-          + "%s;\n"
+          + "%s\n"
           + "            \" >\n"
           + "      <variableTemplate where=\"basicInfo\" codeGenCondition=\"/$(_STRUCTNAME)/generateSharedInfo\"\n"
           + "         variables=\"%%(r)\"\n"
@@ -1022,6 +1052,7 @@ public class CreateDeviceSkeletonFromSVD {
             if (reg.getAccessType() == AccessType.ReadOnly) {
                return;
             }
+            context = context+stripRegisterName(reg.getName());
             boolean firstInRegister = true;
             int lineLength=0;
             String regName = reg.getName().replace("%s", "");
@@ -1123,6 +1154,7 @@ public class CreateDeviceSkeletonFromSVD {
             if (register.getAccessType() == AccessType.ReadOnly) {
                return;
             }
+            context = context+stripRegisterName(register.getName());
             String regName = register.getName().replace("%s", "");
             StringBuilder sb = new StringBuilder();
             int lineLength=0;
@@ -1227,6 +1259,7 @@ public class CreateDeviceSkeletonFromSVD {
             if (reg.getAccessType() == AccessType.ReadOnly) {
                return;
             }
+            context = context+stripRegisterName(reg.getName());
             boolean firstInRegister = true;
             int lineLength=0;
             String regName = reg.getName().replace("%s", "");
@@ -1450,7 +1483,8 @@ public class CreateDeviceSkeletonFromSVD {
 //         "LPTMR",
 //         "LPUART",
 //         "LLWU",
-//         "MCM",
+//       "MCM",
+       "MPU",
 //         "OSC",
 //         "PDB",
 //         "PIT",
@@ -1468,7 +1502,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SPI",
 //         "SIM",
 //         "TSI",
-         "TRNG",
+//         "TRNG",
 //         "UART",
 //         "VREF",
 //         "USB",
@@ -1536,8 +1570,9 @@ public class CreateDeviceSkeletonFromSVD {
 //            if ((register.getDimension()>0)||(context.contains("[index]"))) {
 //               return;
 //            }
+            context = context+stripRegisterName(register.getName());
             System.err.println("Context = '"+context+"'");
-            String regName = stripRegisteName(register.getName());
+            String regName = stripRegisterName(register.getName());
             for (Field field:register.getFields()) {
                if (!firstField) {
                   resultSb.append("\n");
@@ -1569,10 +1604,11 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
 //    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
+    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
 //      doAllPeripherals("FRDM_K82F", "mk");
-    doAllPeripherals("FRDM_KW41Z", "mkw");
+//    doAllPeripherals("FRDM_KW41Z", "mkw");
    }
 
 }

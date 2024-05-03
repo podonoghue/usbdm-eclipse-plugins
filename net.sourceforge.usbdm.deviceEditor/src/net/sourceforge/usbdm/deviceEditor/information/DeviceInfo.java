@@ -78,6 +78,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcm;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMpu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOscRf;
@@ -1451,7 +1452,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "$1", "$2", "$3",
                "(MPU)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForMpu.class);
          createPeripheralTemplateInformation(
                "$1", "$3", "$4",
                "(FTF(A|C|E|L))(\\d)?(.*)",

@@ -6,16 +6,16 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of MCM
+ * Class encapsulating the code for writing an instance of MPU
  */
-public class WriterForMcm extends PeripheralWithState {
+public class WriterForMpu extends PeripheralWithState {
 
-   public WriterForMcm(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
+   public WriterForMpu(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 
    @Override
    public String getTitle() {
-      return "Miscellaneous Control Module";
+      return "Memory Protection Unit";
    }
 }

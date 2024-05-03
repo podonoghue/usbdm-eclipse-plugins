@@ -29,11 +29,6 @@ public class WriterForRadio extends PeripheralWithState {
    }
 
    @Override
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoClass(pinMappingHeaderFile);
-   }
-
-   @Override
    public String getGroupName() {
       return "Radio_Group";
    }

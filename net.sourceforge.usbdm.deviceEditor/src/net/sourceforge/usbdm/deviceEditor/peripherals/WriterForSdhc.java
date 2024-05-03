@@ -9,12 +9,18 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of RTC
+ * Class encapsulating the code for writing an instance of SDHC
  */
 public class WriterForSdhc extends PeripheralWithState {
 
    public WriterForSdhc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Can (usually do) create instances of this class
+      fCanCreateInstance = true;
+      
+      // Can create type declarations for signals belonging to this peripheral
+      fcanCreateSignalType = true;
    }
 
    @Override

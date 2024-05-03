@@ -165,7 +165,25 @@ public class BitmaskVariable extends LongVariable {
       }
    }
 
-   public void init(long permittedBits, String bitNames, String bitDescriptions) throws Exception {
+   /**
+    * Initialise bit information from another instance of BitmaskVariable
+    * 
+    * @param other   Variable to initialise from
+    */
+   public void init(BitmaskVariable other) {
+      fRawPermittedBits    = other.fRawPermittedBits;
+      fRawBitNames         = other.fRawBitNames;
+      fRawBitDescriptions  = other.fRawBitDescriptions;
+   }
+
+   /**
+    * Initialise bit information
+    * 
+    * @param permittedBits    Bit mask of permitted bits
+    * @param bitNames         Names of bits
+    * @param bitDescriptions  Description of bits
+    */
+   public void init(long permittedBits, String bitNames, String bitDescriptions) {
       fRawPermittedBits    = permittedBits;
       fRawBitNames         = bitNames;
       fRawBitDescriptions  = bitDescriptions;
@@ -220,7 +238,7 @@ public class BitmaskVariable extends LongVariable {
          // Case 3 - Bitmask=0, Names must be provided with skipped bits
          // Determine bitmask and indices from bit-names
          if (tBitnames == null) {
-            throw new Exception("Either a bitList or bitNames must be provides");
+            throw new Exception("BitmaskVariable: Either a bitList or bitNames must be provided");
          }
 
          ArrayList<Integer> bitMappingList     = new ArrayList<Integer>();
@@ -396,11 +414,18 @@ public class BitmaskVariable extends LongVariable {
    @Override
    public String formatValueForRegister(String paramName) {
       
+      String value;
       if (getTypeName() != null) {
          // Pretend it's an enum
-         return paramName;
+         value = paramName;
       }
-      return super.formatValueForRegister(paramName);
+      else {
+         value = super.formatValueForRegister(paramName);
+      }
+      if (useEnumClass()) {
+         value = "uint32_t("+value+")";
+      }
+      return value;
    }
 
    @Override
@@ -424,5 +449,49 @@ public class BitmaskVariable extends LongVariable {
       }
       return value;
    }
+
+   @Override
+   public String fieldExtractFromRegister(String registerValue) {
+//    boolean foundIt = getName().contains("adc_cv_cv");
+//    if (foundIt) {
+//       System.err.print("Found it " + getName());
+//    }
+    String valueFormat = getValueFormat();
+    String returnType  = getReturnType();
+    boolean hasOuterBrackets = false;
+    if ((valueFormat != null) && !valueFormat.matches("^\\(?%s\\)?$")) {
+       String parts[] = valueFormat.split(",");
+       StringBuilder sb = new StringBuilder();
+       boolean needsBrackets = false;
+       for(String format:parts) {
+          Pattern p = Pattern.compile("^([a-zA-Z0-9_]*)\\(?\\%s\\)?");
+          Matcher m = p.matcher(format);
+          if (!m.matches()) {
+             return "Illegal use of formatParam - unexpected pattern '"+valueFormat+"'";
+          }
+          String macro = m.group(1);
+          if (!sb.isEmpty()) {
+             sb.append("|");
+             needsBrackets = true;
+          }
+          sb.append(String.format("((%s&%s_MASK))",registerValue, macro, macro));
+       }
+       registerValue = sb.toString();
+       if (needsBrackets) {
+          registerValue = "("+registerValue+")";
+       }
+       hasOuterBrackets = true;
+    }
+    if (returnType != null) {
+       if (!hasOuterBrackets) {
+          registerValue = "("+registerValue+")";
+       }
+       registerValue = String.format("%s%s", returnType, registerValue);
+    }
+//    if (foundIt) {
+//       System.err.println(" => " + registerValue);
+//    }
+    return registerValue;
+ }
 
 }

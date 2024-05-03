@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.WriterInformation;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -26,9 +27,9 @@ public class WriterForNull extends Peripheral {
 
       System.err.println("NULL peripheral - " + getName());
    }
-
+   
    @Override
-   public void writeInfoClass(DocumentUtilities writer) throws IOException {
+   public void writeInfoClass(WriterInformation writerInformation) throws IOException {
    }
 
    @Override

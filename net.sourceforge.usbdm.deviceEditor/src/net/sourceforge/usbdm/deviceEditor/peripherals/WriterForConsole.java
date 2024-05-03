@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.WriterInformation;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -22,7 +23,7 @@ public class WriterForConsole extends PeripheralWithState {
    }
    
    @Override
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoConstants(pinMappingHeaderFile);
+   public void writeInfoClass(WriterInformation writerInformation) throws IOException {
+      super.writeInfoConstants(writerInformation.writer);
    }
 }

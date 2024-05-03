@@ -30,11 +30,6 @@ public class WriterForShared extends PeripheralWithState {
    }
 
    @Override
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoClass(pinMappingHeaderFile);
-   }
-
-   @Override
    public String getGroupName() {
       return getBaseName().toUpperCase()+"_Group";
    }

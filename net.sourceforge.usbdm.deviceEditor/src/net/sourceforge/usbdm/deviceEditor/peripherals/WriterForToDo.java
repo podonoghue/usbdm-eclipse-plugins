@@ -29,11 +29,6 @@ public class WriterForToDo extends Peripheral {
    }
 
    @Override
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoClass(pinMappingHeaderFile);
-   }
-
-   @Override
    public String getGroupName() {
       return getBaseName().toUpperCase()+"_TODO_Group";
    }

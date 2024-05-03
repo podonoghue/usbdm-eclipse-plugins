@@ -160,7 +160,7 @@ public class TemplateInformation {
             text = sb.toString();
          } catch (Exception e) {
             e.printStackTrace();
-            return "Content builder failed, reason: " + e.getMessage();
+            return "Content builder failed, reason: " + e.getMessage() + "\n";
          }
       }
       else {

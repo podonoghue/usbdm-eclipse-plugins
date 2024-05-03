@@ -8,6 +8,7 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.editor.ModifierEditorInterface;
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
@@ -28,6 +29,7 @@ import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.parsers.XmlDocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.WriterInformation;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -1299,6 +1301,17 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
    
    /**
+    * Check flag to generate this peripherals definitions in peripheral header file rather than in pin_mapping.h
+    * 
+    * @return  true => Generate in peripheral header file
+    */
+   public boolean generateDefinitionsInHeaderFile() {
+      
+      BooleanVariable bv = (BooleanVariable) safeGetVariable("definitionsInHeader");
+      return (bv != null) && bv.getValueAsBoolean();
+   }
+   
+   /**
     * Write Peripheral Information Class<br>
     * along with related classes and definitions
     * 
@@ -1310,21 +1323,18 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * </pre>
     * 
     * @param  deviceInformation
-    * @param  pinMappingHeaderFile Where to write
+    * @param  writerInformation Where to write
     * 
     * @throws IOException
     */
-   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-
-      // Macro indicating presence of peripheral
-//      pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED");
-
-      pinMappingHeaderFile.writeDocBanner(
+   public void writeInfoClass(WriterInformation writerInformation) throws IOException {
+      
+      writerInformation.writer.writeDocBanner(
             "Peripheral information for " + getGroupTitle() + ".\n\n" +
             "This may include pin information, constants, register addresses, and default register values,\n" +
             "along with simple accessor functions.");
 
-      writeNamespaceInfo(pinMappingHeaderFile);
+      writeNamespaceInfo(writerInformation.writer);
       
       String className = getClassName()+"Info";
       
@@ -1335,25 +1345,25 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          classDecl = classDeclaration.getValueAsString();
       }
       // Open class
-      pinMappingHeaderFile.write(String.format(
+      writerInformation.writer.write(String.format(
             "class %s {\n" +
             "public:\n",
                classDecl
             ));
       
       // Additional, peripheral specific, information
-      writeInfoConstants(pinMappingHeaderFile);
+      writeInfoConstants(writerInformation.writer);
       
-      writeClassTemplate(pinMappingHeaderFile);
+      writeClassTemplate(writerInformation.writer);
       
       // Write PCR Table
-      writeInfoTables(pinMappingHeaderFile);
+      writeInfoTables(writerInformation.writer);
       
       // Write extra tables
-      writeExtraInfo(pinMappingHeaderFile);
+      writeExtraInfo(writerInformation.writer);
       
       // Close class
-      pinMappingHeaderFile.write(String.format("}; // class %s\n\n", className));
+      writerInformation.writer.write(String.format("}; // class %s\n\n", className));
    }
 
    /**

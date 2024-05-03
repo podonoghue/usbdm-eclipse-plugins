@@ -88,6 +88,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
    private boolean fIsHidden;
 
+   private boolean fUseEnumClass;
+
 //   private String fDataValue;
 
    /** Target for clock selector */
@@ -1265,7 +1267,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @param valueFormat
     */
    public void setValueFormat(String valueFormat) {
-      fValueFormat = valueFormat;
+      fValueFormat = valueFormat.replaceAll("\\s+","");
    }
 
    /**
@@ -1681,8 +1683,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
             notifyListeners(info.properties);
          }
       } catch (Exception e) {
-         Exception t = new Exception("Failed to update from Expression '"+expression+"'", e);
-         t.printStackTrace();
+         System.err.println("Failed to update from Expression '"+expression+"'");
+         e.printStackTrace();
       }
    }
    
@@ -1954,6 +1956,24 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
          System.err.println("Warning, associated signal '"+fAssociatedSignalName+"' not found");
       }
       return signal;
+   }
+
+   /**
+    * Whether to use 'enum class' for enum
+    * 
+    * @return true to use enum class
+    */
+   public boolean useEnumClass() {
+      return fUseEnumClass;
+   }
+
+   /**
+    * Set whether to use 'enum class' for enum
+    * 
+    * @param useEnumClass true to use enum class
+    */
+   public void setUseEnumClass(boolean useEnumClass) {
+      fUseEnumClass = useEnumClass;
    }
 
 }
