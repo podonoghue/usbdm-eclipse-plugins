@@ -2389,8 +2389,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param value     Value for variable to add/create
     * @param isDerived Indicates whether the variable (if added) is derived (calculated) for user controlled
     */
-   public void addOrUpdateStringVariable(String name, String key, String value, boolean isDerived) {
-      fVariables.addOrUpdateVariable(fVariableProvider, name, key, value, isDerived);
+   public StringVariable addOrUpdateStringVariable(String name, String key, String value, boolean isDerived) {
+      return (StringVariable)fVariables.addOrUpdateVariable(fVariableProvider, name, key, value, isDerived);
    }
    
    /**

@@ -2045,6 +2045,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (fPeripheral != null) {
          text = text.replace("$(_CommonInfoGuard)", "/"+fPeripheral.getBaseName()+"/generateSharedInfo");
          text = text.replace("$(_CommonInfo)",      fPeripheral.getClassBaseName()+"CommonInfo");
+         text = text.replace("$(_InfoGuard)",       "enablePeripheralSupport");
          text = text.replace("$(_Info)",            fPeripheral.getClassName()+"Info");
          
          text = text.replace("$(_NAME)",         fPeripheral.getName());
@@ -2062,8 +2063,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (var != null) {
          text = text.replace("$(_Type)",           var.getValueAsString()+"_Type");
          
-         text = text.replace("$(_BasicInfoGuard)", "/"+var.getValueAsString()+"/generateSharedInfo");
-         text = text.replace("$(_BasicInfo)",      makePrettyName(var.getValueAsString())+"BasicInfo");
+         text = text.replace("$(_BasicInfoIrqGuard)", "/"+var.getValueAsString()+"/generateSharedIrqInfo");
+         text = text.replace("$(_BasicInfoGuard)",    "/"+var.getValueAsString()+"/generateSharedInfo");
+         text = text.replace("$(_BasicInfo)",         makePrettyName(var.getValueAsString())+"BasicInfo");
          
          text = text.replace("$(_Structname)",     makePrettyName(var.getValueAsString()));
          text = text.replace("$(_STRUCTNAME)",     var.getValueAsString());

@@ -29,6 +29,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 
 public class WriteFamilyCpp {
 
@@ -64,6 +65,8 @@ public class WriteFamilyCpp {
    
    /** Key for user object declarations needed in <peripheral>.h **/
    private final static String PERIPHERAL_H_DECLARATIONS_KEY = "peripheral_h_definition";
+   
+   HashMap<String, StringVariable> headerVariables = null;
    
    /*
     * Macros
@@ -109,12 +112,13 @@ public class WriteFamilyCpp {
    private void writePeripheralInformation(DocumentUtilities writer, DocumentationGroups mainGroup, Peripheral peripheral) throws IOException {
 
       WriterInformation writerInformation = null;
-      boolean writeToPeriperalHeader = peripheral.generateDefinitionsInHeaderFile();
+      boolean writeToPeripheralHeader = peripheral.generateDefinitionsInHeaderFile();
       
       String key = "/"+peripheral.getBaseName()+"/"+PERIPHERAL_H_DECLARATIONS_KEY;
 
       try {
-         if (writeToPeriperalHeader) {
+         if (writeToPeripheralHeader) {
+//            System.err.println("Writing to header '" + key + "'" );
             // Writing to alternative header file
             StringBuilder     sb                = new StringBuilder();
             DocumentUtilities headerWriter      = new DocumentUtilities(sb);
@@ -124,8 +128,18 @@ public class WriteFamilyCpp {
             writerInformation.closeGroup();
             writerInformation.writer.flush();
             
-            // Create or replace variable containing template
-            fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", key, sb.toString(), true);
+            if (headerVariables == null) {
+               headerVariables = new HashMap<String, StringVariable>();
+            }
+            StringVariable var = headerVariables.get(key);
+            if (var == null) {
+               // Create or replace variable containing template
+               var = fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", key, sb.toString(), true);
+               headerVariables.put(key, var);
+            }
+            else {
+               var.setValue(var.getValueAsString()+sb.toString());
+            }
          }
          else {
             // Remove possible variable containing template
@@ -682,6 +696,8 @@ public class WriteFamilyCpp {
 
       fDeviceInfo = deviceInfo;
       
+      headerVariables = null;
+      
       Path directory = Paths.get(project.getLocation().toPortableString());
       
       writePinMappingHeaderFile(directory.resolve(pinMappingFile));
@@ -699,5 +715,15 @@ public class WriteFamilyCpp {
          System.err.println("WARNING: Failed to set Derived on '" + pinMappingFile + "'");
       }
    }
-
+   
+   @Override
+   protected void finalize() {
+      if (headerVariables != null) {
+         for (String key:headerVariables.keySet()) {
+            fDeviceInfo.removeVariable(key);
+//            System.err.println("Removed " + key);
+         }
+      }
+      headerVariables = null;
+   }
 }
