@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import java.util.Arrays;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -10,27 +8,22 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformation;
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformationEntry;
 
 public class BitmaskDialogue extends Dialog {
    // Associated variable
    private final BitmaskVariable fVariable;
    
-   // Mask indicating valid bits (if non-zero)
-   private final long fBitmask;
-   
-   // Maps button to bit number
-   private final Integer[] fBitMapping;
-   
-   // List of names for the bits
-   private final String[] fBitNames;
-   
-   // List of names for the bits
-   private final String[] fDescriptions;
+   // Information for each bit
+   private final BitInformation fBitInformation;
    
    // Buttons within dialogue
    private final Button    fButtons[];
@@ -55,17 +48,14 @@ public class BitmaskDialogue extends Dialog {
       super(parentShell);
       fVariable = bitmaskVariable;
       
-      bitmaskVariable.calculateValues();
-      fBitmask       = bitmaskVariable.getPermittedBits();
-      fBitNames      = bitmaskVariable.getBitNames();
-      fDescriptions  = bitmaskVariable.getBitDescriptions();
-      fBitMapping    = bitmaskVariable.getBitMapping();
-
+      // Information describing each bit
+      fBitInformation = bitmaskVariable.getFinalBitInformation();
+      
       // Set value to permitted range
-      fValue = bitmaskVariable.getValueAsLong() & fBitmask;
+      fValue = bitmaskVariable.getValueAsLong() & fBitInformation.permittedBits;
 
       // Create buttons array
-      fButtons = new Button[fBitNames.length];
+      fButtons = new Button[fBitInformation.bits.length];
    }
 
    @Override
@@ -80,37 +70,56 @@ public class BitmaskDialogue extends Dialog {
       container.setToolTipText(fVariable.getToolTip());
       
       GridLayout gl  = (GridLayout) container.getLayout();
-      if (fDescriptions != null) {
+      if (fBitInformation.bits[0].description != null) {
          gl.numColumns  = 2;
       }
       else {
-         int width = fBitNames.length;
+         int width = fBitInformation.bits.length;
          if (width>8) {
             width = 8;
          }
          gl.numColumns  = width;
       }
 
-      if (fBitmask == 0) {
+      if (fBitInformation.permittedBits == 0) {
          Label lbl = new Label(container, SWT.CHECK);
          lbl.setText("No bits selectable");
       }
       else {
-         for (int nameIndex=0; nameIndex<fBitNames.length; nameIndex++) {
-            Button btn = new Button(container, SWT.CHECK);
-            if (fBitMapping[nameIndex]>=0) {
-               btn.setSelection((fValue & (1<<fBitMapping[nameIndex])) != 0);
-            }
-            else {
-               btn.setEnabled(false);
-            }
-            btn.setText(fBitNames[nameIndex]);
-            btn.setData(nameIndex);
+         for (int nameIndex=0; nameIndex<fBitInformation.bits.length; nameIndex++) {
+            boolean specialButton =
+                  (fBitInformation.bits[nameIndex].bitNum == BitmaskVariable.BIT_INDEX_ALL) ||
+                  (fBitInformation.bits[nameIndex].bitNum == BitmaskVariable.BIT_INDEX_NONE);
+
+            Button btn = new Button(container, specialButton?SWT.PUSH:SWT.CHECK);
+            BitInformationEntry bitInfo = fBitInformation.bits[nameIndex];
+            btn.setText(bitInfo.bitName+(specialButton?"":" ("+bitInfo.bitNum+")"));
+            btn.setData(bitInfo);
             btn.setToolTipText(fVariable.getToolTip());
+            btn.setEnabled(true);
             fButtons[nameIndex] = btn;
-            if (fDescriptions != null) {
+            if (fBitInformation.bits[nameIndex].description != null) {
                Text text = new Text(container, SWT.LEFT);
-               text.setText(fDescriptions[nameIndex]);
+               text.setText(fBitInformation.bits[nameIndex].description);
+            }
+            
+            if ((fBitInformation.bits[nameIndex].bitNum == BitmaskVariable.BIT_INDEX_ALL) ||
+                (fBitInformation.bits[nameIndex].bitNum == BitmaskVariable.BIT_INDEX_NONE)) {
+               btn.addListener(SWT.Selection, new Listener() {
+                  @Override
+                  public void handleEvent(Event e) {
+                     BitInformationEntry bitInfo = (BitInformationEntry) e.widget.getData();
+                     boolean select = bitInfo.bitNum == BitmaskVariable.BIT_INDEX_ALL;
+                     if (e.type == SWT.Selection) {
+                        for (Button b:fButtons) {
+                           b.setSelection(select);
+                        }
+                     }
+                  }
+               });
+            }
+            else if (fBitInformation.bits[nameIndex].bitNum>=0) {
+               btn.setSelection((fValue & (1<<fBitInformation.bits[nameIndex].bitNum)) != 0);
             }
          }
       }
@@ -131,8 +140,8 @@ public class BitmaskDialogue extends Dialog {
          return "";
       }
       for (int buttonIndex=0; buttonIndex<fButtons.length; buttonIndex++) {
-         if (fBitMapping[buttonIndex]>=0) {
-            if ((fValue & (1<<fBitMapping[buttonIndex]))!=0) {
+         if (fBitInformation.bits[buttonIndex].bitNum>=0) {
+            if ((fValue & (1<<fBitInformation.bits[buttonIndex].bitNum))!=0) {
                if (!firstElement) {
                   sb.append(",");
                }
@@ -158,10 +167,11 @@ public class BitmaskDialogue extends Dialog {
       fValue = 0;
       for (int buttonIndex=0; buttonIndex<fButtons.length; buttonIndex++) {
          Button btn = fButtons[buttonIndex];
-         if (fBitMapping[buttonIndex]>=0) {
-            fValue |= btn.getSelection()?(1L<<fBitMapping[buttonIndex]):0;
+         if (fBitInformation.bits[buttonIndex].bitNum>=0) {
+            fValue |= btn.getSelection()?(1L<<fBitInformation.bits[buttonIndex].bitNum):0;
          }
       }
+      fVariable.setValue(fValue);
       super.okPressed();
    }
    
@@ -221,9 +231,7 @@ public class BitmaskDialogue extends Dialog {
                testData[index].bitDescriptions);
          var.setValue(selection);
          
-         System.err.println("getBitNames        "+Arrays.toString(var.getBitNames()));
-         System.err.println("getBitDescriptions "+Arrays.toString(var.getBitDescriptions()));
-         System.err.println("getBitMapping      "+Arrays.toString(var.getBitMapping()));
+         var.printDebugInfo();
          
          BitmaskDialogue editor = new BitmaskDialogue(var, shell);
          editor.setTitle(testData[index].testName);

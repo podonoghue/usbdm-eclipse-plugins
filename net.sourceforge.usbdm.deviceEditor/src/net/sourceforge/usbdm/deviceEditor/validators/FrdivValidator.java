@@ -33,6 +33,9 @@ public class FrdivValidator extends IndexedValidator {
          1*(1<<5), 2*(1<<5), 4*(1<<5), 8*(1<<5), 16*(1<<5), 32*(1<<5), 40*(1<<5), 48*(1<<5)
    };
 
+   // Offset added to mcg_c1_frdiv to indicate high-range divisor is selected i.e. HIGH_RANGE_DIVISORS
+   static final int HIGH_RANGE_OFFSET = 8;
+   
    /** Calculated MCG_C1_FRDIV value */
    private int  mcg_c1_frdiv;
 
@@ -90,7 +93,9 @@ public class FrdivValidator extends IndexedValidator {
          }
       }
       mcg_c1_frdiv = nearest_frdiv;
-      
+      if (rangeDivisors == HIGH_RANGE_DIVISORS) {
+         mcg_c1_frdiv += HIGH_RANGE_OFFSET;
+      }
       return found;
    }
 
@@ -125,9 +130,6 @@ public class FrdivValidator extends IndexedValidator {
       final long           mcg_erc_clock          = mcg_erc_clockVar.getValueAsLong();
       final Status         mcg_erc_clockStatus    = mcg_erc_clockVar.getStatus();
 
-//      if (variable != null) {
-//         System.err.print("Found it " + variable.getName() + " changed, value = " +variable.getValueAsString() + ", ");
-//      }
 //      System.err.print("mcg_erc_clock = "+mcg_erc_clock);
 //      if (variable != null) {
 //         if (variable.getName().contains("oscillatorRange") && (index==0)) {
@@ -229,7 +231,7 @@ public class FrdivValidator extends IndexedValidator {
       }
       mcg_c1_frdivVar.setOrigin("Determined by FLL input constraints");
       if (acceptableFrdivFound) {
-         mcg_c1_frdivVar.setValue(mcg_c1_frdiv+1);
+         mcg_c1_frdivVar.setValue(mcg_c1_frdiv+1); // Offset +1 as disabled selection as 1st entry
          mcg_c1_frdivVar.clearStatus();
       }
       else {

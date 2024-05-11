@@ -804,7 +804,7 @@ public class ExpressionParser {
                break;
          }
          if (!okResult) {
-            throw new Exception("Unexpected data type for operand in Factor");
+            throw new Exception("Unexpected data type for operand in Factor " + result);
          }
       }
       else if (ch == '(') {

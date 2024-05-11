@@ -46,16 +46,24 @@ public class ObservableModel implements ObservableModelInterface {
    
    @Override
    public void notifyListeners(int properties) {
-      if ((this instanceof Variable) && ((Variable)this).isLogging()) {
+      boolean logging = (this instanceof Variable) && ((Variable)this).isLogging();
+      if (logging) {
          System.err.println(this.toString()+".notifyListeners("+IModelChangeListener.getPropertyNames(properties)+") ========");
       }
       ArrayList<IModelChangeListener> cp = new ArrayList<IModelChangeListener>();
       cp.addAll(fListeners);
       for (IModelChangeListener listener:cp) {
-         if ((this instanceof Variable) && ((Variable)this).isLogging()) {
+         boolean logThisNotice = logging || ((listener instanceof Variable) && ((Variable)listener).isLogging());
+         if (logThisNotice) {
             System.err.println(this.toString()+".notifyListeners("+IModelChangeListener.getPropertyNames(properties)+") =>"+
                   listener.toString());
          }
+//         if (listener instanceof Expression) {
+//            Expression exp = (Expression) listener;
+//            if (exp.getExpressionStr().startsWith("(/OSC0/osc_clock==12_MHz)?")) {
+//               System.err.println("exp.getExpressionStr());
+//            }
+//         }
          listener.modelElementChanged(this, properties);
       }
    }

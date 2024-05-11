@@ -64,11 +64,14 @@ public class DoubleVariable extends Variable {
    /**
     * Convert object to suitable type for this variable
     * 
-    * @param value
+    * @param value Value to translate. May be null. <br>
     * 
     * @return Converted object
     */
    private Double translate(Object value) {
+      if (value == null) {
+         return null;
+      }
       if (translationCache == value) {
          return translationCachedValue;
       }
@@ -282,6 +285,12 @@ public class DoubleVariable extends Variable {
       return  fValue;
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * @param disabledValue Value to set. May be null to have no effect. <br>
+    * May be Long/Integer/Double or string representing same
+    */
    @Override
    public void setDisabledValue(Object disabledValue) {
       Double res = translate(disabledValue);
@@ -293,14 +302,14 @@ public class DoubleVariable extends Variable {
 
    /**
     * Set value used when disabled
-    * 
-    * @param fDisabledValue
+    *
+    * @param disabledValue Value to set. May be null to have no effect.
     */
    public void setDisabledValue(Double disabledValue) {
       if (disabledValue == null) {
          return;
       }
-      this.fDisabledValue = disabledValue;
+      fDisabledValue = disabledValue;
    }
 
    /**
@@ -631,7 +640,6 @@ public class DoubleVariable extends Variable {
       Pattern p = Pattern.compile("^(const)?\\s+([a-zA-Z0-9]+)\\s*&?$");
       Matcher m = p.matcher(paramType);
       if (m.matches()) {
-//         System.err.println("Found it '"+paramType+"' => '"+m.group(2)+"'");
          return m.group(2);
       }
       return super.getReturnType();
@@ -644,6 +652,11 @@ public class DoubleVariable extends Variable {
          return baseType;
       }
       return getReturnType();
+   }
+
+   @Override
+   public MaskPair generateMask() {
+      return new MaskPair(null,null);
    }
 
 }

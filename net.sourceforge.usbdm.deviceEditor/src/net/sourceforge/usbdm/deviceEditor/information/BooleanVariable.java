@@ -54,14 +54,58 @@ public class BooleanVariable extends VariableWithChoices {
       return new BooleanVariableModel(parent, this);
    }
    
+   @Override
+   public boolean setChoiceIndex(int index) {
+      ChoiceData[] data = getChoiceData();
+      if ((index<0) || (index>=data.length)) {
+         return false;
+      }
+      boolean newValue = Boolean.parseBoolean(data[index].getValue());
+      if (newValue == fValue) {
+         return false;
+      }
+      fValue = newValue;
+      return true;
+   }
+
+//   @Override
+//   public int getChoiceIndex() {
+//      ChoiceData[] data = getChoiceData();
+//      for (ChoiceData choice:data) {
+//         if (choice.getValue())
+//      }
+//      return fValue;
+//   }
+   
+   @Override
+   ChoiceData getCurrentChoice() {
+      
+      if (fValue == null) {
+         return null;
+      }
+      return fValue?fTrue:fFalse;
+   }
+
+   @Override
+   public ChoiceData getEffectiveChoice() {
+      
+      if (fValue == null) {
+         return null;
+      }
+      return fValue?fTrue:fFalse;
+   }
+
    /**
     * Convert object to suitable type for this variable
     * 
-    * @param value
+    * @param value "true"/"false"/true/false/0/1/choice name/choice value
     * 
     * @return Converted object
     */
-   public boolean translate(Object value) {
+   public Boolean translate(Object value) {
+      if (value == null) {
+         return null;
+      }
       if (isLogging()) {
          System.err.println("Logging: "+this.toString()+".translate("+value+")");
       }
@@ -75,7 +119,7 @@ public class BooleanVariable extends VariableWithChoices {
          return (Long)value != 0;
       }
       if (value instanceof String) {
-         String sValue = value.toString();
+         String sValue = (String)value;
          Boolean res = null;
          if (fTrue != null) {
             res = sValue.equalsIgnoreCase(fTrue.getName())||
@@ -97,14 +141,8 @@ public class BooleanVariable extends VariableWithChoices {
          if (sValue.equalsIgnoreCase("false")|| sValue.equalsIgnoreCase("0")) {
             return false;
          }
-         
       }
       throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with BooleanVariable");
-   }
-   
-   @Override
-   public void setIndex(int index) {
-      setValue(index != 0);
    }
    
    /**
@@ -146,14 +184,6 @@ public class BooleanVariable extends VariableWithChoices {
       return (fFalse==null)?"false":fFalse.getValue();
    }
 
-//   @Override
-//   public void notifyListeners(int properties) {
-//      if (fValue != null) {
-//         updateTargets(fValue?fTrue:fFalse);
-//      }
-//      super.notifyListeners(properties);
-//   }
-   
    /**
     * Set variable value as Boolean<br>
     * Listeners are informed if the variable changes
@@ -163,23 +193,38 @@ public class BooleanVariable extends VariableWithChoices {
     * @return True if variable actually changed value and listeners notified
     */
    public boolean setValueQuietly(Boolean value) {
-      if ((fValue!= null) && (fValue == (boolean)value)) {
+      if (fValue == value) {
          return false;
       }
       fValue = value;
       return true;
    }
    
+   /**
+    * {@inheritDoc}
+    * 
+    * @param value "true"/"false"/true/false/0/1/choice name/choice value
+    */
    @Override
    public boolean setValueQuietly(Object value) {
       return setValueQuietly(translate(value));
    }
    
+   /**
+    * {@inheritDoc}
+    * 
+    * @param value "true"/"false"
+    */
    @Override
    public void setPersistentValue(String value) {
-      fValue = translate(value);
+      fValue = Boolean.parseBoolean(value);
    }
    
+   /**
+    * {@inheritDoc}
+    * 
+    * @return "true" or "false"
+    */
    @Override
    public String getPersistentValue() {
       return Boolean.toString(fValue);
@@ -192,6 +237,7 @@ public class BooleanVariable extends VariableWithChoices {
 
    @Override
    public String getEnumValue() {
+      
       if (getValueAsBoolean()) {
          if (fTrue == null) {
             throw new RuntimeException("fTrue value not set");
@@ -210,17 +256,26 @@ public class BooleanVariable extends VariableWithChoices {
       return  fValue;
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * @param disabledValue Value to set. May be null. <br>
+    * Checked as "true"/"false"/true/false/0/1/choice name/choice value
+    */
    @Override
-   public void setDisabledValue(Object value) {
-      setDisabledValue(translate(value));
+   public void setDisabledValue(Object disabledValue) {
+      setDisabledValue(translate(disabledValue));
    }
 
    /**
     * Set value used when disabled
-    * 
-    * @param fDisabledValue
+    *
+    * @param disabledValue Value to set. May be null to have no effect.
     */
-   public void setDisabledValue(boolean disabledValue) {
+   public void setDisabledValue(Boolean disabledValue) {
+      if (disabledValue==null) {
+         return;
+      }
       this.fDisabledValue = disabledValue;
    }
 
@@ -233,6 +288,11 @@ public class BooleanVariable extends VariableWithChoices {
       return fDisabledValue;
    }
    
+   /**
+    * {@inheritDoc}
+    * 
+    * @param value "true"/"false"/true/false/0/1/choice name/choice value
+    */
    @Override
    public void setDefault(Object value) {
       boolean v = translate(value);
@@ -316,10 +376,6 @@ public class BooleanVariable extends VariableWithChoices {
       return data.toArray(new ChoiceData[data.size()]);
    }
 
-   /**
-    * {@inheritDoc}<br>
-    * No hidden data for BooleanVariables
-    */
    @Override
    public ChoiceData[] getHiddenChoiceData() {
       return null;

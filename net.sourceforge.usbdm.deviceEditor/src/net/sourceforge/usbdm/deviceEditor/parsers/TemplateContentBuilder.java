@@ -8,13 +8,14 @@ import java.util.regex.Pattern;
 import org.w3c.dom.Element;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformation;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.MaskPair;
 import net.sourceforge.usbdm.deviceEditor.information.VariableWithChoices;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.StringPair;
 import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.TemplateSubstitutionInfo;
@@ -91,7 +92,8 @@ abstract class TemplateContentBuilder {
     * <li>%fieldExtract                   Expression of form '(%register & %mask)
     * <li>%fieldAssignment                Expression of form '%register     <= (%register & ~%mask)|%paramExpression
 
-    * <li>%initExpression                 Based on variables etc. Similar to (%register&%mask)
+    * <li>%initExpression                 List of initialisation values from variables (current values)
+    * <li>%initNonDefaultExpression       List of initialisation values from variables (current values if not equal to default)
     
     * <li>%macro[index]                   From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG"
     * <li>%mask[index]                    From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG_MASK" (_MASK is added)
@@ -159,6 +161,7 @@ abstract class TemplateContentBuilder {
          StringBuilder valueExpressionSb    = new StringBuilder();  // Combined values $(var1)|$(var2)
          StringBuilder symbolicExpressionSb = new StringBuilder();  // Combined values $(var1.enum[])|$(var2.enum[])
          StringBuilder initExpressionSb     = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
+         StringBuilder initNonDefaultExprSb = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
          StringBuilder paramExprSb          = new StringBuilder();  // Combined expression param1|param2
          StringBuilder paramsSb             = new StringBuilder();  // Parameter list with defaults etc.
          StringBuilder paramDescriptionSb   = new StringBuilder();  // @param style comments for parameters
@@ -201,10 +204,11 @@ abstract class TemplateContentBuilder {
          // Padding applied to parameters
          String paramPadding = (variableList.size()<=1)?"":"\\t      "+linePadding;
          
-
-         // To differentiate 'nameless' params
+         // Used to differentiate 'nameless' params
          int valueSuffix = 0;
+         
          for (int index=0; index<variableList.size(); index++) {
+            StringBuilder currentInitExpressionSb     = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
 
             Variable variable    = variableList.get(index);
             String   variableKey = variable.getKey();
@@ -212,64 +216,22 @@ abstract class TemplateContentBuilder {
             if (index > 0) {
                valueExpressionSb.append(separator);
                symbolicExpressionSb.append(separator);
-               initExpressionSb.append("\n");
+               currentInitExpressionSb.append("\n");
             }
 
             // Mask created from variable name e.g. MACRO_MASK or deduced from valueFormat attribute
             String mask  = null;
             String macro = null;
 
-            // Value format string
-            String valueFormat  = variable.getValueFormat();
-
-            if (valueFormat != null) {
-               
-               String[] formats = valueFormat.split(",");
-               StringBuilder sb = new StringBuilder();
-               boolean multipleElements = false;
-               for (String format:formats) {
-                  /*
-                   * (%s)                 => ""
-                   * (%s),xxx(%s)         => xxx_MASK
-                   * (%s),xxx(%s),yyy(%s) => xxx_MASK|yyy_MASK
-                   * 
-                   */
-                  format = format.trim();
-                  if (format.matches("^\\(?\\%s\\)?$")) {
-                     // Discard non-macro values
-                     continue;
-                  }
-                  if (format.isBlank()) {
-                     continue;
-                  }
-                  format = format.replace("(%s)", "_MASK");
-                  if (!sb.isEmpty()) {
-                     sb.append("|");
-                     multipleElements = true;
-                  }
-                  sb.append(format);
-               }
-               if (sb.isEmpty()) {
-                  mask  = "";
-                  macro = "";
-               }
-               else if (multipleElements) {
-                  mask  = sb.toString();
-                  macro = "";
-               }
-               else {
-                  mask  = sb.toString();
-                  macro = mask.replace("_MASK", "");
-               }
+            MaskPair maskPair = variable.generateMask();
+            mask = maskPair.mask;
+            macro = maskPair.macro;
+            
+            if (mask == null) {
+               mask  = "";
+               macro = "";
             }
-            else {
-               macro = Variable.getBaseNameFromKey(variableKey).toUpperCase();
-               mask  = macro+"_MASK";
-            }
-            if (variable instanceof DoubleVariable) {
-               mask = "";
-            }
-            if (!mask.isBlank()) {
+            else if (!mask.isBlank()) {
                
                if (maskSb.length()>0) {
                   maskSb.append('|');
@@ -323,7 +285,8 @@ abstract class TemplateContentBuilder {
             }
 
             // $(variableKey)
-            String valueExpression = "$("+variableKey+")";
+            String valueExpression = variable.getSubstitutionValue();
+//            String valueExpression = "$("+variableKey+")";
             valueExpressionSb.append(valueExpression);
 
 //            String symbolicExpression = "$("+variableKey+".usageValue)";
@@ -374,28 +337,42 @@ abstract class TemplateContentBuilder {
             if (index == 0) {
                // 1st Expression
                if (!initExpressionOnSameLine) {
-                  initExpressionSb.append("\n\\t   "+linePadding);
+                  currentInitExpressionSb.append("\n\\t   "+linePadding);
                }
             }
             else {
-               initExpressionSb.append("\\t   "+linePadding);
+               currentInitExpressionSb.append("\\t   "+linePadding);
             }
-
-            initExpressionSb.append(symbolicExpression);
+            String t = symbolicExpression.replace("\\t", "\\t   "+linePadding);
+            currentInitExpressionSb.append(t);
             if (index+1 == variableList.size()) {
                // Last Expression
-               initExpressionSb.append(terminator+"  // ");
+               currentInitExpressionSb.append(terminator+"  ");
             }
             else {
-               initExpressionSb.append(" "+separator+" // ");
+               currentInitExpressionSb.append(" "+separator+" ");
             }
+            if (info.padToComments != 0) {
+               int sol = t.lastIndexOf("\\t");
+               if (sol<0) {
+                  sol = 0;
+               }
+               else {
+                  sol += 5;
+               }
+               int eol = t.length()-sol;
+               int padding = info.padToComments - eol;
+               if (padding>0) {
+                  currentInitExpressionSb.append(String.format("%"+padding+"s",  ""));
+               }
+            }
+            currentInitExpressionSb.append(String.format("%-30s","// ("+variable.getName()+") "));
             
-//            initExpressionSb.append("("+variable.getName()+") ");
-            initExpressionSb.append("("+variable.getName()+") ");
-            
-            initExpressionSb.append("$("+variableKey+".shortDescription)");
+            currentInitExpressionSb.append(variable.getShortDescription());
+
             if (variable instanceof VariableWithChoices) {
-               initExpressionSb.append(" - $("+variableKey+".name[])");
+               VariableWithChoices vwc = (VariableWithChoices) variable;
+               currentInitExpressionSb.append(" - "+vwc.getEffectiveChoice().getName());
             }
 
             String defaultParamV = variable.getDefaultParameterValue();
@@ -450,9 +427,6 @@ abstract class TemplateContentBuilder {
                // Try to deduce register
                String tempRegister     = deduceCRegister(info.peripheral, variable, info.context);
                String tempRegisterName = deduceRegisterName(info.peripheral, variable, info.context);
-//               if (info.context!=null) {
-//                  System.err.println("Found it, c=" + info.context);
-//               }
                if (tempRegister != null) {
                   registerN     = tempRegister;
 //                  registerNameN = tempRegister.replaceAll("([a-zA-Z0-9]*)->", "").toLowerCase();
@@ -541,6 +515,12 @@ abstract class TemplateContentBuilder {
                substitutions.add(new StringPair("%registerNAME",            registerNAMEN));
                substitutions.add(new StringPair("%shortDescription",        shortDescription));
                substitutions.add(new StringPair("%tooltip",                 tooltip));
+            }
+            
+            initExpressionSb.append(currentInitExpressionSb.toString());
+            
+            if (!variable.isDefault()) {
+               initNonDefaultExprSb.append(currentInitExpressionSb.toString());
             }
          }
          substitutions.add(new StringPair("%multilineDescription",             multilineDescription.toString()));
@@ -643,6 +623,8 @@ abstract class TemplateContentBuilder {
             initExpression = initExpressionSb.toString();
          }
 
+         String initNonDefaultExpression = initNonDefaultExprSb.toString();
+
          String description = "'%description' is not valid here";
          if (descriptionSb.length()>0) {
             description = descriptionSb.toString();
@@ -659,6 +641,7 @@ abstract class TemplateContentBuilder {
          substitutions.add(new StringPair("%description",                description));
          
          substitutions.add(new StringPair("%initExpression",             initExpression));
+         substitutions.add(new StringPair("%initNonDefaultExpression",   initNonDefaultExpression));
          substitutions.add(new StringPair("%maskingExpression",          maskingExpression));
          substitutions.add(new StringPair("%mask",                       mask));
          substitutions.add(new StringPair("%paramDescription",           paramDescription));
@@ -1003,8 +986,11 @@ abstract class TemplateContentBuilder {
          
          ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
          lists.add(varWithChoices.getChoiceData());
-         lists.add(varWithChoices.getHiddenChoiceData());
-
+         ChoiceData[] hiddenChoices = varWithChoices.getHiddenChoiceData();
+         if (hiddenChoices != null) {
+            lists.add(hiddenChoices);
+         }
+         
          // Accumulate enum information
          CheckRepeats enumNamesList = new CheckRepeats();
          
@@ -1022,26 +1008,12 @@ abstract class TemplateContentBuilder {
                   continue;
                }
                String completeEnumName = enumClass+"_"+enumName;
-               
-               String[] valueFormats = fValueFormat.split(",");
-               String[] vals         = choice.getValue().split(",");
-               if (valueFormats.length != vals.length) {
-                  throw new Exception("valueFormat '"+fValueFormat+"' does not match value '"+choice.getValue()+"'" );
-               }
-               StringBuilder sb = new StringBuilder();
-               for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
-                  if (valIndex>0) {
-                     sb.append('|');
-                  }
-                  sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
-               }
-               String completeValue = sb.toString();
+               String completeValue = varWithChoices.getDefinitionValue(choice);
                
                CheckRepeats.Info entry  = enumNamesList.add(completeEnumName, completeValue, choice.getName());
                if (entry == null) {
                   throw new Exception("Repeated base enum!");
                }
-
                String hardwareName = choice.getAssociatedHardware();
                if (hardwareName != null) {
                   Object hardware = null;
@@ -1174,29 +1146,29 @@ abstract class TemplateContentBuilder {
 
       @Override
       public String build() throws Exception {
-
-         String typeName   = fVariable.getTypeName();
+         
+         BitmaskVariable bmv = (BitmaskVariable) fVariable;
+         String typeName   = bmv.getTypeName();
          String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
 
-         BitmaskVariable variable = (BitmaskVariable) fVariable;
-         variable.calculateValues();
-         String[]  bitNames = variable.getBitNames();
-         String[]  bitDesc  = variable.getBitDescriptions();
-         Integer[] bitMap   = variable.getBitMapping();
+         BitmaskVariable variable = bmv;
+         BitInformation bitInformation = variable.getFinalBitInformation();
 
-         Boolean useEnumClass = fVariable.useEnumClass();
+         Boolean useEnumClass = bmv.useEnumClass();
 
          // Accumulate enum information
          CheckRepeats enumNamesList = new CheckRepeats();
 
-         for (int index=0; index<bitNames.length; index++) {
-            
-            String completeEnumName = (useEnumClass?"":enumClass+"_")+ParseMenuXML.makeSafeIdentifierName(bitNames[index]);
-            String completeValue    = String.format(fValueFormat, "1U<<"+bitMap[index]);
-
-            CheckRepeats.Info entry  = enumNamesList.add(completeEnumName, completeValue, bitDesc[index]);
+//         CheckRepeats.Info entry = enumNamesList.add((useEnumClass?"":enumClass+"_")+"None", "0", "None");
+         
+         for (int index=0; index<bitInformation.bits.length; index++) {
+//            String completeValue    = bmv.formatUsageValue(Integer.toString(1<<bitMap[index]));
+            String completeEnumName = (useEnumClass?"":enumClass+"_")+ParseMenuXML.makeSafeIdentifierName(bitInformation.bits[index].bitName);
+            String completeValue    = bmv.getDefinitionValue(bitInformation.bits[index]);
+            String description      = bitInformation.bits[index].description;
+            CheckRepeats.Info entry = enumNamesList.add(completeEnumName, completeValue, description);
             if (entry == null) {
-               throw new Exception("Repeated base enum!");
+               throw new Exception("Repeated enum name '"+completeEnumName+"'");
             }
          }
          // Create enum body

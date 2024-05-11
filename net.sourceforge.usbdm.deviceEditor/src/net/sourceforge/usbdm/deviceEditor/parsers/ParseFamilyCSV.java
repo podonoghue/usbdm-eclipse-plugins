@@ -770,8 +770,6 @@ public class ParseFamilyCSV {
 				ArrayList<InterruptEntry> interruptEntries = dbPeripheral.getInterruptEntries();
 				if (interruptEntries != null) {
 					for (InterruptEntry interruptEntry:interruptEntries) {
-//					   if (peripheral instanceof WriterForGpio) {
-//					      System.err.println("Found it "+peripheral.getName());
 						peripheral.addIrqNum(interruptEntry.getName()+"_IRQn");
 					}
 				}

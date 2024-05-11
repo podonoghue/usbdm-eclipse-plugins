@@ -158,9 +158,17 @@ public class StringVariable extends Variable {
       return !defaultHasChanged;
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * @param disabledValue Value to set. May be null to have no effect.
+    */
    @Override
-   public void setDisabledValue(Object value) {
-      fDisabledValue = value.toString();
+   public void setDisabledValue(Object disabledValue) {
+      if (disabledValue == null) {
+         return;
+      }
+      fDisabledValue = disabledValue.toString();
    }
 
    @Override

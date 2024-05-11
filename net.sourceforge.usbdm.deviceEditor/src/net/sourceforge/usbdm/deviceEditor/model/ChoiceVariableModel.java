@@ -48,7 +48,7 @@ public class ChoiceVariableModel extends VariableModel {
          setActivationStyle(
                ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
                ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
-         setValue(variable.getValueAsString());
+         setValue(variable.getValueAsString()); // calls doSetValue()
          setValueValid(true);
       }
 
@@ -80,13 +80,13 @@ public class ChoiceVariableModel extends VariableModel {
       return new ChoiceCellEditor(tree, getChoices(), getVariable());
    }
    
-   @Override
-   public String getValueAsString() {
-      String displayValue = getVariable().getDisplayValue();
-      if (displayValue != null) {
-         return displayValue;
-      }
-      return super.getValueAsString();
-   }
+//   @Override
+//   public String getValueAsString() {
+////      String displayValue = getVariable().getDisplayValue();
+////      if (displayValue != null) {
+////         return displayValue;
+////      }
+//      return super.getValueAsString();
+//   }
 
 }

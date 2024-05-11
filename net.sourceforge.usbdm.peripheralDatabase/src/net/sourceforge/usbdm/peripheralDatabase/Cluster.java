@@ -673,7 +673,7 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    void writeSvdDimensionList(Writer writer, String indenter, Cluster derivedCluster) throws IOException {
       if (getDebugThis()) {
-         System.err.println("Found it "+fOwner.getName()+":"+getName() );
+         System.err.println("Found "+fOwner.getName()+":"+getName() );
       }
       
       if (derivedCluster != null) {

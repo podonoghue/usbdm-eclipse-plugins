@@ -66,9 +66,6 @@ public class GraphicNode extends GraphicBaseVariable {
       }
       if ((getStyle()&NOVALUE) == 0) {
          Variable var = getVariable();
-//         if (var.getName().contains("cop_timeout")) {
-//            System.err.println("Found it " + var.getName());
-//         }
          if ((var instanceof LongVariable) || (var instanceof DoubleVariable)) {
             if (label.length() != 0) {
                label.append(", ");

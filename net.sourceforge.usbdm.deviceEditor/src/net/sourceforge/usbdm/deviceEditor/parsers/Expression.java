@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -425,7 +426,7 @@ public class Expression implements IModelChangeListener {
          if (fModifier != null) {
             if (var instanceof VariableWithChoices) {
                VariableWithChoices cv = (VariableWithChoices)var;
-               ChoiceData choiceData = cv.getCurrentChoice();
+               ChoiceData choiceData = cv.getEffectiveChoice();
                if (fModifier == Modifier.Size) {
                   Long temp = (long) cv.getChoiceCount();
                   return temp;
@@ -1104,7 +1105,7 @@ public class Expression implements IModelChangeListener {
       
       @Override
       Object eval() throws Exception {
-
+         boolean debug = false;
          String text = fSignal.getMapDescription();
          if (fRegex != null) {
             Pattern pattern = Pattern.compile(fRegex);
@@ -1113,6 +1114,9 @@ public class Expression implements IModelChangeListener {
                return "regex failed match";
             }
             text = matcher.replaceAll(fReplacement);
+         }
+         if (debug) {
+            System.err.println("===> '" + text + "'");
          }
          return text;
       }
@@ -1181,7 +1185,7 @@ public class Expression implements IModelChangeListener {
        * @param fProvider  Peripheral to locate signals
        * @param arg        Constant expression evaluating to<br>
        * <li> Name of signal (a String)
-       * <li> (optional) regex for pattern matching (String)
+       * <li> (optional) regex for pattern matching against Signal.getMapDescription() value (String)
        * <li> (optional) replacement pattern for use with regex to modify result (String)<br>
        * <br>
        * If arg is null then no modification is done.<br>
@@ -1574,25 +1578,25 @@ public class Expression implements IModelChangeListener {
          
          if ((leftOperand instanceof Double) && (rightOperand instanceof Double)) {
             Double right = (Double)rightOperand;
-            if (right == 0.0) {
+            if (Objects.equals(right, 0.0)) {
                return Double.POSITIVE_INFINITY;
             }
             return (Double)leftOperand / right;
          } else if ((leftOperand instanceof Long) && (rightOperand instanceof Long)) {
             Long right = (Long)rightOperand;
-            if (right == 0) {
+            if (Objects.equals(right, 0L)) {
                return Double.POSITIVE_INFINITY;
             }
             return (Long)leftOperand / right;
          } else if ((leftOperand instanceof Long) && (rightOperand instanceof Double)) {
             Double right = (Double)rightOperand;
-            if (right == 0.0) {
+            if (Objects.equals(right, 0.0)) {
                return Double.POSITIVE_INFINITY;
             }
             return (Long)leftOperand / right;
          } else {
             Long right = (Long)rightOperand;
-            if (right == 0) {
+            if (Objects.equals(right, 0L)) {
                return Double.POSITIVE_INFINITY;
             }
             return (Double)leftOperand / right;
@@ -1792,9 +1796,7 @@ public class Expression implements IModelChangeListener {
                   if (node.eval().equals(value)) {
                      result = true;
                   }
-
                }
-
                @Override
                Object getResult() {
                   return result;
@@ -1805,18 +1807,7 @@ public class Expression implements IModelChangeListener {
          }
          else {
             Object rightOperand = fRight.eval();
-            switch (fLeft.fType) {
-            case Boolean:
-               return (Boolean)leftOperand == (Boolean)rightOperand;
-            case Double:
-               return (Double)leftOperand == (Double)rightOperand;
-            case Long:
-               return (Long)leftOperand == (Long)rightOperand;
-            case String:
-               return ((String)leftOperand).compareTo((String)rightOperand) == 0;
-            default:
-               throw new Exception("Impossible type!");
-            }
+            return Objects.equals(leftOperand, rightOperand);
          }
       }
    }
@@ -1853,16 +1844,7 @@ public class Expression implements IModelChangeListener {
          }
          else {
             Object rightOperand = fRight.eval();
-            switch (fLeft.fType) {
-            case Double:
-               return (Double)leftOperand != (Double)rightOperand;
-            case Long:
-               return (Long)leftOperand != (Long)rightOperand;
-            case String:
-               return ((String)leftOperand).compareTo((String)rightOperand)!=0;
-            default:
-               throw new Exception("Impossible type!");
-            }
+            return !Objects.equals(leftOperand, rightOperand);
          }
       }
    }
@@ -2251,9 +2233,6 @@ public class Expression implements IModelChangeListener {
       fExpressionStr = expression;
       fVarProvider   = provider;
       fMode          = mode;
-//      if (expression.contains("_irqCount+1")) {
-//         System.err.println("Found it "+toString());
-//      }
    }
 
    /**
@@ -2268,27 +2247,8 @@ public class Expression implements IModelChangeListener {
       this(expression, provider, Mode.Dynamic);
    }
    
-//   static String stripSpaces(String s) {
-//      boolean stripped = false;
-//      Character escape = null;
-//      StringBuilder sb = new StringBuilder();
-//      for (int index=0; index<s.length(); index++) {
-//
-//         if ("'\"".indexOf(s.charAt(index)) >= 0) {
-//            escape = s.charAt(index);
-//         }
-//      }
-//      if (stripped) {
-//         return sb.toString();
-//      }
-//      return s;
-//   }
-   
    private void prelim() throws Exception {
-//      if (fExpressionStr.equals("(/Console/consoleEnable)&&(/Console/consoleDevice.name==\"Uart 0\")")) {
-//         System.err.println("Found it prelim("+fExpressionStr+")");
-//      }
-      
+
       String expression = fExpressionStr;
 
       // Check for expression#primaryVar#message
@@ -2618,9 +2578,6 @@ public class Expression implements IModelChangeListener {
       if (expression == null) {
          return true;
       }
-//      if (expression.contains("/I2S0/_irqCount")) {
-//         System.err.println("Found it "+expression);
-//      }
       Expression exp = new Expression(expression, provider, Mode.CheckIdentifierExistance);
       try {
          return (Boolean) exp.getValue();
@@ -2683,12 +2640,9 @@ public class Expression implements IModelChangeListener {
    @Override
    public void modelElementChanged(ObservableModelInterface observableModel, int properties) {
       
-//      if (fExpressionStr.matches(".*ftm_cnsc_mode\\[0.*")) {
-//         System.err.println("Found it modelElementChanged"+fExpressionStr+")");
-//      }
       try {
          Object newValue = evaluate();
-         if (newValue == fCurrentValue) {
+         if (Objects.equals(newValue, fCurrentValue)) {
             // No change to propagate
             return;
          }

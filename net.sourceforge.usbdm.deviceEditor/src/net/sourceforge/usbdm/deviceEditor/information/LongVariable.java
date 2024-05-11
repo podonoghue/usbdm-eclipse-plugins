@@ -258,10 +258,6 @@ public class LongVariable extends Variable {
    
    @Override
    public String fieldExtractFromRegister(String registerValue) {
-//      boolean foundIt = getName().contains("adc_cv_cv");
-//      if (foundIt) {
-//         System.err.print("Found it " + getName());
-//      }
       String valueFormat = getValueFormat();
       String returnType  = getReturnType();
       boolean hasOuterBrackets = false;
@@ -381,9 +377,8 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public String getUsageValue() {
+   public String formatUsageValue(String value) {
       
-      String value = getSubstitutionValue();
       Units units = getUnits();
       if (units != Units.None) {
          return units.append(value);
@@ -398,6 +393,12 @@ public class LongVariable extends Variable {
          }
       }
       return value;
+   }
+   
+   @Override
+   public String getUsageValue() {
+      
+      return formatUsageValue(getSubstitutionValue());
    }
    
    @Override
@@ -433,6 +434,12 @@ public class LongVariable extends Variable {
       return  fValue;
    }
 
+   /**
+    * {@inheritDoc}
+    * 
+    * @param disabledValue Value to set. May be null to have no effect. <br>
+    * Accepts Integer/Long/Double (rounded) or String
+    */
    @Override
    public void setDisabledValue(Object disabledValue) {
       Long res = translate(disabledValue);
@@ -618,9 +625,14 @@ public class LongVariable extends Variable {
     * 
     * @throws Exception
     */
-   public void setMin(String attribute) throws Exception {
+   public void setMin(Object attribute) throws Exception {
       
-      fMinExpression = new Expression(attribute, getProvider());
+      if (attribute instanceof Expression) {
+         fMinExpression = (Expression) attribute;
+      }
+      else {
+         fMinExpression = new Expression(attribute.toString(), getProvider());
+      }
       
       // Initially assume dynamic evaluation
       fMin = null;
@@ -633,9 +645,14 @@ public class LongVariable extends Variable {
     * 
     * @throws Exception
     */
-   public void setMax(String attribute) throws Exception {
+   public void setMax(Object attribute) throws Exception {
       
-      fMaxExpression = new Expression(attribute, getProvider());
+      if (attribute instanceof Expression) {
+         fMaxExpression = (Expression) attribute;
+      }
+      else {
+         fMaxExpression = new Expression(attribute.toString(), getProvider());
+      }
       
       // Initially assume dynamic evaluation
       fMax = null;
@@ -870,7 +887,6 @@ public class LongVariable extends Variable {
       Pattern p = Pattern.compile("^(const)?\\s+([a-zA-Z0-9]+)\\s*&?$");
       Matcher m = p.matcher(paramType);
       if (m.matches()) {
-//         System.err.println("Found it '"+paramType+"' => '"+m.group(2)+"'");
          return m.group(2);
       }
       return super.getReturnType();

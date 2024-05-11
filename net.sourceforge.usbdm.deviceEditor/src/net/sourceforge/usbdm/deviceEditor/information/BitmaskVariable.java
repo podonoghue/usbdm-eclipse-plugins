@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,22 +16,213 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class BitmaskVariable extends LongVariable {
 
+   public static final int BIT_INDEX_ALL  = -1;
+   public static final int BIT_INDEX_NONE = -2;
+   
+   public static class BitInformation {
+      // Details of each bit
+      public BitInformationEntry[] bits          = null;
+      // Permitted bit in register
+      public long                  permittedBits = 0;
+      // Index of entry in bits that describes 'all' bits selected if exists
+      public int                   allIndex  = -1;
+      // Index of entry in bits that describes 'no' bits selected if exists
+      public int                   noneIndex = -1;
+      
+      private void updateSpecialIndices() {
+         allIndex  = -1;
+         noneIndex = -1;
+         for (int index=0; index<bits.length; index++) {
+            BitInformationEntry bit = bits[index];
+            if (bit.bitNum!=null) {
+               if (bit.bitNum == BIT_INDEX_ALL) {
+                  allIndex = index;
+               }
+               if (bit.bitNum == BIT_INDEX_NONE) {
+                  noneIndex = index;
+               }
+            }
+         }
+      }
+      
+      private long calculateBitMask() {
+         long bitmask = 0;
+         for (BitInformationEntry bit:bits) {
+            if ((bit.bitNum!=null)&&(bit.bitNum>=0)) {
+               bitmask |= (1L<<bit.bitNum);
+            }
+         }
+         return bitmask;
+      }
+
+      
+      public BitInformation() {
+      }
+      
+      /**
+       * Constructor<br>
+       * Member permittedBits is calculated from the bits provided.
+       * This assumes that bitNum field has been set for each.<br>
+       * 
+       * @param bits          Information about each bit
+       * @param permittedBits Bit-mask indicating permitted bits
+       * @throws Exception
+       */
+      public BitInformation(BitInformationEntry[] bits) {
+         this.bits = bits;
+         this.permittedBits = calculateBitMask();
+         updateSpecialIndices();
+      }
+      
+      /**
+       * Constructor<br>
+       * If permittedBits is zero or null then it is calculated from the bits provided.
+       * This assumes that bitNum field has been set for each.<br>
+       * If permittedBits is non-zero then it is used to calculate the bitNum for each bit.
+       * This assumes the bits are in the order provided.
+       * 
+       * @param bits          Information about each bit
+       * @param permittedBits Bit-mask indicating permitted bits
+       * @throws Exception
+       */
+      public BitInformation(BitInformationEntry[] bits, Long permittedBits) throws Exception {
+         this.bits = bits;
+         if ((permittedBits == null)||(permittedBits == 0L)) {
+            this.permittedBits = calculateBitMask();
+         }
+         else {
+            this.permittedBits = permittedBits;
+            calculateBitPositions();
+         }
+         updateSpecialIndices();
+      }
+
+      /**
+       * Allocates or checks the bit positions against the permittedBits member
+       * 
+       * @throws Exception
+       */
+      private void calculateBitPositions() throws Exception {
+         
+         // Sort by bit so we can check pre-allocated bits conveniently
+         BitInformationEntry[] sortedBits = Arrays.copyOf(bits, bits.length);
+         
+         Arrays.sort(sortedBits,new Comparator<BitInformationEntry>() {
+            @Override
+            public int compare(BitInformationEntry left, BitInformationEntry right) {
+               if ((left.bitNum == null)||(right.bitNum == null)) {
+                  return 0;
+               }
+               return left.bitNum - right.bitNum;
+            }
+         });
+         
+         // Used as progressive check on unallocated bits
+         long unallocatedBits = permittedBits;
+         
+         // Index of bit to place
+         int bitIndex   = 0;
+         
+         // Bit number in mask
+         int bitNum     = 0;
+         
+         // Should either have allocated all or checked all - mixture not allowed
+         boolean haveAllocatedBits = false;
+         boolean haveCheckedBits   = false;
+         
+         while(bitNum<32) {
+            if (bitIndex>=sortedBits.length) {
+               // Finished
+               break;
+            }
+            if ((sortedBits[bitIndex].bitNum != null)&&(sortedBits[bitIndex].bitNum<0)) {
+               // Ignore special bits
+               bitIndex++;
+               continue;
+            }
+            // Have field to allocate to bit
+            long bitmask = 1L<<bitNum;
+            if (bitmask>unallocatedBits) {
+               // Ran out of bit positions before bits to place
+               throw new Exception("Mis-match between bit mask provided and number of bits defined");
+            }
+            if ((bitmask & unallocatedBits) == 0) {
+               // Bit location not available - Keep looking
+               bitNum++;
+               continue;
+            }
+            // Have possible bit position
+            if (sortedBits[bitIndex].bitNum != null) {
+               // Check pre-allocation
+               if (sortedBits[bitIndex].bitNum != bitNum) {
+                  throw new Exception("Mis-match between bit position calculated ("+bitNum+") and"
+                        + " provided in field ("+sortedBits[bitIndex++].bitNum+")");
+               }
+               haveCheckedBits = true;
+            }
+            else {
+               // Allocate position
+               sortedBits[bitIndex].bitNum = bitNum;
+               haveAllocatedBits = true;
+            }
+            unallocatedBits &= ~bitmask;
+            bitIndex++;
+            bitNum++;
+         }
+         // Check for unallocated bits
+         if (unallocatedBits != 0) {
+            throw new Exception("Mis-match between bit mask provided and bits used by fields");
+         }
+         if (haveAllocatedBits && haveCheckedBits) {
+            throw new Exception("Mixture of allocated and unallocated bits found");
+         }
+      }
+   }
+   
+   public static class BitInformationEntry {
+      
+      // Bit name - used for enum etc
+      public String  bitName = null;
+      // Descriptions of bit - used for GUI/commenting
+      public String  description = null;
+      // This maps the index used for bit information array to a physical bit number
+      // Index may be -ve to indicate no mapping (used in case 3 for dummy bits)
+      public Integer bitNum = -1;
+      // C-code mask value - used in enum generation if provided
+      public String mask = null;
+      
+      public BitInformationEntry(String bitName, String description, Integer bitnum, String mask) {
+         this.bitName      = bitName;
+         this.description  = description;
+         this.bitNum       = bitnum;
+         this.mask         = mask;
+//         System.err.println(String.format("BitInformationEntry: %-2d, %-30s %-35s %-20s",
+//               bitnum, (mask==null)?"-":"("+mask+")", bitName, description));
+      }
+
+      public BitInformationEntry() {
+      }
+
+      /**
+       * Initialise bitInformation from this
+       * 
+       * @param bitInformation
+       */
+      public void initialiseFrom(BitInformationEntry bi) {
+         bitName     = bi.bitName;
+         description = bi.description;
+         bitNum      = bi.bitNum;
+         mask        = bi.mask;
+      }
+      
+   };
+   
+   // Information describing each bit
+   private BitInformation fBitInformation = null;
+   
    // Pin mapping information
    private String fPinMap;
    
-   // Permitted bits
-   private long fPermittedBits = 0xFFFFFFFF;
-   
-   // Expanded list of bit names
-   private String[] fBitNames;
-
-   // Expanded descriptions of bits
-   private String[] fDescriptions;
-
-   // This maps the index in array of bit names & descriptions to a physical bit number
-   // Index may be -ve to indicate no mapping (used in case 3 for dummy bits)
-   private Integer[] fBitMapping;
-
    private long   fRawPermittedBits;
    private String fRawBitNames;
    private String fRawBitDescriptions;
@@ -171,11 +363,18 @@ public class BitmaskVariable extends LongVariable {
     * @param other   Variable to initialise from
     */
    public void init(BitmaskVariable other) {
-      fRawPermittedBits    = other.fRawPermittedBits;
-      fRawBitNames         = other.fRawBitNames;
-      fRawBitDescriptions  = other.fRawBitDescriptions;
+      this.fBitInformation = other.getBitInformation();
    }
 
+   /**
+    * Initialise bit information
+    * 
+    * @param bitInformation Description of bits
+    */
+   public void init(BitInformation bitInformation) {
+      fBitInformation = bitInformation;
+   }
+   
    /**
     * Initialise bit information
     * 
@@ -217,8 +416,8 @@ public class BitmaskVariable extends LongVariable {
     */
    public void calculateValues() throws Exception {
 
-      fDescriptions = null;
-
+      fBitInformation = new BitInformation();
+      
       String[] tBitnames;
       if ((fRawBitNames != null)&&(fRawBitNames.startsWith("@"))) {
          tBitnames     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitNames.substring(1), getProvider()), ",");
@@ -228,7 +427,9 @@ public class BitmaskVariable extends LongVariable {
       }
       String[] tDescriptions;
       if ((fRawBitDescriptions != null)&&(fRawBitDescriptions.startsWith("@"))) {
-         tDescriptions     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitDescriptions.substring(1), getProvider()), ",");
+//         tDescriptions     = PinListExpansion.expandPinList(Expression.getValueAsString(fRawBitDescriptions.substring(1), getProvider()), ",");
+         tDescriptions     = new String[1];
+         tDescriptions[0]  = fRawBitDescriptions;
       }
       else {
          tDescriptions     = PinListExpansion.expandPinList(fRawBitDescriptions, ",");
@@ -252,21 +453,25 @@ public class BitmaskVariable extends LongVariable {
                bitNamesList.add(tBitnames[index]);
             }
          }
-         fBitNames   = bitNamesList.toArray(new String[bitNamesList.size()]);
-         fBitMapping = bitMappingList.toArray(new Integer[bitMappingList.size()]);
+         fBitInformation.bits = new BitInformationEntry[bitNamesList.size()];
+         for (int index=0; index<fBitInformation.bits.length; index++) {
+            fBitInformation.bits[index]          = new BitInformationEntry();
+            fBitInformation.bits[index].bitNum   = bitMappingList.get(index);
+            fBitInformation.bits[index].bitName  = bitNamesList.get(index);
+         }
          
          if (tDescriptions != null) {
             // Cases 3b
             if (tDescriptions.length>1) {
                // Case 3b
-               fDescriptions = new String[fBitNames.length];
-               for (int index=0; index<fBitNames.length; index++) {
-                  if (fBitMapping[index] < 0) {
-                     fDescriptions[index] = "";
+               for (int index=0; index<fBitInformation.bits.length; index++) {
+                  if ((fBitInformation.bits[index].bitNum != null)||(fBitInformation.bits[index].bitNum < 0)) {
+                     fBitInformation.bits[index].description = "";
                   }
                   else {
-                     fDescriptions[index] =
-                           tDescriptions[fBitMapping[index]].replace("%i", fBitMapping[index].toString()).replace("%n", fBitNames[index]);
+                     fBitInformation.bits[index].description =
+                           tDescriptions[fBitInformation.bits[index].bitNum.intValue()].
+                           replace("%i", fBitInformation.bits[index].bitNum.toString()).replace("%n", fBitInformation.bits[index].bitName);
                   }
                }
             }
@@ -292,7 +497,11 @@ public class BitmaskVariable extends LongVariable {
                bitMappingList.add(index);
             }
          }
-         fBitMapping = bitMappingList.toArray(new Integer[bitMappingList.size()]);
+         fBitInformation.bits = new BitInformationEntry[bitMappingList.size()];
+         for (int index=0; index<fBitInformation.bits.length; index++) {
+            fBitInformation.bits[index] = new BitInformationEntry();
+            fBitInformation.bits[index].bitNum = bitMappingList.get(index);
+         }
 
          String format = null;
          if (tBitnames == null) {
@@ -306,111 +515,124 @@ public class BitmaskVariable extends LongVariable {
          if (format != null) {
             // Cases 1a, 1b or 4
             // Expand names
-
-            ArrayList<String> bitNamesList = new ArrayList<String>();
-            for (int index=0; index<fBitMapping.length; index++) {
-               if (fBitMapping[index] >= 0) {
-                  bitNamesList.add(format.replace("%i", fBitMapping[index].toString()));
+            for (int index=0; index<fBitInformation.bits.length; index++) {
+               if ((fBitInformation.bits[index].bitNum != null)&&(fBitInformation.bits[index].bitNum >= 0)) {
+                  fBitInformation.bits[index].bitName = format.replace("%i", fBitInformation.bits[index].bitNum.toString());
                }
             }
-            fBitNames = bitNamesList.toArray(new String[bitNamesList.size()]);
          }
          else {
             // Cases 2a or 2b
             // Check there is a name for each bit
-            if (tBitnames.length != fBitMapping.length) {
+            if (tBitnames.length != fBitInformation.bits.length) {
                throw new Exception("# of bits in use doesn't match # of names provided:\n"
                      + "PermittedBits = " + fRawPermittedBits +"\n"
                      + "Number        = " + numberOfBitInUse +"\n"
                      + "Names         = " + Arrays.toString(tBitnames));
             }
-            fBitNames = tBitnames;
+            for (int index=0; index<fBitInformation.bits.length; index++) {
+               fBitInformation.bits[index].bitName = tBitnames[index];
+            }
          }
       }
-      if ((tDescriptions != null) && (fDescriptions == null)) {
+      if ((tDescriptions != null) && (fBitInformation.bits[0].description == null)) {
 
          // Cases 1b,2b,2c & 3c
 
          if (tDescriptions.length>1) {
             // Cases 2b, 3b - explicit list
             // bitName and bitDescriptions must match in format
-            if ((tDescriptions.length < fBitNames.length)) {
+            if ((tDescriptions.length < fBitInformation.bits.length)) {
                throw new Exception("# of  bit descriptions does not match # of names:\n"
                      + "Desc   = " + Arrays.toString(tDescriptions) +"\n"
-                     + "Names  = " + Arrays.toString(fBitNames));
+                     /*+ "Names  = " + Arrays.toString(fBitNames)*/);
             }
-            fDescriptions = tDescriptions;
+            for (int index=0; index<fBitInformation.bits.length; index++) {
+               fBitInformation.bits[index].description = tDescriptions[index];
+            }
          }
          else {
             // Cases 1b,2c,3c - pattern
             // Need to expand description pattern to match actual bits
-            fDescriptions = new String[fBitNames.length];
-            for (int index=0; index<fBitNames.length; index++) {
-               if (fBitMapping[index] < 0) {
-                  fDescriptions[index] = "";
+            for (int index=0; index<fBitInformation.bits.length; index++) {
+               if ((fBitInformation.bits[index].bitNum != null)&&(fBitInformation.bits[index].bitNum < 0)) {
+                  fBitInformation.bits[index].description = "";
                }
                else {
-                  fDescriptions[index] =
-                        tDescriptions[0].replace("%i", fBitMapping[index].toString()).replace("%n", fBitNames[index]);
+                  fBitInformation.bits[index].description =
+                        tDescriptions[0].replace("%i",
+                              fBitInformation.bits[index].bitNum.toString()).replace("%n",fBitInformation.bits[index].bitName);
                }
             }
          }
       }
-      for (int index=0; index<fBitNames.length; index++) {
-         fBitNames[index] = fBitNames[index].trim();
-      }
       // Have fBitNames & fBitMapping
-
-      if (fDescriptions != null) {
-         for (int index=0; index<fDescriptions.length; index++) {
-            fDescriptions[index] = fDescriptions[index].trim();
-         }
+      for (int index=0; index<fBitInformation.bits.length; index++) {
+         fBitInformation.bits[index].bitName     = fBitInformation.bits[index].bitName.trim();
+         fBitInformation.bits[index].description = fBitInformation.bits[index].description.trim();
       }
       
       if (isLogging()) {
-         System.err.println("fBitMapping = "+Arrays.toString(fBitMapping));
-         System.err.println("fBitNames = "+Arrays.toString(fBitNames));
-         System.err.println("fDescriptions = "+Arrays.toString(fDescriptions));
+         printDebugInfo();
          System.err.println("fPinMap = "+fPinMap);
       }
    }
    
    /**
-    * Gets calculated bit-mask of permitted bit values
+    * Get information about bits with any expressions evaluated
     * 
-    * @return
+    * @return Array describing each bit
+    * @throws Exception
     */
-   public long getPermittedBits() {
-      return fPermittedBits;
+   public BitInformation getFinalBitInformation() throws Exception {
+      if (fBitInformation == null) {
+         try {
+            calculateValues();
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
+      BitInformationEntry[] finalBitInfo = new BitInformationEntry[fBitInformation.bits.length];
+      for (int index=0; index<fBitInformation.bits.length; index++) {
+         finalBitInfo[index] = new BitInformationEntry();
+         finalBitInfo[index].initialiseFrom(fBitInformation.bits[index]);
+         if (finalBitInfo[index].description.startsWith("@")) {
+            try {
+               finalBitInfo[index].description =
+                     Expression.getValueAsString(finalBitInfo[index].description.substring(1), getProvider());
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+         if (finalBitInfo[index].bitName.startsWith("@")) {
+            try {
+               finalBitInfo[index].bitName =
+                     Expression.getValueAsString(finalBitInfo[index].bitName.substring(1), getProvider());
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+      }
+      return new BitInformation(finalBitInfo, fBitInformation.permittedBits);
    }
-
+   
    /**
-    * Get expanded list of bit names
+    * Get information about bits
     * 
-    * @return
+    * @return Array describing each bit
+    * @throws Exception
     */
-   public String[] getBitNames() {
-      return fBitNames;
+   public BitInformation getBitInformation() {
+      if (fBitInformation == null) {
+         try {
+            calculateValues();
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
+      return fBitInformation;
    }
-
-   /**
-    * Get expanded descriptions of bits
-    * 
-    * @return
-    */
-   public String[] getBitDescriptions() {
-      return fDescriptions;
-   }
-     
-   /**
-    * Get bit mapping
-    * 
-    * @return
-    */
-   public Integer[] getBitMapping() {
-      return fBitMapping;
-   }
-
+   
    @Override
    public String formatValueForRegister(String paramName) {
       
@@ -429,14 +651,52 @@ public class BitmaskVariable extends LongVariable {
    }
 
    @Override
-   public String getUsageValue() {
+   public String formatUsageValue(String value) {
 
-      
-      String value = getSubstitutionValue();
-      
+      // Try to convert to long
+      Long valueAsLong = null;
+      try {
+         valueAsLong = Long.parseLong(value);
+      } catch (NumberFormatException e) {
+      }
+      BitInformationEntry[] bitInformation = getBitInformation().bits;
+      if ((bitInformation != null)&&(valueAsLong != null)) {
+         StringBuilder sb = new StringBuilder();
+         int  bitsSetCount = 0;
+         for (int index=0; index<bitInformation.length; index++) {
+            if ((bitInformation[index].bitNum == null)||(bitInformation[index].bitNum < 0)) {
+               // Not allocated
+               continue;
+            }
+            if ((valueAsLong & (1L<<bitInformation[index].bitNum))==0) {
+               // Special value
+               continue;
+            }
+            if (!sb.isEmpty()) {
+               sb.append("|\n\\t ");
+            }
+            if (useEnumClass()) {
+               sb.append(getTypeName());
+               sb.append("::");
+            }
+            sb.append(bitInformation[index].bitName);
+            bitsSetCount++;
+         }
+         String result = sb.toString();
+         if (bitsSetCount == 0) {
+            result = getTypeName()+"(0)";
+         }
+         if (bitsSetCount>1) {
+            result = "("+result+")";
+         }
+         return result;
+      }
+
+      String result = value;
+
       String format = getValueFormat();
       if (format != null) {
-         value = String.format(format, value);
+         result = String.format(format, result);
       }
       String typeName = getTypeName();
       if (typeName != null) {
@@ -444,18 +704,150 @@ public class BitmaskVariable extends LongVariable {
          Pattern pSpecial = Pattern.compile("(signed(\\sint)?)|(int)");
          Matcher mSpecial = pSpecial.matcher(typeName);
          if (!mSpecial.matches()) {
-            return typeName+"("+value+")";
+            return typeName+"("+result+")";
          }
       }
-      return value;
+      return result;
+   }
+   
+   public void printDebugInfo() {
+      BitInformationEntry[] bitInformation = getBitInformation().bits;
+      for (int index=0; index<bitInformation.length; index++) {
+         System.err.println(String.format("%2d: %-2d %-35s %-20s",
+               index, bitInformation[index].bitNum, bitInformation[index].bitName,bitInformation[index].description));
+      }
+   }
+   
+   /**
+    * Get definition value for selection choice
+    * 
+    * @param value The entry to use for formatted value
+    * 
+    * @return Formatted string suitable for enum definition e.g. <b>MPU_CESR_SPERR(1U<<3)</b>
+    * 
+    * @throws Exception
+    */
+   public String getDefinitionValue(BitInformationEntry bitInformationEntry) throws Exception {
+      
+      Integer bitNum = bitInformationEntry.bitNum;
+      String hexValue;
+      if (bitNum == null) {
+         hexValue="--Not allocated--";
+      }
+      else if (bitNum == BIT_INDEX_ALL) {
+         hexValue = "0x"+Long.toHexString(fBitInformation.permittedBits)+"U";
+      }
+      else if (bitNum == BIT_INDEX_NONE) {
+         hexValue = "0x0U";
+      }
+      else {
+         if ((bitInformationEntry.mask != null)&&(!bitInformationEntry.mask.isBlank())) {
+            // Use supplied C mask
+            hexValue = bitInformationEntry.mask;
+         }
+         else {
+            // Create mask
+            hexValue = "1U<<"+bitInformationEntry.bitNum;
+         }
+      }
+      String format = getValueFormat();
+      if ((format == null)||(format.isBlank())) {
+         return hexValue;
+      }
+      return String.format(format, hexValue);
+   }
+
+   /**
+    * Get definition value for selection choice
+    * 
+    * @param value The value to format
+    * 
+    * @return Formatted string suitable for enum definition etc.
+    */
+   public String getDefinitionValue(String value) {
+      
+      String[] valueFormats = getValueFormat().split(",");
+      String[] vals         = value.split(",");
+      if (valueFormats.length != vals.length) {
+         return ("valueFormat '"+getValueFormat()+"' does not match value '"+value+"'" );
+      }
+      StringBuilder sb = new StringBuilder();
+      for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
+         if (valIndex>0) {
+            sb.append('|');
+         }
+         sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
+      }
+      return sb.toString();
+   }
+
+   @Override
+   public String getDefinitionValue() {
+      return getDefinitionValue(getSubstitutionValue());
+   }
+   
+   @Override
+   public String getUsageValue() {
+
+      BitInformation bitInformation = getBitInformation();
+      if (bitInformation != null) {
+         StringBuilder sb = new StringBuilder();
+         long value  = getValueAsLong();
+         int  bitsSetCount = 0;
+         for (int index=0; index<bitInformation.bits.length; index++) {
+            if ((value & (1L<<bitInformation.bits[index].bitNum))!=0) {
+               if (!sb.isEmpty()) {
+                  if (useEnumClass()) {
+                     // Values are ORed together
+                     sb.append("|\n\\t ");
+                  }
+                  else {
+                     // Values are comma separated list
+                     sb.append(",\n\\t");
+                  }
+               }
+               sb.append(getTypeName());
+               if (useEnumClass()) {
+                  sb.append("::");
+               }
+               else {
+                  sb.append("_");
+               }
+               sb.append(bitInformation.bits[index].bitName);
+               bitsSetCount++;
+            }
+         }
+         String result = sb.toString();
+         if (bitsSetCount == 0) {
+            result = getTypeName()+"(0)";
+         }
+         if (useEnumClass()&&(bitsSetCount>1)) {
+            result = "("+result+")";
+         }
+         return result;
+      }
+      
+
+      String result = getSubstitutionValue();
+
+      String format = getValueFormat();
+      if (format != null) {
+         result = String.format(format, result);
+      }
+      String typeName = getTypeName();
+      if (typeName != null) {
+         // Don't provides cast to (signed) int
+         Pattern pSpecial = Pattern.compile("(signed(\\sint)?)|(int)");
+         Matcher mSpecial = pSpecial.matcher(typeName);
+         if (!mSpecial.matches()) {
+            return typeName+"("+result+")";
+         }
+      }
+      return result;
    }
 
    @Override
    public String fieldExtractFromRegister(String registerValue) {
-//    boolean foundIt = getName().contains("adc_cv_cv");
-//    if (foundIt) {
-//       System.err.print("Found it " + getName());
-//    }
     String valueFormat = getValueFormat();
     String returnType  = getReturnType();
     boolean hasOuterBrackets = false;
@@ -470,11 +862,12 @@ public class BitmaskVariable extends LongVariable {
              return "Illegal use of formatParam - unexpected pattern '"+valueFormat+"'";
           }
           String macro = m.group(1);
+          boolean isNumeric = Character.isDigit(macro.charAt(0));
           if (!sb.isEmpty()) {
              sb.append("|");
              needsBrackets = true;
           }
-          sb.append(String.format("((%s&%s_MASK))",registerValue, macro, macro));
+          sb.append(String.format("((%s&%s%s))",registerValue, macro, isNumeric?"":"_MASK"));
        }
        registerValue = sb.toString();
        if (needsBrackets) {
@@ -488,10 +881,16 @@ public class BitmaskVariable extends LongVariable {
        }
        registerValue = String.format("%s%s", returnType, registerValue);
     }
-//    if (foundIt) {
-//       System.err.println(" => " + registerValue);
-//    }
     return registerValue;
  }
 
+   /**
+    * Get the bitmask associated with this bitField
+    * @return
+    */
+   public long getBitmask() {
+      return fRawPermittedBits;
+   }
+   
+   
 }

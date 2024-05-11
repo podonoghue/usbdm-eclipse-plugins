@@ -138,6 +138,7 @@ public class WriteFamilyCpp {
                headerVariables.put(key, var);
             }
             else {
+               // Add to existing text
                var.setValue(var.getValueAsString()+sb.toString());
             }
          }

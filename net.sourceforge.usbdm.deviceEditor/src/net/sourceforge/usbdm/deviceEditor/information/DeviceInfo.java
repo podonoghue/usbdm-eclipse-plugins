@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -400,7 +401,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    private void loadDeviceDescription(ParseFamilyXML parser) throws Exception {
 
-      System.out.println("DeviceInfo.loadDeviceDescription()");
+      System.err.println("==================================================================");
+      System.err.println("=============== DeviceInfo.loadDeviceDescription() ===============");
       
       // Add device sub-family as variable
       addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
@@ -409,15 +411,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    /**
-    * Load hardware description from file (.usbdmHardware)
+    * Load hardware description of peripherals from peripheral XML e.g. <i>lptmr0.xml</i>
     * 
-    * @param hardwarePath  Path to load from
+    * @param parser Parser being used to process files
     * 
     * @throws Exception
     */
    private void loadPeripheralDescriptions(ParseFamilyXML parser) throws Exception {
       
-      System.out.println("DeviceInfo.loadPeripheralDescriptions()");
+      System.err.println("=======================================================================");
+      System.err.println("=============== DeviceInfo.loadPeripheralDescriptions() ===============");
 
       ArrayList<PeripheralWithState> peripheralWithStateList = new ArrayList<PeripheralWithState>();
       
@@ -1820,7 +1823,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param settings   Settings to load from (updated with information based on variant and subfamily for system files)
     */
    public void loadInitialSettings(Device device, Settings settings) {
-      System.out.println("Loading initial settings");
+      
+      System.err.println("========================================================");
+      System.err.println("=============== Loading initial settings ===============");
+      
       try {
          // Device variant
          String variantName = settings.get(USBDMPROJECT_VARIANT_SETTING_KEY);
@@ -1881,7 +1887,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param settings   Settings to load from
     */
    public void loadRemainingSettings(Device device, Settings settings) {
-      System.out.println("Loading remaining settings");
+      
+      System.err.println("==========================================================");
+      System.err.println("=============== Loading remaining settings ===============");
+      
       try {
 
          // Create dependencies between variables and peripherals
@@ -2011,9 +2020,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
        */
       for (Entry<String, Variable> entry:fVariables.entrySet()) {
          Variable var = fVariables.get(entry.getKey());
-//         if (var.getName().contains("osc_cr_range")) {
-//            System.err.println("Found it "+var.getName());
-//         }
          try {
             var.addInternalListeners();
          } catch (Exception e) {
@@ -2022,9 +2028,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       for (Entry<String, Variable> entry:fVariables.entrySet()) {
          Variable var = fVariables.get(entry.getKey());
-//         if (var.getName().equals("kbi_pe_kbipe")) {
-//            System.err.println("Found it "+ var.getKey());
-//         }
          var.expressionChanged(null);
       }
       //       System.err.println("Notify changes of persistent variables");
@@ -2036,9 +2039,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
        */
       for (Entry<String, Variable> entry:fVariables.entrySet()) {
          Variable var = entry.getValue();
-//         if (var.getName().contains("osc_input_freq")) {
-//            System.err.println("Found it "+var.getName());
-//         }
          if (!var.isDerived()) {
             var.notifyListeners();
          }
@@ -2068,6 +2068,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
       }
+      // Notify of any pin changes
+      fPins.forEach(new BiConsumer<String, Pin>() {
+         @Override
+         public void accept(String s, Pin pin) {
+            pin.notifyListeners();
+         }
+      });
    }
    
    /**

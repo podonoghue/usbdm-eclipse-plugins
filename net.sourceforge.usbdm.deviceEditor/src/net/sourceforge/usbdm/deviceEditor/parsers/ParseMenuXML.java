@@ -7,8 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +23,8 @@ import org.w3c.dom.Node;
 
 import net.sourceforge.usbdm.deviceEditor.graphicModel.ClockSelectionFigure;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformation;
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformationEntry;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceData;
@@ -405,9 +405,6 @@ public class ParseMenuXML extends XML_BaseParser {
          fIterationVar  = (iterationVar!=null)?iterationVar.trim():null;
          
          if (values instanceof String) {
-//            if (values.toString().contains("\"")) {
-//               System.err.println("Found it '" + values + "'");
-//            }
             fValueList  = splitValues((String)values, delimiter, false);
 //            fValueList  = ((String)values).split(Pattern.quote(delimiter));
          }
@@ -426,7 +423,6 @@ public class ParseMenuXML extends XML_BaseParser {
             if (fValueList[index].startsWith("@")) {
                //               String t = fValueList[index];
                fValueList[index] = Expression.getValue(fValueList[index].substring(1), provider).toString();
-               //               System.err.println("Found it "+t + " => " + fValueList[index]);
             }
          }
       }
@@ -987,9 +983,6 @@ public class ParseMenuXML extends XML_BaseParser {
 //         // Has explicit line breaks - don't auto-split
 //         maxColumn=0;
 //      }
-//      if (text.contains("This function will be triggered")) {
-//         System.err.println("Found it");
-//      }
       boolean newLine = true;
       
       for (int chIndex=0; chIndex<text.length(); chIndex++) {
@@ -1233,7 +1226,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
       if (varElement.hasAttribute("enumClass")) {
-         variable.setUseEnumClass(true);
+         variable.setUseEnumClass(getAttributeAsBoolean(varElement, "enumClass", false));
       }
       if (varElement.hasAttribute("valueFormat")) {
          variable.setValueFormat(getAttributeAsString(varElement, "valueFormat"));
@@ -1439,10 +1432,10 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getAttributeAsString(varElement, "min"));
+            variable.setMin(getAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getAttributeAsString(varElement, "max"));
+            variable.setMax(getAttribute(varElement, "max"));
          }
          if (varElement.hasAttribute("disabledValue")) {
             variable.setDisabledValue(getRequiredLongExpressionAttribute(varElement, "disabledValue"));
@@ -1503,6 +1496,174 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
+    * Get bit file bitnum attribute from element
+    * 
+    * @param element    Element to examine
+    * 
+    * @return  bitnum from attribute or null if not found
+    * 
+    * @throws Exception On illegal attribute
+    */
+   private Integer getBitFieldBitnum(Element element) throws Exception {
+      
+      String bit   = getAttributeAsString(element, "bit");
+      Integer indexValue;
+      if (bit == null) {
+         return null;
+      }
+      if (bit.equalsIgnoreCase("all")) {
+         indexValue = BitmaskVariable.BIT_INDEX_ALL;
+      }
+      else if (bit.equalsIgnoreCase("none")) {
+         indexValue = BitmaskVariable.BIT_INDEX_NONE;
+      }
+      else {
+         indexValue = getAttributeAsLong(element,   "bit", 0L).intValue();
+      }
+      return indexValue;
+   }
+   
+   private BitInformation parseBitFields(Element varElement) throws Exception {
+
+      ArrayList<BitmaskVariable.BitInformationEntry> entries = new ArrayList<BitmaskVariable.BitInformationEntry>();
+
+      Long permittedBits = getAttributeAsLong(varElement, "bitmask");
+      for (Node subNode = varElement.getFirstChild();
+            subNode != null;
+            subNode = subNode.getNextSibling()) {
+
+         if (subNode.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) subNode;
+         if (element.getTagName().equals("bitField")) {
+
+            // Check if entry has condition to be available for field to be present
+            Boolean keepField = checkCondition(element);
+            if (!keepField) {
+               // Discard choice
+               continue;
+            }
+            BitInformationEntry bitInformationEntry;
+
+            String var = getAttributeAsString(element, "var");
+            if (var != null) {
+               VariableWithChoices vwc = (VariableWithChoices) safeGetVariable(var);
+               if (vwc == null) {
+                  throw new Exception("Unable to find referenced variable '"+var+"' within bitField '"+getKeyAttribute(varElement)+"'");
+               }
+               String name = vwc.getTypeName();
+
+               // Remove peripheral name prefix if present
+               Pattern p = Pattern.compile(fPeripheral.getClassBaseName()+"(.+)");
+               Matcher m = p.matcher(name);
+               if (m.matches()) {
+                  name = m.group(1);
+               }
+               Integer bitnum = getBitFieldBitnum(element);
+               bitInformationEntry =
+                     new BitInformationEntry(name, vwc.getDescription(), bitnum, vwc.generateMask().mask);
+            }
+            else {
+               String index = getAttributeAsString(element, "bit", "");
+               Integer indexValue;
+               if (index.equalsIgnoreCase("all")) {
+                  indexValue = BitmaskVariable.BIT_INDEX_ALL;
+               }
+               else if (index.equalsIgnoreCase("none")) {
+                  indexValue = BitmaskVariable.BIT_INDEX_NONE;
+               }
+               else {
+                  indexValue = getAttributeAsLong(element, "bit", 0L).intValue();
+               }
+               bitInformationEntry = new BitInformationEntry(
+                     getAttributeAsString(element, "name"),
+                     getAttributeAsString(element, "description"),
+                     indexValue,
+                     getAttributeAsString(element, "macro"));
+            }
+            entries.add(bitInformationEntry);
+         }
+         else if (element.getTagName().equals("bitFieldExpansion")) {
+
+            if (!element.hasAttribute("bit") || !element.hasAttribute("name")) {
+               throw new Exception("<bitFieldExpansion> must have name and bit attributes "+element);
+            }
+            if (!element.hasAttribute("keys") || !(element.hasAttribute("dim") || element.hasAttribute("values"))) {
+               throw new Exception("<bitFieldExpansion> must have keys with either dim and values attributes "+element);
+            }
+            String iterVariable  = getAttributeAsString(element, "iterationVar", "i");
+            String keys          = getAttributeAsString(element, "keys");
+            Object values        = getAttribute(element, "values");
+            Integer[] dims       = getAttributeAsListOfInteger(element, "dim");
+            Character delimiter  = getAttributeAsCharacter(element, "delimiter", ';');
+
+            if (dims != null) {
+               if (values != null) {
+                  throw new Exception("Both values and dim attribute given in <choiceExpansion> '" + keys +"'");
+               }
+
+               // Iterated range used to create values
+               int start;
+               int end;
+               if (dims.length == 1) {
+                  start = 0;
+                  end   = dims[0].intValue();
+               }
+               else if (dims.length == 2) {
+                  start = dims[0];
+                  end   = dims[1]+1;
+               }
+               else {
+                  throw new Exception("Illegal dim value '"+dims+"' in <bitFieldExpansion> '"+keys+"'");
+               }
+               // Create values list
+               StringBuilder sb = new StringBuilder();
+               for (int index=start; index<end; index++) {
+                  if (!sb.isEmpty()) {
+                     sb.append(";");
+                  }
+                  sb.append(index);
+               }
+               values=sb.toString();
+            }
+            if ((values instanceof String) && ((String)values).isBlank()) {
+               // Empty loop
+               continue;
+            }
+
+            Integer index = 0;
+            fForStack.createLevel(fProvider, keys, values, delimiter, iterVariable);
+            do {
+               if (checkCondition(element)) {
+                  Integer bitnum       = getBitFieldBitnum(element);
+                  String  name         = getAttributeAsString(element, "name",        "Choice "+index.toString());
+                  String  description  = getAttributeAsString(element, "description", "");
+                  String  macro        = getAttributeAsString(element, "macro",       "");
+                  // TODO var, signal
+                  BitInformationEntry bitInformationEntry = new BitInformationEntry(
+                        name,
+                        description,
+                        bitnum,
+                        macro);
+//                  String associatedHardware = getAttributeAsString(element, "signal");
+//                  entry.setAssociatedHardware(associatedHardware);
+                  entries.add(bitInformationEntry);
+               }
+               index++;
+            } while (fForStack.next());
+
+            fForStack.dropLevel();
+         }
+      }
+      if (entries.isEmpty()) {
+         return null;
+      }
+      BitInformation bi = new BitInformation(entries.toArray(new BitmaskVariable.BitInformationEntry[entries.size()]), permittedBits);
+      return bi;
+   }
+   
+   /**
     * Parse &lt;bitmaskOption&gt; element<br>
     * 
     * @param varElement
@@ -1515,45 +1676,22 @@ public class ParseMenuXML extends XML_BaseParser {
       
       String derivedFromName = getAttributeAsString(varElement, "derivedFrom");
 
-      long          bitmask        = 0;
-      StringBuilder bitList        = new StringBuilder();
-      StringBuilder bitDescription = new StringBuilder();
-
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
       parseCommonAttributes(parent, varElement, variable);
-
-      ChoiceInformation ce = parseChoiceData(varElement);
-      if (ce.entries.size() == 0) {
-         if (derivedFromName == null) {
-            throw new Exception("Missing information for bitfieldOption '"+variable.getKey()+"'");
+      
+      BitInformation references = parseBitFields(varElement);
+      if (references != null) {
+         if (derivedFromName != null) {
+            throw new Exception("derivedFrom with entries in bitfieldOption '"+variable.getKey()+"'");
          }
+         variable.init(references);
+      }
+      else if (derivedFromName != null) {
          BitmaskVariable other = (BitmaskVariable) safeGetVariable(derivedFromName);
          variable.init(other);
       }
       else {
-         if (derivedFromName != null) {
-            throw new Exception("'derivedFrom attribute with entries in bitfieldOption '"+variable.getKey()+"'");
-         }
-         Collections.sort(ce.entries, new Comparator<ChoiceData>() {
-            @Override
-            public int compare(ChoiceData o1, ChoiceData o2) {
-               return (int)(Long.parseLong(o1.getValue())-Long.parseLong(o2.getValue()));
-            }
-         });
-         for (ChoiceData choice:ce.entries) {
-            if (!bitList.isEmpty()) {
-               bitList.append(",");
-               bitDescription.append(",");
-            }
-            bitList.append(choice.getEnumName());
-            bitDescription.append(choice.getName());
-            bitmask |= Long.decode(choice.getValue());
-         }
-         variable.init(
-               getLongExpressionAttribute(varElement, "bitmask", bitmask),
-               bitList.toString(),
-               bitDescription.toString()
-               );
+         throw new Exception("Missing information for bitfieldOption '"+variable.getKey()+"'");
       }
       variable.setPinMap(getAttributeAsString(varElement, "pinMap"));
       variable.setRadix(16);
@@ -1850,7 +1988,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
       lists.add(variable.getChoiceData());
-      lists.add(variable.getHiddenChoiceData());
+//      lists.add(variable.getHiddenChoiceData());
       for (ChoiceData[] choiceData:lists) {
          if (choiceData == null) {
             continue;
@@ -2117,9 +2255,6 @@ public class ParseMenuXML extends XML_BaseParser {
          return defaultValue;
       }
       String attribute = element.getAttribute(attrName);
-//      if (attribute.contains("_Flash0K_eeprom32K")) {
-//         System.err.println("Found it");
-//      }
       try {
          attribute = fForStack.doForSubstitutions(attribute);
          attribute = replaceCommonNames(attribute).trim();
@@ -2916,9 +3051,6 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("<constant> must have 'key' attribute, value='"+value+"'");
       }
       boolean isHidden  = getAttributeAsBoolean(element, "hidden", true);
-      //      if (key.equalsIgnoreCase("/FTM2/faultPinList")) {
-      //         System.err.println("Found it "+key);
-      //      }
 
       if (value == null) {
          value="true";
@@ -3008,7 +3140,10 @@ public class ParseMenuXML extends XML_BaseParser {
 
       // Padding applied to tool-tips
       String tooltipPadding;
-
+      
+      // Pad out expressions to this width when doing %initExpression
+      int padToComments;
+      
       // Terminator for initExpression
       String terminator;
 
@@ -3138,7 +3273,8 @@ public class ParseMenuXML extends XML_BaseParser {
             // Padding applied to comments (before * @param)
             linePadding    = parser.getAttributeAsString(element, "linePadding",    "").replace("x", " ");
             tooltipPadding = parser.getAttributeAsString(element, "tooltipPadding", "x*xxxxxxxx").replace("x", " ");
-
+            padToComments  = parser.getAttributeAsLong(element, "padToComments", 0L).intValue();
+            
             // Terminator for initExpression
             terminator     = parser.getAttributeAsString(element, "terminator"    , ";");
 
@@ -3998,19 +4134,21 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    private void addOpeningTemplate(String templateKey, ArrayList<TemplateInformation> templateList) throws Exception {
-      if (templateKey.startsWith("commonInfo.")) {
-         // Add opening template
-//         System.err.println("Starting " + templateKey);
+      
          final String TEMPLATE=""
-               + "class $(_Baseclass)CommonInfo {\n"
+               + "class %decl {\n"
                + "\n"
                + "public:\\n\n"
                + "\n";
-         String text = TEMPLATE;
+               
+      if (templateKey.startsWith("commonInfo.")) {
+         // Add opening template
+         String decl = "$(_CommonInfo)";
          Variable baseClassDeclaration = safeGetVariable("_commonInfo_declaration");
          if (baseClassDeclaration != null) {
-            text = baseClassDeclaration.getValueAsString();
+            decl = baseClassDeclaration.getValueAsString();
          }
+         String text = TEMPLATE.replace("%decl", decl);
          text = fForStack.doForSubstitutions(text);
          text = replaceCommonNames(text).trim();
 
@@ -4020,17 +4158,12 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else if (templateKey.startsWith("basicInfo.")) {
          // Add opening template
-//         System.err.println("Starting " + templateKey);
-         final String TEMPLATE=""
-               + "class $(_Structname)BasicInfo {\n"
-               + "\n"
-               + "public:\\n\n"
-               + "\n";
-         String text = TEMPLATE;
+         String decl = "$(_BasicInfo)";
          Variable baseClassDeclaration = safeGetVariable("_basicInfo_declaration");
          if (baseClassDeclaration != null) {
-            text = baseClassDeclaration.getValueAsString();
+            decl = baseClassDeclaration.getValueAsString();
          }
+         String text = TEMPLATE.replace("%decl", decl);
          text = fForStack.doForSubstitutions(text);
          text = replaceCommonNames(text).trim();
 
@@ -4074,12 +4207,19 @@ public class ParseMenuXML extends XML_BaseParser {
    private static class ChoiceInformation {
       final ArrayList<ChoiceData> entries;
       final ArrayList<ChoiceData> hiddenEntries;
-      final Integer               defaultEntry;
+      final Integer               defaultIndex;
 
       public ChoiceInformation(ArrayList<ChoiceData> entries, ArrayList<ChoiceData> hiddenEntries, Integer defaultEntry) {
          this.entries         = entries;
          this.hiddenEntries   = hiddenEntries;
-         this.defaultEntry    = defaultEntry;
+         this.defaultIndex    = defaultEntry;
+      }
+      
+      public ChoiceData getDefaultChoice() {
+         if (defaultIndex != null) {
+            return entries.get(defaultIndex);
+         }
+         return null;
       }
    }
 
@@ -4182,7 +4322,7 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean defaultExplicitlySet        = false;
       ArrayList<ChoiceData> entries       = new ArrayList<ChoiceData>();
       ArrayList<ChoiceData> hiddenEntries = new ArrayList<ChoiceData>();
-      Integer defaultValue                = null;
+      Integer  defaultValue               = null;
 
       for (Node subNode = menuElement.getFirstChild();
             subNode != null;
@@ -4192,6 +4332,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) subNode;
+         
          if (element.getTagName().equals("choice")) {
             if (!element.hasAttribute("name") || !element.hasAttribute("value")) {
                throw new Exception("<choice> must have name and value attributes "+element);
@@ -4214,44 +4355,27 @@ public class ParseMenuXML extends XML_BaseParser {
                   fProvider
                   );
             entry.setAssociatedHardware(getAttributeAsString(element, "signal", null));
-//            String associatedHardware = getAttributeAsString(element, "signal");
-//            if ((associatedHardware != null)&&(!associatedHardware.isBlank())) {
-//               // Try Signal
-//               Object hardware = fPeripheral.getDeviceInfo().getSignal(associatedHardware);
-//               if (hardware == null) {
-//                  // Try Peripheral
-//                  hardware = fPeripheral.getDeviceInfo().getPeripheral(associatedHardware);
-//               }
-//               if (hardware == null) {
-//                  throw new Exception("Unable to find signal '"+associatedHardware+
-//                        "' associated with choice '" + getAttributeAsString(element, "name"));
-//               }
-//               entry.setAssociatedHardware(hardware);
-//            }
             entry.setToolTip(getToolTip(element));
             if (hidden) {
                hiddenEntries.add(entry);
             }
             else {
-               entries.add(entry);
-            }
-            if (defaultValue == null) {
-               // Assume 1st entry is default
-               defaultValue = 0;
-            }
-            if (element.hasAttribute("isDefault")) {
-               if (getAttributeAsBoolean(element, "isDefault", true)) {
+               if (defaultValue == null) {
+                  // Assume 1st entry is default
+                  defaultValue = entries.size();
+               }
+               if (getAttributeAsBoolean(element, "isDefault", false)) {
                   // Explicit default set
                   if (defaultExplicitlySet) {
                      throw new Exception("Multiple default choices set in <"+menuElement.getTagName() + " name=\""+menuElement.getAttribute("name")+"\"> <choice name=\"" + getAttributeAsString(element, "name")+ "\">");
                   }
                   defaultExplicitlySet = true;
-                  defaultValue = entries.size()-1;
+                  defaultValue = entries.size();
                }
+               entries.add(entry);
             }
          }
          else if (element.getTagName().equals("choiceExpansion")) {
-
             if (!element.hasAttribute("value") || !element.hasAttribute("name")) {
                throw new Exception("<choiceExpansion> must have name and value attributes "+element);
             }
@@ -4298,9 +4422,6 @@ public class ParseMenuXML extends XML_BaseParser {
                continue;
             }
 
-            // Use 1st entry as default
-            defaultValue = 0;
-            
             Integer index = 0;
             fForStack.createLevel(fProvider, keys, values, delimiter, iterVariable);
             do {
@@ -4309,11 +4430,6 @@ public class ParseMenuXML extends XML_BaseParser {
                   String name       = getAttributeAsString(element, "name",       "Choice "+index.toString());
                   String eNum       = getAttributeAsString(element, "enum",       "");
                   String enabledBy  = getAttributeAsString(element, "enabledBy",  null);
-                  Boolean isDefault = getAttributeAsBoolean(element, "isDefault", false);
-                  if (isDefault) {
-                     // Override default entry
-                     defaultValue = index;
-                  }
                   ChoiceData entry = new ChoiceData(
                         name,
                         value,
@@ -4326,6 +4442,18 @@ public class ParseMenuXML extends XML_BaseParser {
                         );
                   String associatedHardware = getAttributeAsString(element, "signal");
                   entry.setAssociatedHardware(associatedHardware);
+                  if (defaultValue == null) {
+                     // Assume 1st entry is default
+                     defaultValue = entries.size();
+                  }
+                  if (getAttributeAsBoolean(element, "isDefault", false)) {
+                     // Explicit default set
+                     if (defaultExplicitlySet) {
+                        throw new Exception("Multiple default choices set in <"+menuElement.getTagName() + " name=\""+menuElement.getAttribute("name")+"\"> <choice name=\"" + getAttributeAsString(element, "name")+ "\">");
+                     }
+                     defaultExplicitlySet = true;
+                     defaultValue = entries.size();
+                  }
                   entries.add(entry);
                }
                index++;
@@ -4338,25 +4466,20 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parses the children of this element
+    * Parses the children of this element (binaryOption)
     * 
     * @param  parentModel  Model to attach children to
-    * @param  varElement  Menu element to parse
+    * @param  varElement   Menu element to parse (choiceOption)
     * 
     * @throws Exception
     */
-   private void parseChoices(Variable variable, Element varElement) throws Exception {
+   private void parseChoices(BooleanVariable variable, Element varElement) throws Exception {
 
       ChoiceInformation choiceInfo = parseChoiceData(varElement);
 
-      String disabledValue = null;
-      
-      // Value is used as disabled value
-      if (varElement.hasAttribute("disabledValue")) {
-         disabledValue = getAttributeAsString(varElement, "disabledValue");
-      }
-      
+      String disabledValue   = getAttributeAsString(varElement, "disabledValue");
       Variable otherVariable = getDerivedFrom(varElement);
+
       if (choiceInfo.entries.isEmpty() && (otherVariable != null)) {
          /**
           * Should be another variable of the same type to copy from i.e. derivedFrom="" present
@@ -4364,84 +4487,122 @@ public class ParseMenuXML extends XML_BaseParser {
          if (otherVariable.getClass() != variable.getClass()) {
             throw new Exception("Referenced variable of wrong type <"+varElement.getTagName() + " derivedFrom=\"" + variable.getName()+ "\">");
          }
-         if (variable instanceof BooleanVariable) {
-            BooleanVariable otherVar = (BooleanVariable) otherVariable;
-            BooleanVariable var      = (BooleanVariable) variable;
-            var.setFalseValue(otherVar.getFalseValue());
-            var.setTrueValue(otherVar.getTrueValue());
-            var.setDefault(otherVar.getDefault());
-            var.setDisabledValue(otherVar.getDisabledValue());
-            var.setValue(otherVar.getDefault());
-            var.setTableName(otherVar.getTableName());
-         }
-         else if (variable instanceof ChoiceVariable) {
-            ChoiceVariable otherVar = (ChoiceVariable) otherVariable;
-            ChoiceVariable var      = (ChoiceVariable) variable;
-            var.setData(otherVar.getChoiceData());
-            var.setDefault(otherVar.getDefault());
-            var.setDisabledValue(otherVar.getDisabledValue());
-            var.setValue(otherVar.getDefault());
-            var.setTableName(otherVar.getTableName());
-         }
+         BooleanVariable otherVar = (BooleanVariable) otherVariable;
+         BooleanVariable var      = variable;
+         var.setFalseValue(otherVar.getFalseValue());
+         var.setTrueValue(otherVar.getTrueValue());
+         var.setDefault(otherVar.getDefault());
+         var.setDisabledValue(otherVar.getDisabledValue());
+         var.setValue(otherVar.getDefault());
+         var.setTableName(otherVar.getTableName());
+         return;
+      }
+      
+      // Set of choices provided (may be empty!)
+      if (choiceInfo.entries.size()>2) {
+         throw new Exception("Wrong number of choices in <binaryOption key=\"" + variable.getKey()+ "\">");
+      }
+      if (choiceInfo.entries.size()==2) {
+         variable.setFalseValue(choiceInfo.entries.get(0));
+         variable.setTrueValue(choiceInfo.entries.get(1));
       }
       else {
-         // Set of choices provided (may be empty!)
-         if (variable instanceof BooleanVariable) {
-            if (choiceInfo.entries.size()>2) {
-               throw new Exception("Wrong number of choices in <"+varElement.getTagName() + " name=\"" + variable.getName()+ "\">");
-            }
-            BooleanVariable booleanVar = (BooleanVariable) variable;
-            if (choiceInfo.entries.size()==2) {
-               booleanVar.setFalseValue(choiceInfo.entries.get(0));
-               booleanVar.setTrueValue(choiceInfo.entries.get(1));
-            }
-            else {
-               // As only has a single value don't save it
-               booleanVar.setDerived(true);
-               ChoiceData choiceData = choiceInfo.entries.get(0);
-               if (Boolean.parseBoolean(choiceData.getValue()) ||
-                     (Character.isDigit(choiceData.getValue().charAt(0)) && Integer.parseInt(choiceData.getValue())>0)) {
-                  booleanVar.setTrueValue(choiceData);
-               }
-               else {
-                  booleanVar.setFalseValue(choiceData);
-               }
-            }
-            booleanVar.setDefault(choiceInfo.entries.get(choiceInfo.defaultEntry).getValue());
-            if (disabledValue != null) {
-               booleanVar.setDisabledValue(disabledValue);
-            }
-            else {
-               booleanVar.setDisabledValue(booleanVar.getDefault());
-            }
-            booleanVar.setValue(booleanVar.getDefault());
+         // As only has a single choice don't save it
+         variable.setDerived(true);
+         ChoiceData choiceData = choiceInfo.entries.get(0);
+         if (Boolean.parseBoolean(choiceData.getValue()) ||
+               (Character.isDigit(choiceData.getValue().charAt(0)) && Integer.parseInt(choiceData.getValue())>0)) {
+            variable.setTrueValue(choiceData);
          }
-         else if (variable instanceof ChoiceVariable) {
-            ChoiceVariable choiceVar = (ChoiceVariable)variable;
-            choiceVar.setChoiceData(choiceInfo.entries, choiceInfo.hiddenEntries);
-            if ((choiceInfo.defaultEntry != null) && (choiceInfo.entries.size()>0)) {
-               Object tmp;
-               tmp = choiceVar.getDefault();
-               if (tmp == null) {
-                  // Set default if not set
-                  choiceVar.setDefault(choiceInfo.defaultEntry);
-               }
-               if (disabledValue != null) {
-                  choiceVar.setDisabledValue(disabledValue);
-               }
-               else {
-                  choiceVar.setDisabledValue(choiceVar.getDefault());
-               }
-               tmp = choiceVar.getValue();
-               if (tmp == null) {
-                  // Set current value if not set
-                  choiceVar.setValue(choiceInfo.defaultEntry);
-               }
-            }
+         else {
+            variable.setFalseValue(choiceData);
+         }
+      }
+      
+      // Set up default, disabled and current values
+      if (choiceInfo.defaultIndex != null) {
+         Object tmp;
+         tmp = variable.getDefault();
+         if (tmp == null) {
+            // Set default if not set
+            variable.setDefault(choiceInfo.getDefaultChoice().getValue());
+         }
+         if (disabledValue != null) {
+            // Disabled value explicitly set
+            variable.setDisabledValue(disabledValue);
+         }
+         else {
+            // Use default value
+            variable.setDisabledValue(variable.getDefault());
+         }
+         tmp = variable.getEffectiveChoice();
+         if (tmp == null) {
+            // Set current value if not set
+            variable.setValueQuietly(choiceInfo.getDefaultChoice().getValue());
          }
       }
    }
 
+   /**
+    * Parses the children of this element (choiceOption)
+    * 
+    * @param  parentModel  Model to attach children to
+    * @param  varElement   Menu element to parse (choiceOption)
+    * 
+    * @throws Exception
+    */
+   private void parseChoices(ChoiceVariable variable, Element varElement) throws Exception {
+
+      ChoiceInformation choiceInfo = parseChoiceData(varElement);
+
+      String disabledValue   = getAttributeAsString(varElement, "disabledValue");
+      Variable otherVariable = getDerivedFrom(varElement);
+
+      if (choiceInfo.entries.isEmpty()) {
+         if (otherVariable == null) {
+            // Should be another choice to copy from
+            throw new Exception("No choices found for choiceOption");
+         }
+         /**
+          * Should be another variable of the same type to copy from i.e. derivedFrom="" present
+          */
+         if (otherVariable.getClass() != variable.getClass()) {
+            throw new Exception("Referenced variable of wrong type <"+varElement.getTagName() + " derivedFrom=\"" + variable.getName()+ "\">");
+         }
+         ChoiceVariable otherVar = (ChoiceVariable) otherVariable;
+         variable.setData(otherVar.getChoiceData());
+         variable.setDefault(otherVar.getDefault());
+         variable.setDisabledValue(otherVar.getDisabledValue());
+         variable.setValue(otherVar.getDefault());
+         variable.setTableName(otherVar.getTableName());
+         return;
+      }
+      
+      // Set of choices provided (may be empty!)
+      variable.setChoiceData(choiceInfo.entries, choiceInfo.hiddenEntries);
+      
+      // Set up default, disabled and current values
+      if (choiceInfo.defaultIndex != null) {
+         Object tmp;
+         tmp = variable.getDefault();
+         if (tmp == null) {
+            // Set default if not set
+            variable.setDefault(choiceInfo.defaultIndex);
+         }
+         if (disabledValue != null) {
+            variable.setDisabledValue(disabledValue);
+         }
+         else {
+            variable.setDisabledValue(variable.getDefault());
+         }
+         tmp = variable.getCurrentChoice();
+         if (tmp == null) {
+            // Set current value if not set
+            variable.setValueQuietly(choiceInfo.defaultIndex);
+         }
+      }
+   }
+   
    public static class ValidatorInformation {
       private String            fClassName;
       private ArrayList<Object> fParams = null;
@@ -4833,9 +4994,6 @@ public class ParseMenuXML extends XML_BaseParser {
 //            AliasPlaceholderModel apm = (AliasPlaceholderModel) child;
 //            String name = apm.getKey();
 //            System.err.println("Removing non-existemt alias '" + name + "'");
-//            if ((name != null) && (name.contains("ftm_filter_ch4fval_paired"))) {
-//               System.err.println("Found it");
-//            }
 //         }
 //      }
       children.removeAll(deletedChildren);

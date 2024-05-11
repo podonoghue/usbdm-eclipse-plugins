@@ -259,7 +259,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Get the variable value as a string for use in saving state
     * 
-    * @return the Value
+    * @return Value as string or null if invalid
     */
    public abstract String getPersistentValue();
 
@@ -282,15 +282,15 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /**
     * Sets variable disabled value
     * 
-    * @param value The value to set
+    * @param value The value to set.  May be null in which case no action is taken.
     */
    public abstract void setDisabledValue(Object value);
 
    /**
-    * Get current value in format suitable for use with setValue(Object);
+    * Get current value in format suitable for use with setValue(Object);<br>
     * This value is qualified by enable state
     * 
-    * @return current value
+    * @return Current value
     */
    public abstract Object getValue();
    
@@ -989,22 +989,37 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Get value for use in C code<br>
+    * Format a value for use in C code<br>
     * This value is in the final usage format e.g. "I2cSmbAddress_Enabled" or "1234_ticks"<br>
-    * This value <b>may need</b> manipulation for use with hardware e.g. integer value wrapped in a macro.
+    * This value <b>may need</b> manipulation for use with hardware e.g. integer value needing to be wrapped in a macro.
+    * 
+    * @param value Value to format
+    * 
+    * @return String for text substitutions (in C code)
+    */
+   public String formatUsageValue(String value) {
+      String format = getValueFormat();
+      if (format == null) {
+         return value;
+      }
+      try {
+         return String.format(format, value);
+      } catch (Exception e) {
+         return "Illegal_format";
+      }
+   }
+   
+   /**
+    * Get effective value for use in C code<br>
+    * This value is in the final usage format e.g. "I2cSmbAddress_Enabled" or "1234_ticks"<br>
+    * This value <b>may need</b> manipulation for use with hardware e.g. integer value needing to be wrapped in a macro.
+    * This value <b>is affected by the enable state.</b>
     * 
     * @return String for text substitutions (in C code)
     */
    public String getUsageValue() {
-      String format = getValueFormat();
-      if (format == null) {
-         return getSubstitutionValue();
-      }
-      try {
-         return String.format(format, getSubstitutionValue());
-      } catch (Exception e) {
-         return "Illegal_format";
-      }
+      
+      return formatUsageValue(getSubstitutionValue());
    }
    
    /**
@@ -1438,9 +1453,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @throws Exception
     */
    public void setErrorIf(String errorIf) throws Exception {
-//      if (this.getName().contains("mcgClockMode[1]")) {
-//         System.err.println("Found it ");
-//      }
       fErrorIf = new Expression(errorIf, fProvider);
    }
 
@@ -1487,13 +1499,14 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public void addInternalListeners() throws Exception {
       
-//      if (getKey().contains("osc_cr_range")) {
-//         System.err.println("Found it "+getKey());
-//      }
       if (fLogging) {
          System.err.println("Logging: addInternalListeners()");
       }
       if (fReference != null) {
+         if (fLogging) {
+            System.err.println("Adding reference " + fReference.getExpressionStr());
+            System.err.println("Adding reference " + fReference.getPrimaryVar());
+         }
          fReference.addListener(this);
       }
       if (fEnabledBy != null) {
@@ -1976,4 +1989,88 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       fUseEnumClass = useEnumClass;
    }
 
+   public static class MaskPair {
+      public final String mask;
+      public final String macro;
+      
+      public MaskPair(String mask, String macro) {
+         this.mask   = mask;
+         this.macro  = macro;
+      }
+   };
+   
+   /**
+    * Get mask for variable e.g. LPUART_CTRL_LOOPS|LPUART_CTRL_RSRC
+    * 
+    * @return
+    */
+   public MaskPair generateMask() {
+
+      String mask   = null;
+      String macro  = null;
+
+      if (fValueFormat != null) {
+         //       boolean isNumeric = false;
+         String[] formats = fValueFormat.split(",");
+         StringBuilder sb = new StringBuilder();
+         boolean multipleElements = false;
+         Pattern alphaPattern   = Pattern.compile("^([a-zA-Z]\\w*)\\(?\\%s\\)?$");
+         Pattern numericPattern = Pattern.compile("^(0x[0-9A-Fa-f]*)\\(\\%s\\)$");
+         for (String format:formats) {
+            /*
+             * (%s)                 => ""
+             * (%s),xxx(%s)         => xxx_MASK
+             * (%s),xxx(%s),yyy(%s) => xxx_MASK|yyy_MASK
+             * 
+             */
+            format = format.trim();
+            if (format.isBlank()) {
+               continue;
+            }
+            if (format.matches("^\\(?\\%s\\)?$")) {
+               // Discard non-macro values
+               continue;
+            }
+            Matcher alphaMatcher   = alphaPattern.matcher(format);
+            Matcher numericMatcher = numericPattern.matcher(format);
+            if (alphaMatcher.matches()) {
+               //             System.err.println("Convert '"+format+"' => '"+alphaMatcher.group(1)+"_MASK'");
+               format = alphaMatcher.group(1)+"_MASK";
+            }
+            else if (numericMatcher.matches()) {
+               //             System.err.println("Convert '"+format+"' => '"+numericMatcher.group(1));
+               format = numericMatcher.group(1);
+               //             isNumeric = true;
+            }
+            //          else {
+            //             System.err.println("Unmatched valueFormat'"+format+"'");
+            //             continue;
+            //          }
+            if (!sb.isEmpty()) {
+               sb.append("|");
+               multipleElements = true;
+            }
+            sb.append(format);
+         }
+         if (sb.isEmpty()) {
+            mask  = "";
+            macro = "";
+         }
+         else if (multipleElements) {
+            mask  = sb.toString();
+            macro = "";
+         }
+         else {
+            mask  = sb.toString();
+            macro = mask.replace("_MASK", "");
+         }
+      }
+      else {
+         // Assume simple variable e.g. LPUART_CTRL_TXDIR and LPUART_CTRL_TXDIR_MASK
+         macro = Variable.getBaseNameFromKey(fKey).toUpperCase();
+         mask  = macro+"_MASK";
+      }
+
+      return new MaskPair(mask, macro);
+   }
 }

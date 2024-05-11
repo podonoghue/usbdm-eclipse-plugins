@@ -20,8 +20,10 @@ public class IrqVariable extends BooleanVariable {
       setFalseValue(new ChoiceData("Not installed", "$"+Mode.NotInstalled.name()));
    }
 
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#getSubstitutionValue()
+   /**
+    * {@inheritDoc}
+    * 
+    * @return String for text substitutions (in C code) either "true" or "false"
     */
    @Override
    public String getSubstitutionValue() {
@@ -83,37 +85,49 @@ public class IrqVariable extends BooleanVariable {
       return fClassHandler;
    }
 
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#getPersistentValue()
+   /**
+    * {@inheritDoc}
+    * 
+    * @return Either "$ClassMethod" or "$NotInstalled"
     */
    @Override
    public String getPersistentValue() {
       return super.getValueAsBoolean()?"$"+Mode.ClassMethod.name():"$"+Mode.NotInstalled.name();
    }
 
-//   @Override
-//   public boolean isDefault() {
-//      return getValueAsBoolean() == false;
-//   }
-
+   /**
+    * {@inheritDoc}
+    * 
+    * @param value true/false (as String)
+    */
    @Override
-   public void setDisabledValue(Object value) {
+   public void setPersistentValue(String value) {
+      setValue((value.equalsIgnoreCase("$ClassMethod"))?Mode.ClassMethod:Mode.NotInstalled);
    }
-
-   @Override
-   public int getChoiceIndex() {
-      return getValueAsBoolean()?0:1;
-   }
-
+   
    @Override
    protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
       return super.clone();
    }
    
    @Override
    public String getEnumValue() {
       return Boolean.toString(getValueAsBoolean());
+   }
+
+   /**
+    * {@inheritDoc}
+    * 
+    * @param value Mode value/true/false etc.
+    */
+   @Override
+   public Boolean translate(Object value) {
+      
+      if (value instanceof Mode) {
+         Mode mode = (Mode) value;
+         return (mode==Mode.ClassMethod)?true:false;
+      }
+      return super.translate(value);
    }
 
 }

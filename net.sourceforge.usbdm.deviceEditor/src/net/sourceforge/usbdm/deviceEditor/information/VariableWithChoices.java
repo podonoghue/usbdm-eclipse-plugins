@@ -16,7 +16,7 @@ public abstract class VariableWithChoices extends Variable {
    /** List of choices are to be re-created each time */
    boolean fDynamicChoices = false;
    
-   /** List of choice names */
+   /** List of <b>available</b> choice names */
    private String[] fChoices = null;
 
    /** Name of table to produce in C code */
@@ -27,43 +27,42 @@ public abstract class VariableWithChoices extends Variable {
    }
    
    /**
-    * Get choice data available in GUI (includes disabled choices)
+    * Get choice data (includes disabled choices)
     * 
     * @return Visible choices (enable and disabled)
     */
    public abstract ChoiceData[] getChoiceData();
 
    /**
-    * Get hidden choice data
+    * Get choice data for hidden choices
     * 
-    * @return Hidden choices (used for code generation only)
+    * @return Visible choices (enable and disabled)
     */
    public abstract ChoiceData[] getHiddenChoiceData();
 
    /**
-    * Convert an enum value into a complete enum for code use
+    * Set choice by index
     * 
-    * @param enumValue
+    * @param index Index of choice to select
     * 
-    * @return Converted value e.g. Disable => LowPower_Disabled
+    * @return true if index actually changes
     */
-   protected String makeEnum(String enumValue) {
-      if (getTypeName() == null) {
-         return null;
-      }
-      if (enumValue == null) {
-         return null;
-      }
-      return getTypeName()+"_"+enumValue;
-   }
+   public abstract boolean setChoiceIndex(int index);
+   
+//   /**
+//    * Get the index of the currently selected choice
+//    *
+//    * @return Index
+//    */
+//   public abstract int getChoiceIndex();
    
    /**
-    * Get number of choices available
+    * Get number of choices available (including disabled choices)
     * 
     * @return
     */
    public int getChoiceCount() {
-      return getVisibleChoiceData().size();
+      return getChoiceData().length;
    }
    
    void clearCachedChoiceInformation() {
@@ -71,13 +70,33 @@ public abstract class VariableWithChoices extends Variable {
    }
    
    /**
+    * Find first enabled choice
     * 
+    * @return Index of choice or -1 if none are available!!
     */
-   public void updateChoicesAvailable() {
-      String[] choices = getVisibleChoiceNames();
-      if (getValueAsLong()>=choices.length) {
-         setValue(0);
+   int findFirstAvailableIndex() {
+      ChoiceData[] choices = getChoiceData();
+      for (int index=0; index<choices.length; index++) {
+         if (choices[index].isEnabled(getProvider())) {
+            return index;
+         }
       }
+      return -1;
+   }
+   
+   /**
+    * Checks and updates the choice index if no longer available
+    * 
+    * @return true if index changes due to check
+    */
+   public boolean checkChoiceIndex() {
+      // Check if current choice valid
+      ChoiceData currentChoice = getCurrentChoice();
+      if ((currentChoice != null)&&(currentChoice.isEnabled(getProvider()))) {
+         return false;
+      }
+      // Set 'safe' value
+      return setChoiceIndex(findFirstAvailableIndex());
    }
    
    /**
@@ -92,13 +111,13 @@ public abstract class VariableWithChoices extends Variable {
       
       ChoiceData[] choiceData = getChoiceData();
       
+      // Create new list if already found dynamic or list not created yet
       if (fDynamicChoices || (fChoices == null)) {
          
          // Construct new list of choice names
          if (choiceData == null) {
             return null;
          }
-         
          ArrayList<String> choices = new ArrayList<String>();
          for (int index=0; index<choiceData.length; index++) {
             fDynamicChoices = fDynamicChoices || choiceData[index].isDynamic();
@@ -109,6 +128,7 @@ public abstract class VariableWithChoices extends Variable {
          }
          fChoices = choices.toArray(new String[choices.size()]);
       }
+      // Add listeners if newly found dynamic
       if (!previousDynamicChoices && fDynamicChoices) {
          for (ChoiceData choiceDatax:getChoiceData()) {
             if (choiceDatax.isDynamic()) {
@@ -131,8 +151,6 @@ public abstract class VariableWithChoices extends Variable {
     */
    public ArrayList<ChoiceData> getVisibleChoiceData() {
 
-      // TODO - memorise?
-
       ChoiceData[] choiceData = getChoiceData();
       if (choiceData == null) {
          return null;
@@ -150,15 +168,7 @@ public abstract class VariableWithChoices extends Variable {
    }
 
    /**
-    * Set value (selection) by choice index
-    * 
-    * @param index Index into available currently available choices
-    */
-   public abstract void setIndex(int index);
-   
-   /**
     * Set value by name
-    * Only the visible choices are available.
     * 
     * @param name Name of choice to select<br>
     * 
@@ -166,14 +176,13 @@ public abstract class VariableWithChoices extends Variable {
     */
    public boolean setValueByName(String name) {
       
-      String[] choiceData = getVisibleChoiceNames();
+      ChoiceData[] choiceData = getChoiceData();
       if (choiceData == null) {
          return false;
       }
-      
       int index = 0;
-      for (String choice:choiceData) {
-         if (choice.equalsIgnoreCase(name)) {
+      for (ChoiceData choice:choiceData) {
+         if (choice.getName().equalsIgnoreCase(name)) {
             break;
          }
          index++;
@@ -189,12 +198,13 @@ public abstract class VariableWithChoices extends Variable {
    protected abstract ChoiceData getdefaultChoice();
    
    /**
-    * Get index of value in choice entries
-    * Only the visible choices are available.
+    * Get index of value in choice entries (including disabled)
+    * 
+    * @param name Name of choice
     * 
     * @return index or -1 if not found
     */
-   protected int getChoiceIndex(String name) {
+   protected int getChoiceIndexByName(String name) {
       ChoiceData[] data = getChoiceData();
       if (data == null) {
          return -1;
@@ -207,36 +217,24 @@ public abstract class VariableWithChoices extends Variable {
       return -1;
    }
    
-   public ChoiceData getSelectedItemData() {
-      int index = getChoiceIndex(getValueAsString());
-      if (index<0) {
-         index = (int)getValueAsLong();
-      }
-      return getChoiceData()[index];
-   }
-   
-   public int getChoiceIndex() {
-      // Use index of current selected item
-      return getChoiceIndex(getValueAsString());
-   }
+   /**
+    * Get data for currently selected choice (even if disabled)
+    * 
+    * @return Choice data or null if none selected or available
+    */
+   abstract ChoiceData getCurrentChoice();
    
    /**
-    * Get data for currently selected choice
+    * Get data for selected choice if enabled or disabled choice if not
     * 
-    * @return Choice data
+    * @return Choice data or null if none selected or available
     */
-   public ChoiceData getCurrentChoice() {
-      int index = getChoiceIndex();
-      if (index<0) {
-         return null;
-      }
-      return getVisibleChoiceData().get(index);
-   }
+    public abstract ChoiceData getEffectiveChoice();
    
    /**
     * {@inheritDoc}<br>
     * 
-    * Modified by allowing an index e.g. code[3] to select the code information associated with the 3rd choice.
+    * May be modified by adding an index e.g. code[3] to select the code information associated with the 3rd choice.
     */
    @Override
    public String getField(String field) {
@@ -257,54 +255,70 @@ public abstract class VariableWithChoices extends Variable {
       
       // Return data from choice ([] present)
       String fieldName = m.group(1);
-      int index;
+      ChoiceData choice = null;
       if (m.group(3) != null) {
          // Parse required index
-         index = Integer.parseInt(m.group(3));
+         int index = Integer.parseInt(m.group(3));
          if (index>= getChoiceData().length) {
             return "Index "+index+" out of range for variable "+getName() + ", field ="+field;
          }
+         choice = getChoiceData()[index];
       }
       else {
          // Use index of current selected item
-         index = getChoiceIndex();
-         if (index<0) {
-            index = getChoiceIndex();
-            return "No current choice value to retrieve data, -"+getValueAsString()+"- not found for field "+field;
-         }
+         choice = getCurrentChoice();
       }
-      ChoiceData fData = getChoiceData()[index];
       if ("code".equals(fieldName)) {
-         return fData.getCodeValue();
+         return choice.getCodeValue();
       } else if ("enum".equals(fieldName)) {
-         String enumname = makeEnum(fData.getEnumName());
+         String enumname = makeEnum(choice.getEnumName());
          if (enumname != null) {
             return enumname;
          }
          return getUsageValue();
       } else if ("name".equals(fieldName)) {
-         return fData.getName();
+         return choice.getName();
       } else if ("value".equals(fieldName)) {
-         return fData.getValue();
+         return choice.getValue();
       }
       return "Field "+field+" not matched in choice";
    }
 
    /**
-    * Get value as enum e.g. PmcLowVoltageDetect_Disabled
+    * Get effective value as enum e.g. PmcLowVoltageDetect_Disabled
     * 
     * @return String for text substitutions (in C code)
     */
    public String getEnumValue() {
-      // Use index of current selected item
-      int index = getChoiceIndex(getValueAsString());
-      if (index<0) {
-         return "No current value for" + getName();
+      
+      ChoiceData choice = getEffectiveChoice();
+      if (choice == null) {
+         return "--no selection--";
       }
-      ChoiceData fData = getChoiceData()[index];
-      return makeEnum(fData.getEnumName());
+      return makeEnum(choice.getEnumName());
    }
 
+//   /**
+//    * Get value as enum e.g. PmcLowVoltageDetect_Disabled
+//    * @param value
+//    *
+//    * @return String for text substitutions (in C code)
+//    */
+//   public String getEnumValue(String value) {
+//      // Get index of value
+//      int index = getChoiceIndexByName(value);
+//      if (index<0) {
+//         return null;
+//      }
+//      ChoiceData fData = getChoiceData()[index];
+//      return makeEnum(fData.getEnumName());
+//   }
+
+   @Override
+   public String formatUsageValue(String value) {
+      return makeEnum(value);
+   }
+   
    @Override
    public String getUsageValue() {
       String rv = getEnumValue();
@@ -430,7 +444,7 @@ public abstract class VariableWithChoices extends Variable {
          Exception t = new Exception("Failed to update from Expression '"+referenceExpression+"' to target '"+target+"'", e);
          t.printStackTrace();
       }
-      updateChoicesAvailable();
+      checkChoiceIndex();
    }
 
    /**
@@ -470,7 +484,7 @@ public abstract class VariableWithChoices extends Variable {
    boolean enableQuietly(boolean enabled) {
       boolean changed = super.enableQuietly(enabled);
       if (changed) {
-         updateChoicesAvailable();
+         checkChoiceIndex();
       }
       return changed;
    }
@@ -479,7 +493,7 @@ public abstract class VariableWithChoices extends Variable {
    public boolean enable(boolean enabled) {
       boolean changed = enableQuietly(enabled);
       if (changed) {
-         updateChoicesAvailable();
+         checkChoiceIndex();
          notifyListeners();
       }
       return changed;
@@ -570,4 +584,53 @@ public abstract class VariableWithChoices extends Variable {
       return registerValue;
    }
 
+   /**
+    * Get definition value for selection choice
+    * 
+    * @param index Index of selected choice
+    * 
+    * @return Formatted string suitable for enum definition
+    */
+   public String getDefinitionValue(ChoiceData choice) {
+      
+      String[] valueFormats = getValueFormat().split(",");
+      String[] vals         = choice.getValue().split(",");
+      if (valueFormats.length != vals.length) {
+         return ("valueFormat '"+getValueFormat()+"' does not match value '"+choice.getValue()+"'" );
+      }
+      StringBuilder sb = new StringBuilder();
+      for(int valIndex=0; valIndex<valueFormats.length; valIndex++) {
+         if (valIndex>0) {
+            sb.append('|');
+         }
+         sb.append(String.format(valueFormats[valIndex], vals[valIndex]));
+      }
+      return sb.toString();
+   }
+
+   @Override
+   public String getDefinitionValue() {
+      
+      int index = getChoiceIndexByName(getValueAsString());
+      ChoiceData choice = getChoiceData()[index];
+      return getDefinitionValue(choice);
+   }
+   
+   /**
+    * Convert an enum value into a complete enum for code use
+    * 
+    * @param enumValue
+    * 
+    * @return Converted value e.g. Disable => LowPower_Disabled
+    */
+   protected String makeEnum(String enumValue) {
+      if (getTypeName() == null) {
+         return null;
+      }
+      if (enumValue == null) {
+         return null;
+      }
+      return getTypeName()+"_"+enumValue;
+   }
+   
 }

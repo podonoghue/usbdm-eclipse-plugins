@@ -124,6 +124,44 @@ public class CreateDeviceSkeletonFromSVD {
    /**
     * Converts a pin name to more pretty form e.g. PTC6 => Ptc6, VREF_OUT => VrefOut
     * 
+    * @param text Text to process
+    * 
+    * @return Converted name
+    */
+   static public String makeNameFromText(String text) {
+      text = text.substring(0, Math.min(40,text.length()));
+      char[] p = text.toLowerCase().toCharArray();
+      StringBuffer sb = new StringBuffer();
+
+      // Delete spaces and Upper-case 1st character of each word
+      boolean convertFlag = true;
+      for (int index=0; index<p.length; index++) {
+         if ((p[index] == '\n')||(p[index] == '.')||(p[index] == ';')||(p[index] == '\\')) {
+            break;
+         }
+         if ((p[index]=='_')||(p[index]=='-')||(p[index]==' ')||(p[index]=='(')) {
+            // Discard and upper-case next character
+            convertFlag = true;
+         }
+         else if ((p[index]=='/')) {
+            // Use '_' and upper-case next character
+            sb.append("_");
+            convertFlag = true;
+         }
+         else if (convertFlag) {
+            sb.append(Character.toUpperCase(p[index]));
+            convertFlag = false;
+         }
+         else {
+            sb.append(p[index]);
+         }
+      }
+      return sb.toString();
+   }
+
+   /**
+    * Converts a pin name to more pretty form e.g. PTC6 => Ptc6, VREF_OUT => VrefOut
+    * 
     * @param name Original name
     * 
     * @return Converted name
@@ -274,6 +312,23 @@ public class CreateDeviceSkeletonFromSVD {
    //____________________
    void writePreamble() {
 
+      String classDecl1 =
+            "\n"+
+            "   <!-- ____ Class Declaration ________ -->\n" +
+            "   <constant key=\"_basicInfo_declaration\" type=\"String\" value='\"$(_BasicInfo)\"' />\n";
+      resultSb.append(classDecl1);
+      String classDecl2 =
+            "\n"+
+            "   <!-- ____ Class Declaration ________ -->\n" +
+            "   <constant key=\"_class_declaration\" type=\"String\" value='\"$(_Info) : public $(_BasicInfo)\"' />\n";
+      resultSb.append(classDecl2);
+      
+      if (placeInHeaderFile) {
+         String defInHeader = "\n"
+               + "   <constant key=\"definitionsInHeader\" value=\"true\" type=\"Boolean\" />\n";
+         resultSb.append(defInHeader);
+      }
+
       final String suppress = "\n"
          + "   <equation key=\"suppressInstance\"           value=\"false\"     />\n";
       final String pre = "\n"
@@ -306,16 +361,6 @@ public class CreateDeviceSkeletonFromSVD {
          resultSb.append(simExtra);
       }
       
-      if (placeInHeaderFile) {
-         String defInHeader = "\n"
-               + "   <constant key=\"definitionsInHeader\" value=\"true\" type=\"Boolean\" />\n";
-         resultSb.append(defInHeader);
-      }
-      String classDecl =
-            "\n"+
-            "   <!-- ____ Class Declaration ________ -->\n" +
-            "   <constant key=\"_class_declaration\" type=\"String\" value='\"$(_Info) : public $(_BasicInfo)\"' />\n";
-      resultSb.append(classDecl);
    }
 
    HashSet<String> usedFieldNames = null;
@@ -332,16 +377,19 @@ public class CreateDeviceSkeletonFromSVD {
       String regName = reg.getName().replace("%s", "");
       resultSb.append(String.format(header, regName));
       boolean titleDone = false;
+      int count = 0;
       for (Field field:reg.getFields()) {
          
          String fieldName = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
+         String name = prettyName(peripheralBasename)+makeNameFromText(field.getDescription());
          
          if (usedFieldNames == null) {
             usedFieldNames = new HashSet<String>();
          }
-         if (!usedFieldNames.add(fieldName)) {
+         if (!usedFieldNames.add(name)) {
             // Repeated filed name - delete
-            resultSb.append("<!-- Repeated filed name '"+fieldName+"' -->\n");
+            resultSb.append("<!-- Repeated field name '"+name+"' -->\n");
+            name = name + count++;
             continue;
          }
          
@@ -360,7 +408,7 @@ public class CreateDeviceSkeletonFromSVD {
          if (regName.contains("_")) {
             registerAttr = "\n      register=\""+regName.toLowerCase()+"\"";
          }
-         String enumName  = prettyName(fieldName);
+         String enumName  = name;
          ArrayList<Enumeration> enumerations = field.getEnumerations();
 
          String fieldDescription = XML_BaseParser.escapeString(field.getDescription());
@@ -611,7 +659,8 @@ public class CreateDeviceSkeletonFromSVD {
                   newRegister = false;
                }
                String fieldName  = peripheralBasename.toLowerCase()+"_"+regName.toLowerCase()+"_"+field.getName().toLowerCase();
-               String methodName = regName.toLowerCase()+"_"+field.getName().toLowerCase();
+//               String methodName = regName.toLowerCase()+"_"+field.getName().toLowerCase();
+               String methodName = makeNameFromText(field.getDescription());
                String get   = "true";
                String set   = "true";
                String clear = "false";
@@ -620,7 +669,7 @@ public class CreateDeviceSkeletonFromSVD {
                }
                firstField = false;
                resultSb.append(String.format("         %-30s : %-5s : %-5s : %-5s : enableGettersAndSetters : %s",
-                     fieldName, set, get, clear, prettyName(methodName)));
+                     fieldName, set, get, clear, methodName));
             }
          }
          @Override
@@ -733,7 +782,6 @@ public class CreateDeviceSkeletonFromSVD {
       return "uint32_t";
    }
    
-   //________________
    void getFieldNames_Register(List<String> list, Register register) {
       
       if (register.getAccessType() == AccessType.ReadOnly) {
@@ -1140,6 +1188,31 @@ public class CreateDeviceSkeletonFromSVD {
 
       resultSb.append(closeInitClass);
      
+      if (!useStaticMethods) {
+         String infoClassConstructor = "\n"
+               + "   <!-- ____ %Info Constructor ____ -->\n"
+               + "\n"
+               + "   <template codeGenCondition=\"$(_InfoGuard)\" >\n"
+               + "   <![CDATA[\n"
+               + "      \\t/*\n"
+               + "      \\t *   Default Constructor\n"
+               + "      \\t */\n"
+               + "      \\t$(_Info)() : $(_BasicInfo)($(_basename)) {\n"
+               + "      \\t   defaultConfigure();\n"
+               + "      \\t}\n"
+               + "      \\t\n"
+               + "      \\t/*\n"
+               + "      \\t *   Constructor\n"
+               + "      \\t */\n"
+               + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename)) {\n"
+               + "      \\t   configure(init);\n"
+               + "      \\t}\n"
+               + "      \\t\\n\n"
+               + "   ]]>\n"
+               + "   </template>\n";
+
+         resultSb.append(infoClassConstructor.replace("%Info", prettyName(peripheral.getName())+"Info"));
+      }
       /*
        * Create configure methods
        */
@@ -1185,6 +1258,9 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <![CDATA[\n"
             + "      \\t   enableNvicInterrupts(init.irqlevel);\n"
             + "      \\t\n"
+            + "      \\t   $(_BasicInfo)::configure($(_basename), init);\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
             + "   ]]>\n"
             + "   </template>\n";
       
@@ -1195,9 +1271,6 @@ public class CreateDeviceSkeletonFromSVD {
       String clockConfigAndReopen = ""
             + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
             + "   <![CDATA[\n"
-            + "      \\t   $(_BasicInfo)::configure($(_basename), init);\n"
-            + "      \\t}\n"
-            + "      \\t\\n\n"
             + "      \\t/**\n"
             + "      \\t * Configure $(_BASENAME) from values specified in init\n"
             + "      \\t *\n"
@@ -1380,25 +1453,29 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    void writeCommon() {
-      String common =
-            "\n" +
-            "   <!-- ____ Common ____ -->\n" +
-            "\n" +
-            "   <template key=\"/$(_BASENAME)/declarations\" codeGenCondition=\"$(_InfoGuard)\" >\n" +
-            "   <![CDATA[\n" +
-            "      \\t/**\n" +
-            "      \\t * Class representing $(_NAME)\n" +
-            "      \\t */\n" +
-            "      \\tclass $(_Class) : public $(_Baseclass)Base_T<$(_Info)> {};\n" +
-            "      \\t//typedef $(_Baseclass)Base_T<$(_Info)> $(_Class);\n" +
-            "      \\t\\n\n" +
-            "   ]]>\n" +
-            "   </template>\n" +
-            "\n" +
-            "   <validate\n" +
-            "      class=\"net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator\" >\n" +
-            "   </validate>\n";
-      resultSb.append(String.format(common));
+      resultSb.append(String.format("\n   <!-- ____ Common ____ -->\n"));
+      
+      String declaration ="\n"
+            + "   <template key=\"/$(_BASENAME)/declarations\" codeGenCondition=\"$(_InfoGuard)\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Class representing $(_NAME)\n"
+            + "      \\t */\n"
+            + "      \\t//using $(_Class) = $(_Class)Info;\n"
+            + "      \\t//class $(_Class) : public $(_Baseclass)Base_T<$(_Info)> {};\n"
+            + "      \\t//typedef $(_Baseclass)Base_T<$(_Info)> $(_Class);\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n";
+      
+      resultSb.append(String.format(declaration));
+      
+      String validator ="\n"
+            + "   <validate\n"
+            + "      class=\"net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator\" >\n"
+            + "   </validate>\n";
+      
+      resultSb.append(String.format(validator));
       
       String fileInclude =
             "\n" +
@@ -1424,7 +1501,6 @@ public class CreateDeviceSkeletonFromSVD {
       
       if (isSim) {
          resultSb.append("\n   <xi:include href=\"_simFiles-MKE.xml\" />");
-         //         resultSb.append("\n   <xi:include href=\"_sim_commonTemplates.xml\" />\n");
       }
       
       resultSb.append(""
@@ -1548,7 +1624,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "I2S",
 //         "KBI",
 //         "LPTMR",
-//         "LPUART",
+         "LPUART",
 //         "LLWU",
 //         "MCM",
 //         "MPU",
@@ -1559,7 +1635,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "PORT",
 //         "PWT",
 //         "QSPI"
-         "RCM",
+//         "RCM",
 //         "RNGA",
 //         "RTC",
 //         "SDHC",
@@ -1662,7 +1738,7 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    public static void main(String[] args) throws Exception {
-      useStaticMethods=true;
+      useStaticMethods=false;
 //      doAllPeripherals("STM32F030", "mke");
 //      doAllPeripherals("FRDM_KE04Z", "mke");
 //      doAllPeripherals("FRDM_KE06Z", "mke");

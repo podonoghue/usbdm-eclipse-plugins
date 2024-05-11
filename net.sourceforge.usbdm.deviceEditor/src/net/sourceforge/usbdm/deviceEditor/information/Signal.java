@@ -722,7 +722,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (pin != Pin.UNASSIGNED_PIN) {
          pinName = pin.getNameWithLocation();
       }
-      String onlyMappablePin = getOnlyMappablePin().getName();
+      Pin omp = getOnlyMappablePin();
+      String onlyMappablePin = (omp==null)?"":omp.getName();
       String combinedDescription = (signalDesc.isBlank()?signalName:signalDesc)+" ["+pinName+"]";
       return signalName+"|"+signalDesc+"|"+pinName+"|"+combinedDescription+"|"+codeIdentifier+"|"+onlyMappablePin;
    }
