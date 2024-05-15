@@ -32,7 +32,7 @@ public class Expression implements IModelChangeListener {
    public enum Type {
       Double, Long, String, Boolean, DisabledValue, List, Set, Unknown,
    }
-   
+
    /**
     * Evaluates an argument
     * 
@@ -43,7 +43,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception if arg is not a constant or of unexpected type
     */
    static Object evalConstantArg(ExpressionNode arg, Type type) throws Exception {
-      
+
       if (arg == null) {
          return null;
       }
@@ -55,7 +55,7 @@ public class Expression implements IModelChangeListener {
       }
       return arg.eval();
    }
-   
+
    /**
     * Evaluates an argument
     * 
@@ -72,16 +72,16 @@ public class Expression implements IModelChangeListener {
       }
       return result;
    }
-   
+
    static abstract class ExpressionNode {
       abstract Object eval() throws Exception;
-      
+
       public final Type fType;
-      
+
       public ExpressionNode(Type type) {
          fType = type;
       }
-      
+
       boolean isConstant() {
          return false;
       }
@@ -105,12 +105,12 @@ public class Expression implements IModelChangeListener {
        */
       public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
       }
-      
+
       @Override
       public String toString() {
          return this.getClass().getSimpleName()+"("+fType+")";
       }
-      
+
    }
 
    static abstract class BinaryExpressionNode extends ExpressionNode {
@@ -123,7 +123,7 @@ public class Expression implements IModelChangeListener {
          fLeft  = left;
          fRight = right;
       }
-      
+
       @Override
       public ExpressionNode prune() throws Exception {
          fLeft  = fLeft.prune();
@@ -133,18 +133,18 @@ public class Expression implements IModelChangeListener {
          }
          return this;
       }
-      
+
       @Override
       public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          fLeft.collectVars(variablesFound);
          fRight.collectVars(variablesFound);
       }
-      
+
       @Override
       boolean isConstant() {
          return fLeft.isConstant() && fRight.isConstant();
       }
-      
+
       @Override
       public String toString() {
          return this.getClass().getSimpleName()+"("+fLeft.toString()+","+fRight.toString()+","+fType+")";
@@ -160,7 +160,7 @@ public class Expression implements IModelChangeListener {
          super(type);
          fArg  = arg;
       }
-      
+
       @Override
       public ExpressionNode prune() throws Exception {
          fArg  = fArg.prune();
@@ -174,7 +174,7 @@ public class Expression implements IModelChangeListener {
       public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          fArg.collectVars(variablesFound);
       }
-      
+
       @Override
       boolean isConstant() {
          return fArg.isConstant();
@@ -189,12 +189,12 @@ public class Expression implements IModelChangeListener {
          super(type);
          fArg  = arg;
       }
-      
+
       @Override
       public void collectVars(ArrayList<Variable> variablesFound) throws Exception {
          fArg.collectVars(variablesFound);
       }
-      
+
       @Override
       public ExpressionNode prune() throws Exception {
          fArg  = fArg.prune();
@@ -207,34 +207,34 @@ public class Expression implements IModelChangeListener {
 
    static class VariableNode extends ExpressionNode implements IExpressionChangeListener {
       static final int MAX_DIMENSION = 4;
-      
+
       static enum Modifier {
          Value, Name, Code, Enum, Size, Default, IsDefault,
       };
 
       /** Cached variable */
       protected Variable fVar;
-      
+
       /** Modified for variable access */
       private final Modifier fModifier;
-      
+
       /** Owner of the expression for change notification */
       private final Expression fOwner;
-      
+
       /** Name of variable without index */
       private String fVarName;
-      
+
       /** Expression for index */
       private Expression fIndex;
 
-//    private final Variable[]       fVars = new Variable[MAX_DIMENSION];
+      //    private final Variable[]       fVars = new Variable[MAX_DIMENSION];
 
-//      private       Object           fValue = null;
-      
+      //      private       Object           fValue = null;
+
 
       VariableNode(Expression owner, String varName, Type type, Modifier modifier, Expression index) {
          super(type);
-         
+
          fOwner      = owner;
          fVarName    = varName;
          fIndex      = index;
@@ -270,7 +270,7 @@ public class Expression implements IModelChangeListener {
        * @throws Exception
        */
       public static ExpressionNode create(Expression owner, String varName, String modifier, Expression index) throws Exception {
-         
+
          String name = varName;
          if (index != null) {
             // Use zero index to allow safe access to array variable
@@ -338,9 +338,9 @@ public class Expression implements IModelChangeListener {
          System.err.println("Warning, using default String type for non-existent variable '" + name + "'");
          return new VariableNode(owner, varName, Type.String, null, index);
       }
-      
+
       private Variable getVar() throws Exception {
-         
+
          Variable var = fVar;
          if (var == null) {
             String name = fVarName;
@@ -349,27 +349,27 @@ public class Expression implements IModelChangeListener {
             }
             var = fOwner.fVarProvider.getVariable(name);
 
-//            if ((fIndex != null) && fIndex.isConstant()) {
-//               System.err.println("Caching indexed variable lookup '" + fVarName + "[" + fIndex.getExpressionStr() + "]'");
-//            }
+            //            if ((fIndex != null) && fIndex.isConstant()) {
+            //               System.err.println("Caching indexed variable lookup '" + fVarName + "[" + fIndex.getExpressionStr() + "]'");
+            //            }
             // If there is no index or index is unchanging then we can cache the variable lookup
             if ((fIndex == null)||fIndex.isConstant()) {
-//               if ((fIndex != null) && (var.getName().contains("ftm_cnsc_mode"))) {
-//                  System.err.println("Pruning variable with constant index '" + var.getName() );
-//               }
+               //               if ((fIndex != null) && (var.getName().contains("ftm_cnsc_mode"))) {
+               //                  System.err.println("Pruning variable with constant index '" + var.getName() );
+               //               }
                fVar = var;
                fIndex = null;
             }
          }
          return var;
       }
-      
-//      private Variable getIndexedVar(int index) throws Exception {
-//
-//         String name = fVarName+"["+index+"]";
-//         return fOwner.fVarProvider.getVariable(name);
-//      }
-      
+
+      //      private Variable getIndexedVar(int index) throws Exception {
+      //
+      //         String name = fVarName+"["+index+"]";
+      //         return fOwner.fVarProvider.getVariable(name);
+      //      }
+
       @Override
       public void expressionChanged(Expression expression) {
          // Index changed indicate var is stale
@@ -403,14 +403,14 @@ public class Expression implements IModelChangeListener {
             if (fIndex != null) {
                System.err.println("Pruning constant indexed variable '" + fVarName + "[" + fIndex.getExpressionStr() +"]' to " + eval().toString() );
             }
-//            else {
-//               System.err.println("Pruning constant variable '" + fVarName + "' to " + eval().toString() );
-//            }
+            //            else {
+            //               System.err.println("Pruning constant variable '" + fVarName + "' to " + eval().toString() );
+            //            }
             return wrapConstant(eval());
          }
          return this;
       }
-      
+
 
       @Override
       public String toString() {
@@ -496,7 +496,7 @@ public class Expression implements IModelChangeListener {
          }
          return fOwner.fVarProvider.safeGetVariable(name) != null;
       }
-      
+
    }
 
    static class DisabledValueNode extends ExpressionNode {
@@ -509,7 +509,7 @@ public class Expression implements IModelChangeListener {
       Object eval() {
          return false;
       }
-      
+
       @Override
       boolean isConstant() {
          return true;
@@ -529,7 +529,7 @@ public class Expression implements IModelChangeListener {
       Object eval() {
          return fValue;
       }
-      
+
       @Override
       boolean isConstant() {
          return true;
@@ -554,7 +554,7 @@ public class Expression implements IModelChangeListener {
       Object eval() {
          return fValue;
       }
-      
+
       @Override
       boolean isConstant() {
          return true;
@@ -579,7 +579,7 @@ public class Expression implements IModelChangeListener {
       Object eval() {
          return fValue;
       }
-      
+
       @Override
       boolean isConstant() {
          return true;
@@ -604,7 +604,7 @@ public class Expression implements IModelChangeListener {
       String eval() {
          return fValue;
       }
-      
+
       @Override
       boolean isConstant() {
          return true;
@@ -629,7 +629,7 @@ public class Expression implements IModelChangeListener {
       Boolean eval() {
          return fValue;
       }
-      
+
       @Override
       boolean isConstant() {
          return true;
@@ -652,16 +652,16 @@ public class Expression implements IModelChangeListener {
          return !(Boolean)fArg.eval();
       }
    }
-   
+
    static class CastToLongNode extends UnaryExpressionNode {
 
       CastToLongNode(ExpressionNode arg) throws Exception {
          super(arg, Type.Long);
-         
+
          switch(arg.fType) {
          default:
             throw new Exception("Expression cannot be cast to 'Long'");
-            
+
          case Double:
          case Long:
             break;
@@ -673,17 +673,17 @@ public class Expression implements IModelChangeListener {
          switch(fArg.fType) {
          default:
             throw new Exception("Invalid cast");
-            
+
          case Double:
             break;
-            
+
          case Long:
             break;
          }
          Double res = (double) fArg.eval();
          return res;
       }
-      
+
       /**
        * Promote arg to Long type
        * 
@@ -700,16 +700,16 @@ public class Expression implements IModelChangeListener {
          return new CastToLongNode(arg);
       }
    }
-   
+
    static class OrdinalNode extends UnaryExpressionNode {
 
       OrdinalNode(ExpressionNode arg) throws Exception {
          super(arg, Type.Long);
-         
+
          switch(arg.fType) {
          default:
             throw new Exception("Ordinal is not supported for expression");
-            
+
          case Long:
          case String:
          case Boolean:
@@ -722,10 +722,10 @@ public class Expression implements IModelChangeListener {
          switch(fArg.fType) {
          default:
             throw new Exception("Invalid cast");
-            
+
          case Long:
             return fArg.eval();
-            
+
          case String: {
             String s = (String) fArg.eval();
             if (s.length()!=1) {
@@ -739,7 +739,7 @@ public class Expression implements IModelChangeListener {
          }
          }
       }
-      
+
       /**
        * Promote arg to Long type
        * 
@@ -756,7 +756,7 @@ public class Expression implements IModelChangeListener {
          return new CastToLongNode(arg);
       }
    }
-   
+
    static class CastToDoubleNode extends UnaryExpressionNode {
 
       /**
@@ -781,7 +781,7 @@ public class Expression implements IModelChangeListener {
          double lRes = (Long) res;
          return lRes;
       }
-      
+
       /**
        * Promote arg to Double type
        * 
@@ -798,7 +798,7 @@ public class Expression implements IModelChangeListener {
          return new CastToDoubleNode(arg);
       }
    }
-   
+
    static class PrettyNode extends UnaryExpressionNode {
 
       /**
@@ -832,11 +832,11 @@ public class Expression implements IModelChangeListener {
                res = Character.toUpperCase(s.charAt(0))+s.substring(1);
             }
          }
-//         System.err.println("prettify: '"+s+"' => '"+res+"'");
+         //         System.err.println("prettify: '"+s+"' => '"+res+"'");
          return res;
       }
    }
-   
+
    static class UppercaseNode extends UnaryExpressionNode {
 
       /**
@@ -858,7 +858,7 @@ public class Expression implements IModelChangeListener {
          return s.toUpperCase();
       }
    }
-   
+
    static class ReplaceAllNode extends UnaryExpressionNode {
 
       /**
@@ -887,12 +887,12 @@ public class Expression implements IModelChangeListener {
 
          Object resArray[] = (Object[]) fArg.eval();
          String res = Pattern.compile(resArray[1].toString()).matcher(resArray[0].toString()).replaceAll(resArray[2].toString());
-//         System.err.println("Pattern.compile(\""+resArray[1].toString()+"\").matcher(\""+resArray[0].toString()+"\").replaceAll(\""+resArray[2].toString()+"\")"+
-//               "=>\""+res+"\"");
+         //         System.err.println("Pattern.compile(\""+resArray[1].toString()+"\").matcher(\""+resArray[0].toString()+"\").replaceAll(\""+resArray[2].toString()+"\")"+
+         //               "=>\""+res+"\"");
          return res;
       }
    }
-   
+
    static class FormatNode extends UnaryExpressionNode {
 
       /**
@@ -918,7 +918,7 @@ public class Expression implements IModelChangeListener {
          return String.format(resArray[0].toString(), resArray[1]);
       }
    }
-   
+
    static class LowercaseNode extends UnaryExpressionNode {
 
       /**
@@ -940,7 +940,7 @@ public class Expression implements IModelChangeListener {
          return s.toLowerCase();
       }
    }
-   
+
    static class CastToCharacterStringNode extends UnaryExpressionNode {
 
       /**
@@ -987,7 +987,7 @@ public class Expression implements IModelChangeListener {
    }
 
    static class ExpandPinListNode extends UnaryExpressionNode {
-      
+
       /**
        * Cast a Long ExpressionNode to a single character String ExpressionNode e.g. 30 => "0"
        * 
@@ -1033,13 +1033,13 @@ public class Expression implements IModelChangeListener {
          }
       }
    }
-   
+
    static class SignalDescriptionNode extends ExpressionNode {
 
       final Signal fSignal;
       final String fRegex;
       final String fReplacement;
-      
+
       private SignalDescriptionNode(Signal signal, String regex, String replacement) {
          super(Type.String);
          fSignal      = signal;
@@ -1066,7 +1066,7 @@ public class Expression implements IModelChangeListener {
        * 
        * @return
        */
-      
+
       private SignalDescriptionNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
          super(Type.String);
 
@@ -1074,10 +1074,10 @@ public class Expression implements IModelChangeListener {
             throw new Exception("Expected index for signal (an integer)");
          }
          if (arg.fType != Type.List) {
-            
+
             // Must be a single index (Long)
             Long value = (Long) evalConstantArg(arg, Type.Long);
-            
+
             fSignal      = peripheral.getSignalFromIndex((int)value.longValue());
             fRegex       = null;
             fReplacement = null;
@@ -1091,9 +1091,9 @@ public class Expression implements IModelChangeListener {
          fSignal      = peripheral.getSignalFromIndex((int)((Long) evalConstantArg(args[0], Type.Long)).longValue());
          fRegex       = (String) evalConstantArg(args[1], Type.String);
          fReplacement = (String) evalConstantArg(args[2], Type.String);
-         
+
       }
-      
+
       /**
        * Get signal being monitored
        * 
@@ -1102,7 +1102,7 @@ public class Expression implements IModelChangeListener {
       public Signal getSignal() {
          return fSignal;
       }
-      
+
       @Override
       Object eval() throws Exception {
          boolean debug = false;
@@ -1147,7 +1147,7 @@ public class Expression implements IModelChangeListener {
          Signal signal;
          String regex       = null;
          String replacement = null;
-         
+
          if (arg == null) {
             throw new Exception("Expected index for signal (an integer)");
          }
@@ -1170,7 +1170,7 @@ public class Expression implements IModelChangeListener {
             replacement = (String) evalConstantArg(args[2], Type.String);
             continue;
          } while(false);
-         
+
          if (signal != null) {
             return new SignalDescriptionNode(signal, regex, replacement);
          }
@@ -1178,7 +1178,7 @@ public class Expression implements IModelChangeListener {
             return new StringConstantNode("Signal not found");
          }
       }
-      
+
       /**
        * Create Expression node providing information about a signal.
        * 
@@ -1204,7 +1204,7 @@ public class Expression implements IModelChangeListener {
          Signal signal;
          String regex       = null;
          String replacement = null;
-         
+
          if (arg == null) {
             throw new Exception("Expected index for signal (an integer)");
          }
@@ -1224,7 +1224,7 @@ public class Expression implements IModelChangeListener {
             replacement = (String) evalConstantArg(args[2], Type.String);
             continue;
          } while(false);
-         
+
          if (signal != null) {
             return new SignalDescriptionNode(signal, regex, replacement);
          }
@@ -1233,11 +1233,11 @@ public class Expression implements IModelChangeListener {
          }
       }
    }
-   
+
    static class PinMappingNode extends ExpressionNode {
 
       Signal fSignal;
-      
+
       PinMappingNode(Signal signal) {
          super(Type.String);
          fSignal = signal;
@@ -1256,7 +1256,7 @@ public class Expression implements IModelChangeListener {
          return pinName;
       }
    }
-   
+
    static class MappedPinsListNode extends ExpressionNode {
 
       final Peripheral fPeripheral;
@@ -1279,9 +1279,9 @@ public class Expression implements IModelChangeListener {
        */
       MappedPinsListNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
          super(Type.String);
-         
+
          fPeripheral     = peripheral;
-         
+
          if (arg == null) {
             // Unfiltered list
             fRegex       = null;
@@ -1335,13 +1335,13 @@ public class Expression implements IModelChangeListener {
          return sb.toString();
       }
    }
-   
+
    static class SignalListNode extends ExpressionNode {
 
       final Peripheral fPeripheral;
       final String     fRegex;
       final String     fReplacement;
-      
+
       /**
        * Create Expression node providing information about signals.
        * 
@@ -1381,13 +1381,13 @@ public class Expression implements IModelChangeListener {
          fRegex       = (String) evalConstantArg(args[0], Type.String);
          fReplacement = (String) evalConstantArg(args[1], Type.String);
       }
-      
+
       @Override
       String eval() throws Exception {
-         
+
          Signal[] signals = fPeripheral.getMappedSignals();
          StringBuilder sb = new StringBuilder();
-         
+
          Pattern pattern = null;
          if (fRegex != null) {
             pattern = Pattern.compile(fRegex);
@@ -1415,21 +1415,21 @@ public class Expression implements IModelChangeListener {
             }
             sb.append(description);
          }
-//         System.err.println("SignalsListNode.eval() => '"+sb.toString()+"'");
-//         String res = sb.toString();
-//         if (res.isBlank()) {
-//            System.err.println("Warning SignalListNode "+fPeripheral+" is empty");
-//         }
+         //         System.err.println("SignalsListNode.eval() => '"+sb.toString()+"'");
+         //         String res = sb.toString();
+         //         if (res.isBlank()) {
+         //            System.err.println("Warning SignalListNode "+fPeripheral+" is empty");
+         //         }
          return sb.toString();
       }
    }
-   
+
    static class VectorsListNode extends ExpressionNode {
 
       final Peripheral fPeripheral;
       final String     fRegex;
       final String     fReplacement;
-      
+
       /**
        * Create Expression node providing information about signals.
        * 
@@ -1469,7 +1469,7 @@ public class Expression implements IModelChangeListener {
          fRegex       = (String) evalConstantArg(args[0], Type.String);
          fReplacement = (String) evalConstantArg(args[1], Type.String);
       }
-      
+
       @Override
       String eval() throws Exception {
 
@@ -1495,7 +1495,7 @@ public class Expression implements IModelChangeListener {
          return sb.toString();
       }
    }
-   
+
    static class UnaryMinusNode extends UnaryExpressionNode {
 
       UnaryMinusNode(ExpressionNode left) {
@@ -1512,7 +1512,7 @@ public class Expression implements IModelChangeListener {
          }
       }
    }
-   
+
    static class UnaryPlusNode extends UnaryExpressionNode {
 
       UnaryPlusNode(ExpressionNode left) {
@@ -1524,7 +1524,7 @@ public class Expression implements IModelChangeListener {
          return fArg.eval();
       }
    }
-   
+
    static class ComplementNode extends UnaryExpressionNode {
 
       ComplementNode(ExpressionNode left) {
@@ -1536,7 +1536,7 @@ public class Expression implements IModelChangeListener {
          return ~(Long)(fArg.eval());
       }
    }
-   
+
    static class MultiplyNode extends BinaryExpressionNode {
 
       MultiplyNode(ExpressionNode left, ExpressionNode right) throws Exception {
@@ -1575,7 +1575,7 @@ public class Expression implements IModelChangeListener {
       Object eval() throws Exception {
          Object leftOperand  = fLeft.eval();
          Object rightOperand = fRight.eval();
-         
+
          if ((leftOperand instanceof Double) && (rightOperand instanceof Double)) {
             Double right = (Double)rightOperand;
             if (Objects.equals(right, 0.0)) {
@@ -1899,26 +1899,26 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          fLeft  = fLeft.prune();
-         
+
          if (fLeft.isConstant()) {
             if ((Boolean)fLeft.eval()) {
                // Node value is determined from right node alone
-//               System.err.println("Pruning && (LHS=T) -> RHS=" + fRight);
+               //               System.err.println("Pruning && (LHS=T) -> RHS=" + fRight);
                return fRight.prune();
             }
             // Node is always false
-//            System.err.println("Pruning && (LHS=F) -> false, discarding RHS=" + fRight);
+            //            System.err.println("Pruning && (LHS=F) -> false, discarding RHS=" + fRight);
             return new BooleanNode(false);
          }
          fRight = fRight.prune();
          if (fRight.isConstant()) {
             if ((Boolean)fRight.eval()) {
                // Node value is determined from left node alone
-//               System.err.println("Pruning && (RHS=T) -> LHS=" + fLeft);
+               //               System.err.println("Pruning && (RHS=T) -> LHS=" + fLeft);
                return fLeft;
             }
             // Node is always false
-//            System.err.println("Pruning && (RHS=F) -> false, discarding LHS=" + fLeft);
+            //            System.err.println("Pruning && (RHS=F) -> false, discarding LHS=" + fLeft);
             return new BooleanNode(false);
          }
          return this;
@@ -1940,26 +1940,26 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          fLeft  = fLeft.prune();
-         
+
          if (fLeft.isConstant()) {
             if ((Boolean)fLeft.eval()) {
                // Node is always true
-//               System.err.println("Pruning || (LHS=T) -> true, discarding RHS=" + fRight);
+               //               System.err.println("Pruning || (LHS=T) -> true, discarding RHS=" + fRight);
                return new BooleanNode(true);
             }
             // Node value is determined from right node alone
-//            System.err.println("Pruning || (LHS=F) -> RHS=" + fRight);
+            //            System.err.println("Pruning || (LHS=F) -> RHS=" + fRight);
             return fRight.prune();
          }
          fRight = fRight.prune();
          if (fRight.isConstant()) {
             if ((Boolean)fRight.eval()) {
                // Node is always true
-//               System.err.println("Pruning || (RHS-T) -> true, discarding LHS=" + fLeft);
+               //               System.err.println("Pruning || (RHS-T) -> true, discarding LHS=" + fLeft);
                return new BooleanNode(true);
             }
             // Node value is determined from left node alone
-//            System.err.println("Pruning || (RHS=F) -> LHS=" + fLeft);
+            //            System.err.println("Pruning || (RHS=F) -> LHS=" + fLeft);
             return fLeft;
          }
          return this;
@@ -1967,9 +1967,9 @@ public class Expression implements IModelChangeListener {
    }
 
    static class TernaryNode extends BinaryExpressionNode {
-      
+
       ExpressionNode fCondition;
-      
+
       TernaryNode(ExpressionNode condition, ExpressionNode left, ExpressionNode right) {
          super(left,right,left.fType);
          fCondition = condition;
@@ -1983,7 +1983,7 @@ public class Expression implements IModelChangeListener {
       @Override
       public ExpressionNode prune() throws Exception {
          fCondition  = fCondition.prune();
-         
+
          if (fCondition.isConstant()) {
             return ((boolean) fCondition.eval())?fLeft.prune():fRight.prune();
          }
@@ -2002,7 +2002,7 @@ public class Expression implements IModelChangeListener {
       boolean isConstant() {
          return fCondition.isConstant() && super.isConstant();
       }
-      
+
       @Override
       public String toString() {
          return this.getClass().getSimpleName()+"("+fCondition.toString()+"?"+fLeft.toString()+":"+fRight.toString()+","+fType+")";
@@ -2010,68 +2010,68 @@ public class Expression implements IModelChangeListener {
 
    }
 
-//   static class SetNode extends ExpressionNode {
-//      ExpressionNode[] fList;
-//
-//      SetNode(ExpressionNode[] expression) {
-//         super(Type.List);
-//         fList = expression;
-//      }
-//
-//      @Override
-//      Object eval() throws Exception {
-//         Object[] result = new Object[fList.length];
-//         for (int index=0; index<fList.length; index++) {
-//            result[index] = fList[index].eval();
-//         }
-//         return result;
-//      }
-//
-//      @Override
-//      public void collectVars(ArrayList<Variable> variablesFound) {
-//         for (ExpressionNode exp:fList) {
-//            exp.collectVars(variablesFound);
-//         }
-//      }
-//
-//      @Override
-//      public ExpressionNode prune() throws Exception {
-//         for (int index=0; index<fList.length; index++) {
-//            fList[index] = fList[index].prune();
-//         }
-//         return this;
-//      }
-//
-//      @Override
-//      public String toString() {
-//         StringBuilder description = new StringBuilder();
-//         description.append(this.getClass().getSimpleName()).append("(");
-//         for (ExpressionNode exp:fList) {
-//            description.append(exp.toString());
-//         }
-//         description.append(")");
-//         return description.toString();
-//      }
-//
-//      @Override
-//      boolean isConstant() {
-//         boolean isConstant = true;
-//         for (int index=0; (index<fList.length)&&isConstant; index++) {
-//            isConstant = isConstant && fList[index].isConstant();
-//         }
-//         return isConstant;
-//      }
-//
-//   }
-   
+   //   static class SetNode extends ExpressionNode {
+   //      ExpressionNode[] fList;
+   //
+   //      SetNode(ExpressionNode[] expression) {
+   //         super(Type.List);
+   //         fList = expression;
+   //      }
+   //
+   //      @Override
+   //      Object eval() throws Exception {
+   //         Object[] result = new Object[fList.length];
+   //         for (int index=0; index<fList.length; index++) {
+   //            result[index] = fList[index].eval();
+   //         }
+   //         return result;
+   //      }
+   //
+   //      @Override
+   //      public void collectVars(ArrayList<Variable> variablesFound) {
+   //         for (ExpressionNode exp:fList) {
+   //            exp.collectVars(variablesFound);
+   //         }
+   //      }
+   //
+   //      @Override
+   //      public ExpressionNode prune() throws Exception {
+   //         for (int index=0; index<fList.length; index++) {
+   //            fList[index] = fList[index].prune();
+   //         }
+   //         return this;
+   //      }
+   //
+   //      @Override
+   //      public String toString() {
+   //         StringBuilder description = new StringBuilder();
+   //         description.append(this.getClass().getSimpleName()).append("(");
+   //         for (ExpressionNode exp:fList) {
+   //            description.append(exp.toString());
+   //         }
+   //         description.append(")");
+   //         return description.toString();
+   //      }
+   //
+   //      @Override
+   //      boolean isConstant() {
+   //         boolean isConstant = true;
+   //         for (int index=0; (index<fList.length)&&isConstant; index++) {
+   //            isConstant = isConstant && fList[index].isConstant();
+   //         }
+   //         return isConstant;
+   //      }
+   //
+   //   }
+
    static class CommaListNode extends ExpressionNode {
       ExpressionNode[] fList;
-      
+
       CommaListNode(ExpressionNode[] expressions) {
          super(Type.List);
          fList = expressions;
       }
-      
+
       /**
        * Get list of expressions
        * 
@@ -2080,7 +2080,7 @@ public class Expression implements IModelChangeListener {
       public ExpressionNode[] getExpressionList() {
          return fList;
       }
-      
+
       @Override
       Object eval() throws Exception {
          Object[] result = new Object[fList.length];
@@ -2096,7 +2096,7 @@ public class Expression implements IModelChangeListener {
             exp.collectVars(variablesFound);
          }
       }
-      
+
       @Override
       public ExpressionNode prune() throws Exception {
          for (int index=0; index<fList.length; index++) {
@@ -2104,7 +2104,7 @@ public class Expression implements IModelChangeListener {
          }
          return this;
       }
-      
+
       @Override
       public String toString() {
          StringBuilder description = new StringBuilder();
@@ -2131,9 +2131,9 @@ public class Expression implements IModelChangeListener {
          Object getResult() {
             return null;
          }
-         
+
       };
-      
+
       /**
        * Visit each expression in list
        * 
@@ -2162,28 +2162,28 @@ public class Expression implements IModelChangeListener {
 
    /** Variable provider for variable in expression */
    private final VariableProvider fVarProvider;
-   
+
    /** Original expression */
    private final String   fExpressionStr;
-      
+
    /** Parsed expressions */
    private ExpressionNode fExpression;
-   
+
    /** Message associated with expression */
    private String         fMessage;
-   
+
    /** Primary variable if provided */
    private Variable       fPrimaryVar;
-   
+
    /** Indicates the expression is constant */
    private Boolean fIsConstant;
-   
+
    /** Cached value for expression */
    private Object fCurrentValue;
 
    /** Disables caching of expression value i.e. expression is always re-evaluated when used */
    private boolean neverCacheValue = false;
-   
+
    /** Listeners that need to be notified of expression changes */
    private ArrayList<IExpressionChangeListener> fListeners = new ArrayList<IExpressionChangeListener>();
 
@@ -2203,7 +2203,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    static ExpressionNode wrapConstant(Object constantValue) throws Exception {
-      
+
       if (constantValue instanceof Long) {
          return new LongConstantNode((Long)constantValue);
       }
@@ -2218,7 +2218,7 @@ public class Expression implements IModelChangeListener {
       }
       throw new Exception("Node not of expected type" + constantValue.getClass().toString());
    }
-   
+
    /**
     * Create expression with optional message and primary variable from string of form:
     * "primaryVar#expression,message"
@@ -2246,7 +2246,7 @@ public class Expression implements IModelChangeListener {
    public Expression(String expression, VariableProvider provider) throws Exception {
       this(expression, provider, Mode.Dynamic);
    }
-   
+
    private void prelim() throws Exception {
 
       String expression = fExpressionStr;
@@ -2263,20 +2263,20 @@ public class Expression implements IModelChangeListener {
             fMessage = parts[2].trim();
          }
       }
-      
+
       // Parse expression
       ExpressionParser ep = new ExpressionParser(this, fVarProvider, fMode);
       fExpression = ep.parseExpression(parts[0].trim());
-      
+
       // Prune constant nodes
       fExpression = fExpression.prune();
-      
+
       if (fMode == Mode.Dynamic) {
-         
+
          // Collect variables
          fVariables = new ArrayList<Variable>();
          fExpression.collectVars(fVariables);
-         
+
          // Listen to variables
          for (Variable var:fVariables) {
             var.addListener(this);
@@ -2326,13 +2326,13 @@ public class Expression implements IModelChangeListener {
     * @return
     */
    public String getOriginMessage() {
-      
+
       if (fMessage != null) {
          return fMessage;
       }
       StringBuilder sb = new StringBuilder();
-      
-      
+
+
       if (fPrimaryVar != null) {
          // Get status and enable from primary variable
          if (fPrimaryVar.isNamedClock()) {
@@ -2356,7 +2356,7 @@ public class Expression implements IModelChangeListener {
             }
          }
       }
-      
+
       boolean commaNeeded = false;
       if (fVariables.size()>0) {
          for(Variable var:fVariables) {
@@ -2384,12 +2384,12 @@ public class Expression implements IModelChangeListener {
       }
       StringBuilder sb = new StringBuilder();
       sb.append(defaultLeader);
-      
+
       Variable primaryVariable = getPrimaryVar();
       if (primaryVariable != null) {
          sb.append(primaryVariable.getName());
       }
-      
+
       boolean commaNeeded = false;
       if ((fVariables!=null) && (fVariables.size()>1)) {
          if (primaryVariable != null) {
@@ -2413,7 +2413,7 @@ public class Expression implements IModelChangeListener {
     * @throws Exception
     */
    public boolean isConstant() throws Exception {
-      
+
       if (fIsConstant == null) {
          if (fExpression == null) {
             prelim();
@@ -2486,6 +2486,108 @@ public class Expression implements IModelChangeListener {
    /*
     * Static methods
     */
+   /**
+    * Expand any immediate variables in expression
+    * These will be replaced with their value
+    * 
+    * @param expression Expression to parse
+    * @param provider   Provider for variables needed
+    * 
+    * @return  Modified string
+    */
+   enum State {Normal, IdentifierStart, IdentifierSeparator, Identifier};
+   public static String expandImmediateSubexpressions(String expression, VariableProvider provider) throws Exception {
+
+      if (expression == null) {
+         return null;
+      }
+      if (expression.isBlank()) {
+         return null;
+      }
+      State state = State.Normal;
+      StringBuilder sb = new StringBuilder();
+      int index=0;
+
+      try {
+         StringBuilder identifier = null;
+
+         for (index=0; index<expression.length();) {
+            char ch = expression.charAt(index++);
+            switch (state) {
+            case Normal:
+               if (ch == '@') {
+                  state = State.IdentifierStart;
+                  break;
+               }
+               sb.append(ch);
+               break;
+            case IdentifierStart:
+               if (ch == '/') {
+                  // Valid start character
+                  identifier = new StringBuilder();
+                  identifier.append(ch);
+                  state = State.IdentifierSeparator;
+                  break;
+               }
+               if (Character.isJavaIdentifierStart(ch)) {
+                  // Valid start character
+                  identifier = new StringBuilder();
+                  identifier.append(ch);
+                  state = State.Identifier;
+                  break;
+               }
+               // False start
+               sb.append('@');
+               sb.append(ch);
+               break;
+            case IdentifierSeparator:
+               if (Character.isJavaIdentifierStart(ch)) {
+                  // Valid
+                  identifier.append(ch);
+                  state = State.Identifier;
+                  break;
+               }
+               // Illegal
+               throw new Exception("Expected identifier after '/'");
+            case Identifier:
+               if (ch == '/') {
+                  // Valid separator within name
+                  identifier.append(ch);
+                  break;
+               }
+               if (Character.isJavaIdentifierPart(ch)) {
+                  // Valid name character
+                  identifier.append(ch);
+                  break;
+               }
+               // Assume we have a valid identifier now
+               Variable var = provider.getVariable(identifier.toString());
+               if (var instanceof StringVariable) {
+                  sb.append('"');
+                  sb.append(var.getValueAsString());
+                  sb.append('"');
+               }
+               else {
+                  sb.append(var.getValueAsString());
+               }
+               
+               sb.append(ch);
+               state = State.Normal;
+               break;
+            }
+         }
+         if (state != State.Normal) {
+            throw new Exception("Unexpected state after parsing identifier");
+         }
+         return sb.toString();
+      } catch (Exception e) {
+         String msg =  String.format("\nInput     '%s" + "'" +
+               "\n           %"+(index+1)+"s", expression, "^")+
+                ".....";
+         throw new Exception(msg+e.getMessage(), e);
+      }
+}
+   
    /**
     * Get value of expression<br>
     * This constructs an expression and immediately evaluates it.

@@ -2073,4 +2073,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
 
       return new MaskPair(mask, macro);
    }
+
+   abstract public boolean isZero();
 }

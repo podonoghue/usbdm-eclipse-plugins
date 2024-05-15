@@ -2,11 +2,12 @@
  * Basic ManagedCommandLineGenerator
  * 
  *  Applies variable substitution
- *  
+ * 
  *  Based on org.eclipse.cdt.managedbuilder.internal.core.ManagedCommandLineGenerator
  */
 
 package net.sourceforge.usbdm.cdt.tools;
+
 
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineGenerator;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
@@ -47,7 +48,7 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
    }
 
    /**
-    * Optionally quote a token.  
+    * Optionally quote a token.
     * The token is quoted if it is not a variable reference i.e. doesn't start with "$("
     * 
     * @param token to quote
@@ -66,11 +67,11 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
    @Override
    public IManagedCommandLineInfo generateCommandLineInfo(
          ITool tool,
-         String     commandName,  
-         String[]   flags, 
+         String     commandName,
+         String[]   flags,
          String     outputFlag,
          String     outputPrefix,
-         String     output,  
+         String     output,
          String[]   inputResources,
          String     commandLinePattern) {
 
@@ -108,7 +109,7 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
          commandName = manager.performStringSubstitution(commandName);
       } catch (CoreException e1) {
          e1.printStackTrace();
-      }       
+      }
 //      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo() commandName = \'"+commandName+"\'");
       return new ManagedCommandLineInfo(command.trim(), commandLinePattern, commandName, flagsStr,
             outputFlag, outputPrefix, output, inputsStr);

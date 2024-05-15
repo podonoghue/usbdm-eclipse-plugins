@@ -659,4 +659,8 @@ public class DoubleVariable extends Variable {
       return new MaskPair(null,null);
    }
 
+   @Override
+   public boolean isZero() {
+      return fValue == 0.0;
+   }
 }

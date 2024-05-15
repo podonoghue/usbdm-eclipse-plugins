@@ -29,18 +29,20 @@ public class TemplateInformation {
 
    /**
     * Construct template
+    * @param fProvider
     * 
     * @param key                       Key used to index template
     * @param codeGenerationCondition
     * @param namespace                 Namespace for template (info, usbdm, class)
+    * @throws Exception
     */
-   public TemplateInformation(String key, String nameSpace, String codeGenerationCondition) {
+   public TemplateInformation(VariableProvider provider, String key, String nameSpace, String codeGenerationCondition) throws Exception {
       fContentBuilder = null;
       fKey           = key;
       fNameSpace     = nameSpace;
       fStringBuilder = new StringBuilder(100);
       fText          = null;
-      fCodeGenerationCondition = codeGenerationCondition;
+      fCodeGenerationCondition = Expression.expandImmediateSubexpressions(codeGenerationCondition, provider);
    }
    
    enum State { Text, DiscardAfterNewline, Escape, InString, InCharacter };

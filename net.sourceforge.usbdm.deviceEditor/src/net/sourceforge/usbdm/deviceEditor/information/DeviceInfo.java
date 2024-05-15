@@ -401,8 +401,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    private void loadDeviceDescription(ParseFamilyXML parser) throws Exception {
 
-      System.err.println("==================================================================");
-      System.err.println("=============== DeviceInfo.loadDeviceDescription() ===============");
+      System.out.println("==================================================================");
+      System.out.println("=============== DeviceInfo.loadDeviceDescription() ===============");
       
       // Add device sub-family as variable
       addOrUpdateStringVariable("_deviceSubFamily", "/_deviceSubFamily", getDeviceSubFamily(), true);
@@ -419,8 +419,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    private void loadPeripheralDescriptions(ParseFamilyXML parser) throws Exception {
       
-      System.err.println("=======================================================================");
-      System.err.println("=============== DeviceInfo.loadPeripheralDescriptions() ===============");
+      System.out.println("=======================================================================");
+      System.out.println("=============== DeviceInfo.loadPeripheralDescriptions() ===============");
 
       ArrayList<PeripheralWithState> peripheralWithStateList = new ArrayList<PeripheralWithState>();
       
@@ -1824,8 +1824,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void loadInitialSettings(Device device, Settings settings) {
       
-      System.err.println("========================================================");
-      System.err.println("=============== Loading initial settings ===============");
+      System.out.println("========================================================");
+      System.out.println("=============== Loading initial settings ===============");
       
       try {
          // Device variant
@@ -1888,8 +1888,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void loadRemainingSettings(Device device, Settings settings) {
       
-      System.err.println("==========================================================");
-      System.err.println("=============== Loading remaining settings ===============");
+      System.out.println("==========================================================");
+      System.out.println("=============== Loading remaining settings ===============");
       
       try {
 

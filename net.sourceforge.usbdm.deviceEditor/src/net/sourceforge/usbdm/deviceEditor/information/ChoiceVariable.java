@@ -498,14 +498,19 @@ public class ChoiceVariable extends VariableWithChoices {
       return getValueAsString();
    }
 
-//   private String displayValue = null;
-//
-//   public void setDisplayValue(String value) {
-//      displayValue = value;
-//   }
-//
-//   public String getDisplayValue() {
-//      return displayValue;
-//   }
+   @Override
+   public boolean isZero() {
+      ChoiceData choice = getCurrentChoice();
+      String value = choice.getValue();
+      
+      // Treat the value as a long, otherwise assume non-zero
+      Long lValue;
+      try {
+         lValue = Long.parseLong(value);
+      } catch (NumberFormatException e) {
+         return false;
+      }
+      return lValue.equals(0L);
+   }
 
 }

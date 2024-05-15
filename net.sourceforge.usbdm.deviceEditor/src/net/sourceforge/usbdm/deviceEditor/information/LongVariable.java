@@ -901,4 +901,9 @@ public class LongVariable extends Variable {
       return getReturnType();
    }
 
+
+   @Override
+   public boolean isZero() {
+      return fValue == 0L;
+   }
 }

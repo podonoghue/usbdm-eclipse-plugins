@@ -76,4 +76,9 @@ public class PeripheralSignalsVariable extends Variable {
       return null;
    }
 
+   @Override
+   public boolean isZero() {
+      return true;
+   }
+
 }

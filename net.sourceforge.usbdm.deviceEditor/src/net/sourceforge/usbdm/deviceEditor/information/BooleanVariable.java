@@ -419,4 +419,9 @@ public class BooleanVariable extends VariableWithChoices {
       return fDefaultValue?fTrue:fFalse;
    }
 
+   @Override
+   public boolean isZero() {
+      return fValue != true;
+   }
+
 }

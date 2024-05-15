@@ -181,4 +181,19 @@ public class StringVariable extends Variable {
       return getValueAsString();
    }
 
+   @Override
+   public boolean isZero() {
+      if (fValue == null) {
+         return true;
+      }
+      // Try interpreting it as a number
+      long value;
+      try {
+         value = Long.parseLong(fValue);
+      } catch (NumberFormatException e) {
+         return false;
+      }
+      return value == 0L;
+   }
+
 }

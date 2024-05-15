@@ -136,24 +136,31 @@ public class CreateDeviceSkeletonFromSVD {
       // Delete spaces and Upper-case 1st character of each word
       boolean convertFlag = true;
       for (int index=0; index<p.length; index++) {
-         if ((p[index] == '\n')||(p[index] == '.')||(p[index] == ';')||(p[index] == '\\')) {
+         char ch = p[index];
+         if ((ch == '\n')||(ch == '.')||(ch == ';')||(ch == '\\')) {
             break;
          }
-         if ((p[index]=='_')||(p[index]=='-')||(p[index]==' ')||(p[index]=='(')) {
+         if ((ch=='_')||(ch=='-')||(ch==' ')||(ch=='(')) {
             // Discard and upper-case next character
             convertFlag = true;
+            continue;
          }
-         else if ((p[index]=='/')) {
+         if ((ch=='/')) {
             // Use '_' and upper-case next character
             sb.append("_");
             convertFlag = true;
+            continue;
          }
-         else if (convertFlag) {
-            sb.append(Character.toUpperCase(p[index]));
+         if (!(((ch>='0')&&(ch<='9'))||((ch>='a')&&(ch<='z'))||((ch>='A')&&(ch<='Z')))) {
+            // Discard
+            continue;
+         }
+         if (convertFlag) {
+            sb.append(Character.toUpperCase(ch));
             convertFlag = false;
          }
          else {
-            sb.append(p[index]);
+            sb.append(ch);
          }
       }
       return sb.toString();
@@ -173,11 +180,22 @@ public class CreateDeviceSkeletonFromSVD {
       // Upper-case 1st character
       boolean convertFlag = true;
       for (int index=0; index<p.length; index++) {
+         char ch = p[index];
+         if (ch=='_') {
+            // Discard and upper-case next character
+            convertFlag = true;
+            continue;
+         }
+         if (!(((ch>='0')&&(ch<='9'))||((ch>='a')&&(ch<='z'))||((ch>='A')&&(ch<='Z')))) {
+            // Discard
+            continue;
+         }
          if (p[index]=='_') {
             // Discard and upper-case next character
             convertFlag = true;
+            continue;
          }
-         else if (convertFlag) {
+         if (convertFlag) {
             sb.append(Character.toUpperCase(p[index]));
             convertFlag = false;
          }
@@ -548,8 +566,8 @@ public class CreateDeviceSkeletonFromSVD {
          return;
       }
       final String simpleVariableTemplate =
-          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n" +
-          "      ><![CDATA[\n" +
+          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\" >\n" +
+          "      <![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Set %description\n" +
           "         \\t * (%(field))\n" +
@@ -561,8 +579,8 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t}\n" +
           "         \\t\\n\n" +
           "      ]]></variableTemplate>\n"+
-          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\"\n" +
-          "      ><![CDATA[\n" +
+          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\" >\n" +
+          "      <![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Get %description\n" +
           "         \\t * (%(field))\n" +
@@ -575,8 +593,8 @@ public class CreateDeviceSkeletonFromSVD {
           "         \\t\\n\n" +
           "      ]]></variableTemplate>\n"+
           "      <variableTemplate %where variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
-          "         tooltipPadding=\"x*x\"\n" +
-          "      ><![CDATA[\n" +
+          "         tooltipPadding=\"x*x\" >\n" +
+          "      <![CDATA[\n" +
           "         \\t/**\n" +
           "         \\t * Clear %description\n" +
           "         \\t * (%(field))\n" +
@@ -590,8 +608,8 @@ public class CreateDeviceSkeletonFromSVD {
           "      ]]></variableTemplate>\n";
       
       final String indexedVariableTemplate =
-            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\" nonDefaultParams=\"2\"\n" +
-            "      ><![CDATA[\n" +
+            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\" nonDefaultParams=\"2\" >\n" +
+            "      <![CDATA[\n" +
             "         \\t/**\n" +
             "         \\t * Set %description1\n" +
             "         \\t * (%(field))\n" +
@@ -603,8 +621,8 @@ public class CreateDeviceSkeletonFromSVD {
             "         \\t}\n" +
             "         \\t\\n\n" +
             "      ]]></variableTemplate>\n"+
-            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
-            "      ><![CDATA[\n" +
+            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\" >\n" +
+            "      <![CDATA[\n" +
             "         \\t/**\n" +
             "         \\t * Get %description1\n" +
             "         \\t * (%(field))\n" +
@@ -868,8 +886,8 @@ public class CreateDeviceSkeletonFromSVD {
    
    void writeConstructor() {
       String constructor = "\n"
-            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\"\n"
-            + "   ><![CDATA[\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
+            + "   <![CDATA[\n"
             + "      \\t// Pointer to $(_BASENAME) hardware instance\n"
             + "      \\tvolatile $(_Type) *$(_basename);\n"
             + "      \\t\n"
@@ -962,8 +980,8 @@ public class CreateDeviceSkeletonFromSVD {
       final String initIrqMemberTemplate = "\n"
             + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoIrqGuard)\"\n"
             + "      variables=\"irqHandlingMethod\"\n"
-            + "      linePadding=\"xxx\"\n"
-            + "   ><![CDATA[\n"
+            + "      linePadding=\"xxx\" >\n"
+            + "   <![CDATA[\n"
             + "      %multilineDescription\n"
             + "      \\t   %params = nullptr;\\n\\n\n"
             + "   ]]></variableTemplate>\n";
@@ -1034,8 +1052,8 @@ public class CreateDeviceSkeletonFromSVD {
       final String memberDeclaration = " >\n"
             + "      <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\"\n"
             + "         variables=\"%(variables)\"\n"
-            + "         linePadding=\"xxx\"\n"
-            + "      ><![CDATA[\n"
+            + "         linePadding=\"xxx\" >\n"
+            + "      <![CDATA[\n"
             + "         %multilineDescription\n"
             + "         \\t   %(type) %registerName = %(init);\\n\\n\n"
             + "      ]]></variableTemplate>\n"
@@ -1070,8 +1088,8 @@ public class CreateDeviceSkeletonFromSVD {
       final String initIrqConstructor = "\n"
             + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoIrqGuard)\"\n"
             + "      variables=\"irqHandlingMethod\"\n"
-            + "      linePadding=\"xxx\"\n"
-            + "   ><![CDATA[\n"
+            + "      linePadding=\"xxx\" >\n"
+            + "   <![CDATA[\n"
             + "      \\t   /**\n"
             + "      \\t    * Constructor for %description\n"
             + "      \\t    * (%variables)\n"
@@ -1228,7 +1246,6 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t */\n"
             + "      \\tstatic inline void defaultConfigure() {\n"
             + "      \\t\n"
-            + "      \\t   // Update settings\n"
             + "      \\t   configure(DefaultInitValue);\n"
             + "      \\t}\n"
             + "      \\t\n"
@@ -1347,8 +1364,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "\" >\n"
             + "      <variableTemplate %where %condition \n"
             + "      variables=\"%(var)\"\n"
-            + "      linePadding=\"xxx\"\n"
-            + "      ><![CDATA[\n"
+            + "      linePadding=\"xxx\" >\n"
+            + "      <![CDATA[\n"
             + "         \\t\n"
             + "         %multilineDescription\n"
             + "         \\t   %(statement);\\n\n"
@@ -1385,6 +1402,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <variableTemplate codeGenCondition=\"$(_InfoGuard)\"\n"
             + "      separator=\",\"\n"
             + "      terminator=\",\"\n"
+            + "      padToComments=\"50\"\n"
             + "      variables=\"%s\n"
             + "            irqLevel\" >\n"
             + "   <![CDATA[\n"
@@ -1624,7 +1642,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "I2S",
 //         "KBI",
 //         "LPTMR",
-         "LPUART",
+//         "LPUART",
 //         "LLWU",
 //         "MCM",
 //         "MPU",
@@ -1646,7 +1664,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SIM",
 //         "TSI",
 //         "TRNG",
-//         "UART",
+         "UART",
 //         "VREF",
 //         "USB",
 //         "USBDCD",
@@ -1747,9 +1765,9 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL05Z");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
-//    doAllPeripherals("FRDM_K20D50M", "mk");
+    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
-    doAllPeripherals("FRDM_K28F", "mk");
+//    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
 //      doAllPeripherals("FRDM_K82F", "mk");

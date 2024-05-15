@@ -95,6 +95,8 @@ public class ParseMenuXML extends XML_BaseParser {
 
    public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
 
+   private boolean debugGuards = false;
+   
    public static class MenuData {
       private final BaseModel                                     fRootModel;
       private final Map<String, ArrayList<TemplateInformation>>   fTemplatesList;
@@ -697,7 +699,9 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void parseContinue(BaseModel parentModel, Element element) throws Exception {
-      fForStack.setContinueFound();
+      if(checkCondition(element)) {
+         fForStack.setContinueFound();
+      }
    }
 
    /**
@@ -2180,11 +2184,16 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    String replaceCommonNames(String text) {
 
+//      if (text.contains("$(_InfoIrqGuard)")) {
+//         System.err.println("Found it '"+text+"'");
+//      }
       if (fPeripheral != null) {
-         text = text.replace("$(_CommonInfoGuard)", "/"+fPeripheral.getBaseName()+"/generateSharedInfo");
-         text = text.replace("$(_CommonInfo)",      fPeripheral.getClassBaseName()+"CommonInfo");
-         text = text.replace("$(_InfoGuard)",       "enablePeripheralSupport");
          text = text.replace("$(_Info)",            fPeripheral.getClassName()+"Info");
+         text = text.replace("$(_InfoGuard)",       "enablePeripheralSupport");
+         text = text.replace("$(_InfoIrqGuard)",    "irqHandlingMethod");
+         
+         text = text.replace("$(_CommonInfo)",      fPeripheral.getClassBaseName()+"CommonInfo");
+         text = text.replace("$(_CommonInfoGuard)", "/"+fPeripheral.getBaseName()+"/generateSharedInfo");
          
          text = text.replace("$(_NAME)",         fPeripheral.getName());
          text = text.replace("$(_name)",         fPeripheral.getName().toLowerCase());
@@ -2201,9 +2210,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (var != null) {
          text = text.replace("$(_Type)",           var.getValueAsString()+"_Type");
          
-         text = text.replace("$(_BasicInfoIrqGuard)", "/"+var.getValueAsString()+"/generateSharedIrqInfo");
-         text = text.replace("$(_BasicInfoGuard)",    "/"+var.getValueAsString()+"/generateSharedInfo");
          text = text.replace("$(_BasicInfo)",         makePrettyName(var.getValueAsString())+"BasicInfo");
+         text = text.replace("$(_BasicInfoGuard)",    "/"+var.getValueAsString()+"/generateSharedInfo");
+         text = text.replace("$(_BasicInfoIrqGuard)", "/"+var.getValueAsString()+"/generateSharedIrqInfo");
          
          text = text.replace("$(_Structname)",     makePrettyName(var.getValueAsString()));
          text = text.replace("$(_STRUCTNAME)",     var.getValueAsString());
@@ -2585,7 +2594,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param element    Element to examine
     * 
-    * @return  Modified key or null if not found
+    * @return  Modified key or null if not found or blank
     * 
     * @throws Exception
     */
@@ -2596,6 +2605,9 @@ public class ParseMenuXML extends XML_BaseParser {
          key = getAttributeAsString(element, "name");
       }
       if (key == null) {
+         return null;
+      }
+      if (key.isBlank()) {
          return null;
       }
       if ("*".equalsIgnoreCase(key)) {
@@ -3416,13 +3428,12 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          key = getKeyAttribute(element);
       }
-      
 //      Variable inHeader = safeGetVariable("definitionsInHeader");
 //      boolean placeInHeader = ((inHeader != null) && inHeader.getValueAsBoolean());
 
       String discardRepeats      = getAttributeAsString(element, "discardRepeats", "false");
       String namespace           = getAttributeAsString(element, "namespace", forEnum?"definitions":"info");
-      String codeGenCondition    = getAttributeAsString(element, "codeGenCondition");
+      String codeGenCondition    = getAttributeAsString(element, "codeGenCondition", "");
       
       /*
       <!-- Where to place generated code -->
@@ -3437,6 +3448,10 @@ public class ParseMenuXML extends XML_BaseParser {
       forceInfo   - forces Info namespace and clears key and discardRepeats <br>
       */
       String where = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
+      if (where == null) {
+         // 'location' is a more permissive alias for where in templates
+         where = getAttributeAsString(element, "location", null); // (info|basicInfo|commonInfo)
+      }
       if (where != null) {
          if ((key != null) && !"all".equalsIgnoreCase(where)) {
             throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
@@ -3509,15 +3524,40 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (key != null) {
             namespace="all";
          }
-//         else {
-//            if (placeInHeader) {
-//               // Peripheral Header file
-//               key            = "/"+fPeripheral.getBaseName()+"/peripheralHeader_definition";
-//               namespace      = "all"; // Anywhere (but ends up in include file for peripheral)
-//            }
-//         }
       }
       
+      // Do some basic check on the template guard expressions
+      if (debugGuards) {
+         do {
+            if (codeGenCondition.isBlank()) {
+               continue;
+            }
+            if ("info".equals(namespace)) {
+               if (codeGenCondition.contains("enablePeripheralSupport")) {
+                  continue;
+               }
+               if (codeGenCondition.contains("irqHandlingMethod")) {
+                  continue;
+               }
+               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
+            }
+            Variable var = fProvider.safeGetVariable("structName");
+            String expectedGuard1 = (var==null)?"":"/"+var.getValueAsString()+"/generateSharedInfo";
+            String expectedGuard2 = (var==null)?"":"/"+var.getValueAsString()+"/generateSharedIrqInfo";
+            if ("basicInfo".equals(namespace)) {
+               if (codeGenCondition.contains(expectedGuard1)) {
+                  continue;
+               }
+               if (codeGenCondition.contains(expectedGuard2)) {
+                  continue;
+               }
+               if (codeGenCondition.contains("enableGettersAndSetters")) {
+                  continue;
+               }
+               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
+            }
+         } while (false);
+      }
       // Some checks
       String tag = "<"+element.getTagName()+">";
       if (namespace.isBlank()) {
@@ -3607,9 +3647,11 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("<deleteVariables> must have 'variables' attribute");
       }
       for (String variable:variables.split(",")) {
-         
-         fPeripheral.removeMonitoredVariable(safeGetVariable(variable));
-
+         Variable var = safeGetVariable(variable);
+         if (var != null) {
+            fPeripheral.removeMonitoredVariable(var);
+            fEquationVariables.remove(var);
+         }
          boolean wasDeleted = fProvider.removeVariableByName(variable);
 
          if (!wasDeleted) {
@@ -3758,6 +3800,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "bitfieldOption") {
          parseBitfieldOption(parentModel, element);
       }
+      else if (tagName == "option") {
+         parseOption(parentModel, element);
+      }
       else if (tagName == "choiceOption") {
          parseChoiceOption(parentModel, element);
       }
@@ -3863,6 +3908,13 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else {
          throw new Exception("Unexpected tag in parseChildModel(), \'"+tagName+"\'");
+      }
+   }
+
+   private void parseOption(BaseModel parentModel, Element element) throws Exception {
+      String key = getKeyAttribute(element);
+      if ((key != null) && key.endsWith("debugGuards")) {
+         debugGuards = getAttributeAsImmediateBoolean(element, "value", true);
       }
    }
 
@@ -4091,7 +4143,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key == null) {
          key = "";
       }
-      TemplateInformation templateInfo = new TemplateInformation(key, namespace, codeGenerationCondition);
+      TemplateInformation templateInfo = new TemplateInformation(fProvider, key, namespace, codeGenerationCondition);
 
       String templateKey = MenuData.makeKey(key, namespace);
 
@@ -4114,7 +4166,7 @@ public class ParseMenuXML extends XML_BaseParser {
          String text = fForStack.doForSubstitutions(TEMPLATE);
          text = replaceCommonNames(text).trim();
 
-         TemplateInformation templateInfo = new TemplateInformation(null, "commonInfo", null);
+         TemplateInformation templateInfo = new TemplateInformation(fProvider, null, "commonInfo", null);
          templateInfo.addText(text);
          templateList.add(templateInfo);
       }
@@ -4127,7 +4179,7 @@ public class ParseMenuXML extends XML_BaseParser {
          String text = fForStack.doForSubstitutions(TEMPLATE);
          text = replaceCommonNames(text).trim();
 
-         TemplateInformation templateInfo = new TemplateInformation(null, "basicInfo", null);
+         TemplateInformation templateInfo = new TemplateInformation(fProvider,  null, "basicInfo", null);
          templateInfo.addText(text);
          templateList.add(templateInfo);
       }
@@ -4152,7 +4204,7 @@ public class ParseMenuXML extends XML_BaseParser {
          text = fForStack.doForSubstitutions(text);
          text = replaceCommonNames(text).trim();
 
-         TemplateInformation templateInfo = new TemplateInformation(null, "commonInfo", null);
+         TemplateInformation templateInfo = new TemplateInformation(null,  null, "commonInfo", null);
          templateInfo.addText(text);
          templateList.add(templateInfo);
       }
@@ -4167,7 +4219,7 @@ public class ParseMenuXML extends XML_BaseParser {
          text = fForStack.doForSubstitutions(text);
          text = replaceCommonNames(text).trim();
 
-         TemplateInformation templateInfo = new TemplateInformation(null, "basicInfo", null);
+         TemplateInformation templateInfo = new TemplateInformation(null,  null, "basicInfo", null);
          templateInfo.addText(text);
          templateList.add(templateInfo);
       }

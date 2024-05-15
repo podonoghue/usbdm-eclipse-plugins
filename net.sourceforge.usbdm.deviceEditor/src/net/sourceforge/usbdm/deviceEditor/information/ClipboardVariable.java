@@ -72,4 +72,10 @@ public class ClipboardVariable extends Variable {
    public Object getNativeValue() {
       return fText;
    }
+   
+   @Override
+   public boolean isZero() {
+      return true;
+   }
+
 }

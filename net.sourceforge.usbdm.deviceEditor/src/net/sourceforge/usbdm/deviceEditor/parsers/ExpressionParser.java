@@ -324,6 +324,13 @@ public class ExpressionParser {
          Variable var = fProvider.safeGetVariable(varName);
          return new BooleanNode(var != null);
       }
+      if ("IsZero".equalsIgnoreCase(functionName)) {
+         // Immediate check if variable has a 'zero' value
+         // Does early evaluation
+         String varName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         Variable var = fProvider.safeGetVariable(varName);
+         return new BooleanNode(var.isZero());
+      }
       if ("HardwareExists".equalsIgnoreCase(functionName)) {
          // Immediate check if signal or peripheral exists (during parsing)
          // Does early evaluation

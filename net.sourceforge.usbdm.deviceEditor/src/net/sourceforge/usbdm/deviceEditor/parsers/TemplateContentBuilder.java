@@ -93,7 +93,7 @@ abstract class TemplateContentBuilder {
     * <li>%fieldAssignment                Expression of form '%register     <= (%register & ~%mask)|%paramExpression
 
     * <li>%initExpression                 List of initialisation values from variables (current values)
-    * <li>%initNonDefaultExpression       List of initialisation values from variables (current values if not equal to default)
+    * <li>%initNonZeroValues              List of initialisation values from variables (current values if not equal to zero)
     
     * <li>%macro[index]                   From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG"
     * <li>%mask[index]                    From &lt;mask&gt; or deduced from &lt;controlVarName&gt; e.g. "SIM_SOPT_REG_MASK" (_MASK is added)
@@ -161,7 +161,7 @@ abstract class TemplateContentBuilder {
          StringBuilder valueExpressionSb    = new StringBuilder();  // Combined values $(var1)|$(var2)
          StringBuilder symbolicExpressionSb = new StringBuilder();  // Combined values $(var1.enum[])|$(var2.enum[])
          StringBuilder initExpressionSb     = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
-         StringBuilder initNonDefaultExprSb = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
+         StringBuilder initNonZeroValuesSb  = new StringBuilder();  // Combined values $(var1.enum[])|, // comment ...
          StringBuilder paramExprSb          = new StringBuilder();  // Combined expression param1|param2
          StringBuilder paramsSb             = new StringBuilder();  // Parameter list with defaults etc.
          StringBuilder paramDescriptionSb   = new StringBuilder();  // @param style comments for parameters
@@ -353,15 +353,16 @@ abstract class TemplateContentBuilder {
                currentInitExpressionSb.append(" "+separator+" ");
             }
             if (info.padToComments != 0) {
-               int sol = t.lastIndexOf("\\t");
-               if (sol<0) {
-                  sol = 0;
-               }
-               else {
-                  sol += 5;
-               }
-               int eol = t.length()-sol;
-               int padding = info.padToComments - eol;
+               currentInitExpressionSb.length();
+//               int sol = t.lastIndexOf("\\t");
+//               if (sol<0) {
+//                  sol = 0;
+//               }
+//               else {
+//                  sol += 5;
+//               }
+//               int eol = t.length()-sol;
+               int padding = info.padToComments - currentInitExpressionSb.length();
                if (padding>0) {
                   currentInitExpressionSb.append(String.format("%"+padding+"s",  ""));
                }
@@ -519,8 +520,8 @@ abstract class TemplateContentBuilder {
             
             initExpressionSb.append(currentInitExpressionSb.toString());
             
-            if (!variable.isDefault()) {
-               initNonDefaultExprSb.append(currentInitExpressionSb.toString());
+            if (!variable.isZero()) {
+               initNonZeroValuesSb.append(currentInitExpressionSb.toString());
             }
          }
          substitutions.add(new StringPair("%multilineDescription",             multilineDescription.toString()));
@@ -623,7 +624,7 @@ abstract class TemplateContentBuilder {
             initExpression = initExpressionSb.toString();
          }
 
-         String initNonDefaultExpression = initNonDefaultExprSb.toString();
+         String initNonZeroValues = initNonZeroValuesSb.toString();
 
          String description = "'%description' is not valid here";
          if (descriptionSb.length()>0) {
@@ -641,7 +642,7 @@ abstract class TemplateContentBuilder {
          substitutions.add(new StringPair("%description",                description));
          
          substitutions.add(new StringPair("%initExpression",             initExpression));
-         substitutions.add(new StringPair("%initNonDefaultExpression",   initNonDefaultExpression));
+         substitutions.add(new StringPair("%initNonZeroValues",          initNonZeroValues));
          substitutions.add(new StringPair("%maskingExpression",          maskingExpression));
          substitutions.add(new StringPair("%mask",                       mask));
          substitutions.add(new StringPair("%paramDescription",           paramDescription));

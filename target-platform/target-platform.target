@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?>
-<target name="target-platform">
-   <locations>
-      <location path="/home/peter/eclipse/cpp-2023-09/eclipse" type="Profile"/>
-   </locations>
-</target>
