@@ -31,8 +31,9 @@ public class FileUtility {
     * @param inFilePath
     * @param outFilePath
     * @param variableMap
-    * @throws Exception 
+    * @throws Exception
     */
+   @SuppressWarnings("resource")
    private static void copy(Path inFilePath, Path outFilePath, ISubstitutionMap variableMap) throws Exception {
       Path backupFilePath = null;
       String filename = inFilePath.getFileName().toString();
@@ -95,6 +96,7 @@ public class FileUtility {
          if ((backupFilePath != null) && Files.exists(backupFilePath)) {
             Files.delete(backupFilePath);
          }
+         reader.close();
       } catch (Exception e) {
          if (reader != null) {
             reader.close();
@@ -159,7 +161,7 @@ public class FileUtility {
    private static void copyFile(IProject project, Path sourcePath, Path targetPath, ISubstitutionMap variableMap, IProgressMonitor monitor) throws Exception {
       
       try {
-         SubMonitor progress = SubMonitor.convert(monitor, 100); 
+         SubMonitor progress = SubMonitor.convert(monitor, 100);
          //      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
          if (!targetPath.getParent().toFile().exists()) {
             //         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
@@ -204,6 +206,7 @@ public class FileUtility {
                Path relativePath = sourcePath.relativize(filePath);
                copyDirectory(project, filePath, targetPath.resolve(relativePath), variableMap, monitor);
             }
+            folderStream.close();
          }
          else if (Files.isRegularFile(sourcePath)) {
             copyFile(project, sourcePath, targetPath, variableMap, monitor);
@@ -258,7 +261,7 @@ public class FileUtility {
     * @param project      - project.
     * @param targetPath   - project relative path to the new folder.
     * @param monitor      - progress monitor.
-    * @throws Exception 
+    * @throws Exception
     */
    public static void createFolder(IProject project, String targetPath, IProgressMonitor monitor) throws Exception {
       SubMonitor subMonitor = SubMonitor.convert(monitor,100);

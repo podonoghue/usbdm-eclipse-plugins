@@ -63,7 +63,7 @@ public class CreateHardwareFiles {
          }
          processFile(filePath, xmlDirectory, peripheralVersions);
       }
-      
+      folderStream.close();
 //      peripheralVersions.forEach(new BiConsumer<String, HashSet<String>>() {
 //         @Override
 //         public void accept(String peripheralName, HashSet<String> versions) {

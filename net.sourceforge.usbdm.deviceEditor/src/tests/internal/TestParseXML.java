@@ -25,10 +25,10 @@ public class TestParseXML {
       
       Path directory = Paths.get("");
       
-      // Locate data output directory  
+      // Locate data output directory
       Path outputDirectory = directory.resolve("hardware2");
 
-      // Create output directories if needed  
+      // Create output directories if needed
       if (!outputDirectory.toFile().exists()) {
          Files.createDirectory(outputDirectory);
       }
@@ -50,6 +50,7 @@ public class TestParseXML {
          FamilyXmlWriter writer = new FamilyXmlWriter(deviceInfo);
          writer.writeXmlFile(xmlFilePath);
       }
+      folderStream.close();
    }
 
    static void report(DeviceInfo deviceInfo) {

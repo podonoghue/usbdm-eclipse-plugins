@@ -62,8 +62,8 @@ public class EstimateStackUsageHandler {
     * 
     * @param path       Path to file
     * @param callGraph  The call-graph produced is added to this list
-    *  
-    * @throws Exception 
+    * 
+    * @throws Exception
     */
    void processFiles(Path path, ArrayList<Graph>callGraph) throws Exception {
       if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
@@ -71,6 +71,7 @@ public class EstimateStackUsageHandler {
          for (Path entry:stream) {
             processFiles(entry, callGraph);
          }
+         stream.close();
       }
       else {
          if (path.getFileName().toString().endsWith(".ci")) {
@@ -109,7 +110,7 @@ public class EstimateStackUsageHandler {
     */
    class Node {
 
-      /** 
+      /**
        * Overhead of calling a function
        * For ARM there is no call cost and pushing of link-reg in callee is already including in stack cost
        */
@@ -119,7 +120,7 @@ public class EstimateStackUsageHandler {
       private String         fTitle;
       /// Label for the node
       private String         fLabel;
-      /// File 
+      /// File
       private String         fFile;
       /// Stack-size of this function in isolation (without callCost)
       private int            stackSize = 0;
@@ -158,7 +159,7 @@ public class EstimateStackUsageHandler {
        * Calculates the stack cost. <br>
        * It will return a cached value on subsequent calls.
        * 
-       * @return Worse case stack cost to call this function (including calling overhead). 
+       * @return Worse case stack cost to call this function (including calling overhead).
        */
       int getStackSize() {
          if (worseStackSize >= 0) {
@@ -183,12 +184,12 @@ public class EstimateStackUsageHandler {
        * Get the most expensive call-path
        * 
        * @return Call path as string including costs and function names
-       * @throws IOException 
+       * @throws IOException
        */
       void writeMostExpensiveCallPathHtml(HtmlWriter writer) throws IOException {
-         writer.writeParagraph(0, String.format("(%d) = (%s) %s", 
+         writer.writeParagraph(0, String.format("(%d) = (%s) %s",
                getStackSize(),
-               (fStackSizeType==StackSizeType.Unknown)?"-":Integer.toString(stackSize+callCost), 
+               (fStackSizeType==StackSizeType.Unknown)?"-":Integer.toString(stackSize+callCost),
                      "<b>"+HtmlWriter.escapeHtml(fLabel)+"</b>"));
          if (worseChild != null) {
             worseChild.writeMostExpensiveCallPathHtml(writer, initialIndent);
@@ -199,13 +200,13 @@ public class EstimateStackUsageHandler {
        * Get the most expensive call-path
        * 
        * @param sb Used to assemble the call-path as string including costs and function names
-       * @throws IOException 
+       * @throws IOException
        */
       private void writeMostExpensiveCallPathHtml(HtmlWriter writer, int indent) throws IOException {
          writer.writeParagraph(indent,
                String.format(
-                     "(%s) %s ", 
-                     (fStackSizeType==StackSizeType.Unknown)?"-":Integer.toString(stackSize+callCost), 
+                     "(%s) %s ",
+                     (fStackSizeType==StackSizeType.Unknown)?"-":Integer.toString(stackSize+callCost),
                            "<b>"+HtmlWriter.escapeHtml(fLabel)+"</b>"));
          if (worseChild != null) {
             worseChild.writeMostExpensiveCallPathHtml(writer, indent+incrmentalIndent);
@@ -257,7 +258,7 @@ public class EstimateStackUsageHandler {
          if (parts.length>2) {
             // This is the stack usage e.g. 'nn bytes (static)'
             Pattern p = Pattern.compile("\\s*(\\d*)\\s*bytes\\s*\\(\\s*(\\w*)\\s*\\)");
-            Matcher m = p.matcher(parts[2]); 
+            Matcher m = p.matcher(parts[2]);
             if (!m.matches()) {
                throw new Exception("Expected similar to 'nn bytes (static)', found "+parts[2]);
             }
@@ -266,17 +267,18 @@ public class EstimateStackUsageHandler {
          }
       }
 
+      @Override
       public String toString() {
          return String.format("node { stack=%-6s, title=%-60s label=%-70s }",
                (fStackSizeType==StackSizeType.Unknown)?"?":Integer.toString(callCost+stackSize),
-               "'"+fTitle+"'", 
+               "'"+fTitle+"'",
                "'"+fLabel+"'");
       }
       
       public String toHtml() {
          return (String.format("node {<br>stack=%-6s<br> title=%-60s<br> label=%-70s<br> }<br>",
                "<b>"+((fStackSizeType==StackSizeType.Unknown)?"&quest;":Integer.toString(callCost+stackSize))+"</b>",
-               "<b>"+HtmlWriter.escapeHtml(fTitle)+"</b>", 
+               "<b>"+HtmlWriter.escapeHtml(fTitle)+"</b>",
                "<b>"+HtmlWriter.escapeHtml(fLabel)+"</b>"));
       }
    }
@@ -295,7 +297,7 @@ public class EstimateStackUsageHandler {
 
       /**
        * Get label describing the call
-       *  
+       * 
        * @return
        */
       public String getLabel() {
@@ -311,7 +313,7 @@ public class EstimateStackUsageHandler {
          return fSource;
       }
       
-      /** 
+      /**
        * Get callee function
        * 
        * @return
@@ -330,8 +332,9 @@ public class EstimateStackUsageHandler {
       Edge(String label, String source, String target) {
          fLabel  = label;
          fSource = source;
-         fTarget = target;         
+         fTarget = target;
       }
+      @Override
       public String toString() {
          return("edge { source='"+fSource+"', target='"+fTarget+"', label='"+fLabel+"'}");
       }
@@ -642,8 +645,8 @@ public class EstimateStackUsageHandler {
     * This directory is then processed.
     * 
     * @param binary Binary to process
-    * @throws IOException 
-    * @throws CoreException 
+    * @throws IOException
+    * @throws CoreException
     */
    void processBinary(IBinary binary) throws IOException, CoreException {
 
@@ -713,7 +716,7 @@ public class EstimateStackUsageHandler {
 //      for (Edge edge:edges) {
 //         writer.write(edge.toHtml());
 //      }
-//      
+//
       // Attach target nodes to nodes from edge information
       callGraph.forEach(new Consumer<Graph>() {
          // Integer edgeCount=0;
@@ -808,15 +811,15 @@ public class EstimateStackUsageHandler {
     * 
     * @param element          Element to obtain the project from
     * 
-    * @throws IOException 
-    * @throws CoreException 
+    * @throws IOException
+    * @throws CoreException
     */
    void processProject(Object element) throws IOException, CoreException {
 
       if (!(element instanceof IAdaptable)) {
          return;
       }
-      IResource resource = (IResource) ((IAdaptable) element).getAdapter(IResource.class);
+      IResource resource = ((IAdaptable) element).getAdapter(IResource.class);
       if (resource == null) {
          return;
       }
@@ -834,7 +837,7 @@ public class EstimateStackUsageHandler {
       }
       resource.refreshLocal(0, null);
       
-      IFolder folder = (IFolder)((IAdaptable)element).getAdapter(IFolder.class);
+      IFolder folder = ((IAdaptable)element).getAdapter(IFolder.class);
       if (folder == null) {
          return;
       }

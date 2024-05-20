@@ -18,8 +18,8 @@ public class WriterForAdc extends PeripheralWithState {
 
    final int PGA_INDEX  = 2;
    final int DP_INDEX   = 32;
-   final int DM_INDEX   = 36;
-   final int SEB_INDEX  = 40;
+   final int SEB_INDEX  = DP_INDEX+4;
+   final int DM_INDEX   = DP_INDEX+8;
 
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);

@@ -2032,14 +2032,19 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((typeName == null) || typeName.isBlank()) {
          return;
       }
-      if ((fPeripheral != null) &&
+      // Check for repeated enums in USBDM namespace
+      String where = getAttributeAsString(varElement, "where", "usbdm");
+      if (!("basicInfo".equals(where) && (fPeripheral != null)) &&
          fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
          return;
       }
 
       TemplateInformation templateInfo = createEmptyTemplateInfo(varElement, true);
-
+      if (templateInfo == null) {
+         // Indicates repeated template on other namespace e.g. Info class
+         return;
+      }
       ChoiceEnumBuilder ceb = new ChoiceEnumBuilder(this, varElement, variable);
       templateInfo.setBuilder(ceb);
    }

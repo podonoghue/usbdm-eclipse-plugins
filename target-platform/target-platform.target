@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<target name="target-platform">
+   <locations>
+      <location path="/home/peter/eclipse/embedcpp-2024-03/eclipse" type="Profile"/>
+   </locations>
+</target>

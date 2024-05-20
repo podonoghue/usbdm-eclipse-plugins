@@ -22,13 +22,13 @@ public class TestCreateCpp {
       Path directory     = Paths.get("BulkTesting");
       Path dataDirectory = Paths.get("data");
       
-      // Locate header output directory  
+      // Locate header output directory
       Path headerDirectory = directory.resolve("Project_Headers");
 
-      // Locate source output directory  
+      // Locate source output directory
       Path sourcesDirectory = directory.resolve("Sources");
 
-      // Create output directories if needed  
+      // Create output directories if needed
       if (!directory.toFile().exists()) {
          Files.createDirectory(directory);
       }
@@ -52,5 +52,6 @@ public class TestCreateCpp {
          WriteFamilyCpp writer = new WriteFamilyCpp();
          writer.writeCppFiles(directory, deviceInfo);
       }
+      folderStream.close();
    }
 }

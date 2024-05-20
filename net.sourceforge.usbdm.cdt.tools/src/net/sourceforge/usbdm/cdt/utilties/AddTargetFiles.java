@@ -174,6 +174,7 @@ public class AddTargetFiles {
          for (java.nio.file.Path entry: stream) {
             copyFiles(entry, targetPath.resolve(entry.getFileName()), fileInfo, variableMap, projectHandle, subMonitor.newChild(100));
          }
+         stream.close();
       }
       else {
          // Simple file copy

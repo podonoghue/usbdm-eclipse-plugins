@@ -332,12 +332,10 @@ public class CreateDeviceSkeletonFromSVD {
 
       String classDecl1 =
             "\n"+
-            "   <!-- ____ Class Declaration ________ -->\n" +
+            "   <!-- ____ Class Declarations ________ -->\n" +
             "   <constant key=\"_basicInfo_declaration\" type=\"String\" value='\"$(_BasicInfo)\"' />\n";
       resultSb.append(classDecl1);
       String classDecl2 =
-            "\n"+
-            "   <!-- ____ Class Declaration ________ -->\n" +
             "   <constant key=\"_class_declaration\" type=\"String\" value='\"$(_Info) : public $(_BasicInfo)\"' />\n";
       resultSb.append(classDecl2);
       
@@ -556,103 +554,14 @@ public class CreateDeviceSkeletonFromSVD {
       }
    }
    
-   void writeSettersAndGetters() {
+   void writeGettersAndSetters() {
       resultSb.append(
-            "\n" +
-            "   <!-- ____ Getters and Setters ____________ -->\n");
+            "\n   <!-- ____ Getters and Setters ____________ -->\n");
       
       if (fieldNameList.size() == 0) {
          // No fields!
          return;
       }
-      final String simpleVariableTemplate =
-          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\" >\n" +
-          "      <![CDATA[\n" +
-          "         \\t/**\n" +
-          "         \\t * Set %description\n" +
-          "         \\t * (%(field))\n" +
-          "         \\t *\n" +
-          "         %paramDescription\n" +
-          "         \\t */\n" +
-          "         \\t%static void set%(name)(%params) %const {\n" +
-          "         \\t   %fieldAssignment;\n" +
-          "         \\t}\n" +
-          "         \\t\\n\n" +
-          "      ]]></variableTemplate>\n"+
-          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\" >\n" +
-          "      <![CDATA[\n" +
-          "         \\t/**\n" +
-          "         \\t * Get %description\n" +
-          "         \\t * (%(field))\n" +
-          "         \\t *\n" +
-          "         \\t * @return %tooltip\n" +
-          "         \\t */\n" +
-          "         \\t%static %returnType get%(name)() %const {\n" +
-          "         \\t   return %fieldExtract;\n" +
-          "         \\t}\n" +
-          "         \\t\\n\n" +
-          "      ]]></variableTemplate>\n"+
-          "      <variableTemplate %where variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\"\n" +
-          "         tooltipPadding=\"x*x\" >\n" +
-          "      <![CDATA[\n" +
-          "         \\t/**\n" +
-          "         \\t * Clear %description\n" +
-          "         \\t * (%(field))\n" +
-          "         \\t *\n" +
-          "         \\t * %tooltip\n" +
-          "         \\t */\n" +
-          "         \\t%static void clear%(name)() %const {\n" +
-          "         \\t   %register = %register|%mask;\n" +
-          "         \\t}\n" +
-          "         \\t\\n\n" +
-          "      ]]></variableTemplate>\n";
-      
-      final String indexedVariableTemplate =
-            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\" nonDefaultParams=\"2\" >\n" +
-            "      <![CDATA[\n" +
-            "         \\t/**\n" +
-            "         \\t * Set %description1\n" +
-            "         \\t * (%(field))\n" +
-            "         \\t *\n" +
-            "         %paramDescription\n" +
-            "         \\t */\n" +
-            "         \\t%static void set%(name)(%params) %const {\n" +
-            "         \\t   %fieldAssignment1;\n" +
-            "         \\t}\n" +
-            "         \\t\\n\n" +
-            "      ]]></variableTemplate>\n"+
-            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\" >\n" +
-            "      <![CDATA[\n" +
-            "         \\t/**\n" +
-            "         \\t * Get %description1\n" +
-            "         \\t * (%(field))\n" +
-            "         \\t *\n" +
-            "         %paramDescription0\n" +
-            "         \\t *\n" +
-            "         \\t * @return %tooltip1\n" +
-            "         \\t */\n" +
-            "         \\t%static %paramType1 get%(name)(%param0) %const {\n" +
-            "         \\t   return %fieldExtract1;\n" +
-            "         \\t}\n" +
-            "         \\t\\n\n" +
-            "      ]]></variableTemplate>\n"+
-            "      <variableTemplate %where variables=\"%(field)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
-            "         tooltipPadding=\"x*x\" >\n" +
-            "      <![CDATA[\n" +
-            "         \\t/**\n" +
-            "         \\t * Clear %description1\n" +
-            "         \\t * (%(field))\n" +
-            "         \\t *\n" +
-            "         \\t * %tooltip\n" +
-            "         \\t *\n" +
-            "         %paramDescription0\n" +
-            "         \\t */\n" +
-            "         \\t%static void clear%(name)(%param0) %const {\n" +
-            "         \\t   %register1 = %register1|%mask1;\n" +
-            "         \\t}\n" +
-            "         \\t\\n\n" +
-            "      ]]></variableTemplate>\n";
-        
       VisitRegisters createSimpleFieldList = new VisitRegisters(peripheral) {
 
          final StringBuilder resultSb = new StringBuilder();
@@ -733,7 +642,7 @@ public class CreateDeviceSkeletonFromSVD {
                   set = "false";
                }
                firstField = false;
-               resultSb.append(String.format("         %-36s : %-5s : %-5s : %-5s : enableGettersAndSetters : %-25s : %s",
+               resultSb.append(String.format("         %-30s : %-5s : %-5s : %-5s : enableGettersAndSetters : %-25s : %s",
                      fieldName, set, get, clear, context, prettyName(methodName)));
             }
          }
@@ -743,6 +652,72 @@ public class CreateDeviceSkeletonFromSVD {
          }
       };
 
+      final String simpleVariableTemplate = ""
+          + "      <variableTemplate %where condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n"
+          + "         variables=\"%(field)\" >\n"
+          + "      <![CDATA[\n"
+          + "         \\t/**\n"
+          + "         \\t * Set %description\n"
+          + "         \\t * (%variables)\n"
+          + "         \\t *\n"
+          + "         %paramDescription\n"
+          + "         \\t */\n"
+          + "         \\t%static void set%(name)(%params) %const {\n"
+          + "         \\t   %fieldAssignment;\n"
+          + "         \\t}\n"
+          + "         \\t\\n\n"
+          + "      ]]>\n"
+          + "      </variableTemplate>\n"
+          + "      <variableTemplate %where condition=\"%(get)\" codeGenCondition=\"%(genCode)\"\n"
+          + "         variables=\"%(field)\" >\n"
+          + "      <![CDATA[\n"
+          + "         \\t/**\n"
+          + "         \\t * Get %description\n"
+          + "         \\t * (%variables)\n"
+          + "         \\t *\n"
+          + "         \\t * @return %tooltip\n"
+          + "         \\t */\n"
+          + "         \\t%static %returnType get%(name)() %const {\n"
+          + "         \\t   return %fieldExtract;\n"
+          + "         \\t}\n"
+          + "         \\t\\n\n"
+          + "      ]]>\n"
+          + "      </variableTemplate>\n"
+          + "      <variableTemplate %where condition='=\"(%variables)\"==\"%(clear)\"' codeGenCondition=\"%(genCode)\"\n"
+          + "         variables=\"%(field)\"\n"
+          + "         tooltipPadding=\"x*x\" >\n"
+          + "      <![CDATA[\n"
+          + "         \\t/**\n"
+          + "         \\t * Clear %description\n"
+          + "         \\t * (%variables)\n"
+          + "         \\t *\n"
+          + "         %paramDescription\n"
+          + "         \\t */\n"
+          + "         \\t%static void clear%(name)(%params) %const {\n"
+          + "         \\t   // w1c and mixed register\n"
+          + "         \\t   %register = %register|%paramExpression;\n"
+          + "         \\t}\n"
+          + "         \\t\\n\n"
+          + "      ]]>\n"
+          + "      </variableTemplate>\n"
+          + "      <variableTemplate %where condition='=\"w1cIm\"==\"%(clear)\"' codeGenCondition=\"%(genCode)\"\n"
+          + "         variables=\"%(field)\"\n"
+          + "         tooltipPadding=\"x*x\" >\n"
+          + "      <![CDATA[\n"
+          + "         \\t/**\n"
+          + "         \\t * Clear %description\n"
+          + "         \\t * (%variables)\n"
+          + "         \\t *\n"
+          + "         \\t * %tooltip\n"
+          + "         \\t */\n"
+          + "         \\t%static void clear%(name)() %const {\n"
+          + "         \\t   // w1c and mixed register\n"
+          + "         \\t   %register = %register|%mask;\n"
+          + "         \\t}\n"
+          + "         \\t\\n\n"
+          + "      ]]>\n"
+          + "      </variableTemplate>\n";
+      
       createSimpleFieldList.visit();
       String simpleResult = createSimpleFieldList.getResultAsString();
       if (!simpleResult.isBlank()) {
@@ -754,6 +729,61 @@ public class CreateDeviceSkeletonFromSVD {
          resultSb.append(svt);
          resultSb.append("   </for>\n");
       }
+      
+      final String indexedVariableTemplate =
+            "      <variableTemplate %where condition=\"%(set)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
+            "         variables=\"%(field)\"\n" +
+            "         nonDefaultParams=\"2\" >\n" +
+            "      <![CDATA[\n" +
+            "         \\t/**\n" +
+            "         \\t * Set %description1\n" +
+            "         \\t * (%variables)\n" +
+            "         \\t *\n" +
+            "         %paramDescription\n" +
+            "         \\t */\n" +
+            "         \\t%static void set%(name)(%params) %const {\n" +
+            "         \\t   %fieldAssignment1;\n" +
+            "         \\t}\n" +
+            "         \\t\\n\n" +
+            "      ]]>\n" +
+            "      </variableTemplate>\n"+
+            "      <variableTemplate %where condition=\"%(get)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
+            "         variables=\"%(field)\"\n" +
+            "         nonDefaultParams=\"2\" >\n" +
+            "      <![CDATA[\n" +
+            "         \\t/**\n" +
+            "         \\t * Get %description1\n" +
+            "         \\t * (%variables)\n" +
+            "         \\t *\n" +
+            "         %paramDescription0\n" +
+            "         \\t *\n" +
+            "         \\t * @return %tooltip1\n" +
+            "         \\t */\n" +
+            "         \\t%static %paramType1 get%(name)(%param0) %const {\n" +
+            "         \\t   return %fieldExtract1;\n" +
+            "         \\t}\n" +
+            "         \\t\\n\n" +
+            "      ]]>\n" +
+            "      </variableTemplate>\n"+
+            "      <variableTemplate %where condition=\"%(clear)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
+            "         variables=\"%(field)\"\n" +
+            "         tooltipPadding=\"x*x\" >\n" +
+            "      <![CDATA[\n" +
+            "         \\t/**\n" +
+            "         \\t * Clear %description1\n" +
+            "         \\t * (%variables)\n" +
+            "         \\t *\n" +
+            "         \\t * %tooltip\n" +
+            "         \\t *\n" +
+            "         %paramDescription0\n" +
+            "         \\t */\n" +
+            "         \\t%static void clear%(name)(%param0) %const {\n" +
+            "         \\t   %register1 = %register1|%mask1;\n" +
+            "         \\t}\n" +
+            "         \\t\\n\n" +
+            "      ]]>\n" +
+            "      </variableTemplate>\n";
+        
       createIndexedFieldList.visit();
       String indexedResult = createIndexedFieldList.getResultAsString();
       String preIndexedVariableTemplate = ""
@@ -862,9 +892,9 @@ public class CreateDeviceSkeletonFromSVD {
    String patchInfoTemplate(String template) {
       
       // For code placed in Info i.e. static functions
-      String where        = "";
+      String where        = "where=\"info\" ";
       String condition    = "codeGenCondition=\"$(_InfoGuard)\" ";
-      String irqCondition = "";
+      String irqCondition = "codeGenCondition=\"$(_InfoIrqGuard)\" ";
       String Const        = "";
       String Static       = "static ";
 
@@ -884,25 +914,137 @@ public class CreateDeviceSkeletonFromSVD {
       return t;
    }
    
+   void writeBanner(StringBuilder sb, String name) {
+      String banner = ""
+            + "<!-- ====================================================================================================== -->\n"
+            + "<!--     %name      -->\n"
+            + "<!-- ====================================================================================================== -->\n";
+      String text = banner.replace("%name", name);
+      sb.append(text);
+   }
+   
+   enum Where {info, InfoIrq, basicInfo, basicInfoIrq, commonInfo};
+   
+   String makeTemplateBody(int padding, String body) {
+      String paddingText = String.format("%"+padding+"s", " ")+"\\t";
+      body = paddingText+body.replace("\n", "\n"+paddingText);
+      return body;
+   }
+   
+   void writeTemplate(StringBuilder sb, Where where, String body) {
+      String location="";
+      String guard = "";
+      
+      switch(where) {
+      case commonInfo:
+         location = "commonInfo";
+         guard    = "$(_CommonInfoGuard)";
+         break;
+      case basicInfo:
+         location = "basicInfo";
+         guard    = "$(_BasicInfoGuard)";
+         break;
+      case basicInfoIrq:
+         location = "basicInfo";
+         guard    = "$(_BasicInfoIrqGuard)";
+         break;
+      case info:
+         location = "info";
+         guard    = "$(_InfoGuard)";
+         break;
+      case InfoIrq:
+         location = "info";
+         guard    = "$(_InfoIrqGuard)";
+         break;
+      }
+      
+      String template = "\n"
+            + "   <template where=\"%location\" codeGenCondition=\"%guard\" >\n"
+            + "   <![CDATA[\n"
+            + "%body\n"
+            + "   ]]>\n"
+            + "   </template>\n"
+            + "\n";
+      String text = template;
+      text = text.replace("%location", location);
+      text = text.replace("%guard",    guard);
+      text = text.replace("%body",     body);
+      sb.append(text);
+
+   }
+   
    void writeConstructor() {
-      String constructor = "\n"
+      
+      writeBanner(resultSb, "START BasicInfo Class");
+      
+      String input_clock = "\n"
+            + "   <!-- BasicInfo Clock methods  -->\n"
+            + "   <!-- Individual clock selection -->\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=individual_clock_source\">\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Get input clock frequency\n"
+            + "      \\t * (Individual to each peripheral)\n"
+            + "      \\t *\n"
+            + "      \\t * @return Input clock frequency as a uint32_t in Hz\n"
+            + "      \\t */\n"
+            + "      \\tuint32_t (*getInputClockFrequency)();\n"
+            + "      \\t\\n\n"
+            + "   ]]></template>\n"
+            + "\n"
+            + "   <!-- Shared clock selection -->\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=shared_clock_source\">\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Get input clock frequency\n"
+            + "      \\t * (Shared by all peripherals)\n"
+            + "      \\t *\n"
+            + "      \\t * @return Input clock frequency as a uint32_t in Hz\n"
+            + "      \\t */\n"
+            + "      \\tstatic inline uint32_t getInputClockFrequency() {\n"
+            + "      \\t   return SimInfo::get$(_Baseclass)Clock();\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]></template>\n"
+            + "";
+      
+      String constructors = "\n"
+            + "   <!-- BasicInfo Instance pointer and Constructors  -->\n"
+            + "\n"
             + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t// Pointer to $(_BASENAME) hardware instance\n"
-            + "      \\tvolatile $(_Type) *$(_basename);\n"
-            + "      \\t\n"
+            + "      \\tvolatile $(_Type) * const $(_basename);\n"
+            + "      \\t\\n\n"
+            + "   ]]></template>\n"
+            + "\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=individual_clock_source\" >\n"
+            + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Constructor\n"
             + "      \\t *\n"
             + "      \\t * @param $(_basename) $(_BASENAME) hardware instance\n"
             + "      \\t */\n"
-            + "      \\t$(_BasicInfo)(volatile $(_Type) * $(_basename)) : $(_basename)($(_basename)) {\n"
+            + "      \\t$(_BasicInfo)(volatile $(_Type) * $(_basename), uint32_t (*getInputClockFrequency)()) :\n"
+            + "      \\t               getInputClockFrequency(getInputClockFrequency), $(_basename)($(_basename)) {\n"
             + "      \\t}\n"
             + "      \\t\\n\n"
             + "   ]]></template>\n"
-            + "\n";
+            + "\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=shared_clock_source\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Constructor\n"
+            + "      \\t *\n"
+            + "      \\t * @param $(_basename) $(_BASENAME) hardware instance\n"
+            + "      \\t */\n"
+            + "      \\tconstexpr $(_BasicInfo)(volatile $(_Type) * $(_basename)) : $(_basename)($(_basename)) {\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]></template>\n";
       if (!useStaticMethods) {
-         resultSb.append(constructor);
+         resultSb.append(constructors);
+         resultSb.append(input_clock);
       }
    }
    
@@ -910,83 +1052,60 @@ public class CreateDeviceSkeletonFromSVD {
       
       writeHandlers();
       
-      final String open_init_class ="\n"+
-         "   <!-- ________ %s Init class ______________ -->\n" +
-         "\n" +
-         "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n" +
-         "   <![CDATA[\n" +
-         "      \\t/**\n" +
-         "      \\t * Class used to do initialisation of the $(_Baseclass)\n" +
-         "      \\t *\n" +
-         "      \\t * This class has a templated constructor that accepts various values.\n" +
-         "      \\t * Parameters available may vary with device - see $(_Class)::DefaultInitValue for relevant example.\n" +
-         "      \\t * Omitted parameters default to zero (disabled) or unchanged if initialiser is provided as last parameter.\n" +
-         "      \\t *\n" +
-         "      \\t * @note This constructor may be used to create a const instance in Flash\n" +
-         "      \\t *\n" +
-         "      \\t * Example:\n" +
-         "      \\t * @code\n" +
-         "      \\t * ///\n" +
-         "      \\t * /// $(_NAME) call-back\n" +
-         "      \\t * ///\n" +
-         "      \\t * /// @param status  Status reflecting active inputs\n" +
-         "      \\t * ///\n" +
-         "      \\t * void $(_name)Callback(ErrorCode ec) {\n" +
-         "      \\t *    ....\n" +
-         "      \\t * }\n" +
-         "      \\t *\n" +
-         "      \\t * static const $(_Class)::Init $(_name)Init {\n" +
-         "      \\t *\n" +
-         "      \\t *   // Setup values\n" +
-         "XXXXXXXXXXXXXXXXXXXXXX\n" +
-         "      \\t *\n" +
-         "      \\t *   $(_name)Callback,                 // Call-back to execute on event - call-back function name\n" +
-         "      \\t *   NvicPriority_Low,                 // Priority for interrupt - Low\n" +
-         "      \\t *\n" +
-         "      \\t *   // Optional base value to start with (must be last parameter)\n" +
-         "      \\t *   $(_Class)::DefaultInitValue   // Used as base value modified by above\n" +
-         "      \\t * };\n" +
-         "      \\t *\n" +
-         "      \\t * // Initialise $(_Class) from values specified above\n" +
-         "      \\t * $(_Class)::configure($(_name)Init)\n" +
-         "      \\t * @endcode\n" +
-         "      \\t */\n" +
-         "      \\tclass Init {\n" +
-         "      \\t\n" +
-         "      \\tprivate:\n" +
-         "      \\t   /**\n" +
-         "      \\t    * Prevent implicit parameter conversions\n" +
-         "      \\t    */\n" +
-         "      \\t   template <typename... Types>\n" +
-         "      \\t   constexpr Init(Types...) = delete;\n" +
-         "      \\t\n" +
-         "      \\tpublic:\n" +
-         "      \\t   /**\n" +
-         "      \\t    * Copy Constructor\n" +
-         "      \\t    */\n" +
-         "      \\t   constexpr Init(const Init &other) = default;\n" +
-         "      \\t\n" +
-         "      \\t   /**\n" +
-         "      \\t    * Default Constructor\n" +
-         "      \\t    */\n" +
-         "      \\t   constexpr Init() = default;\n" +
-         "      \\t\\n\n" +
-         "   ]]>\n"+
-         "   </template>\n";
+      writeBanner(resultSb, "START BasicInfo::Init class");
+      
+      final String open_init_class =""
+         + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
+         + "   <![CDATA[\n"
+         + "      \\t/**\n"
+         + "      \\t * Class used to do initialisation of the $(_Baseclass)\n"
+         + "      \\t *\n"
+         + "      \\t * This class has a templated constructor that accepts various values.\n"
+         + "      \\t * Parameters available may vary with device - see $(_Class)::DefaultInitValue for relevant example.\n"
+         + "      \\t * Omitted parameters default to zero (disabled) or unchanged if initialiser is provided as last parameter.\n"
+         + "      \\t *\n"
+         + "      \\t * @note This constructor may be used to create a const instance in Flash\n"
+         + "      \\t *\n"
+         + "      \\t * Example:\n"
+         + "      \\t * @code\n"
+         + "      \\t * static const $(_Class)::Init $(_name)Init {\n"
+         + "      \\t *\n"
+         + "      \\t *   // Setup values\n"
+         + "XXXXXXXXXXXXXXXXXXXXXX\n"
+         + "      \\t *\n"
+         + "      \\t *   // Optional base value to start with (must be last parameter)\n"
+         + "      \\t *   $(_Class)::DefaultInitValue   // Used as base value modified by above\n"
+         + "      \\t * };\n"
+         + "      \\t *\n"
+         + "      \\t * // Initialise $(_Class) from values specified above\n"
+         + "      \\t * $(_Class)::configure($(_name)Init)\n"
+         + "      \\t * @endcode\n"
+         + "      \\t */\n"
+         + "      \\tclass Init {\n"
+         + "      \\t\n"
+         + "      \\tprivate:\n"
+         + "      \\t   /**\n"
+         + "      \\t    * Prevent implicit parameter conversions\n"
+         + "      \\t    */\n"
+         + "      \\t   template <typename... Types>\n"
+         + "      \\t   constexpr Init(Types...) = delete;\n"
+         + "      \\t\n"
+         + "      \\tpublic:\n"
+         + "      \\t   /**\n"
+         + "      \\t    * Copy Constructor\n"
+         + "      \\t    */\n"
+         + "      \\t   constexpr Init(const Init &other) = default;\n"
+         + "      \\t\n"
+         + "      \\t   /**\n"
+         + "      \\t    * Default Constructor\n"
+         + "      \\t    */\n"
+         + "      \\t   constexpr Init() = default;\n"
+         + "      \\t\\n\n"
+         + "   ]]>\n"
+         + "   </template>\n";
       resultSb.append(String.format(open_init_class, peripheralBasename));
       
-      resultSb.append("\n   <!-- ____ Init class Member variables ________ -->\n");
-      
-      final String initIrqMemberTemplate = "\n"
-            + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoIrqGuard)\"\n"
-            + "      variables=\"irqHandlingMethod\"\n"
-            + "      linePadding=\"xxx\" >\n"
-            + "   <![CDATA[\n"
-            + "      %multilineDescription\n"
-            + "      \\t   %params = nullptr;\\n\\n\n"
-            + "   ]]></variableTemplate>\n";
-      
-      resultSb.append(initIrqMemberTemplate);
+      resultSb.append("\n   <!-- ____ BasicInfo::Init class Member variables ________ -->\n");
       
       // Create Init registers
       VisitRegisters createInitRegistersList = new VisitRegisters(peripheral) {
@@ -1056,7 +1175,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "      <![CDATA[\n"
             + "         %multilineDescription\n"
             + "         \\t   %(type) %registerName = %(init);\\n\\n\n"
-            + "      ]]></variableTemplate>\n"
+            + "      ]]>\n"
+            + "      </variableTemplate>\n"
             + "   </for>\n";
       
       createInitRegistersList.visit();
@@ -1071,7 +1191,8 @@ public class CreateDeviceSkeletonFromSVD {
          }
          resultSb.append(res);
       }
-      resultSb.append("      ;\n               %paramType  : /PCR/nvic_irqLevel                                   :   %defaultValue   \"");
+      resultSb.append("      \"");
+//    resultSb.append("      ;\n               %paramType  : /PCR/nvic_irqLevel                                   :   %defaultValue   \"");
       resultSb.append(memberDeclaration);
 
       /*
@@ -1079,36 +1200,11 @@ public class CreateDeviceSkeletonFromSVD {
        */
       String constructorTitle =""
           + "\n"
-          + "   <!-- ____ Init class Constructors ____________ -->\n";
+          + "   <!-- ____ BasicInfo::Init class Constructors ____________ -->\n";
       
       resultSb.append(constructorTitle);
 
-      //__________________________
-      
-      final String initIrqConstructor = "\n"
-            + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoIrqGuard)\"\n"
-            + "      variables=\"irqHandlingMethod\"\n"
-            + "      linePadding=\"xxx\" >\n"
-            + "   <![CDATA[\n"
-            + "      \\t   /**\n"
-            + "      \\t    * Constructor for %description\n"
-            + "      \\t    * (%variables)\n"
-            + "      \\t    *\n"
-            + "      \\t    * @tparam   Types\n"
-            + "      \\t    * @param    rest\n"
-            + "      \\t    *\n"
-            + "      %paramDescription\n"
-            + "      \\t    */\n"
-            + "      \\t   template <typename... Types>\n"
-            + "      \\t   constexpr Init(%params, Types... rest) : Init(rest...) {\n"
-            + "      \\t\n"
-            + "      \\t      this->%paramName = %paramExpression;\n"
-            + "      \\t   }\\n\\n\n"
-            + "   ]]></variableTemplate>\n";
-      
-      resultSb.append(initIrqConstructor);
-      
-      /*
+       /*
        *   Create Constructors
        */
       String constructorListTemplateForEnumeratedFields = ""
@@ -1202,101 +1298,108 @@ public class CreateDeviceSkeletonFromSVD {
             "      \\t}; // class $(_BasicInfo)::Init\n" +
             "      \\t\\n\n" +
             "   ]]>\n" +
-            "   </template>\n";
+            "   </template>\n\n";
 
       resultSb.append(closeInitClass);
      
-      if (!useStaticMethods) {
-         String infoClassConstructor = "\n"
-               + "   <!-- ____ %Info Constructor ____ -->\n"
-               + "\n"
-               + "   <template codeGenCondition=\"$(_InfoGuard)\" >\n"
-               + "   <![CDATA[\n"
-               + "      \\t/*\n"
-               + "      \\t *   Default Constructor\n"
-               + "      \\t */\n"
-               + "      \\t$(_Info)() : $(_BasicInfo)($(_basename)) {\n"
-               + "      \\t   defaultConfigure();\n"
-               + "      \\t}\n"
-               + "      \\t\n"
-               + "      \\t/*\n"
-               + "      \\t *   Constructor\n"
-               + "      \\t */\n"
-               + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename)) {\n"
-               + "      \\t   configure(init);\n"
-               + "      \\t}\n"
-               + "      \\t\\n\n"
-               + "   ]]>\n"
-               + "   </template>\n";
+      writeBanner(resultSb, "END BasicInfo::Init class");
+      
+      writeBanner(resultSb, "START BasicInfo::InitVectors class");
+      
+//      final String initVectors_class =""
+//            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoIrqGuard)\" >\n"
+//            + "   <![CDATA[\n"
+//            + "      \\t/**\n"
+//            + "      \\t * Class used to do initialisation of the $(_Baseclass)\n"
+//            + "      \\t *\n"
+//            + "      \\t * This class has a templated constructor that accepts various values.\n"
+//            + "      \\t * Parameters available may vary with device - see $(_Class)::DefaultInitValue for relevant example.\n"
+//            + "      \\t * Omitted parameters default to zero (disabled) or unchanged if initialiser is provided as last parameter.\n"
+//            + "      \\t *\n"
+//            + "      \\t * @note This constructor may be used to create a const instance in Flash\n"
+//            + "      \\t *\n"
+//            + "      \\t */\n"
+//            + "      \\ttemplate <typename EnumType, size_t NumVectors>\n"
+//            + "      \\tclass InitVectors : public Init {\n"
+//            + "      \\t\n"
+//            + "      \\tpublic:\n"
+//            + "      \\t   /**\n"
+//            + "      \\t    * Copy Constructor\n"
+//            + "      \\t    */\n"
+//            + "      \\t   constexpr InitVectors(const InitVectors &other) = default;\n"
+//            + "      \\t\n"
+//            + "      \\t   /**\n"
+//            + "      \\t    * Other constructors are inherited\n"
+//            + "      \\t    *\n"
+//            + "      \\t    * @tparam Types\n"
+//            + "      \\t    * @param rest\n"
+//            + "      \\t    */\n"
+//            + "      \\t   template <typename... Types>\n"
+//            + "      \\t   constexpr InitVectors(Types... rest) : Init(rest...) {\n"
+//            + "      \\t   }\n"
+//            + "      \\t\n"
+//            + "      \\t   /**\n"
+//            + "      \\t    * Initialise Interrupt callbacks\n"
+//            + "      \\t    *\n"
+//            + "      \\t    * @tparam Types\n"
+//            + "      \\t    * @param rest         Remaining parameters\n"
+//            + "      \\t\n"
+//            + "      \\t    * @param irqNum       Interrupt number\n"
+//            + "      \\t    * @param nvicPriority Priority for the handler\n"
+//            + "      \\t    * @param callback     Callback function to use\n"
+//            + "      \\t    */\n"
+//            + "      \\t   template <typename... Types>\n"
+//            + "      \\t   constexpr InitVectors(EnumType irqNum, NvicPriority nvicPriority, CallbackFunction callback, Types... rest) : InitVectors(rest...) {\n"
+//            + "      \\t      priorities[irqNum]  = nvicPriority;\n"
+//            + "      \\t      callbacks[irqNum]   = callback;\n"
+//            + "      \\t   }\n"
+//            + "      \\t\n"
+//            + "      \\t   /**\n"
+//            + "      \\t    * Information describing the priority and callback function for each interrupt\n"
+//            + "      \\t    */\n"
+//            + "      \\t    CallbackFunction callbacks[NumVectors]  = {};\n"
+//            + "      \\t    NvicPriority     priorities[NumVectors] = {};\n"
+//            + "      \\t\n"
+//            + "      \\t}; // class $(_BasicInfo)::InitVectors\n"
+//            + "      \\t\\n\n"
+//            + "   ]]>\n"
+//            + "   </template>\n"
+//            + "\n";
+      
+//      resultSb.append(String.format(initVectors_class, peripheralBasename));
 
-         resultSb.append(infoClassConstructor.replace("%Info", prettyName(peripheral.getName())+"Info"));
-      }
+      writeBanner(resultSb, "END BasicInfo::InitVectors class");
+      
       /*
        * Create configure methods
        */
       
-      String configureMethod = "\n"
-            + "   <!-- ____ Init class Configure methods ____ -->\n"
-            + "\n"
-            + "   <template codeGenCondition=\"$(_InfoGuard)\" >\n"
-            + "   <![CDATA[\n"
-            + "      \\t/**\n"
-            + "      \\t * Configure with default settings.\n"
-            + "      \\t * Configuration determined from Configure.usbdmProject\n"
-            + "      \\t */\n"
-            + "      \\tstatic inline void defaultConfigure() {\n"
-            + "      \\t\n"
-            + "      \\t   configure(DefaultInitValue);\n"
-            + "      \\t}\n"
-            + "      \\t\n"
-            + "      \\t/**\n"
-            + "      \\t * Configure $(_BASENAME) from values specified in init\n"
-            + "      \\t *\n"
-            + "      \\t * @param init Class containing initialisation values\n"
-            + "      \\t */\n"
-            + "      \\tstatic void configure(const Init &init) {\n"
-            + "      \\t\n"
-            + "      \\t   // Enable peripheral\n"
-            + "      \\t   enable();\n"
-            + "      \\t\\n\n"
-            + "   ]]>\n"
-            + "   </template>\n";
-
-      String configureMethodIrq = ""
-            + "   <template codeGenCondition=\"irqHandlingMethod\" condition=\"irqHandlingMethod\" >\n"
-            + "   <![CDATA[\n"
-            + "      \\t   // Configure call-backs\n"
-            + "      \\t   setCallback(init.callbackFunction);\\n\n"
-            + "   ]]>\n"
-            + "   </template>\n";
-      
-      String configureEnableNvicIrq = ""
-            + "   <template codeGenCondition=\"$(_InfoGuard)\" >\n"
-            + "   <![CDATA[\n"
-            + "      \\t   enableNvicInterrupts(init.irqlevel);\n"
-            + "      \\t\n"
-            + "      \\t   $(_BasicInfo)::configure($(_basename), init);\n"
-            + "      \\t}\n"
-            + "      \\t\\n\n"
-            + "   ]]>\n"
-            + "   </template>\n";
-      
-      resultSb.append(configureMethod);
-      resultSb.append(configureMethodIrq);
-      resultSb.append(configureEnableNvicIrq);
-      
       String clockConfigAndReopen = ""
-            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
+            + "\n"
+            + "   <!-- ____ BasicInfo class Configure methods ____ -->\n"
+            + "\n"
+            + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\"\n"
+            + "      variables=\"uart_baudrate\"\n"
+            + "      linePadding=\"xxx\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Configure $(_BASENAME) from values specified in init\n"
+            + "      \\t * This routine does not configure pins or interrupt handlers\n"
             + "      \\t *\n"
+            + "      \\t * @param $(_basename)           Hardware instance pointer\n"
+            + "      \\t * @param clockFrequency Clock frequency\n"
             + "      \\t * @param init Class containing initialisation values\n"
             + "      \\t */\n"
-            + "      \\tstatic void configure(volatile $(_Type) *$(_basename), const Init &init) {\n"
+            + "      \\tstatic void configure(\n"
+            + "      \\t               volatile $(_Type) *$(_basename),\n"
+            + "      \\t               uint32_t         clockFrequency,\n"
+            + "      \\t               const Init    &init) {\n"
+            + "      \\t\n"
+            + "      \\t   setBaudRate($(_basename), clockFrequency, init.%registerName0);\n"
             + "      \\t\\n\n"
             + "   ]]>\n"
-            + "   </template>\n";
+            + "   </variableTemplate>\n"
+            + "";
            
       if (!useStaticMethods) {
          resultSb.append(clockConfigAndReopen);
@@ -1363,13 +1466,14 @@ public class CreateDeviceSkeletonFromSVD {
       String configureMethodPostamble = ""
             + "\" >\n"
             + "      <variableTemplate %where %condition \n"
-            + "      variables=\"%(var)\"\n"
-            + "      linePadding=\"xxx\" >\n"
+            + "         variables=\"%(var)\"\n"
+            + "         linePadding=\"xxx\" >\n"
             + "      <![CDATA[\n"
             + "         \\t\n"
             + "         %multilineDescription\n"
             + "         \\t   %(statement);\\n\n"
-            + "      ]]></variableTemplate>\n"
+            + "      ]]>\n"
+            + "      </variableTemplate>\n"
             + "   </for>\n"
             + "   <template %where %condition >\n"
             + "   <![CDATA[\n"
@@ -1392,29 +1496,180 @@ public class CreateDeviceSkeletonFromSVD {
       }
       resultSb.append(patchInfoTemplate(configureMethodPostamble));
       
+      String instance_configue = "\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Configure $(_BASENAME) from values specified in init\n"
+            + "      \\t * This routine does not configure pins or interrupt handlers\n"
+            + "      \\t *\n"
+            + "      \\t * @param init Class containing initialisation values\n"
+            + "      \\t */\n"
+            + "      \\tvoid configure(const Init &init) const {\n"
+            + "      \\t\n"
+            + "      \\t   configure($(_basename), getInputClockFrequency(), init);\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n"
+            + "";
+      resultSb.append(instance_configue);
+      
+      writeBanner(resultSb, "END BasicInfo class");
+      
+      writeBanner(resultSb, "START Info class");
+      
+      if (!useStaticMethods) {
+         String infoClassConstructor = ""
+               + "   <!-- ____ Info constructors ________ -->\n"
+               + "\n"
+               + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" >\n"
+               + "   <![CDATA[\n"
+               + "      \\t/*\n"
+               + "      \\t *   Default Constructor\n"
+               + "      \\t */\n"
+               + "      \\t$(_Info)() : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
+               + "      \\t   defaultConfigure();\n"
+               + "      \\t}\n"
+               + "      \\t\n"
+               + "      \\t/*\n"
+               + "      \\t *   Constructor\n"
+               + "      \\t */\n"
+               + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
+               + "      \\t   configure(init);\n"
+               + "      \\t}\n"
+               + "      \\t\\n\n"
+               + "   ]]>\n"
+               + "   </template>\n";
+
+         resultSb.append(infoClassConstructor.replace("%Info", prettyName(peripheral.getName())+"Info"));
+      }
+      
+      /*
+       * Init configure methods
+       */
+      resultSb.append("\n   <!-- Init configure methods -->\n");
+      
+      String init_configure_template = "   \n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Configure with default settings.\n"
+            + "      \\t * Configuration determined from Configure.usbdmProject\n"
+            + "      \\t */\n"
+            + "      \\tstatic void defaultConfigure() {\n"
+            + "      \\t\n"
+            + "      \\t   configure(DefaultInitValue);\n"
+            + "      \\t}\n"
+            + "      \\t\n"
+            + "      \\t/**\n"
+            + "      \\t * Configure $(_BASENAME) from values specified in init\n"
+            + "      \\t *\n"
+            + "      \\t * @param init Class containing initialisation values\n"
+            + "      \\t */\n"
+            + "      \\tstatic void configure(const Init &init) {\n"
+            + "      \\t\n"
+            + "      \\t   // Enable peripheral\n"
+            + "      \\t   enable();\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoIrqGuard)\" condition=\"=(_hardwareIrqCount==1)\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t   // Configure call-back\n"
+            + "      \\t   if (init.callbacks[0] != nullptr) {\n"
+            + "      \\t      setCallback(init.callbacks[0]);\n"
+            + "      \\t      enableNvicInterrupts(init.priorities[0]);\n"
+            + "      \\t   }\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n"
+            + "   <variableTemplate where=\"info\" codeGenCondition=\"$(_InfoIrqGuard)\" condition=\"=(_hardwareIrqCount>1)\"\n"
+            + "      variables=\"irq_enum\"\n"
+            + "      immediateVariables=\"_hardwareIrqCount\">\n"
+            + "   <![CDATA[\n"
+            + "      \\t   for(int index=0; index<$(_hardwareIrqCount); index++) {\n"
+            + "      \\t      if (init.callbacks[index] != nullptr) {\n"
+            + "      \\t         // Configure call-back\n"
+            + "      \\t         setCallback(%returnType0(index), init.callbacks[index]);\n"
+            + "      \\t         enableNvicInterrupts(%returnType0(index), init.priorities[index]);\n"
+            + "      \\t      }\n"
+            + "      \\t   }\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </variableTemplate>\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" condition=\"=individual_clock_source\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t   $(_BasicInfo)::configure($(_basename), SimInfo::get$(_Class)Clock(), init);\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" condition=\"=shared_clock_source\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t   $(_BasicInfo)::configure($(_basename), getInputClockFrequency(), init);\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n";
+      
+      resultSb.append(init_configure_template);
+      
       /*
        * Create DefaultInitValue
        */
-      String initValueTemplate = ""
-            + "\n"
+      String initValueTemplate1 = "\n"
             + "   <!-- ____  Default Initialisation value ____ -->\n"
             + "\n"
-            + "   <variableTemplate codeGenCondition=\"$(_InfoGuard)\"\n"
-            + "      separator=\",\"\n"
-            + "      terminator=\",\"\n"
-            + "      padToComments=\"50\"\n"
-            + "      variables=\"%s\n"
-            + "            irqLevel\" >\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Default initialisation value for $(_Class)\n"
             + "      \\t * This value is created from Configure.usbdmProject settings\n"
             + "      \\t */\n"
-            + "      \\tstatic constexpr Init DefaultInitValue = {%%initExpression\n"
+            + "      \\tstatic constexpr $(_BasicInfo)::Init DefaultInitValue = {\\n\n"
+            + "   ]]>\n"
+            + "   <!-- Interrupt information -->\n"
+            + "   </template>\n"
+            + "<!--\n"
+            + "   <for keys=\"irqName\" values=\"=_hardwareIrqNums\">\n"
+            + "      <equation key=\"irqEnum\" value='=ReplaceAll(\"%(irqName)\",\"^(.*?)_(.*)_IRQn$\",\"IrqNum_$2\")' />\n"
+            + "      <equation key=\"var\"     value='=ReplaceAll(\"%(irqName)\",\"^(.*?)_(.*)_IRQn$\",\"irqLevel_$2\")' />\n"
+            + "      <print text=\"(irqName) = %(irqName)\"/>\n"
+            + "      <printVar key=\"irqEnum\" />\n"
+            + "      <printVar key=\"var\" />\n"
+            + "      <variableTemplate where=\"info\" codeGenCondition='$(_InfoIrqGuard)&amp;&amp;!IsZero(@var)'\n"
+            + "         variables='=var'\n"
+            + "         separator=\",\"\n"
+            + "         terminator=\",\"\n"
+            + "         padToComments=\"40\"\n"
+            + "         immediateVariables=\"irqEnum\" >\n"
+            + "      <![CDATA[\n"
+            + "         \\t   $(irqEnum), %initExpression,\n"
+            + "         \\t   unhandledCallback,\\n\n"
+            + "      ]]>\n"
+            + "      </variableTemplate>\n"
+            + "   </for>\n"
+            + "-->\n";
+      resultSb.append(initValueTemplate1);
+
+      /*
+       * Field values for init
+       */
+      String initValueTemplate = ""
+            + "   <variableTemplate where=\"info\" codeGenCondition=\"$(_InfoGuard)\"\n"
+            + "      separator=\",\"\n"
+            + "      terminator=\",\"\n"
+            + "      padToComments=\"40\"\n"
+            + "      variables=\"%s\n"
+            + "            \" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t%%initNonZeroValues\n"
             + "      \\t};\n"
             + "      \\t\\n\n"
             + "   ]]>\n"
             + "   </variableTemplate>\n";
+      
       
       VisitRegisters createInitValueFieldList = new VisitRegisters(peripheral) {
          
@@ -1467,11 +1722,12 @@ public class CreateDeviceSkeletonFromSVD {
       createInitValueFieldList.visit();
       
       resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString()+",", ""));
-   
+      
+      writeBanner(resultSb, "END Info class");
    }
    
    void writeCommon() {
-      resultSb.append(String.format("\n   <!-- ____ Common ____ -->\n"));
+      writeBanner(resultSb, "Common");
       
       String declaration ="\n"
             + "   <template key=\"/$(_BASENAME)/declarations\" codeGenCondition=\"$(_InfoGuard)\" >\n"
@@ -1621,7 +1877,7 @@ public class CreateDeviceSkeletonFromSVD {
    
    static String peripheralsToDo[] = {
 //         "ACMP",
-//         "ADC",
+         "ADC",
 //         "CAN",
 //         "CMP",
 //         "CMT",
@@ -1664,7 +1920,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SIM",
 //         "TSI",
 //         "TRNG",
-         "UART",
+//         "UART",
 //         "VREF",
 //         "USB",
 //         "USBDCD",
@@ -1711,7 +1967,7 @@ public class CreateDeviceSkeletonFromSVD {
             instance.writePreamble();
             instance.processRegisters();
             instance.writeConstructor();
-            instance.writeSettersAndGetters();
+            instance.writeGettersAndSetters();
             instance.writeInitClass();
             instance.writeCommon();
             instance.savePeripheralFiles(false);
@@ -1765,9 +2021,9 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL05Z");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
-    doAllPeripherals("FRDM_K20D50M", "mk");
+//    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
-//    doAllPeripherals("FRDM_K28F", "mk");
+    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
 //      doAllPeripherals("FRDM_K82F", "mk");
