@@ -10,7 +10,8 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class ClockSelectionFigure {
-   private Graphic[]                     objects            = null;
+   private Graphic[]                     fObjects            = null;
+   private GraphicConnector[]            fConnectors         = null;
    private ArrayList<InitialInformation> initialInformation = new ArrayList<InitialInformation>();
    private final VariableProvider fProvider;
 
@@ -39,7 +40,7 @@ public class ClockSelectionFigure {
       }
       
       InitialInformation(int x, int y, String id, String name, String varKey, Type type, Boolean edit, String params) {
-         fId     = id;
+         fId     = (id!=null)?id:"";
          fName   = name;
          fVarKey = varKey;
          fType   = type;
@@ -81,6 +82,8 @@ public class ClockSelectionFigure {
          case junction:
             return GraphicJunction.create(originX, originY, fId, fParams, canEdit, var);
             
+         case polygon:
+            return GraphicPolygon.create(originX, originY, fId, fParams, canEdit, var);
          case connector:
          case group:
          default:
@@ -151,58 +154,69 @@ public class ClockSelectionFigure {
     */
    public void instantiateGraphics(VariableProvider variableProvider) throws Exception {
 
+      if (fObjects != null) {
+         // Already done
+         return;
+      }
+      
+      // Used for connector end-point lookup
       Hashtable<String, Graphic> graphicTable =  new Hashtable<String, Graphic>();
 
-      if ((getObjects() == null)) {
-         objects = new Graphic[initialInformation.size()];
-         int index = 0;
-         // Construct objects apart from connectors and non-graphic
-         for (InitialInformation info:initialInformation) {
-            try {
-               Graphic graphic = info.constructGraphic(variableProvider);
-               if (graphic != null) {
-                  getObjects()[index++] = graphic;
-                  String[] ids = info.fId.split(",");
-                  graphicTable.put(ids[0], graphic);
-               }
-            } catch (Exception e) {
-               System.err.println("Failed to instantiate "+info);
-               e.printStackTrace();
-            }
-         };
-         // Construct connectors
-         for (InitialInformation info:initialInformation) {
-            try {
-               if (info.fType == Type.connector) {
-                  Graphic graphic = info.constructGraphic(graphicTable, variableProvider);
-                  if (graphic == null) {
-                     System.err.println("Opps");
-                  }
-                  getObjects()[index++] = graphic;
-                  String[] ids = info.fId.split(",");
-                  graphicTable.put(ids[0], graphic);
-               }
-               // Ignore non-graphic
-            } catch (Exception e) {
-               System.err.println("Failed to instantiate "+info);
-               e.printStackTrace();
-            }
-         };
-         initialInformation = null;
-         
-         Arrays.sort(getObjects(), new Comparator<Graphic>() {
-            @Override
-            public int compare(Graphic o1, Graphic o2) {
+      ArrayList<Graphic>          graphics   = new ArrayList<Graphic>();
+      ArrayList<GraphicConnector> connectors = new ArrayList<GraphicConnector>();
 
-               int res = o1.getDrawPriority()-o2.getDrawPriority();
-               if (res != 0) {
-                  return res;
-               }
-               // Order by x co-ord
-               return (o1.x - o2.x);
+      // Construct objects apart from connectors and non-graphic
+      for (InitialInformation info:initialInformation) {
+         try {
+            Graphic graphic = info.constructGraphic(variableProvider);
+            if (graphic != null) {
+               graphics.add(graphic);
+               String[] ids = info.fId.split(",");
+               graphicTable.put(ids[0], graphic);
             }
-         });
-      }
+         } catch (Exception e) {
+            System.err.println("Failed to instantiate "+info);
+            e.printStackTrace();
+         }
+      };
+      // Construct connectors
+      for (InitialInformation info:initialInformation) {
+         try {
+            if (info.fType == Type.connector) {
+               Graphic graphic = info.constructGraphic(graphicTable, variableProvider);
+               if (graphic == null) {
+                  System.err.println("Opps");
+               }
+               connectors.add((GraphicConnector)graphic);
+               String[] ids = info.fId.split(",");
+               graphicTable.put(ids[0], graphic);
+            }
+            // Ignore non-graphic
+         } catch (Exception e) {
+            System.err.println("Failed to instantiate "+info);
+            e.printStackTrace();
+         }
+      };
+      // Discard original info
+      initialInformation = null;
+
+      fObjects    = graphics.toArray(new Graphic[graphics.size()]);
+      fConnectors = connectors.toArray(new GraphicConnector[connectors.size()]);
+
+      Comparator<Graphic> comp = new Comparator<Graphic>() {
+         @Override
+         public int compare(Graphic o1, Graphic o2) {
+
+            int res = o1.getDrawPriority()-o2.getDrawPriority();
+            if (res != 0) {
+               return res;
+            }
+            // Order by x co-ord
+            return (o1.x - o2.x);
+         }
+      };
+      Arrays.sort(fObjects, comp);
+      Arrays.sort(fConnectors, comp);
    }
 
    /**
@@ -214,10 +228,11 @@ public class ClockSelectionFigure {
     * 
     * @throws Exception
     */
-   public Graphic[] getGraphics() throws Exception {
-      return getObjects();
-   }
+//   public Graphic[] getGraphics() throws Exception {
+//      return getObjects();
+//   }
 
+   // For debug
    int size = 0;
    
    /**
@@ -227,15 +242,19 @@ public class ClockSelectionFigure {
     * @return
     */
    public Graphic add(Graphic graphic) {
-      if (getObjects() == null) {
-         objects = new Graphic[100];
+      if (fObjects == null) {
+         fObjects = new Graphic[100];
       }
-      getObjects()[size++] = graphic;
+      fObjects[size++] = graphic;
       return graphic;
    }
 
    public Graphic[] getObjects() {
-      return objects;
+      return fObjects;
+   }
+
+   public GraphicConnector[] getConnectors() {
+      return fConnectors;
    }
 
    /**

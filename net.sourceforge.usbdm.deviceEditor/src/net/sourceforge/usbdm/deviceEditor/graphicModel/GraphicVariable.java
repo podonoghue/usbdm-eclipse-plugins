@@ -52,6 +52,7 @@ public class GraphicVariable extends GraphicBaseVariable {
       Font font = new Font(display, data.getName(), 10, SWT.NORMAL);
       gc.setFont(font);
       
+      Variable var = getVariable();
       if (h>=2*vScale) {
          if ((this.getStyle()&NONAME) == 0) {
             Point p = map(-w/2+6, -17);
@@ -59,7 +60,7 @@ public class GraphicVariable extends GraphicBaseVariable {
          }
          if ((this.getStyle()&NOVALUE) == 0) {
             Point p = map(-w/2+6, 0);
-            gc.drawText(getVariable().getValueAsBriefString(), p.x, p.y);
+            gc.drawText(var.getValueAsBriefString(), p.x, p.y);
          }
       }
       else {
@@ -71,7 +72,7 @@ public class GraphicVariable extends GraphicBaseVariable {
             if ((this.getStyle()&NONAME) == 0) {
                label = label +",  ";
             }
-            label = label+getVariable().getValueAsBriefString();
+            label = label+var.getValueAsBriefString();
          }
          Point p = map(-w/2+6, -8);
          gc.drawText(label, p.x, p.y);

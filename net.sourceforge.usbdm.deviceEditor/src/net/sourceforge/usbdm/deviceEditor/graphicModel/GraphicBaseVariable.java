@@ -90,10 +90,7 @@ public abstract class GraphicBaseVariable extends Graphic {
     * @return Position (relative)
     */
    Point getRelativeInput(int index) {
-      if (inputs == null) {
-         return null;
-      }
-      if (index>=inputs.length) {
+      if ((inputs == null) || (index>=inputs.length)) {
          throw new ArrayIndexOutOfBoundsException("Input "+index+" doesn't exist on " + name);
       }
       return inputs[index];

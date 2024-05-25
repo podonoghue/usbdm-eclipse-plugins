@@ -121,7 +121,7 @@ public class GraphicMuxVariable extends GraphicBaseVariable {
       case rot270:         textPoint = new Point( (x+(height/2)), (y-(slope/2)-10)); break;
       case rot270mirror:   textPoint = new Point( (x+(height/2)), (y-(slope/2)-10)); break;
       }
-      gc.drawText(name, textPoint.x, textPoint.y);
+      gc.drawText(name, textPoint.x+nameX, textPoint.y+nameY);
 
       font.dispose();
    }

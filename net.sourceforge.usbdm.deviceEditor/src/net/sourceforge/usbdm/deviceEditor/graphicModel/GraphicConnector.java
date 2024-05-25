@@ -67,10 +67,16 @@ class GraphicConnector extends GraphicBaseVariable {
          if (var == null) {
             // Default to source
             var = source.getVariable();
+//            if (var != null) {
+//               System.err.println("Allocated to source "+var.getName());
+//            }
          }
          if (var == null) {
             // Default to destination
             var = destination.getVariable();
+//            if (var != null) {
+//               System.err.println("Allocated to destination "+var.getName());
+//            }
          }
          return create(id, source, sIndex, destination, dIndex, var, path);
       }
@@ -78,8 +84,13 @@ class GraphicConnector extends GraphicBaseVariable {
       private void drawConnector(Display display, GC gc, int startX, int startY, int endX, int endY) {
          super.draw(display, gc);
          
+//         Variable var = getVariable();
+//         if ((var != null) && var.getName().contains("cmp_")) {
+//            System.err.println("Found it " + var.getName());
+//         }
          moveTo(startX, startY);
-
+         direction = Direction.right;
+         
          switch (checkVariableState(getVariable())) {
          case disabled:
             backGroundColor = DEFAULT_DISABLED_LINE_COLOR;
@@ -96,11 +107,13 @@ class GraphicConnector extends GraphicBaseVariable {
             break;
          }
 
+         // Draw a solid (for dots)
          gc.setBackground(display.getSystemColor(lineColor));
          gc.setForeground(display.getSystemColor(lineColor));
 
          boolean drawingOn = true;
          if (path != null) {
+//            System.err.println("path = "+Arrays.toString(path));
             for (int index=0; index<path.length; index++) {
                String element = path[index].trim();
                switch (element.charAt(0)) {
@@ -125,7 +138,7 @@ class GraphicConnector extends GraphicBaseVariable {
                            lineTo(gc, currentX, newY);
                         }
                         else {
-                              moveTo(currentX, newY);
+                           moveTo(currentX, newY);
                         }
                      }
                      else if (element.charAt(1) == 'x') {
@@ -262,7 +275,11 @@ class GraphicConnector extends GraphicBaseVariable {
       
       @Override
       public int getDrawPriority() {
-         return LOW_PRIORITY+10;
+         return CONNECTOR_PRIORITY;
+      }
+
+      public boolean isEnabled() {
+         return checkVariableState(getVariable()) == VariableState.normal;
       }
 
    }

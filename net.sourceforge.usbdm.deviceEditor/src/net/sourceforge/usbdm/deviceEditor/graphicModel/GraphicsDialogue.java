@@ -81,20 +81,40 @@ public class GraphicsDialogue {
    }
 
    public void paint(Display display, GC gc) {
+      
+      // Draw objects behind connectors
       for (Graphic obj:fFigure.getObjects()) {
-         obj.draw(display, gc);
+         if (obj.getDrawPriority()<Graphic.CONNECTOR_PRIORITY) {
+            obj.draw(display, gc);
+         }
+      }
+      // Draw disabled connectors
+      for (GraphicConnector obj:fFigure.getConnectors()) {
+         if (!obj.isEnabled()) {
+            obj.draw(display, gc);
+         }
+      }
+      // Draw enabled connectors
+      for (GraphicConnector obj:fFigure.getConnectors()) {
+         if (obj.isEnabled()) {
+            obj.draw(display, gc);
+         }
+      }
+      // Draw remaining objects
+      for (Graphic obj:fFigure.getObjects()) {
+         if (obj.getDrawPriority()>Graphic.CONNECTOR_PRIORITY) {
+            obj.draw(display, gc);
+         }
       }
    }
 
    private Graphic findTopObject(int x, int y) {
-      for (int index=fFigure.getObjects().length; --index>=0; ) {
-         Graphic obj = fFigure.getObjects()[index];
+      Graphic objects[] = fFigure.getObjects();
+      for (int index=objects.length; --index>=0; ) {
+         Graphic obj = objects[index];
          if (obj.contains(x,y)) {
             return obj;
          }
-//         if (index == 0) {
-//            System.err.println("Found top = "+obj.getName());
-//         }
       }
       return null;
    }
@@ -334,7 +354,7 @@ public class GraphicsDialogue {
       scrollComposite.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
       canvas = new Canvas(scrollComposite, SWT.NONE);
       canvas.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-      canvas.setSize(1100, 2000);
+      canvas.setSize(1120, 2000);
       scrollComposite.setContent(canvas);
 
       canvas.setBackground(display.getSystemColor(SWT.COLOR_WHITE));

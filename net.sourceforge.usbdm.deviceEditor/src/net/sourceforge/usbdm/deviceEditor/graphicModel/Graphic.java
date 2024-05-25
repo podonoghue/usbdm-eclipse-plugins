@@ -7,14 +7,17 @@ import org.eclipse.swt.widgets.Display;
 
 public abstract class Graphic {
    
-   public static final int LOW_PRIORITY  = 100;
+   public static final int LOW_PRIORITY         = 100;
+   public static final int CONNECTOR_PRIORITY   = LOW_PRIORITY+10;
+   
    public static final int MID_PRIORITY  = 1000;
    public static final int HIGH_PRIORITY = 2000;
    
    public static enum Height        {small, large};
    public static enum ShowValue     {quiet};
    public static enum Orientation   {normal, rot90, rot180, rot270, mirror, rot90mirror, rot180mirror, rot270mirror, };
-   public static enum Type          {variableBox, box, choice, mux, connector, node, junction, label, reference, annotation, group};
+   public static enum Type          {variableBox, box, choice, mux, connector, node, junction,
+                                     label, reference, annotation, group, polygon};
    
    public static final int NONE     =0b0000;
    public static final int NONAME   =0b0001;
@@ -51,7 +54,7 @@ public abstract class Graphic {
       this.name = name;
    }
    
-   public Graphic(int x, int y, int w, int h, String id, Orientation orientation) {
+   public Graphic(int x, int y, int w, int h, String id, Orientation orientation) throws Exception {
       this.x = x;
       this.y = y;
       this.orientation = orientation;
@@ -86,6 +89,9 @@ public abstract class Graphic {
                   }
                   else if ("NOVALUE".equalsIgnoreCase(style)) {
                      this.style |= NOVALUE;
+                  }
+                  else {
+                     throw new Exception("Unexpected modifier to name");
                   }
                }
             }
@@ -375,7 +381,8 @@ from global to graphic relative
 
    /**
     * Draw a line from current drawing point to X,Y
-    * Updates current drawing point
+    * Updates current drawing point,
+    * Updates current direction
     * 
     * @param gc
     * @param x X coord (absolute)
@@ -393,11 +400,14 @@ from global to graphic relative
       else if (y < currentY){
          direction = Direction.up;
       }
-      if (x > currentX) {
+      else if (x > currentX) {
          direction = Direction.right;
       }
       else if (x < currentX) {
          direction = Direction.left;
+      }
+      else {
+         direction = Direction.right;
       }
       currentX = x;
       currentY = y;
