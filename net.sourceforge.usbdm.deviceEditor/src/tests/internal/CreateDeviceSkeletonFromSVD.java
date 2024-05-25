@@ -345,6 +345,11 @@ public class CreateDeviceSkeletonFromSVD {
          resultSb.append(defInHeader);
       }
 
+      String canCreateInstance ="\n"
+            + "   <!-- ____ Instance control ________ -->\n"
+            + "   <constant key=\"_can_create_instance\" value=\"true\" type=\"Boolean\" />\n";
+      resultSb.append(canCreateInstance);
+      
       final String suppress = "\n"
          + "   <equation key=\"suppressInstance\"           value=\"false\"     />\n";
       final String pre = "\n"
@@ -555,6 +560,19 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    void writeGettersAndSetters() {
+
+      String openForLoop = "\n"
+            + "<!-- ====================================================================================================== -->\n"
+            + "<!--     START BasicInfo/Info duplicated methods -->\n"
+            + "<!-- ====================================================================================================== -->\n"
+            + "\n"
+            + "<for\n"
+            + "   keys=\"   static    : const    : where     : guard                                      \"\n"
+            + "   values=\" ''        : 'const ' : basicInfo : $(_BasicInfoGuard)                         ;\n"
+            + "            'static ' : ''       : info      : $(_InfoGuard)                              \"  >\n";
+      resultSb.append(openForLoop);
+      
+      
       resultSb.append(
             "\n   <!-- ____ Getters and Setters ____________ -->\n");
       
@@ -653,7 +671,7 @@ public class CreateDeviceSkeletonFromSVD {
       };
 
       final String simpleVariableTemplate = ""
-          + "      <variableTemplate %where condition=\"%(set)\" codeGenCondition=\"%(genCode)\"\n"
+          + "      <variableTemplate location=\"%(where)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\"\n"
           + "         variables=\"%(field)\" >\n"
           + "      <![CDATA[\n"
           + "         \\t/**\n"
@@ -662,13 +680,13 @@ public class CreateDeviceSkeletonFromSVD {
           + "         \\t *\n"
           + "         %paramDescription\n"
           + "         \\t */\n"
-          + "         \\t%static void set%(name)(%params) %const {\n"
+          + "         \\t%(static)void set%(name)(%params) %(const){\n"
           + "         \\t   %fieldAssignment;\n"
           + "         \\t}\n"
           + "         \\t\\n\n"
           + "      ]]>\n"
           + "      </variableTemplate>\n"
-          + "      <variableTemplate %where condition=\"%(get)\" codeGenCondition=\"%(genCode)\"\n"
+          + "      <variableTemplate location=\"%(where)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\"\n"
           + "         variables=\"%(field)\" >\n"
           + "      <![CDATA[\n"
           + "         \\t/**\n"
@@ -677,13 +695,13 @@ public class CreateDeviceSkeletonFromSVD {
           + "         \\t *\n"
           + "         \\t * @return %tooltip\n"
           + "         \\t */\n"
-          + "         \\t%static %returnType get%(name)() %const {\n"
+          + "         \\t%(static)%returnType get%(name)() %(const){\n"
           + "         \\t   return %fieldExtract;\n"
           + "         \\t}\n"
           + "         \\t\\n\n"
           + "      ]]>\n"
           + "      </variableTemplate>\n"
-          + "      <variableTemplate %where condition='=\"(%variables)\"==\"%(clear)\"' codeGenCondition=\"%(genCode)\"\n"
+          + "      <variableTemplate location=\"%(where)\" condition='=\"(%variables)\"==\"%(clear)\"' codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\"\n"
           + "         variables=\"%(field)\"\n"
           + "         tooltipPadding=\"x*x\" >\n"
           + "      <![CDATA[\n"
@@ -693,14 +711,14 @@ public class CreateDeviceSkeletonFromSVD {
           + "         \\t *\n"
           + "         %paramDescription\n"
           + "         \\t */\n"
-          + "         \\t%static void clear%(name)(%params) %const {\n"
+          + "         \\t%(static)void clear%(name)(%params) %(const){\n"
           + "         \\t   // w1c and mixed register\n"
           + "         \\t   %register = %register|%paramExpression;\n"
           + "         \\t}\n"
           + "         \\t\\n\n"
           + "      ]]>\n"
           + "      </variableTemplate>\n"
-          + "      <variableTemplate %where condition='=\"w1cIm\"==\"%(clear)\"' codeGenCondition=\"%(genCode)\"\n"
+          + "      <variableTemplate location=\"%(where)\" condition='=\"w1cIm\"==\"%(clear)\"' codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\"\n"
           + "         variables=\"%(field)\"\n"
           + "         tooltipPadding=\"x*x\" >\n"
           + "      <![CDATA[\n"
@@ -710,7 +728,7 @@ public class CreateDeviceSkeletonFromSVD {
           + "         \\t *\n"
           + "         \\t * %tooltip\n"
           + "         \\t */\n"
-          + "         \\t%static void clear%(name)() %const {\n"
+          + "         \\t%(static)void clear%(name)() %(const){\n"
           + "         \\t   // w1c and mixed register\n"
           + "         \\t   %register = %register|%mask;\n"
           + "         \\t}\n"
@@ -731,7 +749,7 @@ public class CreateDeviceSkeletonFromSVD {
       }
       
       final String indexedVariableTemplate =
-            "      <variableTemplate %where condition=\"%(set)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
+            "      <variableTemplate location=\"%(where)\" condition=\"%(set)\" codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\" context=\"%(context)\"\n" +
             "         variables=\"%(field)\"\n" +
             "         nonDefaultParams=\"2\" >\n" +
             "      <![CDATA[\n" +
@@ -741,13 +759,13 @@ public class CreateDeviceSkeletonFromSVD {
             "         \\t *\n" +
             "         %paramDescription\n" +
             "         \\t */\n" +
-            "         \\t%static void set%(name)(%params) %const {\n" +
+            "         \\t%(static)void set%(name)(%params) %(const){\n" +
             "         \\t   %fieldAssignment1;\n" +
             "         \\t}\n" +
             "         \\t\\n\n" +
             "      ]]>\n" +
             "      </variableTemplate>\n"+
-            "      <variableTemplate %where condition=\"%(get)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
+            "      <variableTemplate location=\"%(where)\" condition=\"%(get)\" codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\" context=\"%(context)\"\n" +
             "         variables=\"%(field)\"\n" +
             "         nonDefaultParams=\"2\" >\n" +
             "      <![CDATA[\n" +
@@ -759,13 +777,13 @@ public class CreateDeviceSkeletonFromSVD {
             "         \\t *\n" +
             "         \\t * @return %tooltip1\n" +
             "         \\t */\n" +
-            "         \\t%static %paramType1 get%(name)(%param0) %const {\n" +
+            "         \\t%(static)%paramType1 get%(name)(%param0) %(const){\n" +
             "         \\t   return %fieldExtract1;\n" +
             "         \\t}\n" +
             "         \\t\\n\n" +
             "      ]]>\n" +
             "      </variableTemplate>\n"+
-            "      <variableTemplate %where condition=\"%(clear)\" codeGenCondition=\"%(genCode)\" context=\"%(context)\"\n" +
+            "      <variableTemplate location=\"%(where)\" condition=\"%(clear)\" codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\" context=\"%(context)\"\n" +
             "         variables=\"%(field)\"\n" +
             "         tooltipPadding=\"x*x\" >\n" +
             "      <![CDATA[\n" +
@@ -777,7 +795,7 @@ public class CreateDeviceSkeletonFromSVD {
             "         \\t *\n" +
             "         %paramDescription0\n" +
             "         \\t */\n" +
-            "         \\t%static void clear%(name)(%param0) %const {\n" +
+            "         \\t%(static)void clear%(name)(%param0) %(const){\n" +
             "         \\t   %register1 = %register1|%mask1;\n" +
             "         \\t}\n" +
             "         \\t\\n\n" +
@@ -811,6 +829,11 @@ public class CreateDeviceSkeletonFromSVD {
          resultSb.append(ivt);
          resultSb.append("   </for>\n");
       }
+      
+      String closeForLoop = ""
+            + "</for>\n"
+            + "\n";
+      resultSb.append(closeForLoop);
    }
    
    /**
@@ -1042,15 +1065,12 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t}\n"
             + "      \\t\\n\n"
             + "   ]]></template>\n";
-      if (!useStaticMethods) {
-         resultSb.append(constructors);
-         resultSb.append(input_clock);
-      }
+      
+      resultSb.append(constructors);
+      resultSb.append(input_clock);
    }
    
    void writeInitClass() {
-      
-      writeHandlers();
       
       writeBanner(resultSb, "START BasicInfo::Init class");
       
@@ -1210,7 +1230,7 @@ public class CreateDeviceSkeletonFromSVD {
       String constructorListTemplateForEnumeratedFields = ""
           + "\n"
           + "   <for keys=\"r\"\n"
-          + "      values=\"/PCR/nvic_irqLevel;"
+          + "      values=\""
           + "%s\n"
           + "            \" >\n"
           + "      <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\"\n"
@@ -1304,8 +1324,8 @@ public class CreateDeviceSkeletonFromSVD {
      
       writeBanner(resultSb, "END BasicInfo::Init class");
       
-      writeBanner(resultSb, "START BasicInfo::InitVectors class");
-      
+//      writeBanner(resultSb, "START BasicInfo::InitVectors class");
+//
 //      final String initVectors_class =""
 //            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoIrqGuard)\" >\n"
 //            + "   <![CDATA[\n"
@@ -1367,8 +1387,10 @@ public class CreateDeviceSkeletonFromSVD {
 //            + "\n";
       
 //      resultSb.append(String.format(initVectors_class, peripheralBasename));
-
-      writeBanner(resultSb, "END BasicInfo::InitVectors class");
+//
+//      writeBanner(resultSb, "END BasicInfo::InitVectors class");
+      
+      writeHandlers();
       
       /*
        * Create configure methods
@@ -1378,8 +1400,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "\n"
             + "   <!-- ____ BasicInfo class Configure methods ____ -->\n"
             + "\n"
-            + "   <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\"\n"
-            + "      variables=\"uart_baudrate\"\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\"\n"
             + "      linePadding=\"xxx\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
@@ -1392,18 +1413,16 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t */\n"
             + "      \\tstatic void configure(\n"
             + "      \\t               volatile $(_Type) *$(_basename),\n"
-            + "      \\t               uint32_t         clockFrequency,\n"
             + "      \\t               const Init    &init) {\n"
             + "      \\t\n"
-            + "      \\t   setBaudRate($(_basename), clockFrequency, init.%registerName0);\n"
+            + "      \\t   //clockInitialise($(_basename), clockFrequency, init.clockFrequency);\n"
             + "      \\t\\n\n"
             + "   ]]>\n"
-            + "   </variableTemplate>\n"
+            + "   </template>\n"
             + "";
            
-      if (!useStaticMethods) {
-         resultSb.append(clockConfigAndReopen);
-      }
+      resultSb.append(clockConfigAndReopen);
+      
       VisitRegisters createFieldList = new VisitRegisters(peripheral) {
          
          final ArrayList<String> result = new ArrayList<String>();
@@ -1465,7 +1484,7 @@ public class CreateDeviceSkeletonFromSVD {
       
       String configureMethodPostamble = ""
             + "\" >\n"
-            + "      <variableTemplate %where %condition \n"
+            + "      <variableTemplate where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" \n"
             + "         variables=\"%(var)\"\n"
             + "         linePadding=\"xxx\" >\n"
             + "      <![CDATA[\n"
@@ -1475,7 +1494,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      ]]>\n"
             + "      </variableTemplate>\n"
             + "   </for>\n"
-            + "   <template %where %condition >\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t}\n"
             + "      \\t\\n\n"
@@ -1494,7 +1513,7 @@ public class CreateDeviceSkeletonFromSVD {
          isFirst = false;
          resultSb.append(registerFieldList);
       }
-      resultSb.append(patchInfoTemplate(configureMethodPostamble));
+      resultSb.append(configureMethodPostamble);
       
       String instance_configue = "\n"
             + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
@@ -1519,31 +1538,29 @@ public class CreateDeviceSkeletonFromSVD {
       
       writeBanner(resultSb, "START Info class");
       
-      if (!useStaticMethods) {
-         String infoClassConstructor = ""
-               + "   <!-- ____ Info constructors ________ -->\n"
-               + "\n"
-               + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" >\n"
-               + "   <![CDATA[\n"
-               + "      \\t/*\n"
-               + "      \\t *   Default Constructor\n"
-               + "      \\t */\n"
-               + "      \\t$(_Info)() : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
-               + "      \\t   defaultConfigure();\n"
-               + "      \\t}\n"
-               + "      \\t\n"
-               + "      \\t/*\n"
-               + "      \\t *   Constructor\n"
-               + "      \\t */\n"
-               + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
-               + "      \\t   configure(init);\n"
-               + "      \\t}\n"
-               + "      \\t\\n\n"
-               + "   ]]>\n"
-               + "   </template>\n";
+      String infoClassConstructor = ""
+            + "   <!-- ____ Info constructors ________ -->\n"
+            + "\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" >\n"
+            + "   <![CDATA[\n"
+            + "      \\t/*\n"
+            + "      \\t *   Default Constructor\n"
+            + "      \\t */\n"
+            + "      \\t$(_Info)() : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
+            + "      \\t   defaultConfigure();\n"
+            + "      \\t}\n"
+            + "      \\t\n"
+            + "      \\t/*\n"
+            + "      \\t *   Constructor\n"
+            + "      \\t */\n"
+            + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
+            + "      \\t   configure(init);\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]>\n"
+            + "   </template>\n";
 
-         resultSb.append(infoClassConstructor.replace("%Info", prettyName(peripheral.getName())+"Info"));
-      }
+      resultSb.append(infoClassConstructor.replace("%Info", prettyName(peripheral.getName())+"Info"));
       
       /*
        * Init configure methods
@@ -1808,7 +1825,7 @@ public class CreateDeviceSkeletonFromSVD {
       final String irqHandlingOpeningText = "\n"
             + "   <!-- ____ Interrupt handling (only needed when not done in enablePeripheral.xml) _____________ -->\n"
             + "\n"
-            + "   <template codeGenCondition=\"irqHandlingMethod\" >\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(InfoIrqGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * $(_Class) interrupt handler\n"
@@ -1877,9 +1894,9 @@ public class CreateDeviceSkeletonFromSVD {
    
    static String peripheralsToDo[] = {
 //         "ACMP",
-         "ADC",
+//         "ADC",
 //         "CAN",
-//         "CMP",
+         "CMP",
 //         "CMT",
 //         "CRC",
 //         "DAC",
@@ -2012,7 +2029,7 @@ public class CreateDeviceSkeletonFromSVD {
    }
    
    public static void main(String[] args) throws Exception {
-      useStaticMethods=false;
+      useStaticMethods=true;
 //      doAllPeripherals("STM32F030", "mke");
 //      doAllPeripherals("FRDM_KE04Z", "mke");
 //      doAllPeripherals("FRDM_KE06Z", "mke");
@@ -2021,9 +2038,9 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL05Z");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
-//    doAllPeripherals("FRDM_K20D50M", "mk");
+    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
-    doAllPeripherals("FRDM_K28F", "mk");
+//    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");
 //      doAllPeripherals("FRDM_K82F", "mk");

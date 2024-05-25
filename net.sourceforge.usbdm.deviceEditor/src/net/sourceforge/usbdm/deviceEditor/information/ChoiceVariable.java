@@ -49,6 +49,9 @@ public class ChoiceVariable extends VariableWithChoices {
    
    @Override
    public boolean setChoiceIndex(int index) {
+      if (isLogging()) {
+         System.err.println("setChoiceIndex("+index+") "+getKey());
+      }
       if ((index < 0) || (index>=getChoiceCount())) {
          return false;
       }
@@ -56,6 +59,9 @@ public class ChoiceVariable extends VariableWithChoices {
          return false;
       }
       fValue = index;
+      if (isLogging()) {
+         System.err.println("After setChoiceIndex("+index+") "+getKey());
+      }
       return true;
    }
 
@@ -300,9 +306,15 @@ public class ChoiceVariable extends VariableWithChoices {
     */
    @Override
    public void setPersistentValue(String value) throws Exception {
+      if (isLogging()) {
+         System.err.println("setPersistentValue("+value+") "+this);
+      }
       int index = getChoiceIndexByValue(value);
       if (index>=0) {
          fValue = index;
+         if (isLogging()) {
+            System.err.println("After setPersistentValue("+value+") "+this);
+         }
          return;
       }
       try {

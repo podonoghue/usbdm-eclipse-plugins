@@ -43,7 +43,9 @@ public class StringVariable extends Variable {
    public StringVariable(VariableProvider provider, String name, String key, Object value) {
       super(provider, name, key);
       setValueQuietly(value);
-      setDefault(value.toString());
+      if (value != null) {
+         setDefault(value.toString());
+      }
    }
 
 //   /**
@@ -92,6 +94,9 @@ public class StringVariable extends Variable {
     * @return True if variable actually changed value
     */
    public boolean setValueQuietly(String value) {
+      if (isLogging()) {
+         System.err.println("S: setValueQuietly("+value+")");
+      }
       if (getPersistentValue() == value) {
          return false;
       }
@@ -137,11 +142,10 @@ public class StringVariable extends Variable {
 
    @Override
    public String getPersistentValue() {
-      if ((getReference() != null) && (getReference().isNeverCached())) {
+      if ((getReference() != null) && ((fValue == null)||(getReference().isNeverCached()))) {
          try {
             fValue = getReference().getValueAsString();
          } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
          }
       }

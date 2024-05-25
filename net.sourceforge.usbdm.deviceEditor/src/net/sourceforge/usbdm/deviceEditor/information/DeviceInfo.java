@@ -1954,26 +1954,35 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                Activator.logError(e.getMessage(),e);
             }
          }
+         
          //         System.err.println("Make sure peripherals have been updated");
-         
-         refreshConnections();
-         
-         /**
-          * Sanity check - (usually) no persistent variables should change value initially
-          */
-         for (Entry<String, Variable> entry:fVariables.entrySet()) {
-            String value = settings.get(entry.getKey());
-            if (value != null) {
-               Variable var = fVariables.get(entry.getKey());
-               if (!var.isDerived()) {
-                  if (!value.equals(var.getPersistentValue())) {
-                     System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getKey());
-                     System.err.println("Loaded value     = " + value);
-                     System.err.println("Final value = " + var.getPersistentValue());
+         boolean changed;
+         do {
+            changed = false;
+            refreshConnections();
+            /**
+             * Sanity check - (usually) no persistent variables should change value initially
+             */
+            for (Entry<String, Variable> entry:fVariables.entrySet()) {
+               String loadedValue = settings.get(entry.getKey());
+               if (loadedValue != null) {
+                  Variable var = fVariables.get(entry.getKey());
+                  if (var.isLogging()) {
+                     System.err.println("Checking " + var);
+                  }
+                  if (!var.isDerived()) {
+                     if (!loadedValue.equals(var.getPersistentValue())) {
+                        changed = true;
+                        System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getKey());
+                        System.err.println("Loaded value     = " + loadedValue);
+                        System.err.println("Final value = " + var.getPersistentValue());
+                        var.setPersistentValue(loadedValue);
+                     }
                   }
                }
             }
-         }
+         } while(changed);
+         
       } catch (Exception e) {
          Activator.logError(e.getMessage(), e);
          e.printStackTrace();
@@ -2028,7 +2037,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       for (Entry<String, Variable> entry:fVariables.entrySet()) {
          Variable var = fVariables.get(entry.getKey());
+         if (var.isLogging()) {
+            System.err.println("Calling expressionChanged " + var);
+         }
          var.expressionChanged(null);
+         if (var.isLogging()) {
+            System.err.println("After Calling expressionChanged " + var);
+         }
       }
       //       System.err.println("Notify changes of persistent variables");
       

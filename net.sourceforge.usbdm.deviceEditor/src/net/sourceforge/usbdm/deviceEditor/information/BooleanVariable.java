@@ -232,6 +232,13 @@ public class BooleanVariable extends VariableWithChoices {
 
    @Override
    public Boolean getValueAsBoolean() {
+      if ((fValue == null) && (getReference() != null)) {
+         try {
+            fValue = getReference().getValueAsBoolean();
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
       return isEnabled()?fValue:fDisabledValue;
    }
 
@@ -295,7 +302,7 @@ public class BooleanVariable extends VariableWithChoices {
     */
    @Override
    public void setDefault(Object value) {
-      boolean v = translate(value);
+      Boolean v = translate(value);
       defaultHasChanged = (fDefaultValue != null) && (fDefaultValue != v);
       fDefaultValue = v;
    }

@@ -3016,8 +3016,9 @@ public class ParseMenuXML extends XML_BaseParser {
       String name        = getAttributeAsString(element, "name");
       String type        = getAttributeAsString(element, "type", "Boolean");
       String expression  = getAttributeAsString(element, "expression");
+      String value       = getAttributeAsString(element, "value");
       
-      Variable var = Variable.createVariableWithNamedType(fProvider, name, key, type+"Variable", 0);
+      Variable var = Variable.createVariableWithNamedType(fProvider, name, key, type+"Variable", value);
       fProvider.addVariable(var);
       
       var.setLogging(getAttributeAsBoolean(element, "logging", false));

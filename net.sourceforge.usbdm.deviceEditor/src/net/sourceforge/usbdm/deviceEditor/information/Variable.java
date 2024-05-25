@@ -712,8 +712,15 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public String getDisplayToolTip() {
       StringBuilder sb = new StringBuilder();
+      String description = getDescription();
+      if (description != null) {
+         sb.append(description);
+      }
       String tooltip = getToolTip();
       if (tooltip != null) {
+         if (sb.length() != 0) {
+            sb.append("\n\n");
+         }
          sb.append(tooltip);
       }
       Status status = getStatus();
@@ -1091,6 +1098,10 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    public void setReference(String reference) throws Exception {
       if (fLogging) {
          System.err.println("Logging: setReference("+reference+")");
+      }
+      if (reference == null) {
+         fReference = null;
+         return;
       }
       fReference = new Expression(reference, fProvider);
    }

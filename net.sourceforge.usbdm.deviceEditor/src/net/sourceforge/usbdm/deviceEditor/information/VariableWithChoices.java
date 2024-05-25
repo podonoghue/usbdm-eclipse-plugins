@@ -408,19 +408,24 @@ public abstract class VariableWithChoices extends Variable {
       String multiRef = choiceData.getMultiValueReference();
       try {
          if (multiRef != null) {
-            String refs[]    = multiRef.split(";",-1);
-            String targets[] = getTarget().split(";",-1);
-            if (refs.length != targets.length) {
-               throw new Exception("length of refs does not match target");
-            }
-            for (int index=0; index<refs.length; index++) {
-               if (refs[index].isBlank()) {
-                  // Blank ignore
-                  continue;
+            // Only propagate changes when GUI is active
+            // This assumes targets have their value preserved!
+            if (getDeviceInfo().getInitialisationPhase().isLaterThan(InitPhase.VariablePropagationAllowed)) {
+
+               String refs[]    = multiRef.split(";",-1);
+               String targets[] = target.split(";",-1);
+               if (refs.length != targets.length) {
+                  throw new Exception("length of refs does not match target");
                }
-               Variable targetVar = getProvider().getVariable(targets[index]);
-               Object   value     = Expression.getValue(refs[index], getProvider());
-               targetVar.setValue(value);
+               for (int index=0; index<refs.length; index++) {
+                  if (refs[index].isBlank()) {
+                     // Blank ignore
+                     continue;
+                  }
+                  Variable targetVar = getProvider().getVariable(targets[index]);
+                  Object   value     = Expression.getValue(refs[index], getProvider());
+                  targetVar.setValue(value);
+               }
             }
             return;
          }

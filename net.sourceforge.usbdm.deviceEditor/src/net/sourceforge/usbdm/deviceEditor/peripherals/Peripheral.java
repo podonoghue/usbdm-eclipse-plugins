@@ -1704,6 +1704,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     */
    public final boolean canCreateInstance() {
       // Most devices can't create a useful instance
+      Variable var =  safeGetVariable("_can_create_instance");
+      if (var != null) {
+         return var.getValueAsBoolean();
+      }
       return fCanCreateInstance;
    }
 
