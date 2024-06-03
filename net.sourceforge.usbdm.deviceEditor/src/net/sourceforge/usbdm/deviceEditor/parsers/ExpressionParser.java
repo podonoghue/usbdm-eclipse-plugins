@@ -341,6 +341,13 @@ public class ExpressionParser {
 //         System.err.println("HardwareExists("+hardwareName+") => " + result);
          return new BooleanNode(result);
       }
+      if ("SignalIsMapped".equalsIgnoreCase(functionName)) {
+         // Immediate check if signal is mapped to a pin
+         // Does early evaluation
+         String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
+         Signal signal = fProvider.getDeviceInfo().safeFindSignal(signalName);
+         return new BooleanNode((signal!=null)&&(signal.getMappedPin() != Pin.UNASSIGNED_PIN));
+      }
       if ("SignalExists".equalsIgnoreCase(functionName)) {
          // Immediate check if signal exists (during parsing)
          // Does early evaluation

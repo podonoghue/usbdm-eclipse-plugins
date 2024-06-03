@@ -66,11 +66,18 @@ public class WriterForI2c extends PeripheralWithState {
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
-      final String template = "   static constexpr PinIndex %s = PinIndex::%s;\n\n";
-      pinMappingHeaderFile.write("   // I2C SCL (clock) Pin\n");
-      pinMappingHeaderFile.write(String.format(template, "sclPinIndex", fInfoTable.table.get(0).getMappedPin().getName()));
-      pinMappingHeaderFile.write("   // I2C SDA (data) Pin\n");
-      pinMappingHeaderFile.write(String.format(template, "sdaPinIndex", fInfoTable.table.get(1).getMappedPin().getName()));
+      
+      final String format = ""
+            + "   // I2C %s Pin Info table index\n"
+            + "   static constexpr unsigned %sInfoIndex = %s;\n\n";
+      pinMappingHeaderFile.write(String.format(format, "SCL (clock)", "scl", "0"));
+      pinMappingHeaderFile.write(String.format(format, "SDA (clock)", "sda", "1"));
+      
+//      final String template = "   static constexpr PinIndex %s = PinIndex::%s;\n\n";
+//      pinMappingHeaderFile.write("   // I2C SCL (clock) Pin\n");
+//      pinMappingHeaderFile.write(String.format(template, "sclPinIndex", fInfoTable.table.get(0).getMappedPin().getName()));
+//      pinMappingHeaderFile.write("   // I2C SDA (data) Pin\n");
+//      pinMappingHeaderFile.write(String.format(template, "sdaPinIndex", fInfoTable.table.get(1).getMappedPin().getName()));
 
    }
 

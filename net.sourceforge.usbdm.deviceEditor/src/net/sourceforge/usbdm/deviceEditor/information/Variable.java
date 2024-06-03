@@ -1172,7 +1172,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public void setTypeName(String typeName) {
       if (typeName != null) {
-         typeName = typeName.strip();
+         if (typeName.isBlank()) {
+            typeName = null;
+         }
+         else {
+            typeName = typeName.strip();
+         }
       }
       fTypeName = typeName;
    }

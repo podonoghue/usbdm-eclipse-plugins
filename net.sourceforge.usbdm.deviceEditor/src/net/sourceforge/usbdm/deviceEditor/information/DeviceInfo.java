@@ -1956,9 +1956,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
          
          //         System.err.println("Make sure peripherals have been updated");
-         boolean changed;
+//         boolean changed;
          do {
-            changed = false;
+//            changed = false;
             refreshConnections();
             /**
              * Sanity check - (usually) no persistent variables should change value initially
@@ -1972,16 +1972,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                   }
                   if (!var.isDerived()) {
                      if (!loadedValue.equals(var.getPersistentValue())) {
-                        changed = true;
+//                        changed = true;
                         System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getKey());
                         System.err.println("Loaded value     = " + loadedValue);
                         System.err.println("Final value = " + var.getPersistentValue());
-                        var.setPersistentValue(loadedValue);
+//                        var.setPersistentValue(loadedValue);
                      }
                   }
                }
             }
-         } while(changed);
+         } while(false);
          
       } catch (Exception e) {
          Activator.logError(e.getMessage(), e);

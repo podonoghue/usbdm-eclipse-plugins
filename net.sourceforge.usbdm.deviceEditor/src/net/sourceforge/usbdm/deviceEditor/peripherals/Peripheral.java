@@ -1346,21 +1346,20 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       }
       // Open class
       writerInformation.writer.write(String.format(
-            "class %s {\n" +
+            "class %s {\n\n" +
             "public:\n",
                classDecl
             ));
-      
-      // Additional, peripheral specific, information
-      writeInfoConstants(writerInformation.writer);
-      
-      writeClassTemplate(writerInformation.writer);
-      
       // Write PCR Table
       writeInfoTables(writerInformation.writer);
       
       // Write extra tables
       writeExtraInfo(writerInformation.writer);
+      
+      // Additional, peripheral specific, information
+      writeInfoConstants(writerInformation.writer);
+      
+      writeClassTemplate(writerInformation.writer);
       
       // Close class
       writerInformation.writer.write(String.format("}; // class %s\n\n", className));

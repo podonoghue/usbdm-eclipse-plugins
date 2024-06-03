@@ -330,6 +330,14 @@ public class CreateDeviceSkeletonFromSVD {
    //____________________
    void writePreamble() {
 
+      String misc = "\n"
+            + "   <option key=\"debugGuards\" value=\"true\" />\n"
+            + "\n"
+            + "   <equation key=\"individual_clock_source\" value='=Exists(\"/SIM/system_$(_name)_clock[]\")'     />\n"
+            + "   <equation key=\"shared_clock_source\"     value='=Exists(\"/SIM/system_$(_basename)_clock[]\")' />\n"
+            + "";
+      resultSb.append(misc);
+      
       String classDecl1 =
             "\n"+
             "   <!-- ____ Class Declarations ________ -->\n" +
@@ -701,7 +709,7 @@ public class CreateDeviceSkeletonFromSVD {
           + "         \\t\\n\n"
           + "      ]]>\n"
           + "      </variableTemplate>\n"
-          + "      <variableTemplate location=\"%(where)\" condition='=\"(%variables)\"==\"%(clear)\"' codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\"\n"
+          + "      <variableTemplate location=\"%(where)\" condition='=\"w1c\"==\"%(clear)\"' codeGenCondition=\"%(genCode)&amp;&amp;%(guard)\"\n"
           + "         variables=\"%(field)\"\n"
           + "         tooltipPadding=\"x*x\" >\n"
           + "      <![CDATA[\n"
@@ -1011,12 +1019,12 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t *\n"
             + "      \\t * @return Input clock frequency as a uint32_t in Hz\n"
             + "      \\t */\n"
-            + "      \\tuint32_t (*getInputClockFrequency)();\n"
+            + "      \\tvirtual uint32_t getInputClockFrequency() const = 0;\n"
             + "      \\t\\n\n"
             + "   ]]></template>\n"
             + "\n"
             + "   <!-- Shared clock selection -->\n"
-            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=shared_clock_source\">\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=shared_clock_source\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Get input clock frequency\n"
@@ -1041,20 +1049,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t\\n\n"
             + "   ]]></template>\n"
             + "\n"
-            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=individual_clock_source\" >\n"
-            + "   <![CDATA[\n"
-            + "      \\t/**\n"
-            + "      \\t * Constructor\n"
-            + "      \\t *\n"
-            + "      \\t * @param $(_basename) $(_BASENAME) hardware instance\n"
-            + "      \\t */\n"
-            + "      \\t$(_BasicInfo)(volatile $(_Type) * $(_basename), uint32_t (*getInputClockFrequency)()) :\n"
-            + "      \\t               getInputClockFrequency(getInputClockFrequency), $(_basename)($(_basename)) {\n"
-            + "      \\t}\n"
-            + "      \\t\\n\n"
-            + "   ]]></template>\n"
-            + "\n"
-            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" condition=\"=shared_clock_source\" >\n"
+            + "   <template where=\"basicInfo\" codeGenCondition=\"$(_BasicInfoGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Constructor\n"
@@ -1407,9 +1402,9 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t * Configure $(_BASENAME) from values specified in init\n"
             + "      \\t * This routine does not configure pins or interrupt handlers\n"
             + "      \\t *\n"
-            + "      \\t * @param $(_basename)           Hardware instance pointer\n"
-            + "      \\t * @param clockFrequency Clock frequency\n"
-            + "      \\t * @param init Class containing initialisation values\n"
+            + "      \\t * @param $(_basename)            Hardware instance pointer\n"
+            + "      \\t * @param clockFrequency  Clock frequency\n"
+            + "      \\t * @param init            Class containing initialisation values\n"
             + "      \\t */\n"
             + "      \\tstatic void configure(\n"
             + "      \\t               volatile $(_Type) *$(_basename),\n"
@@ -1538,6 +1533,24 @@ public class CreateDeviceSkeletonFromSVD {
       
       writeBanner(resultSb, "START Info class");
       
+      String virtualClockMethod = "\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" condition=\"=individual_clock_source\">\n"
+            + "   <![CDATA[\n"
+            + "      \\t/**\n"
+            + "      \\t * Get input clock frequency\n"
+            + "      \\t * (Individual to each peripheral)\n"
+            + "      \\t *\n"
+            + "      \\t * @return Input clock frequency as a uint32_t in Hz\n"
+            + "      \\t */\n"
+            + "      \\tvirtual uint32_t getInputClockFrequency() const override {\n"
+            + "      \\t   return SimInfo::get$(_Class)Clock();\n"
+            + "      \\t}\n"
+            + "      \\t\\n\n"
+            + "   ]]></template>\n"
+            + "\n"
+            + "";
+      resultSb.append(virtualClockMethod);
+      
       String infoClassConstructor = ""
             + "   <!-- ____ Info constructors ________ -->\n"
             + "\n"
@@ -1546,14 +1559,14 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t/*\n"
             + "      \\t *   Default Constructor\n"
             + "      \\t */\n"
-            + "      \\t$(_Info)() : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
+            + "      \\t$(_Info)() : $(_BasicInfo)($(_basename)) {\n"
             + "      \\t   defaultConfigure();\n"
             + "      \\t}\n"
             + "      \\t\n"
             + "      \\t/*\n"
             + "      \\t *   Constructor\n"
             + "      \\t */\n"
-            + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename), SimInfo::get$(_Class)Clock) {\n"
+            + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename)) {\n"
             + "      \\t   configure(init);\n"
             + "      \\t}\n"
             + "      \\t\\n\n"
@@ -1646,8 +1659,8 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t */\n"
             + "      \\tstatic constexpr $(_BasicInfo)::Init DefaultInitValue = {\\n\n"
             + "   ]]>\n"
-            + "   <!-- Interrupt information -->\n"
             + "   </template>\n"
+            + "   <!-- Interrupt information -->\n"
             + "<!--\n"
             + "   <for keys=\"irqName\" values=\"=_hardwareIrqNums\">\n"
             + "      <equation key=\"irqEnum\" value='=ReplaceAll(\"%(irqName)\",\"^(.*?)_(.*)_IRQn$\",\"IrqNum_$2\")' />\n"
@@ -1750,8 +1763,18 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <template key=\"/$(_BASENAME)/declarations\" codeGenCondition=\"$(_InfoGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
+            + "      \\t * Class representing $(_STRUCTNAME) instance\n"
+            + "      \\t */\n"
+            + "      \\ttypedef $(_BasicInfo) $(_Structname);\n"
+            + "      \\t/**\n"
             + "      \\t * Class representing $(_NAME)\n"
             + "      \\t */\n"
+            + "      \\ttypedef $(_Info) $(_Class);\n"
+            + "      \\t\\n\n"
+            + "      \\t/**\n"
+            + "      \\t * Class representing $(_NAME)\n"
+            + "      \\t */\n"
+            + "      \\t//typedef $(_Info) $(_Class);"
             + "      \\t//using $(_Class) = $(_Class)Info;\n"
             + "      \\t//class $(_Class) : public $(_Baseclass)Base_T<$(_Info)> {};\n"
             + "      \\t//typedef $(_Baseclass)Base_T<$(_Info)> $(_Class);\n"
@@ -1825,7 +1848,7 @@ public class CreateDeviceSkeletonFromSVD {
       final String irqHandlingOpeningText = "\n"
             + "   <!-- ____ Interrupt handling (only needed when not done in enablePeripheral.xml) _____________ -->\n"
             + "\n"
-            + "   <template where=\"info\" codeGenCondition=\"$(InfoIrqGuard)\" >\n"
+            + "   <template where=\"info\" codeGenCondition=\"$(_InfoIrqGuard)\" >\n"
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * $(_Class) interrupt handler\n"
@@ -1896,7 +1919,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ACMP",
 //         "ADC",
 //         "CAN",
-         "CMP",
+//         "CMP",
 //         "CMT",
 //         "CRC",
 //         "DAC",
@@ -1911,7 +1934,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "FGPIO",
 //         "ICS",
 //         "IRQ",
-//         "I2C",
+         "I2C",
 //         "I2S",
 //         "KBI",
 //         "LPTMR",
@@ -2038,8 +2061,8 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL05Z");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
-    doAllPeripherals("FRDM_K20D50M", "mk");
-//    doAllPeripherals("FRDM_K22F", "mk");
+//    doAllPeripherals("FRDM_K20D50M", "mk");
+    doAllPeripherals("FRDM_K22F", "mk");
 //    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");

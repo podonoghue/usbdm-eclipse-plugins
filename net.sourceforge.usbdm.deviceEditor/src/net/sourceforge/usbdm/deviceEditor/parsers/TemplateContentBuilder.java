@@ -905,7 +905,6 @@ abstract class TemplateContentBuilder {
 
       
       protected final Variable            fVariable;
-      protected final String              fBaseType;
       protected final String              fValueFormat;
       protected final String              fEnumText;
       protected final String              fEnumGuard;
@@ -915,7 +914,6 @@ abstract class TemplateContentBuilder {
       public ChoiceEnumBuilder(ParseMenuXML parser, Element varElement, Variable variable) throws Exception {
          
          fGenerateAsConstants = parser.getAttributeAsBoolean(varElement, "generateAsConstants", false);
-         fBaseType            = parser.getAttributeAsString(varElement,  "baseType");
          fEnumText            = parser.getAttributeAsString(varElement,  "enumText", null);
          fEnumGuard           = parser.getAttributeAsString(varElement,  "enumGuard");
          fVariable            = variable;
@@ -982,7 +980,8 @@ abstract class TemplateContentBuilder {
          
          String typeName   = fVariable.getTypeName();
          String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-
+         String baseType  = fVariable.getBaseType();
+         
          VariableWithChoices varWithChoices = (VariableWithChoices) fVariable;
          
          ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
@@ -1084,7 +1083,7 @@ abstract class TemplateContentBuilder {
             CheckRepeats.Info entry = enumNamesList.get(index);
             if (fGenerateAsConstants) {
                body.append(String.format("\\tstatic constexpr %s %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
-                     fBaseType, entry.fName, entry.fValue+";", entry.fComment));
+                     baseType, entry.fName, entry.fValue+";", entry.fComment));
             }
             else {
                body.append(String.format("\\t   %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
@@ -1100,9 +1099,11 @@ abstract class TemplateContentBuilder {
             
             body.append(enumText+"\n");
          }
-         String baseType = "";
-         if (fBaseType != null) {
-            baseType = " : "+fBaseType;
+         if (baseType != null) {
+            baseType = " : "+baseType;
+         }
+         else {
+            baseType = "";
          }
          StringBuilder sb = new StringBuilder();
          
@@ -1151,7 +1152,8 @@ abstract class TemplateContentBuilder {
          BitmaskVariable bmv = (BitmaskVariable) fVariable;
          String typeName   = bmv.getTypeName();
          String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-
+         String fBaseType  = fVariable.getBaseType();
+         
          BitmaskVariable variable = bmv;
          BitInformation bitInformation = variable.getFinalBitInformation();
 
@@ -1197,9 +1199,8 @@ abstract class TemplateContentBuilder {
             
             body.append(enumText+"\n");
          }
-         String baseType = "";
          if (fBaseType != null) {
-            baseType = " : "+fBaseType;
+            fBaseType = " : "+fBaseType;
          }
          String description   = XML_BaseParser.escapeString(variable.getDescriptionAsCode());
          String tooltip       = XML_BaseParser.escapeString(variable.getToolTipAsCode());
@@ -1214,7 +1215,7 @@ abstract class TemplateContentBuilder {
             sb.append("\\n\\n");
          }
          else {
-            sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, baseType, body.toString()));
+            sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, fBaseType, body.toString()));
          }
          
          if (useEnumClass) {

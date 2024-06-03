@@ -2034,8 +2034,8 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       // Check for repeated enums in USBDM namespace
       String where = getAttributeAsString(varElement, "where", "usbdm");
-      if (!("basicInfo".equals(where) && (fPeripheral != null)) &&
-         fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
+      if (("usbdm".equals(where) && (fPeripheral != null)) &&
+            getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
          return;
       }
@@ -2172,17 +2172,22 @@ public class ParseMenuXML extends XML_BaseParser {
     *  $(_Baseclass)    => e.g FTM0 => Ftm
     *  $(_instance)     => e.g FTM0 => 0, PTA => A
     *
-    * Latest (+ Examples):
     * $(_Type)         $(_STRUCTNAME)_Type      => FTM_Type
     * $(_Type)         $(_STRUCTNAME)_Type      => FTMQUAD_Type
-    * $(_CommonInfo) = $(_Basename)CommonInfo   => FtmCommonInfo      Shared by all instances (common methods irrespective of hardware)
-    * $(_BasicInfo)  = $(_Structname)BasicInfo  => FtmBasicInfo       Shared by instances with common hardware (STRUCT)
-    * $(_BasicInfo)  = $(_Structname)BasicInfo  => FtmquadBasicInfo   Shared by instances with common hardware (STRUCT)
-    * $(_Info)       = $(_Class)Info            => Ftm0Info           Per instance
-    * 
-    * $(_BasicInfoGuard)  = /$(_STRUCTNAME)/generateSharedInfo        Shared by instances with common hardware (STRUCT)
-    * $(_CommonInfoGuard) = /$(_BASENAME)/generateSharedInfo          Shared by all instances (common methods irrespective of hardware)
-    * 
+    
+    * $(_Info)            = $(_Class)Info            => Ftm0Info      Per instance name of class
+    * $(_InfoGuard)       = enablePeripheralSupport                   Per instance - peripheral enabled
+    *                       irqHandlingMethod                         Enable interrupts on peripheral
+    
+    * $(_BasicInfo)           = $(_Structname)BasicInfo  => FtmBasicInfo      Shared by instances with common hardware (STRUCT)
+    *                                                    => FtmquadBasicInfo  Shared by instances with common hardware (STRUCT)
+    * $(_BasicInfoGuard)      = /$(_STRUCTNAME)/_BasicInfoGuard               OR of enablePeripheralSupport for instances using same STRUCT
+    * $(_BasicInfoIrqGuard)   = /$(_STRUCTNAME)/_BasicInfoIrqGuard            Per instance - Interrupts enabled for this instance
+
+    * $(_CommonInfo)          = $(_Basename)CommonInfo   => FtmCommonInfo     Shared by all instances (common methods irrespective of hardware)
+    * $(_CommonInfoGuard)     = /$(_BASENAME)/_CommonInfoGuard                OR of enablePeripheralSupport for all instances of peripheral irrespective of hardware
+    * $(_CommonInfoIrqGuard)  = /$(_BASENAME)/_CommonInfoIrqGuard             Shared by all instances (common methods irrespective of hardware)
+    *
     * @param text  Test to process
     * 
     * @return  modified attribute or null if attribute doesn't exist
@@ -2197,8 +2202,9 @@ public class ParseMenuXML extends XML_BaseParser {
          text = text.replace("$(_InfoGuard)",       "enablePeripheralSupport");
          text = text.replace("$(_InfoIrqGuard)",    "irqHandlingMethod");
          
-         text = text.replace("$(_CommonInfo)",      fPeripheral.getClassBaseName()+"CommonInfo");
-         text = text.replace("$(_CommonInfoGuard)", "/"+fPeripheral.getBaseName()+"/generateSharedInfo");
+         text = text.replace("$(_CommonInfo)",         fPeripheral.getClassBaseName()+"CommonInfo");
+         text = text.replace("$(_CommonInfoGuard)",    "/"+fPeripheral.getBaseName()+"/_CommonInfoGuard");
+         text = text.replace("$(_CommonInfoIrqGuard)", "/"+fPeripheral.getBaseName()+"/_CommonInfoIrqGuard");
          
          text = text.replace("$(_NAME)",         fPeripheral.getName());
          text = text.replace("$(_name)",         fPeripheral.getName().toLowerCase());
@@ -2216,8 +2222,8 @@ public class ParseMenuXML extends XML_BaseParser {
          text = text.replace("$(_Type)",           var.getValueAsString()+"_Type");
          
          text = text.replace("$(_BasicInfo)",         makePrettyName(var.getValueAsString())+"BasicInfo");
-         text = text.replace("$(_BasicInfoGuard)",    "/"+var.getValueAsString()+"/generateSharedInfo");
-         text = text.replace("$(_BasicInfoIrqGuard)", "/"+var.getValueAsString()+"/generateSharedIrqInfo");
+         text = text.replace("$(_BasicInfoGuard)",    "/"+var.getValueAsString()+"/_BasicInfoGuard");
+         text = text.replace("$(_BasicInfoIrqGuard)", "/"+var.getValueAsString()+"/_BasicInfoIrqGuard");
          
          text = text.replace("$(_Structname)",     makePrettyName(var.getValueAsString()));
          text = text.replace("$(_STRUCTNAME)",     var.getValueAsString());
@@ -3548,13 +3554,27 @@ public class ParseMenuXML extends XML_BaseParser {
                System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
             }
             Variable var = fProvider.safeGetVariable("structName");
-            String expectedGuard1 = (var==null)?"":"/"+var.getValueAsString()+"/generateSharedInfo";
-            String expectedGuard2 = (var==null)?"":"/"+var.getValueAsString()+"/generateSharedIrqInfo";
+            String expectedGuard1 = (var==null)?"":"/"+var.getValueAsString()+"/_BasicInfoGuard";
+            String expectedGuard2 = (var==null)?"":"/"+var.getValueAsString()+"/_BasicInfoIrqGuard";
             if ("basicInfo".equals(namespace)) {
                if (codeGenCondition.contains(expectedGuard1)) {
                   continue;
                }
                if (codeGenCondition.contains(expectedGuard2)) {
+                  continue;
+               }
+               if (codeGenCondition.contains("enableGettersAndSetters")) {
+                  continue;
+               }
+               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
+            }
+            String expectedGuard3 = (var==null)?"":"/"+var.getValueAsString()+"/_CommonInfoGuard";
+            String expectedGuard4 = (var==null)?"":"/"+var.getValueAsString()+"/_CommonInfoIrqGuard";
+            if ("commonInfo".equals(namespace)) {
+               if (codeGenCondition.contains(expectedGuard3)) {
+                  continue;
+               }
+               if (codeGenCondition.contains(expectedGuard4)) {
                   continue;
                }
                if (codeGenCondition.contains("enableGettersAndSetters")) {
@@ -3976,23 +3996,139 @@ public class ParseMenuXML extends XML_BaseParser {
       final int                  fBoxX, fBoxY;
       final ClockSelectionFigure fClockSelectionFigure;
       final ParseMenuXML         fParser;
+      final int fX;
+      final int fY;
       /**
        * 
        * @param boxX     Current X coordinate
        * @param boxY     Current Y coordinate
        * @param figure   Current figure
        */
-      public GraphicWrapper(ParseMenuXML parser, int boxX, int boxY, ClockSelectionFigure figure) {
+      public GraphicWrapper(ParseMenuXML parser, int boxX, int boxY, int x, int y, ClockSelectionFigure figure) {
          fBoxX                   = boxX;
          fBoxY                   = boxY;
          fClockSelectionFigure   = figure;
          fParser                 = parser;
+         fX = x;
+         fY = y;
       }
 
       void parseGraphicBoxOrGroup(BaseModel parentModel, Element graphicElement) throws Exception {
-         fParser.parseGraphicBoxOrGroup(parentModel, fBoxX, fBoxY, fClockSelectionFigure, graphicElement);
+         
+         fParser.parseGrahicElement(parentModel, graphicElement, fClockSelectionFigure, fBoxX, fBoxY, fX, fY);
       }
    }
+
+   /**
+    * Parse &lt;for&gt;
+    * 
+    * @param parentModel
+    * @param element
+    * @throws Exception
+    */
+   private void parseGraphicIfThen(BaseModel parentModel, Element element, GraphicWrapper graphicWrapper) throws Exception {
+
+      if (!element.hasAttribute("condition")) {
+         throw new Exception("<if> requires 'condition' attribute '"+element+"'");
+      }
+
+      Boolean processNodes  = checkCondition(element);
+      Boolean skipRemainder = processNodes;
+
+      for (Node node = element.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element elem    = (Element) node;
+         String  tagName = elem.getTagName();
+         if (tagName == "else") {
+            // Process nodes if not already found an active clause
+            processNodes = !skipRemainder;
+            continue;
+         }
+         else if (tagName == "else_if") {
+            if (!elem.hasAttribute("condition")) {
+               throw new Exception("<else_if> requires 'condition' attribute '"+elem+"'");
+            }
+            // Get condition for this clause
+            processNodes = !skipRemainder && checkCondition(elem);
+
+            // Skip remainder if processing an active else_if clause
+            skipRemainder = skipRemainder||processNodes;
+            continue;
+         }
+         if (processNodes) {
+            graphicWrapper.parseGraphicBoxOrGroup(parentModel, elem);
+         }
+      }
+   }
+
+private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSelectionFigure figure, int boxX, int boxY, int x, int y) throws Exception {
+   
+   String tagName = graphic.getTagName();
+
+   if (tagName == "graphicItem") {
+      String id     = getAttributeAsString(graphic,     "id");
+      String varKey = getKeyAttribute(graphic,          "var");
+      String type   = getAttributeAsString(graphic,     "type");
+      String edit   = getAttributeAsString(graphic,     "edit");
+      String params = getAttributeAsString(graphic,     "params");
+      String name   = getAttributeAsString(graphic,     "name");
+
+      if ((name != null) && name.startsWith("@")) {
+         String varName = name.substring(1);
+         int index = varName.indexOf('.');
+         int choiceIndex = -1;
+         if (index >= 0) {
+            choiceIndex = Integer.valueOf(varName.substring(index+1));
+            varName = varName.substring(0,index);
+         }
+         ChoiceVariable var = safeGetChoiceVariable(varName);
+         if (var == null) {
+            throw new Exception("Unable to find var " + varName);
+         }
+         if (choiceIndex >= 0) {
+            name = var.getChoiceData()[choiceIndex].getName();
+         }
+         else {
+            name = var.getValueAsString();
+         }
+      }
+      figure.add(x, y, id, name, varKey, type, edit, params);
+      return;
+   }
+   if (tagName == "offset") {
+      x = boxX + Integer.parseInt(getAttributeAsString(graphic, "x", "0"));
+      y = boxY + Integer.parseInt(getAttributeAsString(graphic, "y", "0"));
+      return;
+   }
+   if (tagName == "graphicBox") {
+      parseGraphicBoxOrGroup(parentModel, x, y, figure, graphic);
+      return;
+   }
+   if (tagName == "graphicGroup") {
+      parseGraphicBoxOrGroup(parentModel, x, y, figure, graphic);
+      return;
+   }
+   if (tagName == "equation") {
+      parseEquation(graphic);
+      return;
+   }
+   if (tagName == "for") {
+      GraphicWrapper dummy = new GraphicWrapper(this, boxX, boxY, x, y, figure);
+      parseForLoop(parentModel, graphic, dummy);
+      return;
+   }
+   if (tagName == "if") {
+      GraphicWrapper dummy = new GraphicWrapper(this, boxX, boxY, x, y, figure);
+      parseGraphicIfThen(parentModel, graphic, dummy);
+      return;
+   }
+   throw new Exception("Expected tag = <graphicItem>/<offset>/<graphicBox>/<graphicGroup>, found = <"+tagName+">");
+}
 
    /**
     * 
@@ -4030,60 +4166,7 @@ public class ParseMenuXML extends XML_BaseParser {
             // Discard element
             continue;
          }
-         String tagName = graphic.getTagName();
-         if (tagName == "graphicItem") {
-            String id     = getAttributeAsString(graphic,     "id");
-            String varKey = getKeyAttribute(graphic,          "var");
-            String type   = getAttributeAsString(graphic,     "type");
-            String edit   = getAttributeAsString(graphic,     "edit");
-            String params = getAttributeAsString(graphic,     "params");
-            String name   = getAttributeAsString(graphic,     "name");
-
-            if ((name != null) && name.startsWith("@")) {
-               String varName = name.substring(1);
-               int index = varName.indexOf('.');
-               int choiceIndex = -1;
-               if (index >= 0) {
-                  choiceIndex = Integer.valueOf(varName.substring(index+1));
-                  varName = varName.substring(0,index);
-               }
-               ChoiceVariable var = safeGetChoiceVariable(varName);
-               if (var == null) {
-                  throw new Exception("Unable to find var " + varName);
-               }
-               if (choiceIndex >= 0) {
-                  name = var.getChoiceData()[choiceIndex].getName();
-               }
-               else {
-                  name = var.getValueAsString();
-               }
-            }
-            figure.add(x, y, id, name, varKey, type, edit, params);
-            continue;
-         }
-         if (tagName == "offset") {
-            x = boxX + Integer.parseInt(getAttributeAsString(graphic, "x", "0"));
-            y = boxY + Integer.parseInt(getAttributeAsString(graphic, "y", "0"));
-            continue;
-         }
-         if (tagName == "graphicBox") {
-            parseGraphicBoxOrGroup(parentModel, x, y, figure, graphic);
-            continue;
-         }
-         if (tagName == "graphicGroup") {
-            parseGraphicBoxOrGroup(parentModel, x, y, figure, graphic);
-            continue;
-         }
-         if (tagName == "for") {
-            GraphicWrapper dummy = new GraphicWrapper(this, x, y, figure);
-            parseForLoop(parentModel, graphic, dummy);
-            continue;
-         }
-         if (tagName == "equation") {
-            parseEquation(graphic);
-            continue;
-         }
-         throw new Exception("Expected tag = <graphicItem>/<offset>/<graphicBox>/<graphicGroup>, found = <"+tagName+">");
+         parseGrahicElement(parentModel, graphic, figure, boxX, boxY, x, y);
       }
    }
 
@@ -4125,7 +4208,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          if (tagName == "for") {
-            GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, figure);
+            GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, 0, 0, figure);
             parseForLoop(parentModel, boxElement, graphicWrapper);
             continue;
          }

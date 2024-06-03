@@ -30,6 +30,7 @@ import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
 public class WriteFamilyCpp {
 
@@ -111,6 +112,12 @@ public class WriteFamilyCpp {
     */
    private void writePeripheralInformation(DocumentUtilities writer, DocumentationGroups mainGroup, Peripheral peripheral) throws IOException {
 
+      Variable logClassVar = peripheral.safeGetVariable("log_class");
+      boolean logClass = (logClassVar!= null) && logClassVar.getValueAsBoolean();
+      
+      if (logClass) {
+         System.err.println("Logging " + peripheral);
+      }
       WriterInformation writerInformation = null;
       boolean writeToPeripheralHeader = peripheral.generateDefinitionsInHeaderFile();
       
