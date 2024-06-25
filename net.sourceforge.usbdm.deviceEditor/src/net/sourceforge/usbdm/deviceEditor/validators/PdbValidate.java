@@ -134,23 +134,23 @@ public class PdbValidate extends PeripheralValidator {
 
       boolean guiUpdateAllowed = getDeviceInfo().getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed;
 
-      DoubleVariable      pdb_intX_delayVar        = getDoubleVariable("pdb_int"+dacNum+"_delay");
+      DoubleVariable      pdb_intvX_delayVar        = getDoubleVariable("pdb_intv"+dacNum+"_delay");
       if (max_interval > 0.0) {
-         pdb_intX_delayVar.setMax(max_interval);
+         pdb_intvX_delayVar.setMax(max_interval);
       }
       if (guiUpdateAllowed) {
          ChoiceVariable      pdb_intcX_triggerModeVar = getChoiceVariable("pdb_intc"+dacNum+"_triggerMode");
-         LongVariable        pdb_intXVar              = getLongVariable("pdb_int"+dacNum);
+         LongVariable        pdb_intvXVar             = getLongVariable("pdb_intv"+dacNum);
          
-         if ((pdb_intcX_triggerModeVar.getValueAsLong() == 1) && (variable == pdb_intX_delayVar)) {
-            double pdb_intX_delay = pdb_intX_delayVar.getRawValueAsDouble();
+         if ((pdb_intcX_triggerModeVar.getValueAsLong() == 1) && (variable == pdb_intvX_delayVar)) {
+            double pdb_intX_delay = pdb_intvX_delayVar.getRawValueAsDouble();
 
             // Recalculate pdb_intX and pdb_intX_delay
             Long pdb_intX  = Math.max(0, Math.round((pdb_intX_delay/pdb_clock_period)-1));
             pdb_intX_delay = (pdb_intX+1)*pdb_clock_period;
    
-            pdb_intXVar.setValue(pdb_intX);
-            pdb_intX_delayVar.setValue(pdb_intX_delay);
+            pdb_intvXVar.setValue(pdb_intX);
+            pdb_intvX_delayVar.setValue(pdb_intX_delay);
          }
       }
    }

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -32,20 +32,15 @@ public class I2cValidate_MKE extends PeripheralValidator {
       super(peripheral);
    }
 
-   String calculateAvailableFrequencies(int clockFrequency) {
-      ArrayList<Integer> freqs = new ArrayList<Integer>();
-      
-      for (int mult = 0; mult <= multFactors.length-1; mult++) {
-         for (int icr = 0; icr <= icrFactors.length-1; icr++) {
-            int calculatedFrequency = clockFrequency/(multFactors[mult]*icrFactors[icr]);
-            if (!freqs.contains(calculatedFrequency)) {
-               freqs.add(calculatedFrequency);
-            }
-         }
-      }
-      
-      Integer[] freqAr = freqs.toArray(new Integer[freqs.size()]);
-      Arrays.sort(freqAr);
+   /**
+    * Format the available frequencies as a string suitable for tool-tip
+    * @param calculatedFrequency
+    * 
+    * @param freqAr  Sorted array of available frequencies
+    * 
+    * @return Formatted string
+    */
+   String formatFrequencies(int calculatedFrequency, Integer[] freqAr) {
       
       StringBuilder sb = new StringBuilder();
       int lineLength = 0;
@@ -55,7 +50,13 @@ public class I2cValidate_MKE extends PeripheralValidator {
             sb.append(", ");
          }
          else {
-            sb.append("Available Frequencies:\n");
+            String freqS = EngineeringNotation.convert(calculatedFrequency, 3);
+            sb.append(""
+                  + "Actual Speed = "+freqS+"Hz\n"
+                  + "The above is the actual speed based upon the nominal speed and taking into\n"
+                  + "account limitations due to the available input clock and clock dividers\n"
+                  + "\n"
+                  + "Available Speeds:\n");
          }
          if (lineLength>=60) {
             lineLength = 0;
@@ -69,6 +70,23 @@ public class I2cValidate_MKE extends PeripheralValidator {
       return sb.toString();
    }
    
+   Integer[] calculateAvailableFrequencies(int clockFrequency) {
+      ArrayList<Integer> freqs = new ArrayList<Integer>();
+      
+      for (int mult = 0; mult <= multFactors.length-1; mult++) {
+         for (int icr = 0; icr <= icrFactors.length-1; icr++) {
+            int calculatedFrequency = clockFrequency/(multFactors[mult]*icrFactors[icr]);
+            if (!freqs.contains(calculatedFrequency)) {
+               freqs.add(calculatedFrequency);
+            }
+         }
+      }
+      
+      Integer[] freqAr = freqs.toArray(new Integer[freqs.size()]);
+      Arrays.sort(freqAr);
+      return freqAr;
+   }
+   
    /**
     * Class to validate SPI settings
     * @throws Exception
@@ -76,15 +94,23 @@ public class I2cValidate_MKE extends PeripheralValidator {
    @Override
    public void validate(Variable variable, int properties) throws Exception {
       
+//      System.err.println("Var = "+variable+", enabled = "+((variable!=null) && !variable.isEnabled()));
+      if ((variable!=null) && !variable.isEnabled()) {
+         // Ignore changes due to being disabled
+         return;
+      }
       LongVariable   i2cInputClockVar           = getLongVariable("i2cInputClock");
       LongVariable   speedVar                   = getLongVariable("i2c_speed");
 
+      if (!i2cInputClockVar.isEnabled()) {
+         return;
+      }
+      if (!speedVar.isEnabled()) {
+         return;
+      }
       int clockFrequency = (int)i2cInputClockVar.getValueAsLong();
       int speed          = (int)speedVar.getValueAsLong();
 
-      String freqs = calculateAvailableFrequencies(clockFrequency);
-      speedVar.setToolTip(freqs);
-      
       int bestMULT = multFactors.length-1;
       int bestICR  = (1<<7)-1;
       int bestDifference = 0x7FFFFFFF;
@@ -110,8 +136,15 @@ public class I2cValidate_MKE extends PeripheralValidator {
       i2c_f_multVar.setValue(bestMULT);
       i2c_f_icrVar.setValue(bestICR);
       
-      if (fDeviceInfo.getInitialisationPhase() == InitPhase.VariableAndGuiPropagationAllowed) {
-         speedVar.setValue(calculatedFrequency);
+      Integer[] availableFrequencies = calculateAvailableFrequencies(clockFrequency);
+      speedVar.setToolTip(formatFrequencies(calculatedFrequency, availableFrequencies));
+      
+      float error = Math.abs(calculatedFrequency-speed)/(float)speed;
+      if (error>0.05) {
+         speedVar.setStatus(new Status("Actual Speed differs significantly from nominal"));
+      }
+      else {
+         speedVar.setStatus((Status)null);
       }
    }
 

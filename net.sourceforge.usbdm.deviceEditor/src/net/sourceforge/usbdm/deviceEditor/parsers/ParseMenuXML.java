@@ -635,11 +635,20 @@ public class ParseMenuXML extends XML_BaseParser {
       if (attr instanceof Long) {
          return (Long) attr;
       }
-      try {
-         return Long.decode(attr.toString());
-      } catch (NumberFormatException e) {
-         throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' value '"+attr+"'");
+
+      if (attr instanceof String) {
+         try {
+            return Expression.getValueAsLong((String)attr, fProvider);
+         } catch (Exception e) {
+            throw new Exception("Failed to parse Long Attribute \'"+name+"\' value '"+attr+"'", e);
+         }
       }
+      throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' value '"+attr+"'");
+      //      try {
+      //         return Long.decode(attr.toString());
+      //      } catch (NumberFormatException e) {
+      //         throw new NumberFormatException("Failed to parse Long Attribute \'"+name+"\' value '"+attr+"'");
+      //      }
    }
 
    /**

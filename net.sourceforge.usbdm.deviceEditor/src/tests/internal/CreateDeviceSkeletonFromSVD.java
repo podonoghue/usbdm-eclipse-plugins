@@ -363,7 +363,7 @@ public class CreateDeviceSkeletonFromSVD {
       final String pre = "\n"
          + "   <equation key=\"irq_parameters\"             value=\"\"          />\n"
          + "   <equation key=\"irq_dummy_parameters\"       value=\"\"          />\n"
-         + "   <equation key=\"irq_call\"                   value=\"\"          />\n"
+         + "   <equation key=\"irq_call_parameters\"        value=\"\"          />\n"
          + "   <equation key=\"generateDefault\"            value=\"false\"     />\n"
          + "   <equation key=\"configureInStartupDefault\"  value=\"false\"     />\n"
          + "   <xi:include href=\"enablePeripheral.xml\"    />\n"
@@ -1774,7 +1774,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t/**\n"
             + "      \\t * Class representing $(_NAME)\n"
             + "      \\t */\n"
-            + "      \\t//typedef $(_Info) $(_Class);"
+            + "      \\t//typedef $(_Info) $(_Class);\n"
             + "      \\t//using $(_Class) = $(_Class)Info;\n"
             + "      \\t//class $(_Class) : public $(_Baseclass)Base_T<$(_Info)> {};\n"
             + "      \\t//typedef $(_Baseclass)Base_T<$(_Info)> $(_Class);\n"
@@ -1857,7 +1857,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\tstatic void irqHandler() {\n"
             + "      \\t\n"
             + "      \\t   // Execute call-back\n"
-            + "      \\t   sCallback($(irq_call));\n"
+            + "      \\t   sCallback($(irq_call_parameters));\n"
             + "      \\t}\n"
             + "      \\t\\n\n"
             + "   ]]>\n"
@@ -1934,7 +1934,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "FGPIO",
 //         "ICS",
 //         "IRQ",
-         "I2C",
+//         "I2C",
 //         "I2S",
 //         "KBI",
 //         "LPTMR",
@@ -1943,7 +1943,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "MCM",
 //         "MPU",
 //         "OSC",
-//         "PDB",
+         "PDB",
 //         "PIT",
 //         "PMC",
 //         "PORT",
