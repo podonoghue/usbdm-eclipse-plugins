@@ -1091,7 +1091,6 @@ public class Expression implements IModelChangeListener {
          fSignal      = peripheral.getSignalFromIndex((int)((Long) evalConstantArg(args[0], Type.Long)).longValue());
          fRegex       = (String) evalConstantArg(args[1], Type.String);
          fReplacement = (String) evalConstantArg(args[2], Type.String);
-
       }
 
       /**
@@ -1204,14 +1203,16 @@ public class Expression implements IModelChangeListener {
          Signal signal;
          String regex       = null;
          String replacement = null;
-
+         String name        = null;
+         
          if (arg == null) {
             throw new Exception("Expected index for signal (an integer)");
          }
          do {
             if (arg.fType != Type.List) {
                // Must be a single name (String)
-               signal      = peripheral.getSignal((String) evalConstantArg(arg, Type.String));
+               name     = (String) evalConstantArg(arg, Type.String);
+               signal   = peripheral.getSignal(name);
                continue;
             }
             ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
@@ -1219,7 +1220,8 @@ public class Expression implements IModelChangeListener {
                // Must be an name (String), regex (String) and a replacement pattern (String)
                throw new Exception("Expected 3 arguments 'name,regex,replacement'");
             }
-            signal      = peripheral.getSignal((String) evalConstantArg(args[0], Type.String));
+            name        = (String) evalConstantArg(args[0], Type.String);
+            signal      = peripheral.getSignal(name);
             regex       = (String) evalConstantArg(args[1], Type.String);
             replacement = (String) evalConstantArg(args[2], Type.String);
             continue;
@@ -1229,7 +1231,7 @@ public class Expression implements IModelChangeListener {
             return new SignalDescriptionNode(signal, regex, replacement);
          }
          else {
-            return new StringConstantNode("Signal not found");
+            return new StringConstantNode(name);
          }
       }
    }

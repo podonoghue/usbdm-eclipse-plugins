@@ -159,7 +159,7 @@ public class StringVariable extends Variable {
 
    @Override
    public boolean isDefault() {
-      return !defaultHasChanged;
+      return !defaultHasChanged && (fValue != null) && (fValue.equalsIgnoreCase(fDefault));
    }
 
    /**

@@ -505,7 +505,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       String patterns[]      = p.split(";");
       String classHandlers[] = ch.split(";");
       if (patterns.length != classHandlers.length) {
-         throw new Exception(getClassName() + ": Pattern and classHandler have different lengths in irqOption");
+         throw new Exception(getClassName() + ": Pattern and classHandler have different lengths in irqOption\n"
+               + "patterns = '" + p + "', classHandlers = '" + ch + "'");
       }
       for (int index=0; index<patterns.length; index++) {
          String pattern = patterns[index];

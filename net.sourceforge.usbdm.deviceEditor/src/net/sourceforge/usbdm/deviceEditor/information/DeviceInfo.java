@@ -2139,6 +2139,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for (String key:fVariables.keySet()) {
          Variable var = fVariables.get(key);
          if (!var.isDerived() && !var.isDefault()) {
+            System.err.println("Saving '" + key + "'");
             settings.put(key, var.getPersistentValue());
          }
       }

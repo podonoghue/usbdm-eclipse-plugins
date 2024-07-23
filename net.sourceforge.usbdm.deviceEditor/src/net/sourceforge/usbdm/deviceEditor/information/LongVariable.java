@@ -380,9 +380,6 @@ public class LongVariable extends Variable {
    public String formatUsageValue(String value) {
       
       Units units = getUnits();
-      if (units != Units.None) {
-         return units.append(value);
-      }
       String typeName = getTypeName();
       if (typeName != null) {
          // Don't provides cast to (signed) int
@@ -391,6 +388,9 @@ public class LongVariable extends Variable {
          if (!mSpecial.matches()) {
             return typeName+"("+value+")";
          }
+      }
+      if (units != Units.None) {
+         return units.append(value);
       }
       return value;
    }
