@@ -33,7 +33,7 @@ public class StringVariableModel extends VariableModel {
 
       @Override
       protected void doSetValue(Object value) {
-         System.err.println("Value = "+value);
+//         System.err.println("Value = "+value);
          super.doSetValue(value);
       }
       

@@ -200,4 +200,10 @@ public class StringVariable extends Variable {
       return value == 0L;
    }
 
+   @Override
+   public String getUsageValue() {
+      // TODO Auto-generated method stub
+      return super.getUsageValue();
+   }
+
 }

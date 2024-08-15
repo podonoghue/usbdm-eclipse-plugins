@@ -243,7 +243,7 @@ public class Expression implements IModelChangeListener {
             try {
                index.addListener(this);
             } catch (Exception e) {
-               System.err.println("Failed to add listeners for index changes to expresssion");
+               System.err.println("Failed to add listeners for index changes to expression");
                e.printStackTrace();
             }
          }
@@ -516,17 +516,17 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   static class BooleanNode extends ExpressionNode {
+   static class BooleanConstantNode extends ExpressionNode {
 
       final Boolean fValue;
 
-      BooleanNode(Boolean value) {
+      BooleanConstantNode(Boolean value) {
          super(Type.Boolean);
          fValue = value;
       }
 
       @Override
-      Object eval() {
+      Boolean eval() {
          return fValue;
       }
 
@@ -537,7 +537,7 @@ public class Expression implements IModelChangeListener {
 
       @Override
       public String toString() {
-         return fValue.toString();
+         return "\""+fValue+"\"";
       }
    }
 
@@ -616,30 +616,21 @@ public class Expression implements IModelChangeListener {
       }
    }
 
-   static class BooleanConstantNode extends ExpressionNode {
+   static class IsBlankNode extends UnaryExpressionNode {
 
-      final Boolean fValue;
-
-      BooleanConstantNode(Boolean value) {
-         super(Type.Boolean);
-         fValue = value;
+      IsBlankNode(ExpressionNode left) throws Exception {
+         super(left, Type.Boolean);
+         if (left.fType != Type.String) {
+            throw new Exception("Expected String type");
+         }
       }
 
       @Override
-      Boolean eval() {
-         return fValue;
-      }
-
-      @Override
-      boolean isConstant() {
-         return true;
-      }
-
-      @Override
-      public String toString() {
-         return "\""+fValue+"\"";
+      Object eval() throws Exception {
+         return fArg.eval().toString().isBlank();
       }
    }
+
 
    static class NotNode extends UnaryExpressionNode {
 
@@ -1910,7 +1901,7 @@ public class Expression implements IModelChangeListener {
             }
             // Node is always false
             //            System.err.println("Pruning && (LHS=F) -> false, discarding RHS=" + fRight);
-            return new BooleanNode(false);
+            return new BooleanConstantNode(false);
          }
          fRight = fRight.prune();
          if (fRight.isConstant()) {
@@ -1921,7 +1912,7 @@ public class Expression implements IModelChangeListener {
             }
             // Node is always false
             //            System.err.println("Pruning && (RHS=F) -> false, discarding LHS=" + fLeft);
-            return new BooleanNode(false);
+            return new BooleanConstantNode(false);
          }
          return this;
       }
@@ -1947,7 +1938,7 @@ public class Expression implements IModelChangeListener {
             if ((Boolean)fLeft.eval()) {
                // Node is always true
                //               System.err.println("Pruning || (LHS=T) -> true, discarding RHS=" + fRight);
-               return new BooleanNode(true);
+               return new BooleanConstantNode(true);
             }
             // Node value is determined from right node alone
             //            System.err.println("Pruning || (LHS=F) -> RHS=" + fRight);
@@ -1958,7 +1949,7 @@ public class Expression implements IModelChangeListener {
             if ((Boolean)fRight.eval()) {
                // Node is always true
                //               System.err.println("Pruning || (RHS-T) -> true, discarding LHS=" + fLeft);
-               return new BooleanNode(true);
+               return new BooleanConstantNode(true);
             }
             // Node value is determined from left node alone
             //            System.err.println("Pruning || (RHS=F) -> LHS=" + fLeft);
@@ -2216,7 +2207,7 @@ public class Expression implements IModelChangeListener {
          return new StringConstantNode((String)constantValue);
       }
       if (constantValue instanceof Boolean) {
-         return new BooleanNode((Boolean)constantValue);
+         return new BooleanConstantNode((Boolean)constantValue);
       }
       throw new Exception("Node not of expected type" + constantValue.getClass().toString());
    }

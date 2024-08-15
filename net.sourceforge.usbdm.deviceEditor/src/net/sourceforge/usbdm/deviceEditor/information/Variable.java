@@ -495,6 +495,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return True if variable actually changed lock state
     */
    public boolean setLockedQuietly(boolean locked) {
+      if (fLogging) {
+         System.err.println(this + ".setLockedQuietly(" + locked + ")");
+      }
       if (fLocked == locked) {
          return false;
       }

@@ -353,7 +353,7 @@ abstract class TemplateContentBuilder {
                currentInitExpressionSb.append(" "+separator+" ");
             }
             if (info.padToComments != 0) {
-               currentInitExpressionSb.length();
+//               currentInitExpressionSb.length();
 //               int sol = t.lastIndexOf("\\t");
 //               if (sol<0) {
 //                  sol = 0;

@@ -246,7 +246,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    static String[] splitValues(String value, char delimiter, boolean removeOuterQuotes) throws Exception {
       
-      enum TokenState { Normal, Quoted, DoubleQuoted, LeadingSpaces, TrailingSpaces };
+      enum TokenState { Normal, Quoted, DoubleQuoted, EscapedDelimiter, LeadingSpaces, TrailingSpaces };
 
       ArrayList<String> valueList = new ArrayList<String>();
 
@@ -295,7 +295,19 @@ public class ParseMenuXML extends XML_BaseParser {
             // Can't happen
             break;
             
+         case EscapedDelimiter:
+            if (ch != delimiter) {
+               sb.append('\\');
+            }
+            sb.append(ch);
+            tokenState = TokenState.Normal;
+            break;
+            
          case Normal:
+            if (ch == '\\') {
+               tokenState = TokenState.EscapedDelimiter;
+               continue;
+            }
             if (ch == '\'') {
                tokenState = TokenState.Quoted;
                if (!removeOuterQuotes) {
@@ -792,6 +804,66 @@ public class ParseMenuXML extends XML_BaseParser {
       fForStack.dropLevel();
    }
 
+   private void parseImmediateValue(BaseModel parentModel, Element element, GraphicWrapper graphicWrapper) throws Exception {
+      
+      if (!checkCondition(element)) {
+         return;
+      }
+      String    keys           = getAttributeAsString(element, "keys");
+      Object    values         = getAttribute(element, "values");
+//      Character delimiter      = getAttributeAsCharacter(element, "delimiter", ':');
+      Boolean   stripSemicolon = getAttributeAsBoolean(element, "stripSemicolon", false);
+      
+      
+      if (keys.isBlank() || (values == null)) {
+         throw new Exception("<immediateValue>  requires keys = '"+keys+"', values = '"+values+"'");
+      }
+      String[] keyArray = keys.split(",");
+      Object[] keyValues;
+      if (values.getClass().isArray()) {
+         keyValues = (Object[]) values;
+      }
+      else {
+         String t = values.toString();
+         t = t.trim();
+         if (t.endsWith(";")) {
+            if (stripSemicolon) {
+               t = t.substring(0, t.length()-1);
+            }
+            else {
+               System.err.println("Warning values end with semi-colon, values = '"+t+"'");
+            }
+            values = t;
+         }
+         keyValues = new String[1];
+         keyValues[0] = t;
+      }
+      if (keyValues.length != keyArray.length) {
+         throw new Exception("<immediateValue>  unmatched key-value length keys = '"+keys+"', values = '"+values+"'");
+      }
+      StringBuilder valueSb = new StringBuilder();
+      StringBuilder keySb   = new StringBuilder();
+      for (int index=0; index<keyArray.length; index++) {
+         if (!valueSb.isEmpty()) {
+            // For loops expect values delimited with colon
+            valueSb.append(":");
+            keySb.append(":");
+         }
+         valueSb.append(keyValues[index]);
+         keySb.append(keyArray[index]);
+//         System.err.println("key= '"+keyArray[index]+"', value= '"+keyValues[index]+"'");
+      }
+//      System.err.println("values= '"+valueSb.toString()+"'");
+      fForStack.createLevel(fProvider, keySb.toString(), valueSb.toString(), ';', null);
+      if (graphicWrapper != null) {
+         graphicWrapper.parseGraphicBoxOrGroup(parentModel, element);
+      }
+      else {
+         parseSectionsOrOtherContents(parentModel, element);
+      }
+      fForStack.dropLevel();
+   }
+   
    /**
     * Parse &lt;for&gt;
     * 
@@ -914,7 +986,6 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception if value is invalid or not found (including variable lookup)
     */
    protected Long getLongAttributeWithVariableSubstitution(Element element, String name) throws Exception {
-
       Long value = safeGetLongAttributeWithVariableSubstitution(element, name);
       if (value == null) {
          throw new Exception("Invalid long attribute = " + element + ", name = '" + name + "'");
@@ -1205,6 +1276,7 @@ public class ParseMenuXML extends XML_BaseParser {
             if (addToVar == null) {
                // Create new list
                addToVar = new StringVariable(fProvider, null, fProvider.makeKey(varName));
+               addToVar.setDerived(true);
                fProvider.addVariable(addToVar);
                addToVar.setValue(variable.getName());
 //               System.err.println("'addToVar' target variable not found, '" + addToVarName);
@@ -3032,6 +3104,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String type        = getAttributeAsString(element, "type", "Boolean");
       String expression  = getAttributeAsString(element, "expression");
       String value       = getAttributeAsString(element, "value");
+      String description = getAttributeAsString(element, "description");
       
       Variable var = Variable.createVariableWithNamedType(fProvider, name, key, type+"Variable", value);
       fProvider.addVariable(var);
@@ -3040,7 +3113,7 @@ public class ParseMenuXML extends XML_BaseParser {
       var.setReference(expression);
       var.setDerived(true);
       var.setLocked(true);
-      
+      var.setDescription(description);
    }
 
    private void parseSignal(Element element) throws Exception {
@@ -3874,6 +3947,9 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (tagName == "for") {
          parseForLoop(parentModel, element, null);
       }
+      else if (tagName == "immediateValue") {
+         parseImmediateValue(parentModel, element, null);
+      }
       else if (tagName == "break") {
          parseBreak(parentModel, element);
       }
@@ -4131,6 +4207,11 @@ private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSel
       parseForLoop(parentModel, graphic, dummy);
       return;
    }
+   if (tagName == "immediateValue") {
+      GraphicWrapper dummy = new GraphicWrapper(this, boxX, boxY, x, y, figure);
+      parseImmediateValue(parentModel, graphic, dummy);
+      return;
+   }
    if (tagName == "if") {
       GraphicWrapper dummy = new GraphicWrapper(this, boxX, boxY, x, y, figure);
       parseGraphicIfThen(parentModel, graphic, dummy);
@@ -4219,6 +4300,11 @@ private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSel
          if (tagName == "for") {
             GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, 0, 0, figure);
             parseForLoop(parentModel, boxElement, graphicWrapper);
+            continue;
+         }
+         if (tagName == "immediateValue") {
+            GraphicWrapper graphicWrapper = new GraphicWrapper(this, 0, 0, 0, 0, figure);
+            parseImmediateValue(parentModel, boxElement, graphicWrapper);
             continue;
          }
          throw new Exception("Expected tag = <graphicBox>, found = <"+tagName+">");

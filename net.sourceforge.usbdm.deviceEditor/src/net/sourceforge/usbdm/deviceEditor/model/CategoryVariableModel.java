@@ -47,6 +47,9 @@ public class CategoryVariableModel extends StringVariableModel {
    @Override
    public boolean showAsLocked() {
 //      return false;
+      if (this.fLogging) {
+         System.err.println("Found it");
+      }
       return !canEdit() && (fVariable.getValueAsString() != null);
    }
 

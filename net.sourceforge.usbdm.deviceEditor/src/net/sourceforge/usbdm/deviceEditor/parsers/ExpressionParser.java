@@ -7,12 +7,13 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.parsers.Expression.BooleanNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.BooleanConstantNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CastToDoubleNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.CommaListNode.Visitor;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.ExpressionNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.FormatNode;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression.IsBlankNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LongConstantNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.LowercaseNode;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.MappedPinsListNode;
@@ -277,7 +278,7 @@ public class ExpressionParser {
       ExpressionNode arg = null;
       if (ch != ')') {
          // Note this may be a CommaListNode
-         arg = parseSubExpression();
+         arg = parseSubExpression(fMode);
          ch = skipSpace();
       }
       if ((ch==null) || (ch != ')')) {
@@ -322,14 +323,19 @@ public class ExpressionParser {
          // Does early evaluation
          String varName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Variable var = fProvider.safeGetVariable(varName);
-         return new BooleanNode(var != null);
+         return new BooleanConstantNode(var != null);
       }
       if ("IsZero".equalsIgnoreCase(functionName)) {
          // Immediate check if variable has a 'zero' value
          // Does early evaluation
          String varName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Variable var = fProvider.safeGetVariable(varName);
-         return new BooleanNode(var.isZero());
+         return new BooleanConstantNode(var.isZero());
+      }
+      if ("IsBlank".equalsIgnoreCase(functionName)) {
+         // Check if string is empty
+         // Delayed evaluation
+         return new IsBlankNode(arg);
       }
       if ("HardwareExists".equalsIgnoreCase(functionName)) {
          // Immediate check if signal or peripheral exists (during parsing)
@@ -339,28 +345,28 @@ public class ExpressionParser {
                (fProvider.getDeviceInfo().getSignal(hardwareName) != null) ||
                (fProvider.getDeviceInfo().getPeripheral(hardwareName) != null);
 //         System.err.println("HardwareExists("+hardwareName+") => " + result);
-         return new BooleanNode(result);
+         return new BooleanConstantNode(result);
       }
       if ("SignalIsMapped".equalsIgnoreCase(functionName)) {
          // Immediate check if signal is mapped to a pin
          // Does early evaluation
          String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Signal signal = fProvider.getDeviceInfo().safeFindSignal(signalName);
-         return new BooleanNode((signal!=null)&&(signal.getMappedPin() != Pin.UNASSIGNED_PIN));
+         return new BooleanConstantNode((signal!=null)&&(signal.getMappedPin() != Pin.UNASSIGNED_PIN));
       }
       if ("SignalExists".equalsIgnoreCase(functionName)) {
          // Immediate check if signal exists (during parsing)
          // Does early evaluation
          String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Signal signal = fProvider.getDeviceInfo().safeFindSignal(signalName);
-         return new BooleanNode(signal!=null);
+         return new BooleanConstantNode(signal!=null);
       }
       if ("PeripheralExists".equalsIgnoreCase(functionName)) {
          // Immediate check if peripheral exists (during parsing)
          // Does early evaluation
          String peripheralName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Peripheral periph = fProvider.getDeviceInfo().getPeripheral(peripheralName);
-         return new BooleanNode(periph!=null);
+         return new BooleanConstantNode(periph!=null);
       }
       if ("Variable".equalsIgnoreCase(functionName)) {
          // Variable from string
@@ -372,7 +378,7 @@ public class ExpressionParser {
          // Does early evaluation
          String pinName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          Pin pin = fProvider.getDeviceInfo().findPin(pinName);
-         return new BooleanNode(pin!=null);
+         return new BooleanConstantNode(pin!=null);
       }
       if ("IndexOfSignal".equalsIgnoreCase(functionName)) {
          // Constant index of a given signal in current peripheral
@@ -554,17 +560,19 @@ public class ExpressionParser {
       if (ch == null) {
          return null;
       }
-      boolean immediateVariable = false;
+      boolean forceUseVariableValues = false;
       if (ch == '@') {
-         // '@' Should only be used in conditions and like to control parsing XML
+         // '@' Should only be used in conditions within expressions that are using existence checks by default.
+         // e.g. disabling XML based on variable existence
          if (fMode != Mode.CheckIdentifierExistance) {
             System.err.println("Warning: Using '@' (immediate evaluation) in mode " + fMode.toString() +
                   ", exp = '" + fExpression + "'" );
          }
-         immediateVariable = true;
+         forceUseVariableValues = true;
          ch = getNextCh();
       }
-      boolean forceEvaluate = immediateVariable || (fMode != Mode.CheckIdentifierExistance);
+      boolean forceImmediateVariableEvaluation = (fMode == Mode.EvaluateImmediate);
+      forceUseVariableValues = forceImmediateVariableEvaluation || forceUseVariableValues || (fMode != Mode.CheckIdentifierExistance);
       if ((ch != null) && (Character.isJavaIdentifierStart(ch) || (ch == '/'))) {
          // Valid start character
          
@@ -589,10 +597,10 @@ public class ExpressionParser {
       }
       String key = sb.toString();
       if ("true".equalsIgnoreCase(key)) {
-         return new Expression.BooleanNode(true);
+         return new Expression.BooleanConstantNode(true);
       }
       if ("false".equalsIgnoreCase(key)) {
-         return new Expression.BooleanNode(false);
+         return new Expression.BooleanConstantNode(false);
       }
       if ("disabled".equalsIgnoreCase(key)) {
          return new Expression.DisabledValueNode();
@@ -608,7 +616,7 @@ public class ExpressionParser {
       if ((ch != null) && (ch == '[')) {
          ch = getNextNonWhitespaceCh();
          if (ch ==']') {
-            if (forceEvaluate) {
+            if (forceUseVariableValues) {
                // [] should only be used in existence checks
                System.err.println("Empty index used in evaluated variable, exp= '"+fExpressionString+"'");
             }
@@ -647,21 +655,24 @@ public class ExpressionParser {
       }
       key = fProvider.makeKey(key);
       
-      if (!forceEvaluate) {
+      if (!forceUseVariableValues) {
+         // Only existence check
          String varKey = key;
          if (index != null) {
             if (!index.isConstant()) {
+               // Use [0] index for existence check if non-constant index value
                varKey = varKey + "[0]";
             }
             else {
+               // Index is a constant so evaluate and use for existence check of variable
                varKey = varKey + "["+index.getValueAsLong()+"]";
             }
          }
          Variable var = fProvider.safeGetVariable(varKey);
-         return new BooleanNode(var != null);
+         return new BooleanConstantNode(var != null);
       }
       ExpressionNode expNode = Expression.VariableNode.create(fExpression, key, modifier, index);
-      if (fMode == Mode.EvaluateImmediate) {
+      if (forceImmediateVariableEvaluation) {
          return Expression.createConstantNode(expNode.eval());
       }
       return expNode;
@@ -821,9 +832,19 @@ public class ExpressionParser {
             throw new Exception("Unexpected data type for operand in Factor " + result);
          }
       }
+      else if ((ch == '@') && (peek()=='(')) {
+         getNextCh();
+         getNextCh();
+         result = Expression.createConstantNode(parseSubExpression(Mode.EvaluateImmediate));
+         ch = skipSpace();
+         if ((ch == null) || (ch != ')')) {
+            throw new Exception("Expected ')'");
+         }
+         getNextCh();
+      }
       else if (ch == '(') {
          getNextCh();
-         result = parseSubExpression();
+         result = parseSubExpression(fMode);
          ch = skipSpace();
          if ((ch == null) || (ch != ')')) {
             throw new Exception("Expected ')'");
@@ -1308,13 +1329,13 @@ public class ExpressionParser {
          throw new Exception("Unexpected data type for operand in Ternary, " + control);
       }
       getNextCh();;
-      ExpressionNode trueExp = parseSubExpression();
+      ExpressionNode trueExp = parseSubExpression(fMode);
       ch = skipSpace();
       if ((ch==null)||ch != ':') {
          throw new Exception("':' expected");
       }
       getNextCh();;
-      ExpressionNode falseExp = parseSubExpression();
+      ExpressionNode falseExp = parseSubExpression(fMode);
       if (falseExp.fType != trueExp.fType) {
          throw new Exception(makeOperandMessage(falseExp, trueExp, "Incompatible operands"));
       }
@@ -1323,15 +1344,20 @@ public class ExpressionParser {
    
    /**
     * Accepts expr : ternary
+    * @param evaluateimmediate
     * 
     * @return value of expr
     *
     * @throws Exception
     */
-   private ExpressionNode parseSubExpression() throws Exception {
+   private ExpressionNode parseSubExpression(Mode mode) throws Exception {
+      // Save old mode and set new mode
+      Mode m = fMode;
+      fMode = mode;
       ExpressionNode left = parseTernary();
       Character ch = skipSpace();
       if ((ch == null) || (ch != ',')) {
+         fMode = m;
          return left;
       }
       ArrayList<ExpressionNode> list = new ArrayList<ExpressionNode>();
@@ -1345,6 +1371,8 @@ public class ExpressionParser {
             break;
          }
       } while(true);
+      // Restore mode
+      fMode = m;
       return new Expression.CommaListNode(list.toArray(new ExpressionNode[list.size()]));
    }
 
@@ -1387,12 +1415,12 @@ public class ExpressionParser {
     */
    ExpressionNode parseExpression(String expression) throws Exception {
       if (expression == null) {
-         return new Expression.BooleanNode(true);
+         return new Expression.BooleanConstantNode(true);
       }
       fExpressionString = expression;
       fIndex = 0;
       try {
-         ExpressionNode exp = parseSubExpression();
+         ExpressionNode exp = parseSubExpression(fMode);
          if ((fIndex) != fExpressionString.length()) {
             throw new Exception("Unexpected characters at end of expression, found='" + skipSpace());
          }
