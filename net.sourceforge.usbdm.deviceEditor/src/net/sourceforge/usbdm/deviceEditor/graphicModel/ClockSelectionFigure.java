@@ -77,7 +77,7 @@ public class ClockSelectionFigure {
             return GraphicMuxVariable.create(originX, originY, fId, fParams, canEdit, var);
 
          case node:
-            return GraphicNode.create(originX, originY, fId, fParams, canEdit, var);
+            return GraphicNode.create(originX, originY, fId, fParams, canEdit, var, variableProvider);
             
          case junction:
             return GraphicJunction.create(originX, originY, fId, fParams, canEdit, var);

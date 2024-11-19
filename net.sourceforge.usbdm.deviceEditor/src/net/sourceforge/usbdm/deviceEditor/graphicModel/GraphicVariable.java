@@ -53,6 +53,9 @@ public class GraphicVariable extends GraphicBaseVariable {
       gc.setFont(font);
       
       Variable var = getVariable();
+//      if (var.getName().contains("icsClockMode")) {
+//         System.err.println("Variable = "+var);
+//      }
       if (h>=2*vScale) {
          if ((this.getStyle()&NONAME) == 0) {
             Point p = map(-w/2+6, -17);

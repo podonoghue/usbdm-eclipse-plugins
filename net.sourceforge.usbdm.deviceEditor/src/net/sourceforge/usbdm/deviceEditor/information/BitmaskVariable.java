@@ -12,6 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class BitmaskVariable extends LongVariable {
@@ -568,8 +569,12 @@ public class BitmaskVariable extends LongVariable {
       }
       // Have fBitNames & fBitMapping
       for (int index=0; index<fBitInformation.bits.length; index++) {
-         fBitInformation.bits[index].bitName     = fBitInformation.bits[index].bitName.trim();
-         fBitInformation.bits[index].description = fBitInformation.bits[index].description.trim();
+         if (fBitInformation.bits[index].bitName != null) {
+            fBitInformation.bits[index].bitName     = fBitInformation.bits[index].bitName.trim();
+         }
+         if (fBitInformation.bits[index].description != null) {
+            fBitInformation.bits[index].description = fBitInformation.bits[index].description.trim();
+         }
       }
       
       if (isLogging()) {
@@ -596,7 +601,8 @@ public class BitmaskVariable extends LongVariable {
       for (int index=0; index<fBitInformation.bits.length; index++) {
          finalBitInfo[index] = new BitInformationEntry();
          finalBitInfo[index].initialiseFrom(fBitInformation.bits[index]);
-         if (finalBitInfo[index].description.startsWith("@")) {
+         if ((finalBitInfo[index].description!= null) &&
+             (finalBitInfo[index].description.startsWith("@"))) {
             try {
                finalBitInfo[index].description =
                      Expression.getValueAsString(finalBitInfo[index].description.substring(1), getProvider());
@@ -751,10 +757,13 @@ public class BitmaskVariable extends LongVariable {
          }
       }
       String format = getValueFormat();
-      if ((format == null)||(format.isBlank())) {
-         return hexValue;
+      if ((format != null)&&(!format.isBlank())) {
+         hexValue = String.format(format, hexValue);
       }
-      return String.format(format, hexValue);
+      if (isGenerateAsConstants()) {
+         hexValue = getBaseType() + "(" + hexValue + ")";
+      }
+      return hexValue;
    }
 
    /**
@@ -766,6 +775,9 @@ public class BitmaskVariable extends LongVariable {
     */
    public String getDefinitionValue(String value) {
       
+      if (fLogging) {
+         System.err.println("Logging");
+      }
       String[] valueFormats = getValueFormat().split(",");
       String[] vals         = value.split(",");
       if (valueFormats.length != vals.length) {
@@ -793,36 +805,24 @@ public class BitmaskVariable extends LongVariable {
       if (bitInformation != null) {
          StringBuilder sb = new StringBuilder();
          long value  = getValueAsLong();
-         int  bitsSetCount = 0;
+         int  countOfBitsSet = 0;
          for (int index=0; index<bitInformation.bits.length; index++) {
             if ((value & (1L<<bitInformation.bits[index].bitNum))!=0) {
                if (!sb.isEmpty()) {
-                  if (useEnumClass()) {
-                     // Values are ORed together
                      sb.append("|\n\\t ");
-                  }
-                  else {
-                     // Values are comma separated list
-                     sb.append(",\n\\t");
-                  }
                }
-               sb.append(getTypeName());
-               if (useEnumClass()) {
-                  sb.append("::");
-               }
-               else {
-                  sb.append("_");
-               }
-               sb.append(bitInformation.bits[index].bitName);
-               bitsSetCount++;
+               sb.append(makeEnumWithPrefix(bitInformation.bits[index].bitName));
+               countOfBitsSet++;
             }
          }
          String result = sb.toString();
-         if (bitsSetCount == 0) {
+         
+         if (countOfBitsSet == 0) {
+            // Create dummy value
             result = getTypeName()+"(0)";
          }
-         if (useEnumClass()&&(bitsSetCount>1)) {
-            result = "("+result+")";
+         else if ((countOfBitsSet > 1)&& (!getGenerateOperators())) {
+            result = getTypeName()+"("+result+")";
          }
          return result;
       }
@@ -892,5 +892,27 @@ public class BitmaskVariable extends LongVariable {
       return fRawPermittedBits;
    }
    
+   /**
+    * Convert an enum value into a complete enum for code use
+    * 
+    * @param enumValue
+    * 
+    * @return Converted value e.g. Disable => LowPower_Disabled
+    */
+   public String makeEnumWithPrefix(String enumValue) {
+      enumValue = ParseMenuXML.makeSafeIdentifierName(enumValue);
+      String prefix =  getEnumPrefix();
+      if (useEnumClass()) {
+         prefix = prefix + "::";
+      }
+      else {
+         prefix = prefix + "_";
+      }
+      if ((prefix == null) || (enumValue == null)) {
+         return null;
+      }
+      return prefix+enumValue;
+   }
+
    
 }

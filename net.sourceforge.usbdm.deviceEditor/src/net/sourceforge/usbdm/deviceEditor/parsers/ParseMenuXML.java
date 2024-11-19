@@ -1268,6 +1268,8 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setBaseType(otherVariable.getBaseType());
          variable.setEnabledBy(otherVariable.getEnabledBy());
          variable.setRegister(otherVariable.getRegister());
+//         variable.setGenerateOperators(otherVariable.getGenerateOperators());
+//         variable.setGenerateConstants(otherVariable.isGenerateAsConstants());
       }
       String addToVarNames = getAttributeAsString(varElement, "addToVar");
       if (addToVarNames != null) {
@@ -1288,6 +1290,12 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
       // Be careful not to overwrite derived values unless new value present
+      if (varElement.hasAttribute("generateAsConstants")) {
+         variable.setGenerateConstants(getAttributeAsBoolean(varElement, "generateAsConstants", false));
+      }
+      if (varElement.hasAttribute("generateOperators")) {
+         variable.setGenerateOperators(getAttributeAsBoolean(varElement, "generateOperators", false));
+      }
       if (varElement.hasAttribute("description")) {
          variable.setDescription(getAttributeAsString(varElement, "description"));
       }
@@ -1924,6 +1932,9 @@ public class ParseMenuXML extends XML_BaseParser {
       
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
+      if (variable.isLogging()) {
+         System.err.println("Found " + variable);
+      }
       generateEnum(varElement, variable);
       generateTable(varElement, variable);
    }
@@ -2113,10 +2124,17 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((typeName == null) || typeName.isBlank()) {
          return;
       }
+      // Defaults to generate enum
+      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
+      if ("false".equalsIgnoreCase(doEnum)) {
+         return;
+      }
       // Check for repeated enums in USBDM namespace
       String where = getAttributeAsString(varElement, "where", "usbdm");
-      if (("usbdm".equals(where) && (fPeripheral != null)) &&
-            getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
+      if (("usbdm".equals(where) &&
+         !variable.isGenerateAsConstants() &&
+         (fPeripheral != null)) &&
+         getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
          return;
       }
@@ -2143,7 +2161,16 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((typeName == null) || typeName.isBlank()) {
          return;
       }
-      if ((fPeripheral != null) &&
+      // Defaults to generate enum
+      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
+      if ("false".equalsIgnoreCase(doEnum)) {
+         return;
+      }
+      // Check for repeated enums in USBDM namespace
+      String where = getAttributeAsString(varElement, "where", "usbdm");
+      if ("usbdm".equals(where) &&
+         !variable.isGenerateAsConstants() &&
+         (fPeripheral != null) &&
          fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
          // These are common!
          return;
@@ -2165,6 +2192,11 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String baseType = getAttributeAsString(varElement, "baseType");
       if (baseType == null) {
+         return;
+      }
+      // Defaults to generate enum
+      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
+      if ("false".equalsIgnoreCase(doEnum)) {
          return;
       }
       // Use typeName attribute
@@ -2222,7 +2254,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @return  Converted name
     */
-   static String makeSafeIdentifierName(String name) {
+   public static String makeSafeIdentifierName(String name) {
       // Treat a list of pins etc as a special case
       String[] parts = name.split("/");
       if (parts.length>1) {
@@ -3591,7 +3623,7 @@ public class ParseMenuXML extends XML_BaseParser {
             // Arbitrary location
             // Key necessary
             if (key==null) {
-               throw new Exception("Attribute 'key' missing when 'where=all' ");
+               throw new Exception("Attribute 'key' or 'templateKey' missing when 'where=all' ");
             }
             namespace      = "all"; // Arbitrary location
             // discardRepeats unmodified
@@ -3633,7 +3665,7 @@ public class ParseMenuXML extends XML_BaseParser {
                if (codeGenCondition.contains("irqHandlingMethod")) {
                   continue;
                }
-               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
+               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace 'info'");
             }
             Variable var = fProvider.safeGetVariable("structName");
             String expectedGuard1 = (var==null)?"":"/"+var.getValueAsString()+"/_BasicInfoGuard";
@@ -3648,7 +3680,7 @@ public class ParseMenuXML extends XML_BaseParser {
                if (codeGenCondition.contains("enableGettersAndSetters")) {
                   continue;
                }
-               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
+               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace 'basicInfo'");
             }
             String expectedGuard3 = (var==null)?"":"/"+var.getValueAsString()+"/_CommonInfoGuard";
             String expectedGuard4 = (var==null)?"":"/"+var.getValueAsString()+"/_CommonInfoIrqGuard";
@@ -3662,7 +3694,7 @@ public class ParseMenuXML extends XML_BaseParser {
                if (codeGenCondition.contains("enableGettersAndSetters")) {
                   continue;
                }
-               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace '"+namespace+"'");
+               System.err.println("Guard '"+codeGenCondition+"' not expected with namespace 'commonInfo'");
             }
          } while (false);
       }
@@ -4099,8 +4131,20 @@ public class ParseMenuXML extends XML_BaseParser {
       }
 
       void parseGraphicBoxOrGroup(BaseModel parentModel, Element graphicElement) throws Exception {
-         
-         fParser.parseGrahicElement(parentModel, graphicElement, fClockSelectionFigure, fBoxX, fBoxY, fX, fY);
+
+         if (!fParser.checkCondition(graphicElement)) {
+            return;
+         }
+
+         for (Node node = graphicElement.getFirstChild();
+               node != null;
+               node = node.getNextSibling()) {
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+               continue;
+            }
+            Element element = (Element) node;
+            fParser.parseGrahicElement(parentModel, element, fClockSelectionFigure, fBoxX, fBoxY, fX, fY);
+         }
       }
    }
 
@@ -4153,8 +4197,11 @@ public class ParseMenuXML extends XML_BaseParser {
 
 private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSelectionFigure figure, int boxX, int boxY, int x, int y) throws Exception {
    
+   if (!checkCondition(graphic)) {
+      // Discard element
+      return;
+   }
    String tagName = graphic.getTagName();
-
    if (tagName == "graphicItem") {
       String id     = getAttributeAsString(graphic,     "id");
       String varKey = getKeyAttribute(graphic,          "var");
@@ -4203,13 +4250,13 @@ private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSel
       return;
    }
    if (tagName == "for") {
-      GraphicWrapper dummy = new GraphicWrapper(this, boxX, boxY, x, y, figure);
-      parseForLoop(parentModel, graphic, dummy);
+      GraphicWrapper wrapper = new GraphicWrapper(this, boxX, boxY, x, y, figure);
+      parseForLoop(parentModel, graphic, wrapper);
       return;
    }
    if (tagName == "immediateValue") {
-      GraphicWrapper dummy = new GraphicWrapper(this, boxX, boxY, x, y, figure);
-      parseImmediateValue(parentModel, graphic, dummy);
+      GraphicWrapper wrapper = new GraphicWrapper(this, boxX, boxY, x, y, figure);
+      parseImmediateValue(parentModel, graphic, wrapper);
       return;
    }
    if (tagName == "if") {

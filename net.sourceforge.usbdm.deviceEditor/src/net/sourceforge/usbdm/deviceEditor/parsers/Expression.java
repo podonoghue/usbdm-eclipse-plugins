@@ -800,34 +800,69 @@ public class Expression implements IModelChangeListener {
        */
       PrettyNode(ExpressionNode arg) throws Exception {
          super(arg, Type.String);
-         if (arg.fType != Expression.Type.String) {
-            throw new Exception("Expression cannot be prettified");
+
+         if (arg.fType != Type.List) {
+            // Must be a single string
+            if (arg.fType != Expression.Type.String) {
+               throw new Exception("Expression cannot be prettified");
+            }
+            return;
+         }
+         ExpressionNode[] args = ((CommaListNode)arg).getExpressionList();
+         if (args.length != 2) {
+            // Must be an argument (delimited String), and a delimiter (String)
+            throw new Exception("Expected arguments 'string[,delimiter]'");
          }
       }
 
       @Override
       Object eval() throws Exception {
-         String s = ((String) fArg.eval()).strip();
-         String res = s;
-         if (s.length()>2) {
-            if (s.matches("[A-Z_0-9]+")) {
-               // All upper-case
-               res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+
+         String arguments[]   = null;
+         String delimiter     = null;
+
+         if (fArg.fType != Type.List) {
+            // Must be a single name (String)
+            String argument  = (String) evalConstantArg(fArg, Type.String);
+            arguments = new String[1];
+            arguments[0] = argument;
+         }
+         else {
+            ExpressionNode[] args = ((CommaListNode)fArg).getExpressionList();
+            if (args.length != 2) {
+               // Must be an argument (delimited String), and a delimiter (String)
+               throw new Exception("Expected 1 arguments 'string,delimiter'");
             }
-            else if (s.matches("[a-z_0-9]+")) {
-               // All lower-case
-               res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+            delimiter   = (String)  evalConstantArg(args[1], Type.String);
+            arguments   = ((String) evalConstantArg(args[0], Type.String)).split(delimiter);
+         }
+         StringBuilder sb = new StringBuilder();
+         for (String s:arguments) {
+            if (!sb.isEmpty()) {
+               sb.append(delimiter);
             }
-            else {
-               // Mixed case
-               res = Character.toUpperCase(s.charAt(0))+s.substring(1);
+            s = s.strip();
+            String res = s;
+            if (s.length()>2) {
+               if (s.matches("[A-Z_0-9]+")) {
+                  // All upper-case
+                  res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+               }
+               else if (s.matches("[a-z_0-9]+")) {
+                  // All lower-case
+                  res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+               }
+               else {
+                  // Mixed case
+                  res = Character.toUpperCase(s.charAt(0))+s.substring(1);
+               }
+               sb.append(res);
             }
          }
-         //         System.err.println("prettify: '"+s+"' => '"+res+"'");
-         return res;
+         return sb.toString();
       }
    }
-
+   
    static class UppercaseNode extends UnaryExpressionNode {
 
       /**
@@ -1039,25 +1074,26 @@ public class Expression implements IModelChangeListener {
       }
 
       /**
-       * Create 'live' Expression node describing the signal
+       * Create 'live' Expression node describing the signal<br>
        * String is of format<br>
        * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description"</b>
        * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)"</b>
        * 
        * @param peripheral Peripheral owning the signal
-       * @param arg        Constant expression evaluating to the index of the signal in info table
+       * @param arg        Constant expression evaluating to<br>
+       * <li>            String Signal name e.g. ACMP0_IN0
+       * <li> (optional) String regex for filtering on signal description
+       * <li> (optional) String replacement pattern for use with regex to produce modified result<br>
+       * <br>
+       * Examples<br>
+       * Signal description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b><br>
+       * Signal example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b><br>
+       * Example filter:     <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       * Example replacement: <b>"$1 mapped to $3"</b><br>
+       * 
        * 
        * @throws Exception
        */
-      /**
-       * Get a information about signal and mapped pin. <br>
-       * Returns a string of format<br>
-       * <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description"</b>
-       * Example: <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)"</b>
-       * 
-       * @return
-       */
-
       private SignalDescriptionNode(Peripheral peripheral, ExpressionNode arg) throws Exception {
          super(Type.String);
 
@@ -1248,6 +1284,8 @@ public class Expression implements IModelChangeListener {
          }
          return pinName;
       }
+      
+      
    }
 
    static class MappedPinsListNode extends ExpressionNode {

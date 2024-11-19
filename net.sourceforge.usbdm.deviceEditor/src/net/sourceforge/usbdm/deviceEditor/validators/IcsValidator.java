@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -29,8 +28,11 @@ public class IcsValidator extends IndexedValidator {
          1*(1<<5), 2*(1<<5), 4*(1<<5), 8*(1<<5), 16*(1<<5), 32*(1<<5)
    };
 
-   /** Calculated MCG_C1_RDIV value */
-   private int ics_c1_rdiv;
+   // Offset added to ics_c1_rdiv to indicate high-range divisor is selected i.e. HIGH_RANGE_DIVISORS
+   static final int HIGH_RANGE_OFFSET = 8;
+   
+   @SuppressWarnings("unused")
+   private BooleanVariable allowUserClockTrimVar = null;
 
    public IcsValidator(PeripheralWithState peripheral, Integer dimension) {
       super(peripheral, dimension);
@@ -45,15 +47,15 @@ public class IcsValidator extends IndexedValidator {
     * 
     * @note Updates ics_c1_rdiv with best divider found
     * 
-    * @return True => Found suitable divider
+    * @return   Calculated ICS_C1_RDIV value (divider) or -1 if none found
     */
-   private boolean findFllDivider(long fllInputClock, int[] rangeDivisors) {
+   private int findFllDivider(long fllInputClock, int[] rangeDivisors) {
 
-      double nearestError        = Double.MAX_VALUE;
+      int    ics_c1_rdiv        = -1;
+      
+      double nearestError       = Double.MAX_VALUE;
       int    nearest_rdiv       = 0;
 
-      boolean found = false;
-      
       for (int ics_c1_rdiv_calc=0; ics_c1_rdiv_calc<rangeDivisors.length; ics_c1_rdiv_calc++) {
          
          double fllInputFrequency_calc = ((double)fllInputClock)/rangeDivisors[ics_c1_rdiv_calc];
@@ -78,22 +80,26 @@ public class IcsValidator extends IndexedValidator {
          }
          else {
             // In range
-            nearestError         = 0.0;
-            nearest_rdiv         = ics_c1_rdiv_calc;
+            nearestError          = 0.0;
+            nearest_rdiv          = ics_c1_rdiv_calc;
 //               System.err.println(String.format("=%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
-            found = true;
+            ics_c1_rdiv = nearest_rdiv;
+            if (rangeDivisors == HIGH_RANGE_DIVISORS) {
+               // This is an arbitrary offset to differentiate low/high ranges
+               ics_c1_rdiv += HIGH_RANGE_OFFSET;
+            }
             break;
          }
       }
-      ics_c1_rdiv = nearest_rdiv;
-      return found;
+      return ics_c1_rdiv;
    }
 
    /**
-    * Determines RDIV and MCG_C3_RANGE0
+    * Determines RDIV
     */
    @Override
    protected void validate(Variable variable, int properties, int index) throws Exception {
+      //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       final ChoiceVariable  ics_c1_rdivVar = getChoiceVariable("ics_c1_rdiv[]");
       
@@ -112,6 +118,13 @@ public class IcsValidator extends IndexedValidator {
          return;
       }
       
+//      if (ics_erc_clock == 0) {
+//         // ERC is zero => unavailable
+//         ics_c1_rdivVar.setValue(0);
+//         ics_c1_rdivVar.setStatus(new Status("RDIV not in use as Fin=0", Severity.INFO));
+//         return;
+//      }
+      
 //      final BooleanVariable fll_enabledVar = getBooleanVariable("fll_enabled[]");
 //      boolean frdivInUse  = fll_enabledVar.getValueAsBoolean();
       
@@ -127,21 +140,22 @@ public class IcsValidator extends IndexedValidator {
       
       // Find input range & divisor
       //==============================
-      boolean acceptableFrdivFound = false;
+      /** Calculated ICS_C1_RDIV value */
+      int    ics_c1_rdiv  = -1; // Assume fail
       
       // Use osc0_range unless unconstrained
       switch (osc_cr_range) {
       default:
       case 0:
-         acceptableFrdivFound = findFllDivider(ics_erc_clock, LOW_RANGE_DIVISORS);
+         ics_c1_rdiv = findFllDivider(ics_erc_clock, LOW_RANGE_DIVISORS);
          break;
       case 1:
-         acceptableFrdivFound = findFllDivider(ics_erc_clock, HIGH_RANGE_DIVISORS);
+         ics_c1_rdiv = findFllDivider(ics_erc_clock, HIGH_RANGE_DIVISORS);
          break;
       }
-      if (acceptableFrdivFound) {
-         ics_c1_rdivVar.setValue(ics_c1_rdiv+1);
+      if (ics_c1_rdiv >= 0) {
          ics_c1_rdivVar.clearStatus();
+         ics_c1_rdivVar.setValue(ics_c1_rdiv+1);
       }
       else {
          ics_c1_rdivVar.setValue(0);
@@ -151,21 +165,21 @@ public class IcsValidator extends IndexedValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      
+ 
       // Variables to watch
-      ArrayList<String> variablesToWatch = new ArrayList<String>();
-
-//      variablesToWatch.add("/OSC0/oscillatorRange");
-      variablesToWatch.add("/OSC0/osc_cr_range");
+      final String watchedVariables[] = {
+            "/OSC0/osc_cr_range",
+            "icsClockMode[]",
+            "ics_erc_clock[]",
+      };
+      addSpecificWatchedVariables(watchedVariables);
       
-//      variablesToWatch.add("fll_enabled[]");
-      variablesToWatch.add("icsClockMode[]");
-//      variablesToWatch.add("ics_c1_irefs[]");
-      variablesToWatch.add("ics_erc_clock[]");
-//      variablesToWatch.add("ics_c1_rdiv[]");
-
-      addSpecificWatchedVariables(variablesToWatch);
+      // Hide from user
+      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
+      enableClockConfigurationVar.setHidden(true);
       
+      allowUserClockTrimVar = safeGetBooleanVariable("allowUserClockTrim");
+
       // Don't add default dependencies
       return false;
    }

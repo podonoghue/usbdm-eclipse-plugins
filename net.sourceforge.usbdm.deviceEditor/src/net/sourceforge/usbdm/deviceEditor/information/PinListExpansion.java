@@ -130,7 +130,7 @@ public class PinListExpansion {
     * 
     * @throws Exception
     */
-   public static String[] expandPinList(String pattern, String delimeter) {
+   public static String[] expandPinList(String pattern, String delimiter) {
 
       if (pattern == null) {
          return null;
@@ -138,7 +138,7 @@ public class PinListExpansion {
       ArrayList<String> result = new ArrayList<String>();
 
       try {
-         for(String item:pattern.split(delimeter, -1)) {
+         for(String item:pattern.split(delimiter, -1)) {
             result.addAll(expand(item.trim()));
          }
       } catch (Exception e) {

@@ -188,10 +188,13 @@ abstract class TemplateContentBuilder {
          // Find maximum name length
          int maxTypeNameLength = 4;
          for (int index=0; index<variableList.size(); index++) {
-            if ((paramOverride.size()>index) && (paramOverride.get(index).equals("*"))) {
-               continue;
-            }
             String typeName = variableList.get(index).getTypeName();
+            if (paramOverride.size()>index) {
+               if (paramOverride.get(index).equals("*")) {
+                  continue;
+               }
+               typeName = paramOverride.get(index);
+            }
             if (typeName == null) {
                continue;
             }
@@ -343,8 +346,7 @@ abstract class TemplateContentBuilder {
             else {
                currentInitExpressionSb.append("\\t   "+linePadding);
             }
-            String t = symbolicExpression.replace("\\t", "\\t   "+linePadding);
-            currentInitExpressionSb.append(t);
+            currentInitExpressionSb.append(symbolicExpression.replace("\\t", "\\t   "+linePadding));
             if (index+1 == variableList.size()) {
                // Last Expression
                currentInitExpressionSb.append(terminator+"  ");
@@ -448,10 +450,6 @@ abstract class TemplateContentBuilder {
             }
             String fieldExtractN = variable.fieldExtractFromRegister(registerN);
 
-            if (paramName == null) {
-               paramName = "%paramName"+index+" not available";
-            }
-
             String fieldAssignmentN            = "";
             String constructorFieldAssignmentN = "";
             String configFieldAssignmentN      = "";
@@ -484,7 +482,9 @@ abstract class TemplateContentBuilder {
             substitutions.add(0, new StringPair("%macro"+index,                   macro));
             substitutions.add(0, new StringPair("%mask"+index,                    mask));
             substitutions.add(0, new StringPair("%paramDescription"+index,        paramDescriptionN));
-            substitutions.add(0, new StringPair("%paramName"+index,               paramName));
+            if (paramName != null) {
+               substitutions.add(0, new StringPair("%paramName"+index,               paramName));
+            }
             substitutions.add(0, new StringPair("%paramType"+index,               paramType));
             substitutions.add(0, new StringPair("%param"+index,                   param));
             substitutions.add(0, new StringPair("%registerName"+index,            registerNameN));
@@ -909,13 +909,16 @@ abstract class TemplateContentBuilder {
       protected final String              fEnumText;
       protected final String              fEnumGuard;
       protected final DeviceInfo          fDeviceInfo;
-      protected final boolean             fGenerateAsConstants;
+      protected final Boolean             fNoStem;
 
       public ChoiceEnumBuilder(ParseMenuXML parser, Element varElement, Variable variable) throws Exception {
          
-         fGenerateAsConstants = parser.getAttributeAsBoolean(varElement, "generateAsConstants", false);
+//         if (variable.isLogging()) {
+//            System.err.println("Logging");
+//         }
          fEnumText            = parser.getAttributeAsString(varElement,  "enumText", null);
          fEnumGuard           = parser.getAttributeAsString(varElement,  "enumGuard");
+         fNoStem              = parser.getAttributeAsBoolean(varElement, "noStem", false);
          fVariable            = variable;
          fDeviceInfo          = parser.getDeviceInfo();
 
@@ -978,9 +981,12 @@ abstract class TemplateContentBuilder {
       @Override
       public String build() throws Exception {
          
-         String typeName   = fVariable.getTypeName();
-         String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-         String baseType  = fVariable.getBaseType();
+         if(fVariable.isLogging()) {
+            System.err.println("Building definitions for "+ fVariable);
+         }
+         String enumPrefix = fVariable.getEnumPrefix();
+         String enumClass  = Character.toUpperCase(enumPrefix.charAt(0)) + enumPrefix.substring(1);
+         String baseType   = fVariable.getBaseType();
          
          VariableWithChoices varWithChoices = (VariableWithChoices) fVariable;
          
@@ -1008,6 +1014,9 @@ abstract class TemplateContentBuilder {
                   continue;
                }
                String completeEnumName = enumClass+"_"+enumName;
+               if (fNoStem) {
+                  completeEnumName = enumName;
+               }
                String completeValue = varWithChoices.getDefinitionValue(choice);
                
                CheckRepeats.Info entry  = enumNamesList.add(completeEnumName, completeValue, choice.getName());
@@ -1047,11 +1056,11 @@ abstract class TemplateContentBuilder {
                         Pin pin = signal.getMappedPin();
                         String pinName = null;
                         if ((pin != null)&&(pin != Pin.UNASSIGNED_PIN)) {
-                           pinName = pin.getName();
+                           pinName = pin.getPrettyName();
                         }
                         if ((pinName != null)&&!pinName.isBlank()) {
                            String newEnumName = enumClass+"_"+pinName;
-                           String desc = "Pin "+pinName;
+                           String desc = "Pin "+pin.getName();
                            entry = enumNamesList.add(newEnumName, completeValue, desc);
                         }
                      }
@@ -1078,10 +1087,9 @@ abstract class TemplateContentBuilder {
          }
          // Create enum body
          StringBuilder body = new StringBuilder();
-
          for (int index=0; index<enumNamesList.size(); index++) {
             CheckRepeats.Info entry = enumNamesList.get(index);
-            if (fGenerateAsConstants) {
+            if (varWithChoices.isGenerateAsConstants()) {
                body.append(String.format("\\tstatic constexpr %s %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
                      baseType, entry.fName, entry.fValue+";", entry.fComment));
             }
@@ -1094,7 +1102,7 @@ abstract class TemplateContentBuilder {
          if (fEnumText != null) {
             
             String enumText = fEnumText;
-            enumText = enumText.replace("%(typeName)",  typeName);
+            enumText = enumText.replace("%(typeName)",  enumPrefix);
             enumText = enumText.replaceAll("\\\\n",  "XXXX");
             
             body.append(enumText+"\n");
@@ -1115,12 +1123,15 @@ abstract class TemplateContentBuilder {
 
          Boolean useEnumClass = fVariable.useEnumClass();
 
-         if (fGenerateAsConstants) {
+         if (varWithChoices.isGenerateAsConstants()) {
             sb.append(body);
             sb.append("\\n\\n");
          }
          else {
             sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, baseType, body.toString()));
+         }
+         if (fVariable.getGenerateOperators()) {
+            addEnumOperators(sb, enumPrefix);
          }
          
          // Create entire declaration
@@ -1134,6 +1145,45 @@ abstract class TemplateContentBuilder {
       }
    };
    
+   /**
+    * Add enum operators
+    * 
+    * @param sb         Buffer to append operator text to
+    * @param typeName   Type name to use
+    */
+   static void addEnumOperators(StringBuilder sb, String typeName) {
+      
+      String typeOperators = ""
+            + "\\t/**\\n"
+            + "\\t * Combines two %typename values (by ORing)\\n"
+            + "\\t * Used to create new %typename mask\\n"
+            + "\\t * \\n"
+            + "\\t * @param left    Left operand\\n"
+            + "\\t * @param right   Right operand\\n"
+            + "\\t * \\n"
+            + "\\t * @return  Combined value\\n"
+            + "\\t */\\n"
+            + "\\tconstexpr %typename operator|(%typename left, %typename right) {\\n"
+            + "\\t   return %typename(long(left)|long(right));\\n"
+            + "\\t}\\n"
+            + "\\t\\n"
+            + "\\t/**\\n"
+            + "\\t * Combines two %typename values (by ANDing) to produce a bool result\\n"
+            + "\\t * Used to check a value against a %typename mask\\n"
+            + "\\t * \\n"
+            + "\\t * @param left    Left operand\\n"
+            + "\\t * @param right   Right operand\\n"
+            + "\\t * \\n"
+            + "\\t * @return boolean value indicating if the result is non-zero\\n"
+            + "\\t */\\n"
+            + "\\tconstexpr bool operator&(%typename left, %typename right) {\\n"
+            + "\\t   return bool(long(left)&long(right));\\n"
+            + "\\t}\\n"
+            + "\\t\\n";
+      typeOperators = typeOperators.replace("%typename", typeName);
+      sb.append(typeOperators);
+   }
+   
    static class BitmaskEnumBuilder extends ChoiceEnumBuilder {
 
       private final boolean fEmptyEnum;
@@ -1144,20 +1194,23 @@ abstract class TemplateContentBuilder {
          
          String doEnum = parser.getAttributeAsString(varElement, "generateEnum", "true");
          fEmptyEnum = "empty".equalsIgnoreCase(doEnum);
+//         System.err.println("BitmaskEnumBuilder for "+variable);
+//         if (variable.isLogging()) {
+//            System.err.println("BitmaskEnumBuilder for "+variable);
+//         }
       }
 
       @Override
       public String build() throws Exception {
          
-         BitmaskVariable bmv = (BitmaskVariable) fVariable;
-         String typeName   = bmv.getTypeName();
-         String enumClass  = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-         String fBaseType  = fVariable.getBaseType();
+         BitmaskVariable var = (BitmaskVariable) fVariable;
+         String enumPrefix   = var.getEnumPrefix();
+         String enumClass    = Character.toUpperCase(enumPrefix.charAt(0)) + enumPrefix.substring(1);
+         String baseType     = var.getBaseType();
          
-         BitmaskVariable variable = bmv;
-         BitInformation bitInformation = variable.getFinalBitInformation();
+         BitInformation bitInformation = var.getFinalBitInformation();
 
-         Boolean useEnumClass = bmv.useEnumClass();
+         Boolean useEnumClass = var.useEnumClass();
 
          // Accumulate enum information
          CheckRepeats enumNamesList = new CheckRepeats();
@@ -1165,9 +1218,12 @@ abstract class TemplateContentBuilder {
 //         CheckRepeats.Info entry = enumNamesList.add((useEnumClass?"":enumClass+"_")+"None", "0", "None");
          
          for (int index=0; index<bitInformation.bits.length; index++) {
-//            String completeValue    = bmv.formatUsageValue(Integer.toString(1<<bitMap[index]));
-            String completeEnumName = (useEnumClass?"":enumClass+"_")+ParseMenuXML.makeSafeIdentifierName(bitInformation.bits[index].bitName);
-            String completeValue    = bmv.getDefinitionValue(bitInformation.bits[index]);
+            String enumStem="";
+            if (!var.useEnumClass()) {
+               enumStem = enumClass+"_";
+            }
+            String completeEnumName = enumStem + ParseMenuXML.makeSafeIdentifierName(bitInformation.bits[index].bitName);
+            String completeValue    = var.getDefinitionValue(bitInformation.bits[index]);
             String description      = bitInformation.bits[index].description;
             CheckRepeats.Info entry = enumNamesList.add(completeEnumName, completeValue, description);
             if (entry == null) {
@@ -1180,9 +1236,9 @@ abstract class TemplateContentBuilder {
          if (!fEmptyEnum) {
             for (int index=0; index<enumNamesList.size(); index++) {
                CheckRepeats.Info entry = enumNamesList.get(index);
-               if (fGenerateAsConstants) {
+               if (var.isGenerateAsConstants()) {
                   body.append(String.format("\\tstatic constexpr %s %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
-                        fBaseType, entry.fName, entry.fValue+";", entry.fComment));
+                        baseType, entry.fName, entry.fValue+";", entry.fComment));
                }
                else {
                   body.append(String.format("\\t   %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
@@ -1194,60 +1250,31 @@ abstract class TemplateContentBuilder {
          // Add enum text
          if (fEnumText != null) {
             String enumText = fEnumText;
-            enumText = enumText.replace("%(typeName)",  typeName);
+            enumText = enumText.replace("%(typeName)",  enumPrefix);
             enumText = enumText.replaceAll("\\\\n[ ]*\\\\t",  "\n\\\\t");
             
             body.append(enumText+"\n");
          }
-         if (fBaseType != null) {
-            fBaseType = " : "+fBaseType;
+         if (baseType != null) {
+            baseType = " : "+baseType;
          }
-         String description   = XML_BaseParser.escapeString(variable.getDescriptionAsCode());
-         String tooltip       = XML_BaseParser.escapeString(variable.getToolTipAsCode());
+         String description   = XML_BaseParser.escapeString(var.getDescriptionAsCode());
+         String tooltip       = XML_BaseParser.escapeString(var.getToolTipAsCode());
 
          StringBuilder sb = new StringBuilder();
          
          // Prefix with comments
-         sb.append(String.format(prefixTemplate, description, variable.getName(), tooltip));
+         sb.append(String.format(prefixTemplate, description, var.getName(), tooltip));
          
-         if (fGenerateAsConstants) {
+         if (var.isGenerateAsConstants()) {
             sb.append(body);
             sb.append("\\n\\n");
          }
          else {
-            sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, fBaseType, body.toString()));
+            sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, baseType, body.toString()));
          }
-         
-         if (useEnumClass) {
-            String typeOperators = ""
-                  + "\\t/**\\n"
-                  + "\\t * Combines two %typename values (by ORing)\\n"
-                  + "\\t * Used to create new %typename mask\\n"
-                  + "\\t * \\n"
-                  + "\\t * @param left    Left operand\\n"
-                  + "\\t * @param right   Right operand\\n"
-                  + "\\t * \\n"
-                  + "\\t * @return  Combined value\\n"
-                  + "\\t */\\n"
-                  + "\\tconstexpr %typename operator|(%typename left, %typename right) {\\n"
-                  + "\\t   return %typename(long(left)|long(right));\\n"
-                  + "\\t}\\n"
-                  + "\\t\\n"
-                  + "\\t/**\\n"
-                  + "\\t * Combines two %typename values (by ANDing) to produce a bool result\\n"
-                  + "\\t * Used to check a value against a %typename mask\\n"
-                  + "\\t * \\n"
-                  + "\\t * @param left    Left operand\\n"
-                  + "\\t * @param right   Right operand\\n"
-                  + "\\t * \\n"
-                  + "\\t * @return boolean value indicating if the result is non-zero\\n"
-                  + "\\t */\\n"
-                  + "\\tconstexpr bool operator&(%typename left, %typename right) {\\n"
-                  + "\\t   return bool(long(left)&long(right));\\n"
-                  + "\\t}\\n"
-                  + "\\t\\n";
-            typeOperators = typeOperators.replace("%typename", typeName);
-            sb.append(typeOperators);
+         if (var.getGenerateOperators()) {
+            addEnumOperators(sb, enumPrefix);
          }
          // Create entire declaration
          String entireDeclaration = sb.toString();

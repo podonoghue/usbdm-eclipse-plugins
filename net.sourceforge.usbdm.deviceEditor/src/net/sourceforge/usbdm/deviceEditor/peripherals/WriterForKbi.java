@@ -62,8 +62,8 @@ public class WriterForKbi extends PeripheralWithState {
             continue;
          }
          String trailingComment  = pin.getNameWithLocation();
-         String type = "Kbi"+getInstance()+"PinIndex";
-         String pinName = type + "_" + prettyPinName(pin.getName());
+         String type = "KbiPinIndex";
+         String pinName = "Kbi"+getInstance()+"PinIndex" + "_" + pin.getName().toUpperCase();
          writeConstexprValue(hardwareDeclarationInfo, signal.getUserDescription(), cIdentifier, type, pinName, trailingComment);
       }
    }

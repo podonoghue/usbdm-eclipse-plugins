@@ -138,6 +138,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    /** Associated signal identifier */
    private String fAssociatedSignalName;
 
+   /** Generate enum as constexpr constants using base type */
+   private boolean fGenerateAsConstants;
+   
+   /** Indicate enum operators are to be generated */
+   private boolean fGenerateOperators;
+
    /**
     * Constructor
     * 
@@ -1186,7 +1192,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
    
    /**
-    * Get type for enum code generation e.g. tttt => <br>
+    * Get prefix for enum code generation e.g. Tttt => <br>
     * <pre>
     *    enum Tttt {
     *       Tttt_aaa,
@@ -1194,12 +1200,26 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     *       Tttt_ccc,
     *       };
     * </pre>
+    * 
+    * @return Enumeration type/stem
+    */
+   public String getEnumPrefix() {
+      return fTypeName;
+   }
+
+   /**
+    * Get type of variable.
     * This is also used for return type of functions
     * 
     * @return Enumeration type/stem
     */
    public String getTypeName() {
-      return fTypeName;
+      if (isGenerateAsConstants()) {
+         return fBaseType;
+      }
+      else {
+         return fTypeName;
+      }
    }
 
    /**
@@ -2093,5 +2113,42 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       return new MaskPair(mask, macro);
    }
 
+   /**
+    * Indicates that enums are generated as constexpr constants using base type
+    *
+    * @param generateAsConstants
+    */
+   public void setGenerateConstants(boolean generateAsConstants) {
+      fGenerateAsConstants = generateAsConstants;
+   }
+
+   /**
+    * Indicates that enums are generated as constexpr constants using base type
+    *
+    * @return flag value
+    */
+   public boolean isGenerateAsConstants() {
+      return fGenerateAsConstants;
+   }
+   
+
    abstract public boolean isZero();
+   
+   /**
+    * Indicate enum operators are to be generated
+    * 
+    * @param attributeAsBoolean
+    */
+   public void setGenerateOperators(Boolean generateOperators) {
+      fGenerateOperators = generateOperators;
+   }
+
+   /**
+    * Indicate enum operators are to be generated
+    * 
+    * @return the fGenerateOperators
+    */
+   public Boolean getGenerateOperators() {
+      return fGenerateOperators;
+   }
 }

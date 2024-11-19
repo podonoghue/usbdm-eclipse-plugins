@@ -11,6 +11,8 @@ import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class GraphicNode extends GraphicBaseVariable {
 
@@ -27,14 +29,12 @@ public class GraphicNode extends GraphicBaseVariable {
       outputs[0] = new Point(+w/2, 0);
    }
 
-   public static GraphicNode create(int originX, int originY, String id, String params, Boolean canEdit, Variable var) throws Exception {
+   public static GraphicNode create(int originX, int originY, String id, String params, Boolean canEdit, Variable var, VariableProvider provider) throws Exception {
       try {
          String paramsArray[] = params.split(",");
-         int x = originX+Integer.parseInt(paramsArray[0].trim());
-         int y = originY+Integer.parseInt(paramsArray[1].trim());
-
-         GraphicNode t = new GraphicNode(x, y, id, canEdit, var);
-
+         Long x = Expression.getValueAsLong(paramsArray[0], provider) + originX;
+         Long y = Expression.getValueAsLong(paramsArray[1], provider) + originY;
+         GraphicNode t = new GraphicNode(x.intValue(), y.intValue(), id, canEdit, var);
          t.addInputsAndOutputs(2, paramsArray, 10, 10);
          return t;
       } catch (Exception e) {

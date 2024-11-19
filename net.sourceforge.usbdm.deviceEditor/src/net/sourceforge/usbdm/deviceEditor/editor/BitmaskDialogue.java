@@ -12,7 +12,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformation;
@@ -99,8 +98,8 @@ public class BitmaskDialogue extends Dialog {
             btn.setEnabled(true);
             fButtons[nameIndex] = btn;
             if (fBitInformation.bits[nameIndex].description != null) {
-               Text text = new Text(container, SWT.LEFT);
-               text.setText(fBitInformation.bits[nameIndex].description);
+               Label text = new Label(container, SWT.LEFT);
+               text.setText("- " + fBitInformation.bits[nameIndex].description);
             }
             
             if ((fBitInformation.bits[nameIndex].bitNum == BitmaskVariable.BIT_INDEX_ALL) ||

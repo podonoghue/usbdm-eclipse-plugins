@@ -1556,14 +1556,14 @@ public class CreateDeviceSkeletonFromSVD {
             + "\n"
             + "   <template where=\"info\" codeGenCondition=\"$(_InfoGuard)\" >\n"
             + "   <![CDATA[\n"
-            + "      \\t/*\n"
+            + "      \\t/**\n"
             + "      \\t *   Default Constructor\n"
             + "      \\t */\n"
             + "      \\t$(_Info)() : $(_BasicInfo)($(_basename)) {\n"
             + "      \\t   defaultConfigure();\n"
             + "      \\t}\n"
             + "      \\t\n"
-            + "      \\t/*\n"
+            + "      \\t/**\n"
             + "      \\t *   Constructor\n"
             + "      \\t */\n"
             + "      \\t$(_Info)(const Init &init) : $(_BasicInfo)($(_basename)) {\n"
@@ -1657,30 +1657,11 @@ public class CreateDeviceSkeletonFromSVD {
             + "      \\t * Default initialisation value for $(_Class)\n"
             + "      \\t * This value is created from Configure.usbdmProject settings\n"
             + "      \\t */\n"
-            + "      \\tstatic constexpr $(_BasicInfo)::Init DefaultInitValue = {\\n\n"
+            + "      \\tstatic constexpr Init DefaultInitValue = {\\n\n"
             + "   ]]>\n"
             + "   </template>\n"
-            + "   <!-- Interrupt information -->\n"
-            + "<!--\n"
-            + "   <for keys=\"irqName\" values=\"=_hardwareIrqNums\">\n"
-            + "      <equation key=\"irqEnum\" value='=ReplaceAll(\"%(irqName)\",\"^(.*?)_(.*)_IRQn$\",\"IrqNum_$2\")' />\n"
-            + "      <equation key=\"var\"     value='=ReplaceAll(\"%(irqName)\",\"^(.*?)_(.*)_IRQn$\",\"irqLevel_$2\")' />\n"
-            + "      <print text=\"(irqName) = %(irqName)\"/>\n"
-            + "      <printVar key=\"irqEnum\" />\n"
-            + "      <printVar key=\"var\" />\n"
-            + "      <variableTemplate where=\"info\" codeGenCondition='$(_InfoIrqGuard)&amp;&amp;!IsZero(@var)'\n"
-            + "         variables='=var'\n"
-            + "         separator=\",\"\n"
-            + "         terminator=\",\"\n"
-            + "         padToComments=\"40\"\n"
-            + "         immediateVariables=\"irqEnum\" >\n"
-            + "      <![CDATA[\n"
-            + "         \\t   $(irqEnum), %initExpression,\n"
-            + "         \\t   unhandledCallback,\\n\n"
-            + "      ]]>\n"
-            + "      </variableTemplate>\n"
-            + "   </for>\n"
-            + "-->\n";
+            + "   <xi:include href=\"irqHandlingInit.xml\"    />\n";
+      
       resultSb.append(initValueTemplate1);
 
       /*
@@ -1694,11 +1675,15 @@ public class CreateDeviceSkeletonFromSVD {
             + "      variables=\"%s\n"
             + "            \" >\n"
             + "   <![CDATA[\n"
-            + "      \\t%%initNonZeroValues\n"
+            + "      \\t%%initNonZeroValues\\n\n"
+            + "   ]]></variableTemplate>\n"
+            + "   <template codeGenCondition=\"$(_InfoGuard)\"\n"
+            
+            + "   ><![CDATA[\n"
             + "      \\t};\n"
             + "      \\t\\n\n"
-            + "   ]]>\n"
-            + "   </variableTemplate>\n";
+            + "   ]]></template>\n"
+            + "";
       
       
       VisitRegisters createInitValueFieldList = new VisitRegisters(peripheral) {
@@ -1751,7 +1736,7 @@ public class CreateDeviceSkeletonFromSVD {
       
       createInitValueFieldList.visit();
       
-      resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString()+",", ""));
+      resultSb.append(String.format(initValueTemplate, createInitValueFieldList.getResultAsString(), ""));
       
       writeBanner(resultSb, "END Info class");
    }
@@ -1918,7 +1903,7 @@ public class CreateDeviceSkeletonFromSVD {
    static String peripheralsToDo[] = {
 //         "ACMP",
 //         "ADC",
-//         "CAN",
+         "CAN",
 //         "CMP",
 //         "CMT",
 //         "CRC",
@@ -1936,7 +1921,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "IRQ",
 //         "I2C",
 //         "I2S",
-//         "KBI",
+         "KBI",
 //         "LPTMR",
 //         "LPUART",
 //         "LLWU",
@@ -1944,7 +1929,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "MPU",
 //         "OSC",
 //         "PDB",
-         "PIT",
+//         "PIT",
 //         "PMC",
 //         "PORT",
 //         "PWT",
@@ -2055,14 +2040,14 @@ public class CreateDeviceSkeletonFromSVD {
       useStaticMethods=true;
 //      doAllPeripherals("STM32F030", "mke");
 //      doAllPeripherals("FRDM_KE04Z", "mke");
-//      doAllPeripherals("FRDM_KE06Z", "mke");
+      doAllPeripherals("FRDM_KE06Z", "mke");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
 //    doAllPeripherals("FRDM_K20D50M", "mk");
-    doAllPeripherals("FRDM_K22F", "mk");
+//    doAllPeripherals("FRDM_K22F", "mk");
 //    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");
 //      doAllPeripherals("FRDM_K64F", "mk");

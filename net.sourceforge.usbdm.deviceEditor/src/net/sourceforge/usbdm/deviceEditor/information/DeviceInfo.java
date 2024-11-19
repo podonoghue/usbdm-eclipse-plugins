@@ -2139,7 +2139,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for (String key:fVariables.keySet()) {
          Variable var = fVariables.get(key);
          if (!var.isDerived() && !var.isDefault()) {
-            System.err.println("Saving '" + key + "'");
+//            System.err.println("Saving '" + key + "'");
             settings.put(key, var.getPersistentValue());
          }
       }
@@ -2565,7 +2565,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          MenuData initialMenuData = ParseMenuXML.parseMenuFile("new_project_actions", variableProvider);
          processProjectActions.process(actionRecord, project, initialMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
       }
-      
       processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
    }
 

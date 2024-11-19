@@ -217,6 +217,18 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
+    * Get pretty name of the pin, usually the port name e.g. Pta1
+    * 
+    * @return Pin name
+    */
+   public String getPrettyName() {
+      if (fName.length()>1) {
+         return fName.substring(0,1).toUpperCase()+fName.substring(1).toLowerCase();
+      }
+      return fName.substring(0,1).toUpperCase();
+   }
+   
+   /**
     * Get location of the pin e.g. p23
     * 
     * @return Pin name or null if not found in current package
@@ -1008,6 +1020,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          notifyStructureChangeListeners();
       }
    }
+
 
 
 }

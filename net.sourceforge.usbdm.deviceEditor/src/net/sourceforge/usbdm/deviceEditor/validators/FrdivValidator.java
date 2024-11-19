@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -36,9 +34,6 @@ public class FrdivValidator extends IndexedValidator {
    // Offset added to mcg_c1_frdiv to indicate high-range divisor is selected i.e. HIGH_RANGE_DIVISORS
    static final int HIGH_RANGE_OFFSET = 8;
    
-   /** Calculated MCG_C1_FRDIV value */
-   private int  mcg_c1_frdiv;
-
    public FrdivValidator(PeripheralWithState peripheral, Integer dimension) {
       super(peripheral, dimension);
    }
@@ -52,15 +47,15 @@ public class FrdivValidator extends IndexedValidator {
     * 
     * @note Updates mcg_c1_frdiv with best divider found
     * 
-    * @return True => Found suitable divider
+    * @return   Calculated MCG_C1_FRDIV value (divider) or -1 if none found
     */
-   private boolean findFllDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) {
+   private int findFllDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) {
 
+      int    mcg_c1_frdiv        = -1;
+      
       double nearestError        = Double.MAX_VALUE;
       int    nearest_frdiv       = 0;
 
-      boolean found = false;
-      
       for (int mcg_c1_frdiv_calc=0; mcg_c1_frdiv_calc<rangeDivisors.length; mcg_c1_frdiv_calc++) {
          
          double fllInputFrequency_calc = ((double)fllInputClock)/rangeDivisors[mcg_c1_frdiv_calc];
@@ -88,15 +83,15 @@ public class FrdivValidator extends IndexedValidator {
             nearestError          = 0.0;
             nearest_frdiv         = mcg_c1_frdiv_calc;
 //               System.err.println(String.format("=%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
-            found = true;
+            mcg_c1_frdiv = nearest_frdiv;
+            if (rangeDivisors == HIGH_RANGE_DIVISORS) {
+               // This is an arbitrary offset to differentiate low/high ranges
+               mcg_c1_frdiv += HIGH_RANGE_OFFSET;
+            }
             break;
          }
       }
-      mcg_c1_frdiv = nearest_frdiv;
-      if (rangeDivisors == HIGH_RANGE_DIVISORS) {
-         mcg_c1_frdiv += HIGH_RANGE_OFFSET;
-      }
-      return found;
+      return mcg_c1_frdiv;
    }
 
    /**
@@ -104,6 +99,7 @@ public class FrdivValidator extends IndexedValidator {
     */
    @Override
    protected void validate(Variable variable, int properties, int index) throws Exception {
+      //      System.err.println(getSimpleClassName()+" "+variable +", Index ="+index);
 
       final BooleanVariable mcg_c1_irefsVar    = getBooleanVariable("mcg_c1_irefs[]");
       final ChoiceVariable  mcg_c1_frdivVar    = getChoiceVariable("mcg_c1_frdiv[]");
@@ -153,15 +149,16 @@ public class FrdivValidator extends IndexedValidator {
       }
       
       final BooleanVariable fll_enabledVar = getBooleanVariable("fll_enabled[]");
-      boolean frdivInUse  = fll_enabledVar.getValueAsBoolean();
+      boolean fllInUse  = fll_enabledVar.getValueAsBoolean();
       
-      mcg_c1_frdivVar.setLocked(frdivInUse);
+      mcg_c1_frdivVar.setLocked(fllInUse);
       
-      if (!frdivInUse) {
+      if (!fllInUse) {
          
          // FRDIV not used by FLL - don't update value
          mcg_c1_frdivVar.clearStatus();
-         mcg_c1_frdivVar.setOrigin("");
+         mcg_c1_frdivVar.setOrigin("Manual Selection");
+         mcg_c1_frdivVar.setLocked(false);
          
          if (oscillatorRange != UNCONSTRAINED_RANGE) {
             // Range is controlled by OSC
@@ -176,6 +173,7 @@ public class FrdivValidator extends IndexedValidator {
          }
          return;
       }
+      mcg_c1_frdivVar.setLocked(true);
       
       // Find input range & divisor
       //==============================
@@ -188,11 +186,12 @@ public class FrdivValidator extends IndexedValidator {
       final BooleanVariable mcg_c4_dmx32Var = getBooleanVariable("mcg_c4_dmx32[]");
       boolean mcg_c4_dmx32 = mcg_c4_dmx32Var.getValueAsBoolean();
       
-      boolean acceptableFrdivFound = false;
-      
+      /** Calculated MCG_C1_FRDIV value */
+      int mcg_c1_frdiv  = -1; // Assume fail
+
       if (mcg_c7_oscsel == 1) {
          // ERC = RTCCLK - Forced to LOW_RANGE_DIVISORS, mcg_c2_range has no effect on FRDIV
-         acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+         mcg_c1_frdiv = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
 
          if (oscillatorRange == UNCONSTRAINED_RANGE) {
             // Range has no effect on FRDIV or OSC
@@ -203,14 +202,14 @@ public class FrdivValidator extends IndexedValidator {
          // Use osc0_range unless unconstrained
          switch (oscillatorRange) {
          case 0:
-            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+            mcg_c1_frdiv = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
             // Use value to suit oscillator
             mcg_c2_range        = oscillatorRange;
             mcg_c2_rangeOrigin  = "Determined by OSC0";
             break;
          case 1:
          case 2:
-            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
+            mcg_c1_frdiv = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
             // Use value to suit oscillator
             mcg_c2_range        = oscillatorRange;
             mcg_c2_rangeOrigin  = "Determined by OSC0";
@@ -220,19 +219,19 @@ public class FrdivValidator extends IndexedValidator {
             // Unconstrained - try both sets of dividers
             // Use whichever mcg_c2_range works for FLL
             mcg_c2_range = 0;
-            acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
-            if (!acceptableFrdivFound) {
+            mcg_c1_frdiv = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
+            if (mcg_c1_frdiv<0) {
                mcg_c2_range = 1;
-               acceptableFrdivFound = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
+               mcg_c1_frdiv = findFllDivider(mcg_erc_clock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
             }
             mcg_c2_rangeOrigin  = "Determined by FLL";
             break;
          }
       }
       mcg_c1_frdivVar.setOrigin("Determined by FLL input constraints");
-      if (acceptableFrdivFound) {
-         mcg_c1_frdivVar.setValue(mcg_c1_frdiv+1); // Offset +1 as disabled selection as 1st entry
+      if (mcg_c1_frdiv >= 0) {
          mcg_c1_frdivVar.clearStatus();
+         mcg_c1_frdivVar.setValue(mcg_c1_frdiv+1); // Offset +1 as disabled selection as 1st entry
       }
       else {
          mcg_c1_frdivVar.setValue(0);
@@ -246,21 +245,23 @@ public class FrdivValidator extends IndexedValidator {
 
    @Override
    protected boolean createDependencies() throws Exception {
-      
+ 
       // Variables to watch
-      ArrayList<String> variablesToWatch = new ArrayList<String>();
-
-      variablesToWatch.add("/OSC0/oscillatorRange");
-      variablesToWatch.add("mcg_erc_clock[]");
+      final String watchedVariables[] = {
+            "/OSC0/oscillatorRange",
+            "mcgClockMode[]",
+            "mcg_erc_clock[]",
+            "fll_enabled[]",
+            "mcg_c1_irefs[]",
+            "mcg_c7_oscsel[]",
+            "mcg_c4_dmx32[]",
+      };
+      addSpecificWatchedVariables(watchedVariables);
       
-      variablesToWatch.add("fll_enabled[]");
-      variablesToWatch.add("mcg_c1_irefs[]");
-      variablesToWatch.add("mcg_c7_oscsel[]");
-      variablesToWatch.add("mcg_c4_dmx32[]");
-      variablesToWatch.add("mcgClockMode[]");
+      // Hide from user
+      Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
+      enableClockConfigurationVar.setHidden(true);
 
-      addSpecificWatchedVariables(variablesToWatch);
-      
       // Don't add default dependencies
       return false;
    }

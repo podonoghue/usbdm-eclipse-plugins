@@ -21,7 +21,7 @@ public abstract class VariableWithChoices extends Variable {
 
    /** Name of table to produce in C code */
    private String fTableName;
-   
+
    public VariableWithChoices(VariableProvider provider, String name, String key) {
       super(provider, name, key);
    }
@@ -96,6 +96,7 @@ public abstract class VariableWithChoices extends Variable {
          return false;
       }
       // Set 'safe' value
+      System.err.println("checkChoiceIndex() Changing to default option");
       return setChoiceIndex(findFirstAvailableIndex());
    }
    
@@ -568,17 +569,21 @@ public abstract class VariableWithChoices extends Variable {
                return "Illegal use of formatParam - unexpected pattern '"+valueFormat+"'";
             }
             String macro = m.group(1);
-            if (!sb.isEmpty()) {
-               sb.append("|");
-               needBracketForMask = true;
+            if (!macro.isBlank()) {
+               if (!sb.isEmpty()) {
+                  sb.append("|");
+                  needBracketForMask = true;
+               }
+               sb.append(macro+"_MASK");
             }
-            sb.append(macro+"_MASK");
          }
          String mask = sb.toString();
-         if (needBracketForMask) {
-            mask = "("+mask+")";
+         if (!mask.isBlank()) {
+            if (needBracketForMask) {
+               mask = "("+mask+")";
+            }
+            registerValue = String.format("%s&%s", registerValue, mask);
          }
-         registerValue = String.format("%s&%s", registerValue, mask);
          if (typeName == null) {
             registerValue = "("+registerValue+")";
          }
@@ -629,13 +634,17 @@ public abstract class VariableWithChoices extends Variable {
     * @return Converted value e.g. Disable => LowPower_Disabled
     */
    protected String makeEnum(String enumValue) {
-      if (getTypeName() == null) {
+      String prefix = null;
+      if (isGenerateAsConstants()) {
+         prefix = getBaseType();
+      }
+      else {
+         prefix = getTypeName();
+      }
+      if ((prefix == null) || (enumValue == null)) {
          return null;
       }
-      if (enumValue == null) {
-         return null;
-      }
-      return getTypeName()+"_"+enumValue;
+      return prefix+"_"+enumValue;
    }
-   
+
 }

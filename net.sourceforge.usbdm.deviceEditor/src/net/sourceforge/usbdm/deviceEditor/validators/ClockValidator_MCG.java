@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -175,9 +173,6 @@ public class ClockValidator_MCG extends IndexedValidator {
    @Override
    protected boolean createDependencies() throws Exception {
  
-      // Variable to watch
-      ArrayList<String> variablesToWatch = new ArrayList<String>();
-
       final String watchedVariables[] = {
             "allowUserClockTrim",
             "system_slow_irc_clock[]",
@@ -192,13 +187,6 @@ public class ClockValidator_MCG extends IndexedValidator {
       };
       addSpecificWatchedVariables(watchedVariables);
       
-
-      
-      // mcg_erc_clock is the main clock input to MCG
-      variablesToWatch.add("mcg_erc_clock[]");
-
-      addSpecificWatchedVariables(variablesToWatch);
-
       // Hide from user
       Variable enableClockConfigurationVar = getVariable("enableClockConfiguration[0]");
       enableClockConfigurationVar.setHidden(true);

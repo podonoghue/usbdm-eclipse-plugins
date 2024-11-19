@@ -58,9 +58,11 @@ public class ChoiceVariable extends VariableWithChoices {
       if ((fValue != null)&&(fValue.equals(index))) {
          return false;
       }
+//      System.err.println(getKey()+" - Before index="+index+", fValue="+fValue);
       fValue = index;
+//      System.err.println(getKey()+" - After  index="+index+", fValue="+fValue);
       if (isLogging()) {
-         System.err.println("After setChoiceIndex("+index+") "+getKey());
+         System.err.println("After setChoiceIndex("+index+") "+this);
       }
       return true;
    }
