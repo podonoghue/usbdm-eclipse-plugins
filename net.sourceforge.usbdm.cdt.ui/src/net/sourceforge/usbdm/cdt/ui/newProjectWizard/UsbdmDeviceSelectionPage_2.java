@@ -394,10 +394,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private String getExternalProjectHeaderFile(Device device) {
 
       // Try under device name
-      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
+      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
       if (externalHeaderFile == null) {
          // Try using subFamily header file
-         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
+         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
       }
       if (externalHeaderFile == null) {
          // Try under alias name
@@ -772,7 +772,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       // Try to locate device specific header file
       String externalHeaderFile = getExternalProjectHeaderFile(device);
-      //      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
+      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
 
       // Try to locate device specific vector table file
       String externalVectorTableFile = getExternalVectorTable(device);

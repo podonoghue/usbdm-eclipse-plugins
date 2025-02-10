@@ -1903,7 +1903,7 @@ public class CreateDeviceSkeletonFromSVD {
    static String peripheralsToDo[] = {
 //         "ACMP",
 //         "ADC",
-         "CAN",
+//         "CAN",
 //         "CMP",
 //         "CMT",
 //         "CRC",
@@ -1921,7 +1921,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "IRQ",
 //         "I2C",
 //         "I2S",
-         "KBI",
+//         "KBI",
 //         "LPTMR",
 //         "LPUART",
 //         "LLWU",
@@ -2040,10 +2040,11 @@ public class CreateDeviceSkeletonFromSVD {
       useStaticMethods=true;
 //      doAllPeripherals("STM32F030", "mke");
 //      doAllPeripherals("FRDM_KE04Z", "mke");
-      doAllPeripherals("FRDM_KE06Z", "mke");
+//      doAllPeripherals("FRDM_KE06Z", "mke");
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
+    doAllPeripherals("FRDM_KL27Z","mkl");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
 //    doAllPeripherals("FRDM_K20D50M", "mk");

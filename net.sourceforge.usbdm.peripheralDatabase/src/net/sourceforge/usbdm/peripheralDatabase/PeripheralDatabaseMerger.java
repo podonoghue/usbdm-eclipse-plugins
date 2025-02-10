@@ -215,7 +215,7 @@ public class PeripheralDatabaseMerger {
          }
          if (peripheral.getSourceFilename().equals(newPeripheral.getSourceFilename())) {
             newPeripheral.equivalent(peripheral);
-            throw new Exception("Failed sanity check, Expected "+newPeripheral.getSourceFilename()+" == "+peripheral.getSourceFilename()+" but not equivalent");
+            throw new Exception("Failed sanity check, Expected '"+newPeripheral.getSourceFilename()+"' == '"+peripheral.getSourceFilename()+"' but not equivalent");
          }
       }
       // First time the device is used - clear references etc

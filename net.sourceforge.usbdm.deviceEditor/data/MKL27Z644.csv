@@ -1,6 +1,7 @@
 TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,,,,,,,
 TargetDeviceSubFamily,MKL27Z644,mkl,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,
+,Variant Name,Reference Manual,Package,Device name,,,,,,,,,,,,,,,,,,
 Device,MKL27Z32VFM4,KL27P64M48SF2RM,QFN_32,,,,,,,,,,,,,,,,,,,
 Device,MKL27Z64VFM4,KL27P64M48SF2RM,QFN_32,,,,,,,,,,,,,,,,,,,
 Device,MKL27Z32VFT4,KL27P64M48SF2RM,QFN_48,,,,,,,,,,,,,,,,,,,
