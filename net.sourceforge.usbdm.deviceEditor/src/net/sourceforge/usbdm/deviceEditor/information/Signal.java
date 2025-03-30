@@ -442,6 +442,11 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       sb.append(getName() + " =>> (");
       for (MappingInfo mappingInfo : fPinMappings) {
          if (mappingInfo.isSelected()) {
+            if (mappingInfo.getMux() == MuxSelection.fixed) {
+               // Ignore fixed mappings
+               // (may be internal 'pins' e.g. DAC_OUT which may overlap physical pins)
+               continue;
+            }
             if (mappingsFound>0) {
                sb.append(", ");
             }
