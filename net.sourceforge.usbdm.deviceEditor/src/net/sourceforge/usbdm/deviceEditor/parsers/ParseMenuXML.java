@@ -4130,22 +4130,53 @@ public class ParseMenuXML extends XML_BaseParser {
          fY = y;
       }
 
-      void parseGraphicBoxOrGroup(BaseModel parentModel, Element graphicElement) throws Exception {
+      /**
+       * Parse graphicElement
+       * 
+       * @param parentModel      Model being created
+       * @param graphicElement   Element to parse
+       * 
+       * @throws Exception
+       */
+      void parseGraphic(BaseModel parentModel, Element graphicElement) throws Exception {
+//         String tag = graphicElement.getTagName();
+//         System.err.println("Parsing: "+tag);
+//         if (tag.equals("graphicItem")) {
+//            System.err.println("      + "+graphicElement.getAttribute("type"));
+//         }
+         fParser.parseGrahicElement(parentModel, graphicElement, fClockSelectionFigure, fBoxX, fBoxY, fX, fY);
+      }
+      
+      /**
+       * Parse children of graphicElement
+       * 
+       * @param parentModel           Model being created
+       * @param graphicElementOwner   Element containing children to parse
+       * 
+       * @throws Exception
+       */
+      void parseGraphicBoxOrGroup(BaseModel parentModel, Element graphicElementOwner) throws Exception {
 
-         if (!fParser.checkCondition(graphicElement)) {
+         String tag = graphicElementOwner.getTagName();
+         System.err.println("Parsing: "+tag);
+         if (tag.equals("graphicItem")) {
+            System.err.println("      + "+graphicElementOwner.getAttribute("type"));
+         }
+         if (!fParser.checkCondition(graphicElementOwner)) {
             return;
          }
 
-         for (Node node = graphicElement.getFirstChild();
+         for (Node node = graphicElementOwner.getFirstChild();
                node != null;
                node = node.getNextSibling()) {
             if (node.getNodeType() != Node.ELEMENT_NODE) {
                continue;
             }
             Element element = (Element) node;
-            fParser.parseGrahicElement(parentModel, element, fClockSelectionFigure, fBoxX, fBoxY, fX, fY);
+            parseGraphic(parentModel, element);
          }
       }
+      
    }
 
    /**
@@ -4157,10 +4188,14 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseGraphicIfThen(BaseModel parentModel, Element element, GraphicWrapper graphicWrapper) throws Exception {
 
-      if (!element.hasAttribute("condition")) {
-         throw new Exception("<if> requires 'condition' attribute '"+element+"'");
-      }
-
+//      if (!element.hasAttribute("condition")) {
+//         throw new Exception("<if> requires 'condition' attribute '"+element+"'");
+//      }
+//
+//      String t = element.getAttribute("condition");
+//      if (t.equals("true")) {
+//         System.err.println("Found : "+t);
+//      }
       Boolean processNodes  = checkCondition(element);
       Boolean skipRemainder = processNodes;
 
@@ -4190,7 +4225,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          if (processNodes) {
-            graphicWrapper.parseGraphicBoxOrGroup(parentModel, elem);
+            graphicWrapper.parseGraphic(parentModel, elem);
          }
       }
    }
