@@ -795,6 +795,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fForStack.createLevel(fProvider, keys, values, delimiter, iterationVar);
       do {
          if (graphicWrapper != null) {
+            // For loop inside graphic
             graphicWrapper.parseGraphicBoxOrGroup(parentModel, element);
          }
          else {
@@ -2393,11 +2394,16 @@ public class ParseMenuXML extends XML_BaseParser {
          attribute = replaceCommonNames(attribute).trim();
 
          if (attribute.startsWith("\\=")) {
+            // Escaped =
             return attribute.substring(2);
          }
          Object res = attribute;
          if (attribute.startsWith("=")) {
+            // Immediate evaluate
             res = Expression.getValue(attribute.substring(1), fProvider);
+//            if (attribute.contains("I2S0_Tx_IRQn")) {
+//               System.err.println("Found! '"+attribute+"' => '"+res+"'");
+//            }
          }
          return res;
       } catch (Exception e) {

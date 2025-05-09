@@ -843,7 +843,7 @@ public class Expression implements IModelChangeListener {
             }
             s = s.strip();
             String res = s;
-            if (s.length()>2) {
+            if (s.length()>=2) {
                if (s.matches("[A-Z_0-9]+")) {
                   // All upper-case
                   res = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
@@ -856,8 +856,8 @@ public class Expression implements IModelChangeListener {
                   // Mixed case
                   res = Character.toUpperCase(s.charAt(0))+s.substring(1);
                }
-               sb.append(res);
             }
+            sb.append(res);
          }
          return sb.toString();
       }
