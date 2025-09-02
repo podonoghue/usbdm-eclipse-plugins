@@ -6,7 +6,8 @@
   <version>5.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <tycho.version>2.7.4</tycho.version>
+    <!--tycho.version>2.7.4</tycho.version -->
+    <tycho.version>4.0.13</tycho.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <eclipse-repo.url>https://download.eclipse.org/releases/latest</eclipse-repo.url>
@@ -128,6 +129,5 @@
     <module>net.sourceforge.usbdm.help</module>
     <module>net.sourceforge.usbdm.cdt.feature</module>
     <module>UpdateSite</module>
-    <module>usbdm</module>
   </modules>
 </project>

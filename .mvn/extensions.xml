@@ -1,9 +1,10 @@
 <extensions>
-	<extension>
-		<groupId>org.eclipse.tycho</groupId>
-		<artifactId>tycho-build</artifactId>
-		<version>2.7.4</version>
-	</extension>
+   <extension>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>tycho-build</artifactId>
+      <!--version>2.7.4</version-->
+      <version>4.0.13</version>
+   </extension>
 
 </extensions>
 
