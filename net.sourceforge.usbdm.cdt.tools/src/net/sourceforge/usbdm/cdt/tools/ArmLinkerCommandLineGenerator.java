@@ -2,7 +2,7 @@ package net.sourceforge.usbdm.cdt.tools;
 
 public class ArmLinkerCommandLineGenerator extends GccCommandLineGenerator {
    
-   // Shared flags that are added to the command line 
+   // Shared flags that are added to the command line
    private static final String optionKeys[] = {
       UsbdmConstants.USBDM_GCC_PROC_ARM_MCPU_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_PROC_ARM_MTHUMB_OPTION_KEY,
@@ -17,9 +17,10 @@ public class ArmLinkerCommandLineGenerator extends GccCommandLineGenerator {
       UsbdmConstants.USBDM_GCC_DEBUG_GPROF_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_DEBUG_SEMIHOSTING_OPTION_KEY,
       
-      UsbdmConstants.USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY,         
-      UsbdmConstants.USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY,   
-      UsbdmConstants.USBDM_GCC_OPTIMIZATION_DEADCODE_OPTION_KEY,      
+      UsbdmConstants.USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY,
+      UsbdmConstants.USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY,
+      UsbdmConstants.USBDM_GCC_OPTIMIZATION_DEADCODE_OPTION_KEY,
+      UsbdmConstants.USBDM_GCC_OPTIMIZATION_NANONEWLIB_OPTION_KEY,
    };
    
    public ArmLinkerCommandLineGenerator() {

@@ -108,16 +108,17 @@ public class UsbdmConstants {
    public final static String USBDM_GCC_OPTIMIZATION_FUNCTION_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections";
    public final static String USBDM_GCC_OPTIMIZATION_DATA_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections";
    public final static String USBDM_GCC_OPTIMIZATION_NORTTI_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.optimization.noRTTI";
+   public final static String USBDM_GCC_OPTIMIZATION_NANONEWLIB_OPTION_KEY     = "net.sourceforge.usbdm.cdt.toolchain.optimization.nanoNewlib";
    public final static String USBDM_GCC_OPTIMIZATION_DEADCODE_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.deadCodeElimination";
    public final static String USBDM_GCC_OPTIMIZATION_COMPILEROTHER_OPTION_KEY  = "net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther";
    public final static String USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.linkerOther";
 
    public final static String USBDM_GCC_WARNING_PEDANTIC_OPTION_KEY            = "net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic";
-   public final static String USBDM_GCC_WARNING_ALLWARN_OPTION_KEY             = "net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"; 
-   public final static String USBDM_GCC_WARNING_EXTRAWARN_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"; 
-   public final static String USBDM_GCC_WARNING_WCONVERSION_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"; 
+   public final static String USBDM_GCC_WARNING_ALLWARN_OPTION_KEY             = "net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn";
+   public final static String USBDM_GCC_WARNING_EXTRAWARN_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn";
+   public final static String USBDM_GCC_WARNING_WCONVERSION_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion";
 
-   // These keys are used as keys to CDT Variables                 
+   // These keys are used as keys to CDT Variables
    public final static String ARM_BUILDTOOLS_OPTIONS               = UsbdmSharedConstants.USBDM_ARM_BUILD_TOOL_ID;
    public final static String COLDFIRE_BUILDTOOLS_OPTIONS          = UsbdmSharedConstants.USBDM_COLDFIRE_BUILD_TOOL_ID;
    
