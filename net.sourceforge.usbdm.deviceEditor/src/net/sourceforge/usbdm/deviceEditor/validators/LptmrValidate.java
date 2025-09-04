@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.InitPhase;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -21,6 +22,8 @@ public class LptmrValidate extends PeripheralValidator {
    private DoubleVariable lptmr_cmrPeriodVar;
    private DoubleVariable lptmr_cmrFrequencyVar;
    private LongVariable   lptmr_cmr_compareVar;
+   private long           maximumCountValue;
+   
    /**
     * Class to determine LPTMR settings
     * @throws Exception
@@ -35,7 +38,7 @@ public class LptmrValidate extends PeripheralValidator {
       double counterFrequency = counterFrequencyVar.getValueAsDouble();
       double clockPeriod    = (counterFrequency==0)?0:(1/counterFrequency);
       
-      double maximumPeriod = clockPeriod*65536;
+      double maximumPeriod = clockPeriod*(maximumCountValue+1);
       lptmr_cmrPeriodVar.setMax(maximumPeriod);
       lptmr_cmrPeriodVar.setMin(2*clockPeriod);
       lptmr_cmrFrequencyVar.setMax(1/(2*clockPeriod));
@@ -58,8 +61,8 @@ public class LptmrValidate extends PeripheralValidator {
             // lptmr_cmrFrequency -> cmr
             // Calculate rounded value
             Double cmrFrequency = lptmr_cmrFrequencyVar.getValueAsDouble();
-            if (cmrFrequency <= (counterFrequency/65535)) {
-               lptmr_cmr = 65535;
+            if (cmrFrequency <= (counterFrequency/maximumCountValue)) {
+               lptmr_cmr = maximumCountValue;
             }
             else {
                lptmr_cmr = Math.round(counterFrequency/cmrFrequency)-1;
@@ -79,7 +82,10 @@ public class LptmrValidate extends PeripheralValidator {
       lptmr_cmrPeriodVar         =  getDoubleVariable("lptmr_cmrPeriod" ,   externalVariablesList);
       lptmr_cmrFrequencyVar      =  getDoubleVariable("lptmr_cmrFrequency", externalVariablesList);
       lptmr_cmr_compareVar       =  getLongVariable("lptmr_cmr_compare",    externalVariablesList);
-
+      
+      BooleanVariable counterIs32bitVar          =  safeGetBooleanVariable("counterIs32bit");
+      maximumCountValue = (counterIs32bitVar!=null)?4294967296L:65535L;
+      
       addToWatchedVariables(externalVariablesList);
       
       // Don't add default dependencies
