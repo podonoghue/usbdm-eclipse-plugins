@@ -235,7 +235,7 @@ public class WriterForGpio extends PeripheralWithState {
          }
       }
       
-      StringVariable gpioPatternVar      = (StringVariable) safeGetVariable("/SYSTEM/$gpioPattern");
+      StringVariable gpioPatternVar      = (StringVariable) safeGetVariable("/GPIO/$gpioPattern");
       final String gpioPattern;
       if (gpioPatternVar != null) {
          gpioPattern = gpioPatternVar.getValueAsString();
@@ -244,7 +244,7 @@ public class WriterForGpio extends PeripheralWithState {
          gpioPattern = "Gpio%i<%b,%p>";
       }
       
-      StringVariable gpioFieldPatternVar = (StringVariable) safeGetVariable("/SYSTEM/$gpioFieldPattern");
+      StringVariable gpioFieldPatternVar = (StringVariable) safeGetVariable("/GPIO/$gpioFieldPattern");
       final String gpioFieldPattern;
       if (gpioFieldPatternVar != null) {
          gpioFieldPattern = gpioFieldPatternVar.getValueAsString();
@@ -342,6 +342,15 @@ public class WriterForGpio extends PeripheralWithState {
       }
    }
 
+   String instancePatternSubstitute(String format) {
+      String type = format;
+      type = type.replace("%i", getInstance());    // port instance e.g. FTM0 => 0,   PTA => A
+      type = type.replace("%b", getBaseName());    // port instance e.g. FTM0 => FTM, PTA => PT
+      type = type.replace("%n", getName());        // port instance e.g. FTM2 => FTM2, PTA => PTA
+      type = type.replace("%b", getBaseName());    // port instance e.g. FTM0 => FTM, PTA => PT
+      return type;
+   }
+   
    @Override
    public int getSignalIndex(Signal signal) {
       // No tables for GPIO

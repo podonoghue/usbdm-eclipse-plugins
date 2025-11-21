@@ -10,7 +10,7 @@ public class ToolInformationData {
    protected String                    description;
    protected String                    buildToolId;
    protected String                    pathVariableName;
-   protected String                    prefixVariableName;
+//   protected String                    prefixVariableName;
    protected Collection<net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType> interfaceTypes = new HashSet<InterfaceType>();
    protected InterfaceType             preferredInterfaceType;
 
@@ -20,19 +20,19 @@ public class ToolInformationData {
       this.description          = description;
       this.buildToolId          = buildToolId;
       this.pathVariableName     = pathVariableName;
-      this.prefixVariableName   = prefixVariableName; 
+//      this.prefixVariableName   = prefixVariableName;
    }
    
    public ToolInformationData(ToolInformationData other) {
       this.description           = other.description;
       this.buildToolId           = other.buildToolId;
       this.pathVariableName      = other.pathVariableName;
-      this.prefixVariableName    = other.prefixVariableName;
+//      this.prefixVariableName    = other.prefixVariableName;
    }
 
    public String        getDescription()              { return description; }
    public String        getPathVariableName()         { return pathVariableName; }
-   public String        getPrefixVariableName()       { return prefixVariableName; }
+//   public String        getPrefixVariableName()       { return prefixVariableName; }
    public String        getBuildToolId()              { return buildToolId; }
    public InterfaceType getPreferredInterfaceType()   { return preferredInterfaceType; }
 
@@ -46,6 +46,7 @@ public class ToolInformationData {
       return this;
    }
 
+   @Override
    public String toString() {
       return getDescription();
    }
@@ -56,7 +57,7 @@ public class ToolInformationData {
 //         toolInformationTable.put(
 //               UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID,
 //               new ToolInformationData(
-//                  "Codesourcery Tools for ARM",   
+//                  "Codesourcery Tools for ARM",
 //                  UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID,
 //                  UsbdmSharedConstants.CODESOURCERY_ARM_PATH_VAR,
 //                  UsbdmSharedConstants.CODESOURCERY_ARM_PREFIX_VAR).addInterfaceType(InterfaceType.T_ARM)
@@ -64,16 +65,16 @@ public class ToolInformationData {
          toolInformationTable.put(
                UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID,
                new ToolInformationData(
-                     "Codesourcery Tools for Coldfire",  
+                     "Codesourcery Tools for Coldfire",
                      UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID,
-                     UsbdmSharedConstants.CODESOURCERY_COLDFIRE_PATH_VAR, 
+                     UsbdmSharedConstants.CODESOURCERY_COLDFIRE_PATH_VAR,
                      UsbdmSharedConstants.CODESOURCERY_COLDFIRE_PREFIX_VAR).addInterfaceType(InterfaceType.T_CFV1)
-                                                                           .addInterfaceType(InterfaceType.T_CFVX)               
+                                                                           .addInterfaceType(InterfaceType.T_CFVX)
                );
          toolInformationTable.put(
                UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID,
                new ToolInformationData(
-                     "ARM Ltd GNU Tools for ARM",          
+                     "ARM Ltd GNU Tools for ARM",
                      UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID,
                      UsbdmSharedConstants.ARMLTD_ARM_PATH_VAR,
                      UsbdmSharedConstants.ARMLTD_ARM_PREFIX_VAR).addInterfaceType(InterfaceType.T_ARM)
@@ -82,9 +83,9 @@ public class ToolInformationData {
       return toolInformationTable;
    }
    
-   /**  Find Tool Information based on tool id e.g. 
+   /**  Find Tool Information based on tool id e.g.
     *         net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.codesourceryColdfire
-    *         
+    * 
     * @param buildToolId Id - see above
     * 
     * @return Description of this tool

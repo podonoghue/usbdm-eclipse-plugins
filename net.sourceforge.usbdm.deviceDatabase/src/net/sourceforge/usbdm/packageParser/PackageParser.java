@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.packageParser.FileAction.FileType;
+import net.sourceforge.usbdm.packageParser.FileAction.OverwriteAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 
 public class PackageParser {
@@ -890,15 +891,21 @@ public class PackageParser {
       }
       // Default to true
       boolean doMacroReplace     = !element.getAttribute("macroReplace").equalsIgnoreCase("false");
-      // Default to false
-      boolean doFileOverwrite    =  element.getAttribute("overwrite").equalsIgnoreCase("true");
+
+      String doFileOverwriteS     =  element.getAttribute("overwrite");
+      if (doFileOverwriteS == null) {
+         // Default to error
+         doFileOverwriteS = OverwriteAction.error.toString();
+      }
+      OverwriteAction overwriteAction = OverwriteAction.valueOf(doFileOverwriteS);
+      
       // Default to false
       boolean doDerived          =  element.getAttribute("derived").equalsIgnoreCase("true");
       
       FileAction fileInfo        = new FileAction(source, target, fileType);
       
       fileInfo.setMacroReplace(doMacroReplace);
-      fileInfo.setFileOverwrite(doFileOverwrite);
+      fileInfo.setFileOverwrite(overwriteAction);
       fileInfo.setSourcePathType(sourcePathType);
       fileInfo.setDerived(doDerived);
       return fileInfo;

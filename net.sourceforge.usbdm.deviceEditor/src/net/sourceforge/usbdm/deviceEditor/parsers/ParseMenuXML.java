@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +64,7 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.TemplateContentBuilder.BitmaskEnumBuilder;
 import net.sourceforge.usbdm.deviceEditor.parsers.TemplateContentBuilder.ChoiceEnumBuilder;
 import net.sourceforge.usbdm.deviceEditor.parsers.TemplateContentBuilder.ClockTemplateBuilder;
+import net.sourceforge.usbdm.deviceEditor.parsers.TemplateContentBuilder.EnumOperatorBuilder;
 import net.sourceforge.usbdm.deviceEditor.parsers.TemplateContentBuilder.TemplateBuilder;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -206,9 +209,16 @@ public class ParseMenuXML extends XML_BaseParser {
          if (templateList == null) {
             return "";
          }
+         Collections.sort(templateList, new Comparator<TemplateInformation>() {
+            @Override
+            public int compare(TemplateInformation o1, TemplateInformation o2) {
+               return o2.getPriority()-o1.getPriority();
+               }
+         });
          StringBuilder sb = new StringBuilder();
          for(TemplateInformation template:templateList) {
-            sb.append(template.getExpandedText(varProvider));
+            String text = template.getExpandedText(varProvider);
+            sb.append(text);
          }
          return sb.toString();
       }
@@ -1319,14 +1329,14 @@ public class ParseMenuXML extends XML_BaseParser {
             System.err.println("Illegal value for typeName '"+ check + "'");
          }
       }
+      if (varElement.hasAttribute("baseType")) {
+         variable.setBaseType(getAttributeAsString(varElement, "baseType", null));
+      }
       if (varElement.hasAttribute("enumClass")) {
          variable.setUseEnumClass(getAttributeAsBoolean(varElement, "enumClass", false));
       }
       if (varElement.hasAttribute("valueFormat")) {
          variable.setValueFormat(getAttributeAsString(varElement, "valueFormat"));
-      }
-      if (varElement.hasAttribute("baseType")) {
-         variable.setBaseType(getAttributeAsString(varElement, "baseType", null));
       }
       if (varElement.hasAttribute("enabledBy")) {
          variable.setEnabledBy(getAttributeAsString(varElement, "enabledBy"));
@@ -1894,6 +1904,7 @@ public class ParseMenuXML extends XML_BaseParser {
       parseChoices(variable, varElement);
       generateEnum(varElement, variable);
       generateTable(varElement, variable);
+      addEnumOr(variable, varElement);
    }
 
    private void parseClipboard(BaseModel parent, Element varElement) throws Exception {
@@ -1915,7 +1926,48 @@ public class ParseMenuXML extends XML_BaseParser {
       text = text.replaceAll("(\n)?\\s*?\\\\t", "$1   ");
       variable.setValue(text);
    }
+   
+   private HashMap<String, EnumOperatorBuilder> enumOperatorList;
+   
+   private void addEnumOr(Variable variable, Element varElement) throws Exception {
+      
+      String registerName = getAttributeAsString(varElement, "enumOr");
+      if (registerName == null) {
+         return;
+      }
 
+      // Check for repeated enums in USBDM namespace
+      String typeName = variable.getTypeName();
+      String where = getAttributeAsString(varElement, "where", "usbdm");
+      if ("usbdm".equals(where) &&
+         (fPeripheral != null) &&
+         fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUMOP"+typeName)) {
+         // These are common!
+         return;
+      }
+      if (registerName.equalsIgnoreCase("auto")) {
+         registerName = TemplateContentBuilder.deduceRegisterName(fPeripheral, variable).toUpperCase();
+      }
+      if (enumOperatorList == null) {
+         enumOperatorList = new HashMap<String, EnumOperatorBuilder>();
+      }
+      EnumOperatorBuilder builder = enumOperatorList.get(registerName);
+      if (builder == null) {
+         builder = new EnumOperatorBuilder(registerName);
+         enumOperatorList.put(registerName, builder);
+
+         TemplateInformation templateInfo = createAssociatedTemplateInfo(varElement);
+         if (templateInfo != null) {
+            templateInfo.setBuilder(builder);
+            templateInfo.setPriority(20);
+         }
+         else {
+            System.err.println("Discarding repeated enum template, Reg = "+builder.getRegistername());
+         }
+      }
+      builder.addVariable(variable);
+   }
+     
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
@@ -1933,11 +1985,14 @@ public class ParseMenuXML extends XML_BaseParser {
       
       parseChoices(variable, varElement);
       parseCommonAttributes(parent, varElement, variable);
+//      parseTextChildren(parent, varElement, variable);
+      
       if (variable.isLogging()) {
          System.err.println("Found " + variable);
       }
       generateEnum(varElement, variable);
       generateTable(varElement, variable);
+      addEnumOr(variable, varElement);
    }
 
    /**
@@ -2113,6 +2168,47 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * Generate full enum for variable
+    * 
+    * @param varElement
+    * @param variable
+    * @throws Exception
+    */
+   private TemplateInformation generateEnumTemplate(Element varElement, Variable variable) throws Exception {
+
+      String typeName  = variable.getTypeName();
+      if ((typeName == null) || typeName.isBlank() || typeName.equalsIgnoreCase("bool")) {
+         return null;
+      }
+      // Defaults to generate enum
+      Boolean doEnum      = getAttributeAsBoolean(varElement, "generateEnum",        true);
+      Boolean doConstants = getAttributeAsBoolean(varElement, "generateAsConstants", false);
+      String  template    = getAttributeAsString(varElement,  "constantTemplate",    null);
+      if (template != null) {
+         doConstants = true;
+      }
+      if (!doEnum && !doConstants) {
+         // No code generated
+         return null;
+      }
+      // Check for repeated enums in USBDM namespace
+      String where = getAttributeAsString(varElement, "where", "usbdm");
+      if ("usbdm".equals(where) &&
+         !doConstants &&
+         (fPeripheral != null) &&
+         fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
+         // These are common!
+         return null;
+      }
+      TemplateInformation templateInfo = createAssociatedTemplateInfo(varElement);
+      if (templateInfo == null) {
+         // Indicates repeated template on other namespace e.g. Info class
+         return null;
+      }
+      return templateInfo;
+   }
+
+   /**
     * Generate full enum for variable with choices
     * 
     * @param varElement
@@ -2120,33 +2216,13 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private void generateEnum(Element varElement, VariableWithChoices variable) throws Exception {
-
-      String typeName  = variable.getTypeName();
-      if ((typeName == null) || typeName.isBlank()) {
-         return;
+      
+      TemplateInformation templateInfo = generateEnumTemplate(varElement, variable);
+      
+      if (templateInfo != null) {
+         ChoiceEnumBuilder ceb = new ChoiceEnumBuilder(this, varElement, variable);
+         templateInfo.setBuilder(ceb);
       }
-      // Defaults to generate enum
-      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
-      if ("false".equalsIgnoreCase(doEnum)) {
-         return;
-      }
-      // Check for repeated enums in USBDM namespace
-      String where = getAttributeAsString(varElement, "where", "usbdm");
-      if (("usbdm".equals(where) &&
-         !variable.isGenerateAsConstants() &&
-         (fPeripheral != null)) &&
-         getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
-         // These are common!
-         return;
-      }
-
-      TemplateInformation templateInfo = createEmptyTemplateInfo(varElement, true);
-      if (templateInfo == null) {
-         // Indicates repeated template on other namespace e.g. Info class
-         return;
-      }
-      ChoiceEnumBuilder ceb = new ChoiceEnumBuilder(this, varElement, variable);
-      templateInfo.setBuilder(ceb);
    }
 
    /**
@@ -2158,28 +2234,12 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void generateEnum(Element varElement, BitmaskVariable variable) throws Exception {
 
-      String typeName  = variable.getTypeName();
-      if ((typeName == null) || typeName.isBlank()) {
-         return;
-      }
-      // Defaults to generate enum
-      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
-      if ("false".equalsIgnoreCase(doEnum)) {
-         return;
-      }
-      // Check for repeated enums in USBDM namespace
-      String where = getAttributeAsString(varElement, "where", "usbdm");
-      if ("usbdm".equals(where) &&
-         !variable.isGenerateAsConstants() &&
-         (fPeripheral != null) &&
-         fPeripheral.getDeviceInfo().addAndCheckIfRepeatedItem("$ENUM"+typeName)) {
-         // These are common!
-         return;
-      }
-      TemplateInformation templateInfo = createEmptyTemplateInfo(varElement, true);
+      TemplateInformation templateInfo = generateEnumTemplate(varElement, variable);
 
-      BitmaskEnumBuilder meb = new BitmaskEnumBuilder(this, varElement, variable);
-      templateInfo.setBuilder(meb);
+      if (templateInfo != null) {
+         BitmaskEnumBuilder meb = new BitmaskEnumBuilder(this, varElement, variable);
+         templateInfo.setBuilder(meb);
+      }
    }
 
    /**
@@ -2196,8 +2256,8 @@ public class ParseMenuXML extends XML_BaseParser {
          return;
       }
       // Defaults to generate enum
-      String doEnum = getAttributeAsString(varElement, "generateEnum", "true");
-      if ("false".equalsIgnoreCase(doEnum)) {
+      Boolean doEnum      = getAttributeAsBoolean(varElement, "generateEnum",        true);
+      if (!doEnum) {
          return;
       }
       // Use typeName attribute
@@ -2214,8 +2274,8 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String enumText = getAttributeAsString(varElement, "enumText", "");
 
-      TemplateInformation templateInfo = createEmptyTemplateInfo(varElement, true);
-
+      TemplateInformation templateInfo = createAssociatedTemplateInfo(varElement);
+      
       String description     = escapeString(variable.getDescriptionAsCode());
       String tooltip         = escapeString(variable.getToolTipAsCode());
 
@@ -2274,33 +2334,33 @@ public class ParseMenuXML extends XML_BaseParser {
 
    
    /**
-    * Do simple name substitutions:
+    * Do simple name substitutions:<br>
     * 
-    *  $(_Structname)   => e.g FTM2 => Ftm or FtmQuad etc
-    *  $(_STRUCTNAME)   => e.g FTM2 => FTM or FTMQUAD etc
-    *  $(_NAME)         => e.g FTM2 => FTM2
-    *  $(_name)         => e.g FTM2 => ftm2
-    *  $(_BASENAME)     => e.g FTM0 => FTM, PTA => PT
-    *  $(_basename)     => e.g FTM0 => ftm, PTA => pt
-    *  $(_Class)        => e.g FTM2 => Ftm2
-    *  $(_Baseclass)    => e.g FTM0 => Ftm
-    *  $(_instance)     => e.g FTM0 => 0, PTA => A
+    *  $(_Structname)   => e.g FTM2 => Ftm or FtmQuad etc<br>
+    *  $(_STRUCTNAME)   => e.g FTM2 => FTM or FTMQUAD etc<br>
+    *  $(_NAME)         => e.g FTM2 => FTM2<br>
+    *  $(_name)         => e.g FTM2 => ftm2<br>
+    *  $(_BASENAME)     => e.g FTM0 => FTM, PTA => PT<br>
+    *  $(_basename)     => e.g FTM0 => ftm, PTA => pt<br>
+    *  $(_Class)        => e.g FTM2 => Ftm2<br>
+    *  $(_Baseclass)    => e.g FTM0 => Ftm<br>
+    *  $(_instance)     => e.g FTM0 => 0, PTA => A<br>
     *
-    * $(_Type)         $(_STRUCTNAME)_Type      => FTM_Type
-    * $(_Type)         $(_STRUCTNAME)_Type      => FTMQUAD_Type
+    * $(_Type)         $(_STRUCTNAME)_Type      => FTM_Type<br>
+    * $(_Type)         $(_STRUCTNAME)_Type      => FTMQUAD_Type<br>
     
-    * $(_Info)            = $(_Class)Info            => Ftm0Info      Per instance name of class
-    * $(_InfoGuard)       = enablePeripheralSupport                   Per instance - peripheral enabled
-    *                       irqHandlingMethod                         Enable interrupts on peripheral
+    * $(_Info)            = $(_Class)Info            => Ftm0Info      Per instance name of class<br>
+    * $(_InfoGuard)       = enablePeripheralSupport                   Per instance - peripheral enabled<br>
+    *                       irqHandlingMethod                         Enable interrupts on peripheral<br>
     
-    * $(_BasicInfo)           = $(_Structname)BasicInfo  => FtmBasicInfo      Shared by instances with common hardware (STRUCT)
-    *                                                    => FtmquadBasicInfo  Shared by instances with common hardware (STRUCT)
-    * $(_BasicInfoGuard)      = /$(_STRUCTNAME)/_BasicInfoGuard               OR of enablePeripheralSupport for instances using same STRUCT
-    * $(_BasicInfoIrqGuard)   = /$(_STRUCTNAME)/_BasicInfoIrqGuard            Per instance - Interrupts enabled for this instance
+    * $(_BasicInfo)           = $(_Structname)BasicInfo  => FtmBasicInfo      Shared by instances with common hardware (STRUCT)<br>
+    *                                                    => FtmquadBasicInfo  Shared by instances with common hardware (STRUCT)<br>
+    * $(_BasicInfoGuard)      = /$(_STRUCTNAME)/_BasicInfoGuard               OR of enablePeripheralSupport for instances using same STRUCT<br>
+    * $(_BasicInfoIrqGuard)   = /$(_STRUCTNAME)/_BasicInfoIrqGuard            Per instance - Interrupts enabled for this instance<br>
 
-    * $(_CommonInfo)          = $(_Basename)CommonInfo   => FtmCommonInfo     Shared by all instances (common methods irrespective of hardware)
-    * $(_CommonInfoGuard)     = /$(_BASENAME)/_CommonInfoGuard                OR of enablePeripheralSupport for all instances of peripheral irrespective of hardware
-    * $(_CommonInfoIrqGuard)  = /$(_BASENAME)/_CommonInfoIrqGuard             Shared by all instances (common methods irrespective of hardware)
+    * $(_CommonInfo)          = $(_Basename)CommonInfo   => FtmCommonInfo     Shared by all instances (common methods irrespective of hardware)<br>
+    * $(_CommonInfoGuard)     = /$(_BASENAME)/_CommonInfoGuard                OR of enablePeripheralSupport for all instances of peripheral irrespective of hardware<br>
+    * $(_CommonInfoIrqGuard)  = /$(_BASENAME)/_CommonInfoIrqGuard             Shared by all instances (common methods irrespective of hardware)<br>
     *
     * @param text  Test to process
     * 
@@ -2388,10 +2448,10 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!element.hasAttribute(attrName)) {
          return defaultValue;
       }
-      String attribute = element.getAttribute(attrName);
+      String attribute = element.getAttribute(attrName).trim();
       try {
          attribute = fForStack.doForSubstitutions(attribute);
-         attribute = replaceCommonNames(attribute).trim();
+         attribute = replaceCommonNames(attribute);
 
          if (attribute.startsWith("\\=")) {
             // Escaped =
@@ -3507,12 +3567,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception
     */
-   private boolean checkTemplateConditions(Element element, String discardRepeats, boolean forEnum) throws Exception {
+   private boolean checkTemplateConditions(Element element, String discardRepeats) throws Exception {
       
-      if (!forEnum && !checkCondition(element)) {
-         return false;
-      }
       if (discardRepeats.equalsIgnoreCase("false")) {
+         // Never discard
          return true;
       }
 
@@ -3541,121 +3599,134 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
+    * Determine location for template
+    * 
+    * @param element    Element to obtain attributes from
+    * @param key        Key for template
+    * @param location   Default location if cannot be determined from element and key is null
+    * 
+    * @return           Determined location
+    * 
+    * @throws Exception
+    */
+   String getLocation(Element element, String key, String defaultLocation) throws Exception {
+      
+      String location = getAttributeAsString(element, "where", null);
+      
+      if (location == null) {
+         
+         // 'location' is a more permissive alias for 'where' in templates (used with substitutions)
+         location = getAttributeAsString(element, "location", null);
+      }
+      
+      if (location == null) {
+         
+         // Set defaults
+         if (key != null) {
+            // If key is given then default to 'all'
+            location = "all";
+         }
+         else {
+            // Default to 'info'
+            location = defaultLocation;
+         }
+      }
+      return location;
+   }
+   
+   /**
     * Does some common processing of attributes and creates an empty template info (without text)
     * The template is added to the template list
+    * <pre>                                                                                                                                                  <br>
+    * Where to place generated code:                                                                                                                         <br>
+    *                                                                                                                                                        <br>
+    *  where       namespace    key                      discardRepeats                                                                                      <br>
+    * ===========+============+========================+========================+============================================================================<br>
+    * commonInfo | commonInfo | -                      | base-name e.g. FTM     | Within peripheral common info class e.g. FtmCommonInfo                     <br>
+    * basicInfo  | basicInfo  | -                      | struct-name+_BascicInfo| Within peripheral basic info class e.g. FtmBasicInfo (moded by struct name)<br>
+    * info       | info       | -                      | false                  | Within peripheral info class e.g. Ftm1Info (default if not provided)       <br>
+    * definitions| definitions| -                      | -                      | Before peripheral class (USBDM namespace)                                  <br>
+    * usbdm      | usbdm      | -                      | -                      | Before peripheral class in pinmapping.h                                    <br>
+    * static     | all        | /HARDWARE/StaticObjects| -                      | Static objects in hardware.cpp                                             <br>
+    * - (all)    | all        | required               | -                      | Explicitly available anywhere controlled by key substitution               <br>
+    * forceInfo  | info       | -                      | false                  | Forces info namespace and clears key                                       <br>
+    * ===========+============+========================+========================+============================================================================<br>
+    * </pre>
     * 
     * @param element    XML element being parsed
-    * @param forEnum    Used to indicate if generating an enum template associated with an Option element e.g. choiceOption
+    * @param key        Key for template
+    * @param where      Where to place template
     * 
     * @return           Template info or null if conditions associated with element are not satisfied
     * 
     * @throws Exception
     */
-   TemplateInformation createEmptyTemplateInfo(Element element, boolean forEnum) throws Exception {
+   TemplateInformation createEmptyTemplateInfo(Element element, String key, String where) throws Exception {
 
-      String key;
-      if (forEnum) {
-         key = getAttributeAsString(element, "templateKey");
-      }
-      else {
-         key = getKeyAttribute(element);
-      }
-//      Variable inHeader = safeGetVariable("definitionsInHeader");
-//      boolean placeInHeader = ((inHeader != null) && inHeader.getValueAsBoolean());
+      //      Variable inHeader = safeGetVariable("definitionsInHeader");
+      //      boolean placeInHeader = ((inHeader != null) && inHeader.getValueAsBoolean());
 
       String discardRepeats      = getAttributeAsString(element, "discardRepeats", "false");
-      String namespace           = getAttributeAsString(element, "namespace", forEnum?"definitions":"info");
       String codeGenCondition    = getAttributeAsString(element, "codeGenCondition", "");
-      
-      /*
-      <!-- Where to place generated code -->
-      all         - Available anywhere controlled by key substitution <br>
-      definitions - Before peripheral class (early) in pinmapping.h <br>
-      usbdm       - Before peripheral class (later) in pinmapping.h <br>
-      commonInfo  - Within peripheral commonInfo class in pinmapping.h <br>
-      basicInfo   - Within peripheral basicInfo class in pinmapping.h <br>
-      info        - Within peripheral info class in pinmapping.h (default if not provided) <br>
-      static      - In hardware.cpp
-      
-      forceInfo   - forces Info namespace and clears key and discardRepeats <br>
-      */
-      String where = getAttributeAsString(element, "where", null); // (info|basicInfo|commonInfo)
-      if (where == null) {
-         // 'location' is a more permissive alias for where in templates
-         where = getAttributeAsString(element, "location", null); // (info|basicInfo|commonInfo)
+      long   priority            = getAttributeAsLong(element,   "priority", 50L);
+
+      //      if (forEnum) {
+      //         discardRepeats = fPeripheral.getBaseName();
+      //      }
+      String namespace;
+      if ("static".equals(where)) {
+         // Static objects in hardware.cpp
+         key            = "/HARDWARE/StaticObjects";
+         namespace      = "all"; // Anywhere (but ends up in hardware.cpp)
       }
-      if (where != null) {
-         if ((key != null) && !"all".equalsIgnoreCase(where)) {
-            throw new Exception("Attribute 'key="+key+"' used with 'where='"+where+"' attribute (should be where='all')");
+      else if ("usbdm".equals(where)) {
+         // Before peripheral class in pinmapping.h
+         key            = null;
+         namespace      = "usbdm"; // Before peripheral class in pinmapping.h
+         // discardRepeats is individual ?
+      }
+      else if ("definitions".equals(where)) {
+         // Before peripheral class in pin_mapping.h
+         // Usually enums etc.
+         key            = null;
+         namespace      = "definitions"; // Before peripheral class in pinmapping.h
+         // discardRepeats is individual ?
+      }
+      else if ("commonInfo".equals(where)) {
+         // One for each type of peripheral
+         // e.g. FtmCommonInfo  ($(_Baseclass)CommonInfo)
+         key            = null;
+         namespace      = "commonInfo"; // Within peripheral CommonInfo class in pinmapping.h
+         discardRepeats = fPeripheral.getBaseName();
+      }
+      else if ("basicInfo".equals(where)) {
+         key            =  null;
+         namespace      = "basicInfo"; // Before peripheral class in pinmapping.h
+         discardRepeats = fProvider.getVariable("structName").getValueAsString()+"_BasicInfo";
+      }
+      else if ("info".equals(where)) {
+         // e.g. Ftm0Info ($(_Class)Info)
+         // One for each instance of a peripheral
+         key            = null;     // No key
+         namespace      = "info";   // Within peripheral Info class in pinmapping.h
+         discardRepeats = "false";  // Can't repeat anyway as unique to peripheral
+      }
+      else if ("all".equals(where)) {
+         // Arbitrary location
+         // Key necessary
+         if (key==null) {
+            throw new Exception("Attribute 'key' or 'templateKey' missing when 'where=all' ");
          }
-         if ("static".equals(where)) {
-            // Static objects in hardware.cpp
-            key            = "/HARDWARE/StaticObjects";
-            namespace      = "all"; // Anywhere (but ends up in hardware.cpp)
-         }
-         else if ("usbdm".equals(where)) {
-            // Before peripheral class in pinmapping.h
-            key            = null;
-            namespace      = "usbdm"; // Before peripheral class in pinmapping.h
-            // discardRepeats is individual ?
-         }
-         else if ("definitions".equals(where)) {
-            // Before peripheral class in pin_mapping.h
-            // Usually enums etc.
-            key            = null;
-            namespace      = "definitions"; // Before peripheral class in pinmapping.h
-            // discardRepeats is individual ?
-         }
-         else if ("commonInfo".equals(where)) {
-            // One for each type of peripheral
-            // e.g. FtmCommonInfo  ($(_Baseclass)CommonInfo)
-            key            = null;
-            namespace      = "commonInfo"; // Within peripheral CommonInfo class in pinmapping.h
-            discardRepeats = fPeripheral.getBaseName();
-         }
-         else if ("basicInfo".equals(where)) {
-            key            =  null;
-            namespace      = "basicInfo"; // Before peripheral class in pinmapping.h
-            discardRepeats = fProvider.getVariable("structName").getValueAsString()+"_BasicInfo";
-         }
-         else if ("info".equals(where)) {
-            // e.g. Ftm0Info ($(_Class)Info)
-            // One for each instance of a peripheral
-            key            = null;     // No key
-            namespace      = "info";   // Within peripheral Info class in pinmapping.h
-            discardRepeats = "false";  // Can't repeat anyway as unique to peripheral
-         }
-         else if ("all".equals(where)) {
-            // Arbitrary location
-            // Key necessary
-            if (key==null) {
-               throw new Exception("Attribute 'key' or 'templateKey' missing when 'where=all' ");
-            }
-            namespace      = "all"; // Arbitrary location
-            // discardRepeats unmodified
-         }
-         else {
-            throw new Exception("Unexpected 'where' attribute value '" + where + "'");
-         }
+         namespace      = "all"; // Arbitrary location
+         // discardRepeats unmodified
+      }
+      else if (("forceInfo".equals(where))) {
+         key = null;
+         namespace      = "info";
+         discardRepeats = "false";
       }
       else {
-         if (("forceInfo".equals(namespace))) {
-            key = null;
-            namespace="info";
-            discardRepeats = "false";
-         }
-         else if (("forceUsbdm".equals(namespace))) {
-            key = null;
-            namespace="usbdm";
-         }
-         else if (("baseClass".equals(namespace))) {
-            key = null;
-            namespace="basicInfo";
-            discardRepeats = fProvider.getVariable("structName").getValueAsString();
-         }
-         else if (key != null) {
-            namespace="all";
-         }
+         throw new Exception("Unexpected 'where' attribute value '" + where + "'");
       }
       
       // Do some basic check on the template guard expressions
@@ -3707,13 +3778,13 @@ public class ParseMenuXML extends XML_BaseParser {
       // Some checks
       String tag = "<"+element.getTagName()+">";
       if (namespace.isBlank()) {
-         throw new Exception(tag+" is missing namespace, key='" + key + "'");
+         throw new Exception(tag+" is missing where/location='...', for key='" + key + "'");
       }
-      if ((key != null) && !namespace.equals("all")) {
-         throw new Exception("Named "+tag+" must have 'all' namespace, key='" + key + "'");
+      if ((key != null) && !"all".equalsIgnoreCase(namespace)) {
+         throw new Exception("Named "+tag+" must have where/location='all', key='" + key + "'");
       }
       if ((key == null) && namespace.equals("all")) {
-         throw new Exception(tag+" must have 'key' attribute in 'all' namespace, peripheral='" + fPeripheral.getName() + "'");
+         throw new Exception(tag+" must have 'key' attribute when where/location='all', peripheral='" + fPeripheral.getName() + "'");
       }
       
       if (key != null) {
@@ -3721,17 +3792,60 @@ public class ParseMenuXML extends XML_BaseParser {
          // unique value for discardRepeats and is not actual part of the key
          int dotIndex = key.indexOf(".");
          if (dotIndex > 0) {
-            throw new Exception("Dots in jeys no longer supported");
+            throw new Exception("Dots in names no longer supported");
 //            key = key.substring(0, dotIndex);
          }
       }
-      if (!checkTemplateConditions(element, discardRepeats, forEnum)) {
+      if (!checkTemplateConditions(element, discardRepeats)) {
          return null;
       }
 
-      return addTemplate(key, namespace, codeGenCondition);
+      TemplateInformation t = addTemplate(key, namespace, codeGenCondition);
+      
+      t.setPriority((int)priority);
+      
+      return t;
    }
    
+   /**
+    * Does some common processing of attributes and creates an empty template info (without text)
+    * The template is added to the template list (default location = info)
+    * 
+    * @param element    XML element being parsed
+    * 
+    * @return           Template info or null if conditions associated with element are not satisfied
+    * 
+    * @throws Exception
+    */
+   TemplateInformation createEmptyTemplateInfo(Element element) throws Exception {
+      
+      String key = getKeyAttribute(element);
+      
+      String location = getLocation(element, key, "info");
+      
+      return createEmptyTemplateInfo(element, key, location);
+   }
+
+   /**
+    * Does some common processing of attributes and creates an empty template info (without text)
+    * The template is added to the template list (default location = definitions) <br>
+    * For use when a 'templateKey' attribute is allowed e.g. enum template associated with a choiceOption.
+    * 
+    * @param element    XML element being parsed
+    * 
+    * @return           Template info or null if conditions associated with element are not satisfied
+    * 
+    * @throws Exception
+    */
+   TemplateInformation createAssociatedTemplateInfo(Element element) throws Exception {
+
+      String templateKey = getAttributeAsString(element, "templateKey");
+
+      String location = getLocation(element, templateKey, "definitions");
+      
+      return createEmptyTemplateInfo(element, templateKey, location);
+   }
+
    /**
     * Parse clockTemplate
     * 
@@ -3740,16 +3854,19 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseClockCodeTemplate(Element element) throws Exception {
       
+      if (!checkCondition(element)) {
+         return;
+      }
       TemplateSubstitutionInfo tsi = new TemplateSubstitutionInfo(this, element, "variable");
       
       if (tsi.variableNeededButNoneFound) {
          return;
       }
       
-      TemplateInformation templateInfo = createEmptyTemplateInfo(element, false);
+      TemplateInformation templateInfo = createEmptyTemplateInfo(element);
       
       if (templateInfo != null) {
-         String text = doImmediateVariableSubstitution(element, getText(element));
+         String text = doImmediateVariableSubstitution(element, getText(element)).trim();
          ClockTemplateBuilder tb = new ClockTemplateBuilder(tsi, text);
          
          templateInfo.setBuilder(tb);
@@ -3765,16 +3882,20 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseTemplate(Element element) throws Exception {
 
+      if (!checkCondition(element)) {
+         return;
+      }
+      
       TemplateSubstitutionInfo tsi = new TemplateSubstitutionInfo(this, element, "variables");
       
       if (tsi.variableNeededButNoneFound) {
          return;
       }
       
-      TemplateInformation templateInfo = createEmptyTemplateInfo(element, false);
+      TemplateInformation templateInfo = createEmptyTemplateInfo(element);
       
       if (templateInfo != null) {
-         String text = doImmediateVariableSubstitution(element, getText(element));
+         String text = doImmediateVariableSubstitution(element, getText(element).trim());
          TemplateBuilder tb = new TemplateBuilder(tsi, text);
          
          templateInfo.setBuilder(tb);
@@ -4462,8 +4583,7 @@ private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSel
          final String TEMPLATE=""
                + "class %decl {\n"
                + "\n"
-               + "public:\\n\n"
-               + "\n";
+               + "public:\\n\\n";
                
       if (templateKey.startsWith("commonInfo.")) {
          // Add opening template
@@ -4474,7 +4594,7 @@ private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSel
          }
          String text = TEMPLATE.replace("%decl", decl);
          text = fForStack.doForSubstitutions(text);
-         text = replaceCommonNames(text).trim();
+         text = replaceCommonNames(text);
 
          TemplateInformation templateInfo = new TemplateInformation(null,  null, "commonInfo", null);
          templateInfo.addText(text);
@@ -4489,7 +4609,7 @@ private void parseGrahicElement(BaseModel parentModel, Element graphic, ClockSel
          }
          String text = TEMPLATE.replace("%decl", decl);
          text = fForStack.doForSubstitutions(text);
-         text = replaceCommonNames(text).trim();
+         text = replaceCommonNames(text);
 
          TemplateInformation templateInfo = new TemplateInformation(null,  null, "basicInfo", null);
          templateInfo.addText(text);

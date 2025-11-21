@@ -65,7 +65,7 @@ IWorkbenchPreferencePage {
    @Override
    protected Control createContents(Composite parent) {
 
-      Composite composite = new Composite(parent, SWT.NONE);      
+      Composite composite = new Composite(parent, SWT.NONE);
       composite.setLayout(new GridLayout(1, false));
 
       createPathComposite(composite);
@@ -75,11 +75,11 @@ IWorkbenchPreferencePage {
       // Load settings here so controls are valid
       loadSettings();
 
-//      boolean t = 
+//      boolean t =
       validate();
 //      System.err.println("WorkbenchPreferenceTopPage.createContents() => validate = " + t);
 
-      return composite;         
+      return composite;
    }
 
    //===============================================
@@ -189,18 +189,18 @@ IWorkbenchPreferencePage {
    static class ExtendedToolInformationData extends ToolInformationData {
 
       private Label pathText    = null;
-      private Label prefixText  = null;
       private Label pathLabel   = null;
-      private Label prefixLabel = null;
+//      private Label prefixText  = null;
+//      private Label prefixLabel = null;
 
       public Label getPathText()                    { return pathText; }
       public void setPathText(Label pathText)       { this.pathText = pathText; }
-      public Label getPrefixText()                  { return prefixText; }
-      public void setPrefixText(Label prefixText)   { this.prefixText = prefixText; }
+//      public Label getPrefixText()                  { return prefixText; }
+//      public void setPrefixText(Label prefixText)   { this.prefixText = prefixText; }
       public Label getPathLabel()                   { return pathLabel; }
       public void setPathLabel(Label pathLabel)     { this.pathLabel = pathLabel; }
-      public Label getPrefixLabel()                 { return prefixLabel; }
-      public void setPrefixLabel(Label prefixLabel) { this.prefixLabel = prefixLabel; }
+//      public Label getPrefixLabel()                 { return prefixLabel; }
+//      public void setPrefixLabel(Label prefixLabel) { this.prefixLabel = prefixLabel; }
 
       ExtendedToolInformationData(ToolInformationData other) {
          super(other);
@@ -228,31 +228,31 @@ IWorkbenchPreferencePage {
          //
          group.setLayout(new GridLayout(3, false));
 
-         //
-         // Cross compiler prefix
-         //
-         toolInformation.setPrefixLabel(new Label(group, SWT.NONE));
-         toolInformation.getPrefixLabel().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-         toolInformation.getPrefixLabel().setToolTipText("${" + toolInformation.getPrefixVariableName() + "}");
-
-         toolInformation.setPrefixText(new Label(group, SWT.BORDER));
-         GridData gd = new GridData(SWT.LEFT, SWT.CENTER, true, false);
-         gd.widthHint = 150;
-         toolInformation.getPrefixText().setLayoutData(gd);
-         toolInformation.getPrefixText().setToolTipText("Prefix for Cross Compiler commands e.g. arm-none-eabi-");
-
-         Button clearButton = new Button(group, SWT.NONE);
-         clearButton.setText("Clear");
-         clearButton.setToolTipText("Clear && disable this entry");
-         clearButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-         clearButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-               toolInformation.getPathText().setText(UsbdmConstants.PATH_NOT_SET);
-               toolInformation.getPrefixText().setText(UsbdmConstants.PREFIX_NOT_SET);
-               validate();
-            }
-         });
+//         //
+//         // Cross compiler prefix
+//         //
+//         toolInformation.setPrefixLabel(new Label(group, SWT.NONE));
+//         toolInformation.getPrefixLabel().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+//         toolInformation.getPrefixLabel().setToolTipText("${" + toolInformation.getPrefixVariableName() + "}");
+//
+//         toolInformation.setPrefixText(new Label(group, SWT.BORDER));
+//         GridData gd = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+//         gd.widthHint = 150;
+//         toolInformation.getPrefixText().setLayoutData(gd);
+//         toolInformation.getPrefixText().setToolTipText("Prefix for Cross Compiler commands e.g. armx-none-eabi-");
+//
+//         Button clearButton = new Button(group, SWT.NONE);
+//         clearButton.setText("Clear");
+//         clearButton.setToolTipText("Clear && disable this entry");
+//         clearButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+//         clearButton.addSelectionListener(new SelectionAdapter() {
+//            @Override
+//            public void widgetSelected(SelectionEvent e) {
+//               toolInformation.getPathText().setText(UsbdmConstants.PATH_NOT_SET);
+//               toolInformation.getPrefixText().setText(UsbdmConstants.PREFIX_NOT_SET);
+//               validate();
+//            }
+//         });
 
          //
          // Cross compiler path
@@ -261,10 +261,10 @@ IWorkbenchPreferencePage {
          toolInformation.setPathLabel(new Label(group, SWT.NONE));
          toolInformation.getPathLabel().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
          toolInformation.getPathLabel().setText("Path: ");
-         toolInformation.getPathLabel().setToolTipText("${" + toolInformation.getPrefixVariableName() + "}");
+         toolInformation.getPathLabel().setToolTipText("${" + toolInformation.getPathVariableName() + "}");
 
          toolInformation.setPathText(new Label(group, SWT.SINGLE | SWT.BORDER));
-         GridData gd1 = new GridData(SWT.FILL, SWT.CENTER, false, false);
+         GridData gd1 = new GridData(SWT.FILL, SWT.CENTER, true, false);
          gd1.widthHint = 300;
          toolInformation.getPathText().setLayoutData(gd1);
          toolInformation.getPathText().setToolTipText("Path to Cross Compiler bin directory");
@@ -289,7 +289,7 @@ IWorkbenchPreferencePage {
                   int trailingSegmentsToRemove = 1;
                   String path = gccPath.removeLastSegments(trailingSegmentsToRemove).toPortableString();
                   toolInformation.getPathText().setText(path);
-                  toolInformation.getPrefixText().setText(prefix);
+//                  toolInformation.getPrefixText().setText(prefix);
                   validate();
                }
             }
@@ -302,11 +302,11 @@ IWorkbenchPreferencePage {
    private void updatePathCompositeLabels(boolean showVariableNames) {
       for (final ExtendedToolInformationData toolInformation : ExtendedToolInformationData.getExtendedToolInformationTable().values()) {
          if (showVariableNames) {
-            toolInformation.getPrefixLabel().setText("Prefix ${" + toolInformation.getPrefixVariableName() + "}:");
+//            toolInformation.getPrefixLabel().setText("Prefix ${" + toolInformation.getPrefixVariableName() + "}:");
             toolInformation.getPathLabel().setText("Path ${" + toolInformation.getPathVariableName() + "}:");
          }
          else {
-            toolInformation.getPrefixLabel().setText("Prefix:");
+//            toolInformation.getPrefixLabel().setText("Prefix:");
             toolInformation.getPathLabel().setText("Path:");
          }
       }
@@ -332,11 +332,12 @@ IWorkbenchPreferencePage {
                continue;
             }
          }
-         String prefixText = toolInformation.getPrefixText().getText().trim();
-         IPath gccPath = new Path(pathText).append(prefixText+gccCommand);
+//         String prefixText = toolInformation.getPrefixText().getText().trim();
+//         IPath gccPath = new Path(pathText).append(prefixText+gccCommand);
+         IPath gccPath = new Path(pathText).append("arm-none-eabi-"+gccCommand);
          File gccFile = gccPath.toFile();
          if (!gccFile.isFile() || !gccFile.canExecute()) {
-            message = toolInformation.getDescription() + " - Prefix or path invalid";
+            message = toolInformation.getDescription() + " - Path invalid";
             break;
          }
       }
@@ -353,22 +354,22 @@ IWorkbenchPreferencePage {
 //         System.err.println("WorkbenchMainPreferencePage.loadPaths() Found path variable   = " + toolInformation.getPathVariableName());
 //         System.err.println("WorkbenchMainPreferencePage.loadPaths() Found prefix variable = " + toolInformation.getPrefixVariableName());
          toolInformation.getPathText().setText(toolPath);
-         String toolPrefix = settings.get(toolInformation.getPrefixVariableName(), UsbdmConstants.PREFIX_NOT_SET);
-         toolInformation.getPrefixText().setText(toolPrefix);
+//         String toolPrefix = settings.get(toolInformation.getPrefixVariableName(), UsbdmConstants.PREFIX_NOT_SET);
+//         toolInformation.getPrefixText().setText(toolPrefix);
       }
    }
 
    private void savePaths(UsbdmSharedSettings settings) {
 
       for (final ExtendedToolInformationData toolInformation : ExtendedToolInformationData.getExtendedToolInformationTable().values()) {
-         settings.put(toolInformation.getPrefixVariableName(), toolInformation.getPrefixText().getText());
+//         settings.put(toolInformation.getPrefixVariableName(), toolInformation.getPrefixText().getText());
          settings.put(toolInformation.getPathVariableName(),   toolInformation.getPathText().getText());
       }
    }
 
    /**
     *  Validates control & sets error message
-    *  
+    * 
     * @param message error message (null if none)
     * 
     * @return true => dialogue values are valid

@@ -30,6 +30,7 @@ import org.eclipse.core.variables.VariablesPlugin;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.packageParser.FileAction;
+import net.sourceforge.usbdm.packageParser.FileAction.OverwriteAction;
 import net.sourceforge.usbdm.packageParser.FileAction.PathType;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
 
@@ -86,12 +87,16 @@ public class AddTargetFiles {
             }
             if (iFile.exists()) {
                // Replace existing, more specific, file
-               if (fileAction.doFileOverwrite()) {
+               if (fileAction.doFileOverwrite() == OverwriteAction.always) {
 //                  System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
                   iFile.setContents(new ByteArrayInputStream(fileContents), true, false, subMonitor.newChild(remainder-25));;
                }
-               else {
+               else if (fileAction.doFileOverwrite() == OverwriteAction.error) {
                   throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
+               }
+               else {
+                  // No action
+                  return;
                }
             }
             else {

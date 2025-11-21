@@ -526,5 +526,5 @@ public class ChoiceVariable extends VariableWithChoices {
       }
       return lValue.equals(0L);
    }
-
+   
 }

@@ -139,7 +139,13 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    private String fAssociatedSignalName;
 
    /** Generate enum as constexpr constants using base type */
-   private boolean fGenerateAsConstants;
+   private boolean fGenerateConstants;
+   
+   /** Template for generate enum as constexpr constants */
+//   private String fConstantTemplate = null;
+   
+   /** Preamble text for declaration */
+//   private String fPreambleText = null;
    
    /** Indicate enum operators are to be generated */
    private boolean fGenerateOperators;
@@ -1214,12 +1220,12 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @return Enumeration type/stem
     */
    public String getTypeName() {
-      if (isGenerateAsConstants()) {
-         return fBaseType;
-      }
-      else {
+//      if (isGenerateAsConstants()) {
+//         return fBaseType;
+//      }
+//      else {
          return fTypeName;
-      }
+//      }
    }
 
    /**
@@ -1231,6 +1237,9 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
       String typeName = getTypeName();
       if (typeName == null) {
          return "Variable_no_type";
+      }
+      if (typeName.equals("bool")) {
+         return typeName;
       }
       typeName = typeName.strip();
       return typeName.substring(0,1).toUpperCase()+typeName.substring(1);
@@ -1251,7 +1260,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    }
 
    /**
-    * Get type for parameters
+    * Get type for return type
     * 
     * @return Type
     */
@@ -1274,7 +1283,6 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     */
    public void setRegister(String register) {
       fRegister=register;
-      
    }
    
    /**
@@ -2119,7 +2127,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * @param generateAsConstants
     */
    public void setGenerateConstants(boolean generateAsConstants) {
-      fGenerateAsConstants = generateAsConstants;
+      fGenerateConstants = generateAsConstants;
    }
 
    /**
@@ -2127,11 +2135,46 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     *
     * @return flag value
     */
-   public boolean isGenerateAsConstants() {
-      return fGenerateAsConstants;
+   public boolean isGenerateConstants() {
+      return fGenerateConstants;
    }
    
+//   /**
+//    * Sets template used to generate enums as constexpr constants
+//    *
+//    * @param template Template to use
+//    */
+//   public void setConstantTemplate(String template) {
+//      fConstantTemplate    = template;
+//   }
+//
+//   /**
+//    * Gets user template used to generate enums as constexpr constants
+//    *
+//    * @return Template to use
+//    */
+//   public String getConstantTemplate() {
+//      return fConstantTemplate;
+//   }
 
+//   /**
+//    * Sets preamble text for declaration
+//    *
+//    * @param text Text to use
+//    */
+//   public void setPreamble(String text) {
+//      fPreambleText = text;
+//   }
+//
+//   /**
+//    * Gets preamble text for declaration
+//    *
+//    * @return Text to use
+//    */
+//   public String getPreamble() {
+//      return fPreambleText;
+//   }
+//
    abstract public boolean isZero();
    
    /**

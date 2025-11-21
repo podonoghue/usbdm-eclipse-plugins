@@ -1,11 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable.BitInformation;
@@ -22,6 +24,7 @@ import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML.TemplateSubstitut
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 abstract class TemplateContentBuilder {
+   
    /**
     * Build the text of the template for delayed template evaluation
     * 
@@ -31,49 +34,94 @@ abstract class TemplateContentBuilder {
     */
    public abstract String build() throws Exception;
    
-   static class TemplateBuilder extends TemplateContentBuilder {
-
-      TemplateSubstitutionInfo info;
-      private String body;
-
-      public TemplateBuilder(TemplateSubstitutionInfo tsi, String text) {
-         info = tsi;
-         body = text;
+   /**
+    * Apply a set of template substitutions of form <b>%name</b> in template text
+    * 
+    * @param text          Text to modify
+    * @param substitutions Substitutions to do
+    * 
+    * @return Modified test
+    */
+    static String doTemplateSubstitutions(String text, List<StringPair> substitutions) {
+      
+      if (text == null) {
+         return null;
       }
-
-      @Override
-      public String build() throws Exception {
-         
-         List<StringPair> substitutions = getTemplateSubstitutions(info);
-         
-         // Apply substitutions
-         return doTemplateSubstitutions(body, substitutions);
+      if (substitutions == null) {
+         return text;
       }
+      for (StringPair p:substitutions) {
+         if (p.key==null) {
+            System.err.println("key is null, value = "+p.value);
+         }
+         if (p.value==null) {
+            System.err.println("value is null, res = "+p.key);
+         }
+         // Check for key followed by non-word or '_' or end
+         String pattern     = Pattern.quote(p.key)+"(\\W|_|$)";
+         String replacement = Matcher.quoteReplacement(p.value)+"$1";
+         Matcher m = Pattern.compile(pattern).matcher(text);
+         boolean doneReplacement = false;
+         StringBuffer sb = new StringBuffer();
+         while (m.find()) {
+             m.appendReplacement(sb, replacement);
+             doneReplacement = true;
+         }
+         if (doneReplacement) {
+            m.appendTail(sb);
+            text = sb.toString();
+         }
+      }
+      return text;
    }
 
-   static class ClockTemplateBuilder extends TemplateContentBuilder {
+    /**
+     * Try to deduce the name of the register associated with a variable (field)
+     * 
+     * @param currentPeripheral Current peripheral
+     * @param controlVar        The variable being examined
+     * 
+     * @return                  Name of register e.g. SOPT4
+     * 
+     * @throws Exception
+     */
+    static String deduceRegisterName(Peripheral currentPeripheral, Variable controlVar) throws Exception {
 
-      TemplateSubstitutionInfo info;
-      private String body;
+       if (controlVar instanceof IrqVariable) {
+          return "callbackFunction";
+       }
+       String register = null;
+       String variableKey  = controlVar.getBaseNameFromKey();
+       String registerName = controlVar.getRegister();
 
-      public ClockTemplateBuilder(TemplateSubstitutionInfo tsi, String text) {
-         info = tsi;
-         body = text;
-      }
-
-      @Override
-      public String build() throws Exception {
-         
-         List<StringPair> substitutions = getTemplateSubstitutions(info);
-         
-         // Add body substitution
-         String caseBody = getTemplateCaseStatement(info.variableList.get(0));
-         substitutions.add(0, new StringPair("%body", caseBody));
-         
-         // Apply substitutions
-         return doTemplateSubstitutions(body, substitutions);
-      }
-   }
+       if (registerName != null) {
+          Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
+          Matcher m = p.matcher(variableKey);
+          if (m.matches()) {
+             register = registerName.toUpperCase();
+          }
+          else {
+             throw new Exception("Unable to match register name "+registerName+" against "+variableKey);
+          }
+       }
+       else {
+          // Try some likely candidates
+          String peripherals[] = {
+                "port",
+                "nvic",
+                currentPeripheral.getName().toLowerCase(),      // e.g. FTM2
+                currentPeripheral.getBaseName().toLowerCase()}; // e.g. FTM0 => FTM, PTA => PT
+          for (String peripheral:peripherals) {
+             Pattern p = Pattern.compile("^"+peripheral+"_([a-zA-Z0-9]*)(_(.+))?$");
+             Matcher m = p.matcher(variableKey);
+             if (m.matches()) {
+                register = m.group(1);
+                break;
+             }
+          }
+       }
+       return register;
+    }
 
    /**
     * Construct template substitutions<br><br>
@@ -429,7 +477,7 @@ abstract class TemplateContentBuilder {
             {
                // Try to deduce register
                String tempRegister     = deduceCRegister(info.peripheral, variable, info.context);
-               String tempRegisterName = deduceRegisterName(info.peripheral, variable, info.context);
+               String tempRegisterName = deduceRegisterName(info.peripheral, variable);
                if (tempRegister != null) {
                   registerN     = tempRegister;
 //                  registerNameN = tempRegister.replaceAll("([a-zA-Z0-9]*)->", "").toLowerCase();
@@ -456,10 +504,10 @@ abstract class TemplateContentBuilder {
             
             if (!mask.isBlank()) {
                //  %register = (%register&~%mask) | %paramExpression;
-               fieldAssignmentN    = registerN+" = "+"("+registerN+"&~"+mask+")"+" | %paramName"+index;
+               fieldAssignmentN    = registerN+" = "+"("+registerN+"&~"+mask+")"+" | uint32_t(%paramName"+index+")";
                
                //  %registerName = (%registerName&~%mask) | %paramExpression;
-               constructorFieldAssignmentN = registerNameN+" = ("+registerNameN+"&~"+mask+") | %paramName"+index;
+               constructorFieldAssignmentN = registerNameN+" = ("+registerNameN+"&~"+mask+") | uint32_t(%paramName"+index+")";
                
                //  %register = (%register&~%mask) | %registerName;
                configFieldAssignmentN = registerN+" = ("+registerN+"&~"+mask+") | "+"init."+registerNameN;
@@ -573,10 +621,10 @@ abstract class TemplateContentBuilder {
                maskingExpression = register+"&"+mask;
                
                //  %register = (%register&~%mask) | %paramExpression;
-               fieldAssignment    = register+" = "+"("+register+"&~"+mask+")"+" | "+paramExpr;
+               fieldAssignment    = register+" = "+"("+register+"&~"+mask+")"+" | uint32_t("+paramExpr+")";
                
                //  %registerName = (%registerName&~%mask) | %paramExpression;
-               constructorFieldAssignment = registerName+" = ("+registerName+"&~"+mask+") | "+paramExpr;
+               constructorFieldAssignment = registerName+" = ("+registerName+"&~"+mask+") | uint32_t("+paramExpr+")";
                
                //  %register = (%register&~%mask) | %registerName;
                configFieldAssignment = register+" = ("+register+"&~"+mask+") | "+"init."+registerName;
@@ -660,46 +708,6 @@ abstract class TemplateContentBuilder {
       }
       
       return substitutions;
-   }
-
-   /**
-    * Apply a set of template substitutions of form <b>%name</b> in template text
-    * 
-    * @param text          Text to modify
-    * @param substitutions Substitutions to do
-    * 
-    * @return Modified test
-    */
-   public static String doTemplateSubstitutions(String text, List<StringPair> substitutions) {
-      
-      if (text == null) {
-         return null;
-      }
-      if (substitutions == null) {
-         return text;
-      }
-      for (StringPair p:substitutions) {
-         if (p.key==null) {
-            System.err.println("key is null, value = "+p.value);
-         }
-         if (p.value==null) {
-            System.err.println("value is null, res = "+p.key);
-         }
-         String pattern     = Pattern.quote(p.key)+"(\\W|_)";
-         String replacement = Matcher.quoteReplacement(p.value)+"$1";
-         Matcher m = Pattern.compile(pattern).matcher(text);
-         boolean doneReplacement = false;
-         StringBuffer sb = new StringBuffer();
-         while (m.find()) {
-             m.appendReplacement(sb, replacement);
-             doneReplacement = true;
-         }
-         if (doneReplacement) {
-            m.appendTail(sb);
-            text = sb.toString();
-         }
-      }
-      return text;
    }
 
    private static String getTemplateCaseStatement(Variable var) throws Exception {
@@ -809,57 +817,256 @@ abstract class TemplateContentBuilder {
    }
    
    /**
-    * Try to deduce the name of the register associated with a variable (field)
-    * 
-    * @param currentPeripheral Current peripheral
-    * @param controlVar        The variable being examined
-    * @param context           Context for the field
-    * 
-    * @return                  Name of register e.g. SOPT4
-    * 
-    * @throws Exception
+    * Class to accumulate enum elements information while removing repeated enums
     */
-   private static String deduceRegisterName(Peripheral currentPeripheral, Variable controlVar, String context) throws Exception {
-
-      if (controlVar instanceof IrqVariable) {
-         return "callbackFunction";
-      }
-      if (context == null) {
-         // No context - return unchanged
-         context = "%s";
-      }
-      String register = null;
-      String variableKey  = controlVar.getBaseNameFromKey();
-      String registerName = controlVar.getRegister();
-
-      if (registerName != null) {
-         Pattern p = Pattern.compile("(.+)_"+registerName+"_(.+)");
-         Matcher m = p.matcher(variableKey);
-         if (m.matches()) {
-            register = registerName.toUpperCase();
+   private static class CheckRepeats {
+      
+      static class Info {
+         
+      final String fName;
+      final String fValue;
+      final String fComment;
+         
+         Info(String name, String value, String comment) {
+            fName    = name;
+            fValue   = value;
+            fComment = comment;
          }
-         else {
-            throw new Exception("Unable to match register name "+registerName+" against "+variableKey);
-         }
-      }
-      else {
-         // Try some likely candidates
-         String peripherals[] = {
-               "port",
-               "nvic",
-               currentPeripheral.getName().toLowerCase(),      // e.g. FTM2
-               currentPeripheral.getBaseName().toLowerCase()}; // e.g. FTM0 => FTM, PTA => PT
-         for (String peripheral:peripherals) {
-            Pattern p = Pattern.compile("^"+peripheral+"_([a-zA-Z0-9]*)(_(.+))?$");
-            Matcher m = p.matcher(variableKey);
-            if (m.matches()) {
-               register = m.group(1);
-               break;
+      };
+      
+      private ArrayList<Info> namesList = new ArrayList<Info>();
+      
+      private int valueWidth    = 0;
+      private int nameWidth     = 0;
+      
+      /**
+       * Add entry to list if not already present
+       * 
+       * @param name       Name of  enum/constant
+       * @param value      Value for enum/constant
+       * @param comment    Comment for enum/constant
+       * 
+       * @return  TRUE => Added to list, FALSE => Entry with same name already present
+       */
+      Info add(String name, String value, String comment) {
+         for (Info existingName:namesList) {
+            if (existingName.fName.equalsIgnoreCase(name)) {
+               return null;
             }
          }
+         nameWidth  = Math.max(nameWidth,  name.length()+2);
+         valueWidth = Math.max(valueWidth, value.length()+2);
+         
+         Info entry  = new Info(name, value, comment);
+         namesList.add(entry);
+         return entry;
       }
-      return register;
+
+      /**
+       * Get element at index
+       * 
+       * @param index
+       * 
+       * @return
+       */
+      public Info get(int index) {
+         return namesList.get(index);
+      }
+
+      /**
+       * get number of entries
+       * 
+       * @return
+       */
+      public int size() {
+         return namesList.size();
+      }
+   };
+   
+   /**
+    * Create enum body
+    * 
+    * @param var      Associated variable
+    * @param enumNamesList       List of enum values
+    * @param generateAsConstants Whether to generate as part of an enum body or as explicit constants
+    * 
+    * @return Enum values as String
+    */
+   private static String makeEnumEntries(Variable var, CheckRepeats enumNamesList, String constantTemplate) {
+
+      String type       = var.getTypeName();
+      String baseType   = var.getBaseType();
+      
+      // Create enum body
+      StringBuilder body = new StringBuilder();
+      for (int index=0; index<enumNamesList.size(); index++) {
+         CheckRepeats.Info entry = enumNamesList.get(index);
+         if (constantTemplate != null) {
+            String template = constantTemplate;
+            String name = String.format("%-"+enumNamesList.nameWidth+"s", entry.fName);
+            template = template.replace("%t", type);
+            template = template.replace("%b", baseType);
+            template = template.replace("%n", name);
+            template = template.replace("%v", entry.fValue);
+            template = template.replace("%c", entry.fComment);
+            body.append(template+"\n");
+         }
+         else {
+            body.append(String.format("\\t   %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
+                  entry.fName, entry.fValue+",", entry.fComment));
+         }
+      }
+      return body.toString();
    }
+   
+   static class EnumOperatorBuilder extends TemplateContentBuilder {
+
+      ArrayList<Variable> variables = new ArrayList<Variable>();
+      String registerName;
+      
+      /**
+       * Get name of register associated with this enum
+       * 
+       * @return Name of register
+       */
+      String getRegistername() {
+         return registerName;
+      }
+      
+      /**
+       * 
+       * @param registerName  Name of register bit-field belongs to
+       */
+      public EnumOperatorBuilder(String registerName) {
+         this.registerName = registerName;
+      }
+
+      /**
+       * Add variable to create operators for
+       * 
+       * @param variable   Variable to add
+       */
+      public void addVariable(Variable variable) {
+         variables.add(variable);
+      }
+      
+      @Override
+      public String build() throws Exception {
+         
+         final String template1 = "constexpr inline %s operator|(%s op1, %s op2) ";
+         final String template2 = "{ return %s(op1)|%s(op2); };\n";
+         
+         StringBuilder sb = new StringBuilder();
+         
+         // Find with of function prototype
+         int nameWidth = 0;
+         for (Variable var1:variables) {
+            String baseType = var1.getBaseType();
+            if (baseType == null) {
+               baseType = "uint32_t";
+            }
+            String p1 = String.format(template1, baseType, var1.getTypeName(), var1.getTypeName());
+            if (p1.length()>nameWidth) {
+               nameWidth = p1.length();
+            }
+         }
+         
+         HashSet<String> var1Types = new HashSet<String>();
+         for (Variable var1:variables) {
+            
+            String type1 = var1.getTypeName();
+            if (var1Types.contains(type1)) {
+               continue;
+            }
+            var1Types.add(type1);
+            
+            String baseType = var1.getBaseType();
+            if (baseType == null) {
+               baseType = "uint32_t";
+            }
+            
+            HashSet<String> var2Types = new HashSet<String>();
+            for (Variable var2:variables) {
+            
+               String type2 = var2.getTypeName();
+               if (var2Types.contains(type2)) {
+                  continue;
+               }
+               var2Types.add(type2);
+               if (var1 == var2) {
+                  continue;
+               }
+               if (type1.equalsIgnoreCase(type2)) {
+                  continue;
+               }
+               if (var1 != var2) {
+                  String p1 = String.format(template1, baseType, type1, type2);
+                  String p2 = String.format(template2, baseType, baseType);
+                  sb.append(String.format("\\t%-"+nameWidth+"s%20s", p1, p2));
+               }
+            }
+         }
+         if (sb.isEmpty()) {
+            return "";
+         }
+         sb.insert(0, "\\n\\t// Bit operators for " + registerName + " register fields\n");
+         sb.append("\\t\n");
+         return sb.toString();
+      }
+   }
+
+   static class TemplateBuilder extends TemplateContentBuilder {
+
+      TemplateSubstitutionInfo fInfo;
+      private String fBody;
+
+      /**
+       * @param tsi     Collection of template information for later substitutions
+       * @param text    Text to do substitution in
+       */
+      public TemplateBuilder(TemplateSubstitutionInfo tsi, String text) {
+         fInfo = tsi;
+         fBody = text;
+      }
+
+      @Override
+      public String build() throws Exception {
+         
+         List<StringPair> substitutions = getTemplateSubstitutions(fInfo);
+         
+         // Apply substitutions
+         return doTemplateSubstitutions(fBody, substitutions);
+      }
+   }
+
+   static class ClockTemplateBuilder extends TemplateContentBuilder {
+
+      TemplateSubstitutionInfo fInfo;
+      private String fBody;
+
+      /**
+       * @param tsi     Collection of template information for later substitutions
+       * @param text    Text to do substitution in
+       */
+      public ClockTemplateBuilder(TemplateSubstitutionInfo tsi, String text) {
+         fInfo = tsi;
+         fBody = text;
+      }
+
+      @Override
+      public String build() throws Exception {
+         
+         List<StringPair> substitutions = getTemplateSubstitutions(fInfo);
+         
+         // Add body substitution
+         String caseBody = getTemplateCaseStatement(fInfo.variableList.get(0));
+         substitutions.add(0, new StringPair("%body", caseBody));
+         
+         // Apply substitutions
+         return doTemplateSubstitutions(fBody, substitutions);
+      }
+   }
+   
    static class ChoiceEnumBuilder extends TemplateContentBuilder {
       
       /// Format string with parameters: description, tool-tip, enumClass, body
@@ -884,10 +1091,11 @@ abstract class TemplateContentBuilder {
           /*                  */ + " \\t */\n";
 
       /// Format string with parameters: description, tool-tip, enumClass, body
-      public final static String enumTemplate = ""
-          /*  type,enumtype   */ + " \\tenum %s%s {\n"
-          /*  body            */ + " %s"
-          /*                  */ + " \\t};\\n\\n\n";
+      public final static String enumOpenTemplate = ""
+            /*  type,enumtype   */ + " \\tenum %s {\n";
+
+      public final static String enumCloseTemplate = ""
+            /*                  */ + " \\t};\\n\\n";
 
       /// Format string with parameters: description, tool-tip, enumClass, body
       public final static String constantTemplate = ""
@@ -902,122 +1110,144 @@ abstract class TemplateContentBuilder {
             + "#if %s\n"
             + "%s"
             + "#endif\\n\\n\n";
-
       
-      protected final Variable            fVariable;
-      protected final String              fValueFormat;
-      protected final String              fEnumText;
-      protected final String              fEnumGuard;
-      protected final DeviceInfo          fDeviceInfo;
-      protected final Boolean             fNoStem;
+      protected final Variable      fVariable;
+      protected final String        fValueFormat;
+      protected final String        fEnumText;
+      protected final String        fEnumGuard;
+      protected final DeviceInfo    fDeviceInfo;
+      // Enum names will not start with a stem
+      protected final boolean       fNoStem;
+
+      // Generate constants as enum choice values
+      protected final boolean       fGenerateEnum;
+      
+      // Template to use to generate constants for choice values
+      protected final String        fConstantTemplate;
+      
+      // Indicates creation of an empty enum (to create an empty type used to casts)
+      protected final boolean       fEmptyEnum;
+
+      protected       String        fPreamble  = null;
+      protected       String        fPostamble = null;
+      protected       String        fBodyText  = null;
+
+      /**
+       * Get <b>&lt;preamble&gt;</b>,<b>&lt;postamble&gt;</b> and <b>&lt;bodyText&gt;</b> text (if any)
+       * 
+       * @param parser     Parser being used
+       * @param varElement Element to parse
+       * 
+       * @throws Exception
+       */
+      private void parseTextChildren(ParseMenuXML parser, Element varElement) throws Exception {
+         
+         for (Node subNode = varElement.getFirstChild();
+               subNode != null;
+               subNode = subNode.getNextSibling()) {
+            
+            if (subNode.getNodeType() != Node.ELEMENT_NODE) {
+               continue;
+            }
+            Element element = (Element) subNode;
+            
+            if (element.getTagName().equals("preamble")) {
+               String text = parser.doImmediateVariableSubstitution(element, parser.getText(element));
+               fPreamble = text.strip();
+            }
+            if (element.getTagName().equals("postamble")) {
+               String text = parser.doImmediateVariableSubstitution(element, parser.getText(element));
+               fPostamble = text.strip();
+            }
+            if (element.getTagName().equals("bodyText")) {
+               String text = parser.doImmediateVariableSubstitution(element, parser.getText(element));
+               fBodyText = text.strip();
+            }
+         }
+      }
 
       public ChoiceEnumBuilder(ParseMenuXML parser, Element varElement, Variable variable) throws Exception {
          
 //         if (variable.isLogging()) {
 //            System.err.println("Logging");
 //         }
-         fEnumText            = parser.getAttributeAsString(varElement,  "enumText", null);
-         fEnumGuard           = parser.getAttributeAsString(varElement,  "enumGuard");
-         fNoStem              = parser.getAttributeAsBoolean(varElement, "noStem", false);
-         fVariable            = variable;
-         fDeviceInfo          = parser.getDeviceInfo();
-
+         fEnumText          = parser.getAttributeAsString(varElement,  "enumText",     null);
+         fEnumGuard         = parser.getAttributeAsString(varElement,  "enumGuard");
+         fNoStem            = parser.getAttributeAsBoolean(varElement, "noStem",       false);
+         fGenerateEnum      = parser.getAttributeAsBoolean(varElement, "generateEnum", true);
+         fEmptyEnum         = parser.getAttributeAsBoolean(varElement, "generateEnum", true);
+         fVariable          = variable;
+         fDeviceInfo        = parser.getDeviceInfo();
+         fPreamble          = null;
+         
+         String  template   = parser.getAttributeAsString(varElement,  "constantTemplate", null);
+         if (template != null) {
+            // Notify that constants are being generated for this variable
+            variable.setGenerateConstants(true);
+         }
+         boolean generateConstants = variable.isGenerateConstants();
+         if (generateConstants) {
+            if (template == null) {
+               // Default template
+               fConstantTemplate = "\\tinline constexpr %t %n   = %t(%v); ///< %c";
+            }
+            else {
+               // Supplied template
+               fConstantTemplate = template;
+            }
+         }
+         else {
+            // Don't generate constants
+            fConstantTemplate = null;
+         }
 //         String macroName = Variable.getBaseNameFromKey(variable.getKey()).toUpperCase();
          fValueFormat = variable.getValueFormat();// parser.getAttributeAsString(varElement, "valueFormat", macroName+"(%s)");
+         
+         parseTextChildren(parser, varElement);
       }
       
-      static class CheckRepeats {
+      /**
+       * Accumulate information about the enum entries from choices associated with variable
+       * 
+       * @param var     Variable to obtain enum information from
+       * @param prefix  Prefix for enum names
+       * 
+       * @return  Accumulated information
+       * 
+       * @throws Exception
+       */
+      protected CheckRepeats accumulateEnumData(Variable pVar, String prefix) throws Exception {
          
-         static class Info {
-            
-         final String fName;
-         final String fValue;
-         final String fComment;
-            
-            Info(String name, String value, String comment) {
-               fName    = name;
-               fValue   = value;
-               fComment = comment;
-            }
-         };
+         VariableWithChoices var = (VariableWithChoices) pVar;
          
-         ArrayList<Info> namesList = new ArrayList<Info>();
-         
-         private int valueWidth    = 0;
-         private int nameWidth     = 0;
-         
-         /**
-          * Add entry to list of not already present
-          * 
-          * @param name       Name of  enum/constant
-          * @param value      Value for enum/constant
-          * @param comment    Comment for enum/constant
-          * 
-          * @return  TRUE => Added to list, FALSE => Entry with same name already present
-          */
-         Info add(String name, String value, String comment) {
-            for (Info existingName:namesList) {
-               if (existingName.fName.equalsIgnoreCase(name)) {
-                  return null;
-               }
-            }
-            nameWidth  = Math.max(nameWidth,  name.length()+2);
-            valueWidth = Math.max(valueWidth, value.length()+2);
-            
-            Info entry  = new Info(name, value, comment);
-            namesList.add(entry);
-            return entry;
-         }
+         CheckRepeats enumNamesList = new CheckRepeats();
 
-         public Info get(int index) {
-            return namesList.get(index);
-         }
-
-         public int size() {
-            return namesList.size();
-         }
-      };
-      
-      @Override
-      public String build() throws Exception {
-         
-         if(fVariable.isLogging()) {
-            System.err.println("Building definitions for "+ fVariable);
-         }
-         String enumPrefix = fVariable.getEnumPrefix();
-         String enumClass  = Character.toUpperCase(enumPrefix.charAt(0)) + enumPrefix.substring(1);
-         String baseType   = fVariable.getBaseType();
-         
-         VariableWithChoices varWithChoices = (VariableWithChoices) fVariable;
-         
          ArrayList<ChoiceData[]> lists = new ArrayList<ChoiceData[]>();
-         lists.add(varWithChoices.getChoiceData());
-         ChoiceData[] hiddenChoices = varWithChoices.getHiddenChoiceData();
+         lists.add(var.getChoiceData());
+         ChoiceData[] hiddenChoices = var.getHiddenChoiceData();
          if (hiddenChoices != null) {
             lists.add(hiddenChoices);
          }
-         
-         // Accumulate enum information
-         CheckRepeats enumNamesList = new CheckRepeats();
          
          for (ChoiceData[] choiceData:lists) {
             if (choiceData == null) {
                continue;
             }
             for (int index=0; index<choiceData.length; index++) {
+               
                ChoiceData choice = choiceData[index];
                String enumName = choice.getEnumName();
                if ((enumName == null) || enumName.isBlank()) {
-                  throw new Exception("enumTemplate - enum data is incomplete in choice '" + choice.getName() + "' ='"+varWithChoices+"'");
+                  throw new Exception("enumTemplate - enum data is incomplete in choice '" + choice.getName() + "' ='"+var+"'");
                }
                if (enumName.equals("-deleted-")) {
                   continue;
                }
-               String completeEnumName = enumClass+"_"+enumName;
+               String completeEnumName = prefix+"_"+enumName;
                if (fNoStem) {
                   completeEnumName = enumName;
                }
-               String completeValue = varWithChoices.getDefinitionValue(choice);
+               String completeValue = var.getDefinitionValue(choice);
                
                CheckRepeats.Info entry  = enumNamesList.add(completeEnumName, completeValue, choice.getName());
                if (entry == null) {
@@ -1036,7 +1266,7 @@ abstract class TemplateContentBuilder {
                      }
                      if (hardware == null) {
                         throw new Exception("Unable to find signal or peripheral '"+hardwareName+
-                              "' associated with choice '" + varWithChoices);
+                              "' associated with choice '" + var);
                      }
                   }
                   if (hardware instanceof Signal) {
@@ -1045,7 +1275,7 @@ abstract class TemplateContentBuilder {
                         String codeNames = signal.getCodeIdentifier();
                         if ((codeNames != null)&&!codeNames.isBlank()) {
                            for (String codeName:codeNames.split("/")) {
-                              String newEnumName = enumClass+"_"+codeName;
+                              String newEnumName = prefix+"_"+codeName;
                               String desc = signal.getUserDescription();
                               if ((desc == null)||desc.isBlank()) {
                                  desc = choice.getName();
@@ -1059,7 +1289,7 @@ abstract class TemplateContentBuilder {
                            pinName = pin.getPrettyName();
                         }
                         if ((pinName != null)&&!pinName.isBlank()) {
-                           String newEnumName = enumClass+"_"+pinName;
+                           String newEnumName = prefix+"_"+pinName;
                            String desc = "Pin "+pin.getName();
                            entry = enumNamesList.add(newEnumName, completeValue, desc);
                         }
@@ -1071,7 +1301,7 @@ abstract class TemplateContentBuilder {
                         String codeNames = peripheral.getCodeIdentifier();
                         if ((codeNames != null)&&!codeNames.isBlank()) {
                            for(String codeName:codeNames.split("/")) {
-                              String newEnumName = enumClass+"_"+codeName;
+                              String newEnumName = prefix+"_"+codeName;
                               String desc = choice.getName();
                               entry = enumNamesList.add(newEnumName, completeEnumName, desc);
                            }
@@ -1080,58 +1310,96 @@ abstract class TemplateContentBuilder {
                   }
                   else {
                      throw new Exception("Unexpected hardware type for '"+hardwareName+
-                           "' associated with choice '" + varWithChoices);
+                           "' associated with choice '" + var);
                   }
                }
             }
          }
-         // Create enum body
-         StringBuilder body = new StringBuilder();
-         for (int index=0; index<enumNamesList.size(); index++) {
-            CheckRepeats.Info entry = enumNamesList.get(index);
-            if (varWithChoices.isGenerateAsConstants()) {
-               body.append(String.format("\\tstatic constexpr %s %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
-                     baseType, entry.fName, entry.fValue+";", entry.fComment));
-            }
-            else {
-               body.append(String.format("\\t   %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
-                     entry.fName, entry.fValue+",", entry.fComment));
-            }
+         return enumNamesList;
+      }
+      
+      @Override
+      public String build() throws Exception {
+         
+         Variable var = fVariable;
+         
+         if(fVariable.isLogging()) {
+            System.err.println("Building definitions for "+ fVariable);
          }
-         // Add enum text
-         if (fEnumText != null) {
-            
-            String enumText = fEnumText;
-            enumText = enumText.replace("%(typeName)",  enumPrefix);
-            enumText = enumText.replaceAll("\\\\n",  "XXXX");
-            
-            body.append(enumText+"\n");
-         }
-         if (baseType != null) {
-            baseType = " : "+baseType;
-         }
-         else {
-            baseType = "";
-         }
+         String enumPrefix = var.getEnumPrefix();
+         String enumClass  = Character.toUpperCase(enumPrefix.charAt(0)) + enumPrefix.substring(1);
+         String type       = var.getTypeName();
+         String baseType   = var.getBaseType();
+         
+         // Accumulate enum information
+         CheckRepeats enumNamesList = accumulateEnumData(var, enumClass);
+         
          StringBuilder sb = new StringBuilder();
          
-         String description   = XML_BaseParser.escapeString(varWithChoices.getDescriptionAsCode());
-         String tooltip       = XML_BaseParser.escapeString(varWithChoices.getToolTipAsCode());
+         String description   = XML_BaseParser.escapeString(var.getDescriptionAsCode());
+         String tooltip       = XML_BaseParser.escapeString(var.getToolTipAsCode());
 
          // Prefix with comments
-         sb.append(String.format(prefixTemplate, description, varWithChoices.getName(), tooltip));
+         sb.append(String.format(prefixTemplate, description, var.getName(), tooltip));
 
-         Boolean useEnumClass = fVariable.useEnumClass();
+         if (fPreamble != null) {
+            String preamble = fPreamble;
+            preamble = preamble.replace("%t", type);
+            preamble = preamble.replace("%b", baseType);
+            sb.append(preamble);
+         }
+         
+         String classPresent = "";
+         if (var.useEnumClass()) {
+            classPresent = "class ";
+         }
+         String subType = "";
+         if (baseType  != null) {
+            subType = " : " + baseType;
+         }
+         // Add enum entries
+         if (fGenerateEnum || (fBodyText != null)) {
 
-         if (varWithChoices.isGenerateAsConstants()) {
-            sb.append(body);
+            sb.append(String.format(enumOpenTemplate, classPresent+enumClass+subType));
+         
+            if (fGenerateEnum) {
+               sb.append(makeEnumEntries(var, enumNamesList, null));
+            }
+            
+            // Add enum text
+            if (fEnumText != null) {
+               String enumText = fEnumText;
+               enumText = enumText.replace("%(typeName)",  enumPrefix);
+               enumText = enumText.replaceAll("\\\\n",  "XXXX");
+               
+               sb.append(enumText+"\n");
+            }
+            // Add enum text
+            if (fBodyText != null) {
+               String enumText = fBodyText;
+               enumText = enumText.replace("%(typeName)",  enumPrefix);
+               enumText = enumText.replaceAll("\\\\n",  "XXXX");
+               
+               sb.append(enumText+"\n");
+            }
+            sb.append(String.format(enumCloseTemplate));
+         }
+
+         if (fConstantTemplate != null) {
+            // Add constants as well
+            sb.append(makeEnumEntries(var, enumNamesList, fConstantTemplate));
             sb.append("\\n\\n");
          }
-         else {
-            sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, baseType, body.toString()));
+         
+         if (fPostamble != null) {
+            String postamble = fPostamble;
+            postamble = postamble.replace("%t", type);
+            postamble = postamble.replace("%b", baseType);
+            sb.append(postamble);
          }
+         
          if (fVariable.getGenerateOperators()) {
-            addEnumOperators(sb, enumPrefix);
+            addEnumOperators(sb, enumPrefix, fVariable.getBaseType());
          }
          
          // Create entire declaration
@@ -1151,12 +1419,12 @@ abstract class TemplateContentBuilder {
     * @param sb         Buffer to append operator text to
     * @param typeName   Type name to use
     */
-   static void addEnumOperators(StringBuilder sb, String typeName) {
+   static void addEnumOperators(StringBuilder sb, String typeName, String baseType) {
       
       String typeOperators = ""
             + "\\t/**\\n"
             + "\\t * Combines two %typename values (by ORing)\\n"
-            + "\\t * Used to create new %typename mask\\n"
+            + "\\t * Used to create a combined %typename mask\\n"
             + "\\t * \\n"
             + "\\t * @param left    Left operand\\n"
             + "\\t * @param right   Right operand\\n"
@@ -1164,7 +1432,7 @@ abstract class TemplateContentBuilder {
             + "\\t * @return  Combined value\\n"
             + "\\t */\\n"
             + "\\tconstexpr %typename operator|(%typename left, %typename right) {\\n"
-            + "\\t   return %typename(long(left)|long(right));\\n"
+            + "\\t   return %typename(%baseType(left)|%baseType(right));\\n"
             + "\\t}\\n"
             + "\\t\\n"
             + "\\t/**\\n"
@@ -1177,50 +1445,28 @@ abstract class TemplateContentBuilder {
             + "\\t * @return boolean value indicating if the result is non-zero\\n"
             + "\\t */\\n"
             + "\\tconstexpr bool operator&(%typename left, %typename right) {\\n"
-            + "\\t   return bool(long(left)&long(right));\\n"
+            + "\\t   return bool(%baseType(left)&%baseType(right));\\n"
             + "\\t}\\n"
             + "\\t\\n";
       typeOperators = typeOperators.replace("%typename", typeName);
+      typeOperators = typeOperators.replace("%baseType", baseType);
       sb.append(typeOperators);
    }
    
    static class BitmaskEnumBuilder extends ChoiceEnumBuilder {
 
-      private final boolean fEmptyEnum;
-
-      public BitmaskEnumBuilder(ParseMenuXML parser, Element varElement, Variable variable)
-            throws Exception {
-         super(parser, varElement, variable);
-         
-         String doEnum = parser.getAttributeAsString(varElement, "generateEnum", "true");
-         fEmptyEnum = "empty".equalsIgnoreCase(doEnum);
-//         System.err.println("BitmaskEnumBuilder for "+variable);
-//         if (variable.isLogging()) {
-//            System.err.println("BitmaskEnumBuilder for "+variable);
-//         }
-      }
-
       @Override
-      public String build() throws Exception {
-         
-         BitmaskVariable var = (BitmaskVariable) fVariable;
-         String enumPrefix   = var.getEnumPrefix();
-         String enumClass    = Character.toUpperCase(enumPrefix.charAt(0)) + enumPrefix.substring(1);
-         String baseType     = var.getBaseType();
-         
-         BitInformation bitInformation = var.getFinalBitInformation();
+      protected CheckRepeats accumulateEnumData(Variable pVar, String prefix) throws Exception {
 
-         Boolean useEnumClass = var.useEnumClass();
-
-         // Accumulate enum information
+         BitmaskVariable var = (BitmaskVariable) pVar;
+         
          CheckRepeats enumNamesList = new CheckRepeats();
 
-//         CheckRepeats.Info entry = enumNamesList.add((useEnumClass?"":enumClass+"_")+"None", "0", "None");
-         
+         BitInformation bitInformation = var.getFinalBitInformation();
          for (int index=0; index<bitInformation.bits.length; index++) {
             String enumStem="";
             if (!var.useEnumClass()) {
-               enumStem = enumClass+"_";
+               enumStem = prefix+"_";
             }
             String completeEnumName = enumStem + ParseMenuXML.makeSafeIdentifierName(bitInformation.bits[index].bitName);
             String completeValue    = var.getDefinitionValue(bitInformation.bits[index]);
@@ -1230,60 +1476,13 @@ abstract class TemplateContentBuilder {
                throw new Exception("Repeated enum name '"+completeEnumName+"'");
             }
          }
-         // Create enum body
-         StringBuilder body = new StringBuilder();
-         
-         if (!fEmptyEnum) {
-            for (int index=0; index<enumNamesList.size(); index++) {
-               CheckRepeats.Info entry = enumNamesList.get(index);
-               if (var.isGenerateAsConstants()) {
-                  body.append(String.format("\\tstatic constexpr %s %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
-                        baseType, entry.fName, entry.fValue+";", entry.fComment));
-               }
-               else {
-                  body.append(String.format("\\t   %-"+enumNamesList.nameWidth+"s = %-"+enumNamesList.valueWidth+"s ///< %s\n",
-                        entry.fName, entry.fValue+",", entry.fComment));
-               }
-            }
-         }
-       
-         // Add enum text
-         if (fEnumText != null) {
-            String enumText = fEnumText;
-            enumText = enumText.replace("%(typeName)",  enumPrefix);
-            enumText = enumText.replaceAll("\\\\n[ ]*\\\\t",  "\n\\\\t");
-            
-            body.append(enumText+"\n");
-         }
-         if (baseType != null) {
-            baseType = " : "+baseType;
-         }
-         String description   = XML_BaseParser.escapeString(var.getDescriptionAsCode());
-         String tooltip       = XML_BaseParser.escapeString(var.getToolTipAsCode());
+         return enumNamesList;
+      }
 
-         StringBuilder sb = new StringBuilder();
-         
-         // Prefix with comments
-         sb.append(String.format(prefixTemplate, description, var.getName(), tooltip));
-         
-         if (var.isGenerateAsConstants()) {
-            sb.append(body);
-            sb.append("\\n\\n");
-         }
-         else {
-            sb.append(String.format(enumTemplate, (useEnumClass?"class ":"")+enumClass, baseType, body.toString()));
-         }
-         if (var.getGenerateOperators()) {
-            addEnumOperators(sb, enumPrefix);
-         }
-         // Create entire declaration
-         String entireDeclaration = sb.toString();
-         
-         if (fEnumGuard != null) {
-            // Surround with guard
-            entireDeclaration = String.format(guardedEnumTemplate, fEnumGuard, entireDeclaration);
-         }
-         return entireDeclaration;
+      public BitmaskEnumBuilder(ParseMenuXML parser, Element varElement, Variable variable)
+            throws Exception {
+         super(parser, varElement, variable);
+
       }
    }
    

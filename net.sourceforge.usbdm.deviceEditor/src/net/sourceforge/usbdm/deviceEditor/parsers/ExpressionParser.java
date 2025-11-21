@@ -389,6 +389,9 @@ public class ExpressionParser {
          String signalName = (String) Expression.evalRequiredConstantArg(arg, Type.String);
          for(int index=0; index<signals.length; index++) {
             Signal signal = signals[index];
+            if (signal == null) {
+               continue;
+            }
             if (signalName.equalsIgnoreCase(signal.getName())) {
                return new LongConstantNode(index);
             }
@@ -1399,7 +1402,7 @@ public class ExpressionParser {
       fMode              = mode;
       fProvider          = varProvider;
       fExpressionString  = null;
-      fExpression          = expression;
+      fExpression        = expression;
    }
 
    /**

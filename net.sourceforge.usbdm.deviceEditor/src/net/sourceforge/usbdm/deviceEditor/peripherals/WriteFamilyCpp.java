@@ -308,7 +308,7 @@ public class WriteFamilyCpp {
       // Prevent repeated use of the same C identifier
       public HashSet<String> usedIdentifiers = new HashSet<String>();
 
-      // Contains peripheral include files needed to initialise the user objects in hardware.cpp
+      // Contains the names of peripheral include files needed to initialise the user objects in hardware.cpp
       public HashSet<String> hardwareIncludeFiles = new HashSet<String>();
 
       // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
@@ -353,7 +353,7 @@ public class WriteFamilyCpp {
          StringBuilder sb = new StringBuilder();
          Iterator<String> i = hardwareDeclarationInfo.hardwareIncludeFiles.iterator();
          while(i.hasNext()) {
-            sb.append("" + i.next() + "\n");
+            sb.append("#include \"../"+ INCLUDE_DIRECTORY + "/" + i.next() + "\"\n");
          }
          // Create or replace variable
          fDeviceInfo.addOrUpdateStringVariable("IncludeFiles", HARDWARE_H_INCLUDES_FILE_KEY, sb.toString(), true);

@@ -1587,13 +1587,19 @@
                <enumeratedOptionValue
                      command="-std=c++17"
                      id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp17"
-                     isDefault="true"
+                     isDefault="false"
                      name="2017 ISO C++ standard plus amendments (-std=c++17)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  command="-std=c++20"
-                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp20"
-                  name="2020 ISO C++ standard plus amendments - experimental (-std=c++20)">
+                     command="-std=c++20"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp20"
+                     isDefault="true"
+                     name="2020 ISO C++ standard - experimental (-std=c++20)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=c++23"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp23"
+                  name="2023 ISO C++ standard - experimental (-std=c++23)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   command="-std=gnu++98"
@@ -1619,6 +1625,11 @@
                   command="-std=gnu++20"
                   id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp20"
                   name="GNU dialect of C++20 - experimental (-std=gnu++20)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-std=gnu++23"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp23"
+                  name="GNU dialect of C++23 - experimental (-std=gnu++23)">
                </enumeratedOptionValue>
             </option>
             <option
@@ -2511,6 +2522,7 @@
                valueType="boolean">
          </option>
          <tool
+               command="arm-none-eabi-gcc"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGccCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.cppAssembler"
                name="ARM Assembler"
@@ -2521,6 +2533,7 @@
             </inputType>
          </tool>
          <tool
+               command="arm-none-eabi-gcc"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGccCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler"
                name="ARM C Compiler"
@@ -2531,6 +2544,7 @@
             </inputType>
          </tool>
          <tool
+               command="arm-none-eabi-g++"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGppCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler"
                name="ARM C++ Compiler"
@@ -2541,18 +2555,21 @@
             </inputType>
          </tool>
          <tool
+               command="arm-none-eabi-ar"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmArchiverCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"
                name="ARM Archiver"
                superClass="net.sourceforge.usbdm.cdt.toolchain.archiver">
          </tool>
          <tool
+               command="arm-none-eabi-gcc"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"
                name="ARM C Linker"
                superClass="net.sourceforge.usbdm.cdt.toolchain.c.linker">
          </tool>
          <tool
+               command="arm-none-eabi-g++"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker"
                name="ARM C++ Linker"
@@ -2631,6 +2648,7 @@
                command="-mcpu=52213" />
          </option>
          <tool
+               command="arm-none-eabi-g++"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGccCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.cppAssembler"
                name="Coldfire Assembler"
@@ -2641,6 +2659,7 @@
             </inputType>
          </tool>
          <tool
+               command="m68k-elf-gcc"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGccCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.compiler"
                name="Coldfire C Compiler"
@@ -2652,6 +2671,7 @@
             </inputType>
          </tool>
          <tool
+               command="m68k-elf-g++"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGppCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.compiler"
                name="Coldfire C++ Compiler"
@@ -2663,18 +2683,21 @@
             </inputType>
          </tool>
          <tool
+               command="m68k-elf-ar"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireArchiverCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.archiver"
                name="Coldfire Archiver"
                superClass="net.sourceforge.usbdm.cdt.toolchain.archiver">
          </tool>
          <tool
+               command="m68k-elf-g++"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.linker"
                name="Coldfire C Linker"
                superClass="net.sourceforge.usbdm.cdt.toolchain.c.linker">
          </tool>
          <tool
+               command="m68k-elf-g++"
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.linker"
                name="Coldfire C++ Linker"
@@ -2792,7 +2815,7 @@
             id="net.sourceforge.usbdm.cdt.wizard.CS_ARM_BuiltinSpecsDetector"
             name="USBDM ARM Built-in Compiler Settings"
             class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmCS_ARM_BuiltinSpecsDetector"
-            parameter="&quot;${usbdm_armLtd_arm_prefix}${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD  &quot;${INPUTS}&quot;">
+            parameter="&quot;${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD  &quot;${INPUTS}&quot;">
          <language-scope id="org.eclipse.cdt.core.gcc"/>
          <language-scope id="org.eclipse.cdt.core.g++"/>
       </provider>
@@ -2803,7 +2826,7 @@
             id="net.sourceforge.usbdm.cdt.wizard.CS_Coldfire_BuiltinSpecsDetector"
             name="USBDM Coldfire Built-in Compiler Settings"
             class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmCS_Coldfire_BuiltinSpecsDetector"
-            parameter="&quot;${usbdm_codesourcery_coldfire_prefix}${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;">
+            parameter="&quot;${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;">
          <language-scope id="org.eclipse.cdt.core.gcc"/>
          <language-scope id="org.eclipse.cdt.core.g++"/>
       </provider>

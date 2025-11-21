@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.parsers;
 
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
@@ -16,9 +17,6 @@ public class TemplateInformation {
    /** Buffer to accumulate text contents for template */
    private StringBuilder fStringBuilder;
    
-   /** Processed text contents for template - cached */
-   private String fText = null;
-   
    /** Condition to evaluate during code generation */
    private String fCodeGenerationCondition;
 
@@ -27,6 +25,12 @@ public class TemplateInformation {
     */
    private TemplateContentBuilder fContentBuilder = null;
 
+   /// Priority used to order template generation
+   private int priority = 50;
+
+   /// Variable provider
+   private VariableProvider fProvider;
+   
    /**
     * Construct template
     * @param fProvider
@@ -37,11 +41,11 @@ public class TemplateInformation {
     * @throws Exception
     */
    public TemplateInformation(VariableProvider provider, String key, String nameSpace, String codeGenerationCondition) throws Exception {
+      fProvider       = provider;
       fContentBuilder = null;
-      fKey           = key;
-      fNameSpace     = nameSpace;
-      fStringBuilder = new StringBuilder(100);
-      fText          = null;
+      fKey            = key;
+      fNameSpace      = nameSpace;
+      fStringBuilder  = new StringBuilder(100);
       fCodeGenerationCondition = Expression.expandImmediateSubexpressions(codeGenerationCondition, provider);
    }
    
@@ -56,25 +60,27 @@ public class TemplateInformation {
     * @throws Exception
     */
    public void addText(String contents) throws Exception {
+      
       if (fContentBuilder != null) {
          throw new Exception("Adding text to template with builder, key='"+fKey+"'");
       }
       contents = contents.trim();  // Discard leading and trailing white space
-
-      StringBuilder sb = new StringBuilder();
-      fStringBuilder.append(addText(sb, contents));
+      fStringBuilder.append(contents);
    }
    
    /**
-    * Append text to template.
     * The text is processed \n => newline char etc.
     * 
-    * @param contents Text to append
-    * @return
+    * @param contents Text to process
+    * 
+    * @return Processed text
     * 
     * @throws Exception
     */
-   public static String addText(StringBuilder sb, String contents) throws Exception {
+   public static String processText(String contents) {
+      StringBuilder sb   = new StringBuilder();
+      int column = 0;
+      
       State state = State.Text;
       for(int index = 0; index<contents.length(); index++) {
          char ch = contents.charAt(index);
@@ -88,14 +94,17 @@ public class TemplateInformation {
          case Text:
             if (ch == '"') {
                sb.append(ch);
+               column++;
                state = State.InString;
             }
             else if (ch == '\'') {
                sb.append(ch);
+               column++;
                state = State.InCharacter;
             }
             else if (ch == '\n') {
                sb.append(ch);
+               column = 0;
                state = State.DiscardAfterNewline;
             }
             else if (ch == '\\') {
@@ -103,16 +112,19 @@ public class TemplateInformation {
             }
             else {
                sb.append(ch);
+               column++;
             }
             break;
          case InString:
             sb.append(ch);
+            column++;
             if (ch == '"') {
                state = State.Text;
             }
             break;
          case InCharacter:
             sb.append(ch);
+            column++;
             if (ch == '\'') {
                state = State.Text;
             }
@@ -121,15 +133,20 @@ public class TemplateInformation {
          case Escape:
             state = State.Text;
             if (ch == 't') {
-               sb.append("   ");
+               for (int c=(3-(column%3)); c>0; c--) {
+                  sb.append(" ");
+               }
             }
             else if (ch == 'n') {
                sb.append("\n");
+               column = 0;
                state = State.DiscardAfterNewline;
             }
             else {
                sb.append('\\');
                sb.append(ch);
+               column++;
+               column++;
             }
             break;
          }
@@ -151,28 +168,27 @@ public class TemplateInformation {
     * @throws Exception
     */
    public String getExpandedText(VariableProvider varProvider) {
+
+      // Can't cache as substitutions may change
       
-      String text = fText;
+      String text = null;
+      
+      // Need to create text from fContentBuilder or fStringBuilder
       
       if (fContentBuilder != null) {
+         // Use content builder to build text now
          try {
-            String contents = fContentBuilder.build().trim();
-            StringBuilder sb = new StringBuilder();
-            fStringBuilder.append(addText(sb, contents));
-            text = sb.toString();
+            text = fContentBuilder.build();
          } catch (Exception e) {
             e.printStackTrace();
             return "Content builder failed, reason: " + e.getMessage() + "\n";
          }
       }
       else {
-         if (fText == null) {
-            // Convert to string on first use
-            fText = fStringBuilder.toString();
-            fStringBuilder = null;
-         }
-         text = fText;
+         text = fStringBuilder.toString();
       }
+      text = processText(text);
+
       if (fCodeGenerationCondition != null) {
          try {
             Boolean condition = Expression.getValueAsBoolean(fCodeGenerationCondition, varProvider);
@@ -181,6 +197,12 @@ public class TemplateInformation {
             }
          } catch (Exception e) {
             e.printStackTrace();
+         }
+      }
+      if (fProvider != null) {
+         Variable errorFlagVar = fProvider.safeGetVariable("/HARDWARE/generateDebugDefinitions");
+         if ((errorFlagVar != null) && errorFlagVar.getValueAsBoolean()) {
+            text = "// ns = '"+fNameSpace+"', k = '"+fKey+"'\n" + text;
          }
       }
       return text;
@@ -198,14 +220,50 @@ public class TemplateInformation {
     */
    @Override
    public String toString() {
-      String text = fText;
+      
+      String text = null;
+      
       if (fStringBuilder != null) {
          text = fStringBuilder.toString();
+      }
+      else if (fContentBuilder != null) {
+         try {
+            text = fContentBuilder.build();
+         } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
+      }
+      else {
+         text = "Broken template";
       }
       return "T["+text+"]";
    }
 
-   public void setBuilder(TemplateContentBuilder enumBuilder) {
-      fContentBuilder = enumBuilder;
+   public void setBuilder(TemplateContentBuilder builder) throws Exception {
+      
+      if ((fStringBuilder != null)&&(!fStringBuilder.isEmpty())) {
+         throw new Exception("Template already contains text before setting content builder");
+      }
+      fStringBuilder = null;
+      fContentBuilder = builder;
+   }
+
+   /**
+    * Get priority used to order template generation
+    * 
+    * @return the priority
+    */
+   public int getPriority() {
+      return priority;
+   }
+
+   /**
+    * Set priority used to order template generation
+    * 
+    * @param priority the priority to set
+    */
+   public void setPriority(int priority) {
+      this.priority = priority;
    }
 }

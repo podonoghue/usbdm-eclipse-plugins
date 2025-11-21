@@ -1905,7 +1905,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ADC",
 //         "CAN",
 //         "CMP",
-//         "CMT",
+         "CMT",
 //         "CRC",
 //         "DAC",
 //         "DMA",
@@ -2044,10 +2044,10 @@ public class CreateDeviceSkeletonFromSVD {
 //    doAllPeripherals("FRDM_KL02Z");
 //      doAllPeripherals("FRDM_KL03Z");
 //    doAllPeripherals("FRDM_KL05Z");
-    doAllPeripherals("FRDM_KL27Z","mkl");
+//    doAllPeripherals("FRDM_KL27Z","mkl");
 //    doAllPeripherals("FRDM_KL25Z", "mkl");
 //    doAllPeripherals("FRDM_KL27Z", "mkl");
-//    doAllPeripherals("FRDM_K20D50M", "mk");
+    doAllPeripherals("FRDM_K20D50M", "mk");
 //    doAllPeripherals("FRDM_K22F", "mk");
 //    doAllPeripherals("FRDM_K28F", "mk");
 //      doAllPeripherals("FRDM_K66F", "mk");

@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -185,7 +186,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       final String pattern;
 
       // Check for explicit pattern form peripheral XML
-      StringVariable patternVar = (StringVariable) safeGetVariable("/SYSTEM/$pcrPattern");
+      StringVariable patternVar = (StringVariable) safeGetVariable("/GPIO/$pcrPattern");
       if (patternVar != null) {
          pattern = patternVar.getValueAsString();
          // Suppressed output
@@ -310,6 +311,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    String expandTemplate(String key, ArrayList<TemplateInformation> fileTemplateList, ISubstitutionMap substitutionMap) {
       // Final template after substitutions
       StringBuffer sb = new StringBuffer();
+      Collections.sort(fileTemplateList, new Comparator<TemplateInformation>() {
+         @Override
+         public int compare(TemplateInformation o1, TemplateInformation o2) {
+            return o2.getPriority()-o1.getPriority();
+            }
+      });
       for (TemplateInformation fileTemplate:fileTemplateList) {
          String expandedTemplate = substitutionMap.substitute(fileTemplate.getExpandedText(this), fKeyMaker);
          sb.append(expandedTemplate);

@@ -543,15 +543,15 @@ public class PackageParser {
    }
 
    /**
-    * Parse a <excludeSourceFile> element
+    * Parse a <b>&lt;excludeSourceFile target="..." excluded="..."  &gt;</b> element
     * 
-    * @param    fileElement <excludeSourceFile> element
+    * @param    fileElement element to parse
     * 
     * @return   File list described
     * @throws Exception
     */
    private ExcludeAction parseExcludeSourceFileElement(Element element) throws Exception {
-      // <excludeFile target="..." excluded="..."  >
+      
       String target     = element.getAttribute("target");
       boolean isExcluded = true;
       if (element.hasAttribute("excluded")) {

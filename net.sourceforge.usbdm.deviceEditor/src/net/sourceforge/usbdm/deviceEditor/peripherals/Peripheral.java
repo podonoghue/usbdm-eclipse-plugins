@@ -840,12 +840,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /**
     * Patterns available <br>
-    *  <li> "%i" => pin.getPortInstance());     => port instance e.g."A"
-    *  <li> "%n" => pin.getGpioBitNum());       => bit number within associated GPIO
-    *  <li> "%p" => polarity);                  => polarity of GPIO
-    *  <li> "%c" => getClassName());            => class name e.g.  FTM2 => Ftm2
-    *  <li> "%b" => getClassBaseName());        => base class name e.g. FTM2 => Ftm
-    *  <li> "%t" => infoTableIndex.toString()); => index in infotable
+    *  <li> "%i" => pin.getPortInstance()     => port instance e.g."A"
+    *  <li> "%n" => pin.getGpioBitNum()       => bit number within associated GPIO
+    *  <li> "%p" => polarity                  => polarity of GPIO
+    *  <li> "%c" => getClassName()            => class name e.g.  FTM2 => Ftm2
+    *  <li> "%b" => getClassBaseName()        => base class name e.g. FTM2 => Ftm
+    *  <li> "%t" => infoTableIndex.toString() => index in infotable
     * 
     * @param pattern          Path to do substitutions in
     * @param pin              pin
@@ -891,7 +891,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       StringVariable patternVar = (StringVariable) safeGetVariable(makeKey("$pcrPattern"));
       if (patternVar == null) {
          // Check for general pattern from peripheral XML
-         patternVar = (StringVariable) safeGetVariable("/SYSTEM/$pcrPattern");
+         patternVar = (StringVariable) safeGetVariable("/GPIO/$pcrPattern");
       }
       if (patternVar != null) {
          pattern = patternVar.getValueAsString();
@@ -944,17 +944,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       writeDefaultPeripheralDeclaration(hardwareDeclarationInfo, getClassName());
    }
 
-//   // Used by by peripheral to record shared information when generating user objects
-//   // Prevent re-use of C identifiers
-//   Set<String>   hardwareDeclarationInfo.usedIdentifiers            = null;
-//
-//   // Collects definitions of user objects for hardware.cpp
-//   StringBuilder hardwareDeclarationInfo.hardwareDeclarations  = null;
-//
-//   // Collects declarations of user objects for hardware.cpp
-//   StringBuilder hardwareDeclarationInfo.hardwareDeclarations = null;
-//
-//   // Indicates that user objects were created for this peripheral
    boolean fCreatedUserDeclarations = false;
    
    /**
@@ -992,7 +981,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       
       if (fCreatedUserDeclarations) {
          // Need include file in hardware.cpp since peripheral is referenced in generated code
-         hardwareDeclarationInfo.hardwareIncludeFiles.add("#include \"" + getBaseName().toLowerCase()+".h\"");
+         hardwareDeclarationInfo.hardwareIncludeFiles.add(getBaseName().toLowerCase()+".h");
       }
    }
    
@@ -1203,8 +1192,8 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
 
          // Open static class wrapper
          pinMappingHeaderFile.write(String.format(
-               "   class %s {\n"+
-               "   public:\n",
+               "   class %s {\n\n"+
+               "   public:\n\n",
                      signalTable.getName()
                ));
          indent = "   ";
@@ -1347,7 +1336,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       // Open class
       writerInformation.writer.write(String.format(
             "class %s {\n\n" +
-            "public:\n",
+            "public:\n\n",
                classDecl
             ));
       // Write PCR Table

@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp.HardwareDeclarationInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
@@ -121,30 +122,60 @@ public class WriterForAdc extends PeripheralWithState {
          String trailingComment  = pin.getNameWithLocation();
          String description      = signal.getUserDescription();
          String type;
+         
+         StringVariable adcInstancePatternVar     = (StringVariable) safeGetVariable("/ADC/$adcInstanceTemplate");
+         String adcInstancePattern;
+         if (adcInstancePatternVar != null) {
+            adcInstancePattern     = adcInstancePatternVar.getValueAsString();
+         }
+         else {
+            adcInstancePattern     = "Adc%i::Channel<Adc%iChannelNum_%pn>";
+         }
+         
+         StringVariable adcDiffInstancePatternVar = (StringVariable) safeGetVariable("/ADC/$adcDiffInstanceTemplate");
+         String adcDiffInstancePattern;
+         if (adcDiffInstancePatternVar != null) {
+            adcDiffInstancePattern = adcDiffInstancePatternVar.getValueAsString();
+         }
+         else {
+            adcDiffInstancePattern = "Adc%i::DiffChannel<Adc%iChannelNum_%pn>";
+         }
+         
+         String pinName;
          if (isPgaSignal(signal)) {
-            description = description + " (Programmable gain amplifier)";
-            type = String.format("%s", getClassBaseName()+getInstance()+"::"+"PgaChannel");
+            pinName = "PgaChannel";
          }
          else if (isPositiveDiffSignal(signal)) {
-            description = description + " (Differential)";
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"DiffChannel",
-                  "AdcChannelNum_Diff"+(index-DP_INDEX));
+            pinName = "Diff"+(index-DP_INDEX);
          }
          else if (isAChannelSignal(signal)) {
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel",
-                  "AdcChannelNum_Se"+(index)+"a");
+            pinName = "Se"+(index)+"a";
          }
          else if (isBChannelSignal(signal)) {
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel",
-                  "AdcChannelNum_Se"+(index-SEB_INDEX+4)+"b");
+            pinName = "Se"+(index-SEB_INDEX+4)+"b";
          }
          else if (isNegativeDiffSignal(signal)) {
+            // Included in +ve channel
             continue;
          }
          else {
-            type = String.format("%s<%s>", getClassBaseName()+getInstance()+"::"+"Channel",
-                  "AdcChannelNum_Se"+(index));
+            pinName = "Se"+(index);
          }
+         adcInstancePattern     = adcInstancePattern.replace("%i",  getInstance());     // e.g. FTM0 => 0, PTA => A
+         adcDiffInstancePattern = adcDiffInstancePattern.replace("%i",  getInstance()); // e.g. FTM0 => 0, PTA => A
+         adcInstancePattern     = adcInstancePattern.replace("%pn", pinName);           // e.g. Diff0, Se4b, PgaChannel
+         adcDiffInstancePattern = adcDiffInstancePattern.replace("%pn", pinName);
+         
+         type = adcInstancePattern;
+         
+         if (isPgaSignal(signal)) {
+            description = description + " (Programmable gain amplifier)";
+         }
+         else if (isPositiveDiffSignal(signal)) {
+            description = description + " (Differential)";
+            type = adcDiffInstancePattern;
+         }
+
          String constType = "const "+ type;
          String[] cIdentifiers = cIdentifier.split("/");
          for (String cIdent:cIdentifiers) {

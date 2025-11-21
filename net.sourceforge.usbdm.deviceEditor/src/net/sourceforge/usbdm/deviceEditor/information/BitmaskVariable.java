@@ -760,7 +760,7 @@ public class BitmaskVariable extends LongVariable {
       if ((format != null)&&(!format.isBlank())) {
          hexValue = String.format(format, hexValue);
       }
-      if (isGenerateAsConstants()) {
+      if (isGenerateConstants()) {
          hexValue = getBaseType() + "(" + hexValue + ")";
       }
       return hexValue;

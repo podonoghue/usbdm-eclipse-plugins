@@ -334,7 +334,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
             if (fFactory == null) {
-               return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open");
+               return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open\n Wait for dialogue to populate");
             }
             //            MyIndexerSetupParticipant indexerParticipant= null;
             try {

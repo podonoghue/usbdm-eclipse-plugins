@@ -2,15 +2,21 @@ package net.sourceforge.usbdm.packageParser;
 
 
 public class FileAction extends ProjectAction {
-   private final String    source;
-   private final String    target;
-   private final FileType  fileType;
-   private       String    root              = null;
-   private       boolean   fDoMacroReplace   = false;
-   private       boolean   fDoFileOverwrite  = false;
-   private       PathType  sourcePathType    = PathType.UNKNOWN;
-   private       boolean   fDerived          = false;
+   private final String            source;
+   private final String            target;
+   private final FileType          fileType;
+   private       String            root              = null;
+   private       boolean           fDoMacroReplace   = false;
+   private       OverwriteAction   fDoFileOverwrite  = OverwriteAction.error;
+   private       PathType          sourcePathType    = PathType.UNKNOWN;
+   private       boolean           fDerived          = false;
 
+   public enum OverwriteAction {
+      never,
+      always,
+      error,
+   }
+   
    public enum FileType {
       NORMAL,
       LINK,
@@ -54,7 +60,7 @@ public class FileAction extends ProjectAction {
     * 
     * @param doOverwrite True to indicate that files should be quietly overwritten
     */
-   public void setFileOverwrite(boolean doOverwrite) {
+   public void setFileOverwrite(OverwriteAction doOverwrite) {
       fDoFileOverwrite = doOverwrite;
    }
    /**
@@ -62,7 +68,7 @@ public class FileAction extends ProjectAction {
     * 
     * @return True if files should be overwritten when copied
     */
-   public boolean doFileOverwrite() {
+   public OverwriteAction doFileOverwrite() {
       return fDoFileOverwrite;
    }
    @Override

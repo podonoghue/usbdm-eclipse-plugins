@@ -1257,7 +1257,9 @@ public class UsbdmDebuggerPanel {
    private void buildToolSelectionChanged() {
       ToolInformationData toolInfo = ToolInformationData.getToolInformationTable().get(getBuildToolId());
       if (toolInfo != null) {
-         fTextGdbCommand.setText("${" + toolInfo.getPrefixVariableName() + "}" + UsbdmSharedConstants.GDB_NAME);
+//         fTextGdbCommand.setText("${" + toolInfo.getPrefixVariableName() + "}" + UsbdmSharedConstants.GDB_NAME);
+         // TODO Fix this
+         fTextGdbCommand.setText("arm-none-eabi-" + UsbdmSharedConstants.GDB_NAME);
          fTextGdbBinPath.setText("${" + toolInfo.getPathVariableName() + "}");
       }
       fTextGdbCommand.setEnabled(toolInfo == null);

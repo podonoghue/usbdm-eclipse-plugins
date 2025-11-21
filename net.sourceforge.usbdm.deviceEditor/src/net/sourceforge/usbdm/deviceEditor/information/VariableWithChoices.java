@@ -635,16 +635,15 @@ public abstract class VariableWithChoices extends Variable {
     */
    protected String makeEnum(String enumValue) {
       String prefix = null;
-      if (isGenerateAsConstants()) {
-         prefix = getBaseType();
-      }
-      else {
-         prefix = getTypeName();
-      }
+      prefix = getTypeName();
       if ((prefix == null) || (enumValue == null)) {
          return null;
       }
-      return prefix+"_"+enumValue;
+      String rv = prefix+"_"+enumValue;
+      if (useEnumClass()&&!isGenerateConstants()) {
+         rv = prefix+"::"+rv;
+      }
+      return rv;
    }
 
 }

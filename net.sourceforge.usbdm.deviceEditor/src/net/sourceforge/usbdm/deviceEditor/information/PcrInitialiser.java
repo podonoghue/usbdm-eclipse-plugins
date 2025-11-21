@@ -228,11 +228,11 @@ public class PcrInitialiser {
             bits |= pcrToBitsMap.get(pcrValue);
          }
          if ((bits&0xFFFF) != 0) {
-            sb.append(String.format(indent+"%s = PinMux_Disabled|PORT_GPCLR_GPWE(%s);\n", port+"->GPCLR", longTo4Hex(bits&0xFFFF)));
+            sb.append(String.format(indent+"%s = uint32_t(PinMux_Disabled)|PORT_GPCLR_GPWE(%s);\n", port+"->GPCLR", longTo4Hex(bits&0xFFFF)));
          }
          bits = Long.rotateRight(bits, 16);
          if ((bits&0xFFFF) != 0) {
-            sb.append(String.format(indent+"%s = PinMux_Disabled|PORT_GPCHR_GPWE(%s);\n", port+"->GPCHR", longTo4Hex(bits&0xFFFF)));
+            sb.append(String.format(indent+"%s = uint32_t(PinMux_Disabled)|PORT_GPCHR_GPWE(%s);\n", port+"->GPCHR", longTo4Hex(bits&0xFFFF)));
          }
       }
       return sb.toString();
@@ -257,7 +257,7 @@ public class PcrInitialiser {
       
       String prefix = "";
       if (global) {
-         prefix = "ForceLockedPins|";
+         prefix = "uint32_t(ForceLockedPins)|";
       }
       StringBuffer sb = new StringBuffer();
 
@@ -275,11 +275,11 @@ public class PcrInitialiser {
                continue;
             }
             if ((bits&0xFFFFL) != 0) {
-               sb.append(String.format(indent+"%s = %s|PORT_GPCLR_GPWE(%s);\n", port+"->GPCLR", prefix+pcrValue, longTo4Hex(bits&0xFFFF)));
+               sb.append(String.format(indent+"%s = %s|PORT_GPCLR_GPWE(%s));\n", port+"->GPCLR", prefix+"("+pcrValue, longTo4Hex(bits&0xFFFF)));
             }
             bits = Long.rotateRight(bits, 16);
             if ((bits&0xFFFFL) != 0) {
-               sb.append(String.format(indent+"%s = %s|PORT_GPCHR_GPWE(%s);\n", port+"->GPCHR", prefix+pcrValue, longTo4Hex(bits&0xFFFF)));
+               sb.append(String.format(indent+"%s = %s|PORT_GPCHR_GPWE(%s));\n", port+"->GPCHR", prefix+"("+pcrValue, longTo4Hex(bits&0xFFFF)));
             }
          }
       }
@@ -347,12 +347,12 @@ public class PcrInitialiser {
          Long unusedPinsInPort = portToUnusedPinsMap.get(port);
          if ((unusedPinsInPort&0xFFFFL) != 0) {
             sb.append(String.format(indent+"%s = %s|PORT_GPCLR_GPWE(%s); // Lockout unavailable pins\n",
-                  port+"->GPCLR", "PinLock_Locked |0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)));
+                  port+"->GPCLR", "uint32_t(PinLock_Locked)|(0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)+")"));
          }
          unusedPinsInPort = Long.rotateRight(unusedPinsInPort, 16);
          if ((unusedPinsInPort&0xFFFFL) != 0) {
             sb.append(String.format(indent+"%s = %s|PORT_GPCHR_GPWE(%s); // Lockout unavailable pins\n",
-                  port+"->GPCHR", "PinLock_Locked |0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)));
+                  port+"->GPCHR", "uint32_t(PinLock_Locked)|(0x0000UL", longTo4Hex(unusedPinsInPort&0xFFFF)+")"));
          }
       }
       return sb.toString();

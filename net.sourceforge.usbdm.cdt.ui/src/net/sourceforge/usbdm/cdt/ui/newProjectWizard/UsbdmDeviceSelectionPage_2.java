@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.ToolInformationData;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
@@ -870,7 +871,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       else {
          fPageData.addValue(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
-         fPageData.addValue(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
+//         fPageData.addValue(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
+         // TODO Fix this calculate prefix
+         fPageData.addValue(UsbdmConstants.GDB_COMMAND_KEY,          "arm-none-eabi-"+ UsbdmSharedConstants.GDB_NAME);
       }
       fPageData.addValue(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);
 
