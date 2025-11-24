@@ -326,6 +326,9 @@ public abstract class VariableWithChoices extends Variable {
       if (rv == null) {
          rv = getSubstitutionValue();
       }
+      if (fLogging) {
+         System.err.println("rv = " + rv);
+      }
       return rv;
    }
 
@@ -626,24 +629,4 @@ public abstract class VariableWithChoices extends Variable {
       return getDefinitionValue(choice);
    }
    
-   /**
-    * Convert an enum value into a complete enum for code use
-    * 
-    * @param enumValue
-    * 
-    * @return Converted value e.g. Disable => LowPower_Disabled
-    */
-   protected String makeEnum(String enumValue) {
-      String prefix = null;
-      prefix = getTypeName();
-      if ((prefix == null) || (enumValue == null)) {
-         return null;
-      }
-      String rv = prefix+"_"+enumValue;
-      if (useEnumClass()&&!isGenerateConstants()) {
-         rv = prefix+"::"+rv;
-      }
-      return rv;
-   }
-
 }

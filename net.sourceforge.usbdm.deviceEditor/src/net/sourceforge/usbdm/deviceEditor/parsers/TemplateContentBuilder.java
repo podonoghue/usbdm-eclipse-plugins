@@ -43,37 +43,49 @@ abstract class TemplateContentBuilder {
     * @return Modified test
     */
     static String doTemplateSubstitutions(String text, List<StringPair> substitutions) {
-      
-      if (text == null) {
-         return null;
-      }
-      if (substitutions == null) {
-         return text;
-      }
-      for (StringPair p:substitutions) {
-         if (p.key==null) {
-            System.err.println("key is null, value = "+p.value);
-         }
-         if (p.value==null) {
-            System.err.println("value is null, res = "+p.key);
-         }
-         // Check for key followed by non-word or '_' or end
-         String pattern     = Pattern.quote(p.key)+"(\\W|_|$)";
-         String replacement = Matcher.quoteReplacement(p.value)+"$1";
-         Matcher m = Pattern.compile(pattern).matcher(text);
-         boolean doneReplacement = false;
-         StringBuffer sb = new StringBuffer();
-         while (m.find()) {
-             m.appendReplacement(sb, replacement);
-             doneReplacement = true;
-         }
-         if (doneReplacement) {
-            m.appendTail(sb);
-            text = sb.toString();
-         }
-      }
-      return text;
-   }
+       
+       if (text == null) {
+          return null;
+       }
+       if (substitutions == null) {
+          return text;
+       }
+       for (StringPair p:substitutions) {
+          if (p.key==null) {
+             System.err.println("key is null, value = "+p.value);
+          }
+          if (p.value==null) {
+             System.err.println("value is null, res = "+p.key);
+          }
+          String pattern     = p.key;
+          String replacement = p.value;
+          if ((pattern.startsWith("$("))||(pattern.startsWith("%("))) {
+             // Pattern is delimited - no extra checks
+             pattern = Pattern.quote(p.key);
+             replacement = Matcher.quoteReplacement(replacement);
+          }
+          else {
+             // Assume pattern is a word.
+             // Add delimiters to avoid matching shorter words
+             pattern = Pattern.quote(p.key)+"(\\W|_|$)";
+             replacement = Matcher.quoteReplacement(replacement)+"$1";
+          }
+//          System.err.println("'"+ pattern + "' => '" + replacement + "'");
+
+          Matcher m = Pattern.compile(pattern).matcher(text);
+          boolean doneReplacement = false;
+          StringBuffer sb = new StringBuffer();
+          while (m.find()) {
+              m.appendReplacement(sb, replacement);
+              doneReplacement = true;
+          }
+          if (doneReplacement) {
+             m.appendTail(sb);
+             text = sb.toString();
+          }
+       }
+       return text;
+    }
 
     /**
      * Try to deduce the name of the register associated with a variable (field)
@@ -417,11 +429,13 @@ abstract class TemplateContentBuilder {
                   currentInitExpressionSb.append(String.format("%"+padding+"s",  ""));
                }
             }
+            // Append variable name in comment
             currentInitExpressionSb.append(String.format("%-30s","// ("+variable.getName()+") "));
             
             currentInitExpressionSb.append(variable.getShortDescription());
 
             if (variable instanceof VariableWithChoices) {
+               // Append description of current value
                VariableWithChoices vwc = (VariableWithChoices) variable;
                currentInitExpressionSb.append(" - "+vwc.getEffectiveChoice().getName());
             }
@@ -1243,7 +1257,7 @@ abstract class TemplateContentBuilder {
                if (enumName.equals("-deleted-")) {
                   continue;
                }
-               String completeEnumName = prefix+"_"+enumName;
+               String completeEnumName = prefix+"_"+enumName; //fVariable.makeEnum(enumName);
                if (fNoStem) {
                   completeEnumName = enumName;
                }

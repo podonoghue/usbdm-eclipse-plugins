@@ -1368,6 +1368,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("pinMapEnable")) {
          variable.setPinMapEnable(getAttributeAsString(varElement, "pinMapEnable"));
       }
+      if (varElement.hasAttribute("prettifyEnums")) {
+         variable.setPrettifyEnums(getAttributeAsBoolean(varElement, "prettifyEnums", false));
+      }
 
       if (varElement.hasAttribute("value")) {
          // Value is used as default and initial value
@@ -1400,18 +1403,13 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("data attribute not supported");
       }
 
-      // Old attributes
+      // Check for old attributes
       if (varElement.hasAttribute("default")) {
          throw new Exception("default attribute not supported");
       }
       if (varElement.hasAttribute("clockSources")) {
          throw new Exception("clockSources attribute no longer supported in "+varElement+", '"+variable.getName()+"'");
       }
-      //      NodeList forNodes = varElement.getElementsByTagName("for");
-      //      if (forNodes.getLength() > 0) {
-      //         throw new Exception ("<for> no longer supported here "+varElement);
-      //      }
-
 
       if (otherVariable != null) {
          do {
@@ -3490,15 +3488,6 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
    };
-   
-   
-   
-//   List<StringPair> getTemplateSubstitutions(Element element, String variableAttributeName) throws Exception {
-//
-//      TemplateSubstitutionInfo info = new TemplateSubstitutionInfo(this, element, variableAttributeName);
-//
-//      return getTemplateSubstitutions(info);
-//   }
    
    /**
     * Applies immediate variables and equation variables

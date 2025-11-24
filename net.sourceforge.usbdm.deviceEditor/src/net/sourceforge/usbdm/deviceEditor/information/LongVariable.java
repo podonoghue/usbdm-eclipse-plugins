@@ -253,7 +253,7 @@ public class LongVariable extends Variable {
       if (valueFormat != null) {
          return String.format(valueFormat, paramName);
       }
-      return paramName;
+      return "uint32_t("+paramName+")";
    }
    
    @Override

@@ -1015,7 +1015,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Get input clock frequency\n"
-            + "      \\t * (Individual to each peripheral)\n"
+            + "      \\t * (Individual to each peripheral instance)\n"
             + "      \\t *\n"
             + "      \\t * @return Input clock frequency as a uint32_t in Hz\n"
             + "      \\t */\n"
@@ -1028,7 +1028,7 @@ public class CreateDeviceSkeletonFromSVD {
             + "   <![CDATA[\n"
             + "      \\t/**\n"
             + "      \\t * Get input clock frequency\n"
-            + "      \\t * (Shared by all peripherals)\n"
+            + "      \\t * (Shared by all peripheral instances)\n"
             + "      \\t *\n"
             + "      \\t * @return Input clock frequency as a uint32_t in Hz\n"
             + "      \\t */\n"
@@ -1779,7 +1779,7 @@ public class CreateDeviceSkeletonFromSVD {
       String fileInclude =
             "\n" +
                   "   <projectActionList id=\"%s_files\" >\n" +
-                  "      <copy source=\"Project_Headers/%s.h\"  target=\"Project_Headers/%s.h\"  overwrite=\"true\"  derived=\"true\" />\n" +
+                  "      <copy source=\"Project_Headers/%s.h\"  target=\"Project_Headers/%s.h\"  overwrite=\"always\"  derived=\"true\" />\n" +
                   "   </projectActionList>\n";
       String filename = peripheralBasename.toLowerCase();
       resultSb.append(String.format(fileInclude, filename, filename+fileSuffix.toUpperCase(), filename));
@@ -1905,7 +1905,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "ADC",
 //         "CAN",
 //         "CMP",
-         "CMT",
+//         "CMT",
 //         "CRC",
 //         "DAC",
 //         "DMA",
@@ -1941,7 +1941,7 @@ public class CreateDeviceSkeletonFromSVD {
 //         "SDRAMC",
 //         "SIM"
 //         "SMC",
-//         "SPI",
+         "SPI",
 //         "SIM",
 //         "TSI",
 //         "TRNG",

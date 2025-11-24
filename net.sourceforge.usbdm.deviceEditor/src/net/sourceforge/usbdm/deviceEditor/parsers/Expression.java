@@ -1383,10 +1383,10 @@ public class Expression implements IModelChangeListener {
        * <br>
        * If arg is null then no filtering is done and all mapped signals are returned.<br>
        * Examples<br>
-       * Signal description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b><br>
-       * Signal example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b><br>
-       * Example filter:     <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
-       * Example replacement: <b>"$1 mapped to $3"</b><br>
+       *    Description: <b>"signal-name|user-description or code-identifier|mapped-pin-name|combined-description|code-identifier|only-mappable-pin"</b><br>
+       *    Example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput|PTB3"</b><br>
+       *    Example filter: <b>"^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"</b><br>
+       *    Example replacement: <b>"$1 mapped to $3"</b><br>
        * 
        * @return SignalsListNode providing a comma-separated String result when evaluated
        * 
@@ -1427,8 +1427,8 @@ public class Expression implements IModelChangeListener {
             if (signal == null) {
                continue;
             }
-            // Description: <b>"signal-name,user-description or code-identifier,mapped-pin-name|combined-description|code-identifier"</b>
-            // Example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput"</b>
+            // Description: <b>"signal-name|user-description or code-identifier|mapped-pin-name|combined-description|code-identifier|only-mappable-pin"</b>
+            // Example:     <b>"TSIO0_CH0|Touch 1|PTB3|Touch1(PTB3)|TouchInput|PTB3"</b>
             // Example filter: "^(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)$"
             // Example replacement: "$1 mapped to $3"
             String description = signal.getMapDescription();

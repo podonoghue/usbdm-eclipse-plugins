@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression;
 import net.sourceforge.usbdm.deviceEditor.parsers.Expression.VariableUpdateInfo;
 import net.sourceforge.usbdm.deviceEditor.parsers.IExpressionChangeListener;
+import net.sourceforge.usbdm.deviceEditor.parsers.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.parsers.XML_BaseParser;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.packageParser.ISubstitutionMap;
@@ -149,6 +150,8 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    
    /** Indicate enum operators are to be generated */
    private boolean fGenerateOperators;
+
+   private boolean fPrettifyEnums = false;
 
    /**
     * Constructor
@@ -2194,4 +2197,69 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
    public Boolean getGenerateOperators() {
       return fGenerateOperators;
    }
+   
+   public static String prettify(String s) {
+      if (s != null) {
+         s = s.trim();
+         boolean isAllUppercase = true;
+         for (int index=0; index<s.length(); index++) {
+            if (Character.isLowerCase(s.charAt(index))) {
+               isAllUppercase = false;
+               break;
+            }
+         }
+         if (isAllUppercase) {
+            s = Character.toUpperCase(s.charAt(0))+s.substring(1).toLowerCase();
+         }
+      }
+      return s;
+   }
+   
+   
+   /**
+    * Convert an enum value into a complete enum for code use
+    * 
+    * @param enumValue
+    * 
+    * @return Converted value e.g. Disable => LowPower_Disabled
+    */
+   public String makeEnum(String enumValue) {
+      if ((enumValue == null)||(enumValue.isEmpty())) {
+         return null;
+      }
+      enumValue = ParseMenuXML.makeSafeIdentifierName(enumValue);
+      if (fPrettifyEnums) {
+         enumValue = prettify(enumValue);
+      }
+      String prefix = getEnumPrefix();
+      if ((prefix == null) || (enumValue == null)) {
+         return null;
+      }
+      String rv = prefix+"_"+enumValue;
+      if (useEnumClass()&&!isGenerateConstants()) {
+         rv = prefix+"::"+rv;
+      }
+      return rv;
+   }
+
+   /**
+    * Set whether to 'prettify' enum values
+    * 
+    * @param prettifyEnums
+    */
+   public void setPrettifyEnums(Boolean prettifyEnums) {
+      fPrettifyEnums = prettifyEnums;
+   }
+
+   /**
+    * 
+    * Get whether to 'prettify' enum values
+    * 
+    * @return
+    */
+   public boolean setPrettifyEnums() {
+      return fPrettifyEnums;
+      
+   }
+
 }
