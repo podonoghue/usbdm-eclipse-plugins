@@ -230,7 +230,7 @@ public class BitmaskDialogue extends Dialog {
                testData[index].bitDescriptions);
          var.setValue(selection);
          
-         var.printDebugInfo();
+         var.printDebugInfo(var.getFinalBitInformation());
          
          BitmaskDialogue editor = new BitmaskDialogue(var, shell);
          editor.setTitle(testData[index].testName);

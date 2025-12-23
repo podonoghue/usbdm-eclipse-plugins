@@ -84,10 +84,6 @@ class GraphicConnector extends GraphicBaseVariable {
       private void drawConnector(Display display, GC gc, int startX, int startY, int endX, int endY) {
          super.draw(display, gc);
          
-//         Variable var = getVariable();
-//         if ((var != null) && var.getName().contains("cmp_")) {
-//            System.err.println("Found it " + var.getName());
-//         }
          moveTo(startX, startY);
          direction = Direction.right;
          

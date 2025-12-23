@@ -286,6 +286,9 @@ abstract class TemplateContentBuilder {
             String mask  = null;
             String macro = null;
 
+            if (variable.isLogging()) {
+               System.err.println("Found it "+variable.getName());
+            }
             MaskPair maskPair = variable.generateMask();
             mask = maskPair.mask;
             macro = maskPair.macro;
@@ -900,9 +903,9 @@ abstract class TemplateContentBuilder {
    /**
     * Create enum body
     * 
-    * @param var      Associated variable
-    * @param enumNamesList       List of enum values
-    * @param generateAsConstants Whether to generate as part of an enum body or as explicit constants
+    * @param var              Associated variable
+    * @param enumNamesList    List of enum values to check for repeats
+    * @param constantTemplate Template for constant generation (may be null to suppress)
     * 
     * @return Enum values as String
     */
@@ -972,7 +975,7 @@ abstract class TemplateContentBuilder {
          
          StringBuilder sb = new StringBuilder();
          
-         // Find with of function prototype
+         // Find width of function prototype
          int nameWidth = 0;
          for (Variable var1:variables) {
             String baseType = var1.getBaseType();
@@ -1478,18 +1481,79 @@ abstract class TemplateContentBuilder {
 
          BitInformation bitInformation = var.getFinalBitInformation();
          for (int index=0; index<bitInformation.bits.length; index++) {
-            String enumStem="";
-            if (!var.useEnumClass()) {
-               enumStem = prefix+"_";
+            
+            String enumName         = ParseMenuXML.makeSafeIdentifierName(bitInformation.bits[index].bitName);
+            String completeEnumName = prefix+"_"+enumName; //fVariable.makeEnum(enumName);
+            if (fNoStem) {
+               completeEnumName = enumName;
             }
-            String completeEnumName = enumStem + ParseMenuXML.makeSafeIdentifierName(bitInformation.bits[index].bitName);
+            
             String completeValue    = var.getDefinitionValue(bitInformation.bits[index]);
             String description      = bitInformation.bits[index].description;
             CheckRepeats.Info entry = enumNamesList.add(completeEnumName, completeValue, description);
             if (entry == null) {
                throw new Exception("Repeated enum name '"+completeEnumName+"'");
             }
-         }
+            String hardwareName = bitInformation.bits[index].getAssociatedHardware();
+            if (hardwareName != null) {
+               Object hardware = null;
+               
+               if ((hardwareName != null)&&(!hardwareName.isBlank())) {
+                  // Try Signal
+                  hardware = fDeviceInfo.getSignal(hardwareName);
+                  if (hardware == null) {
+                     // Try Peripheral
+                     hardware = fDeviceInfo.getPeripheral(hardwareName);
+                  }
+                  if (hardware == null) {
+                     throw new Exception("Unable to find signal or peripheral '"+hardwareName+
+                           "' associated with choice '" + var);
+                  }
+               }
+               if (hardware instanceof Signal) {
+                  Signal signal = (Signal) hardware;
+                  if (signal != null) {
+                     String codeNames = signal.getCodeIdentifier();
+                     if ((codeNames != null)&&!codeNames.isBlank()) {
+                        for (String codeName:codeNames.split("/")) {
+                           String newEnumName = prefix+"_"+codeName;
+                           String desc = signal.getUserDescription();
+                           if ((desc == null)||desc.isBlank()) {
+                              desc = description;
+                           }
+                           entry = enumNamesList.add(newEnumName, completeValue, desc);
+                        }
+                     }
+                     Pin pin = signal.getMappedPin();
+                     String pinName = null;
+                     if ((pin != null)&&(pin != Pin.UNASSIGNED_PIN)) {
+                        pinName = pin.getPrettyName();
+                     }
+                     if ((pinName != null)&&!pinName.isBlank()) {
+                        String newEnumName = prefix+"_"+pinName;
+                        String desc = "Pin "+pin.getName();
+                        entry = enumNamesList.add(newEnumName, completeValue, desc);
+                     }
+                  }
+               }
+               else if (hardware instanceof Peripheral) {
+                  Peripheral peripheral = (Peripheral) hardware;
+                  if (peripheral != null) {
+                     String codeNames = peripheral.getCodeIdentifier();
+                     if ((codeNames != null)&&!codeNames.isBlank()) {
+                        for(String codeName:codeNames.split("/")) {
+                           String newEnumName = prefix+"_"+codeName;
+                           String desc = description;
+                           entry = enumNamesList.add(newEnumName, completeEnumName, desc);
+                        }
+                     }
+                  }
+               }
+               else {
+                  throw new Exception("Unexpected hardware type for '"+hardwareName+
+                        "' associated with choice '" + var);
+               }
+            }         }
          return enumNamesList;
       }
 

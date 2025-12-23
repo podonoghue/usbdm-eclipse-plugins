@@ -1665,6 +1665,7 @@ public class ParseMenuXML extends XML_BaseParser {
                Integer bitnum = getBitFieldBitnum(element);
                bitInformationEntry =
                      new BitInformationEntry(name, vwc.getDescription(), bitnum, vwc.generateMask().mask);
+               bitInformationEntry.setAssociatedHardware(getAttributeAsString(element, "signal", null));
             }
             else {
                String index = getAttributeAsString(element, "bit", "");
@@ -1684,6 +1685,7 @@ public class ParseMenuXML extends XML_BaseParser {
                      indexValue,
                      getAttributeAsString(element, "macro"));
             }
+            bitInformationEntry.setAssociatedHardware(getAttributeAsString(element, "signal", null));
             entries.add(bitInformationEntry);
          }
          else if (element.getTagName().equals("bitFieldExpansion")) {
@@ -1748,8 +1750,7 @@ public class ParseMenuXML extends XML_BaseParser {
                         description,
                         bitnum,
                         macro);
-//                  String associatedHardware = getAttributeAsString(element, "signal");
-//                  entry.setAssociatedHardware(associatedHardware);
+                  bitInformationEntry.setAssociatedHardware(getAttributeAsString(element, "signal", null));
                   entries.add(bitInformationEntry);
                }
                index++;
@@ -2366,9 +2367,6 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    String replaceCommonNames(String text) {
 
-//      if (text.contains("$(_InfoIrqGuard)")) {
-//         System.err.println("Found it '"+text+"'");
-//      }
       if (fPeripheral != null) {
          text = text.replace("$(_Info)",            fPeripheral.getClassName()+"Info");
          text = text.replace("$(_InfoGuard)",       "enablePeripheralSupport");

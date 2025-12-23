@@ -18,8 +18,9 @@ public class BitmaskVariable extends LongVariable {
 
    public static final int BIT_INDEX_ALL  = -1;
    public static final int BIT_INDEX_NONE = -2;
-   
+
    public static class BitInformation {
+      
       // Details of each bit
       public BitInformationEntry[] bits          = null;
       // Permitted bit in register
@@ -191,6 +192,9 @@ public class BitmaskVariable extends LongVariable {
       // C-code mask value - used in enum generation if provided
       public String mask = null;
       
+      // Hardware associated with this bit-field (either signal or peripheral)
+      private String fAssociatedHardware;
+      
       public BitInformationEntry(String bitName, String description, Integer bitnum, String mask) {
          this.bitName      = bitName;
          this.description  = description;
@@ -212,20 +216,47 @@ public class BitmaskVariable extends LongVariable {
        * @param bitInformation
        */
       public void initialiseFrom(BitInformationEntry bi) {
-         bitName     = bi.bitName;
-         description = bi.description;
-         bitNum      = bi.bitNum;
-         mask        = bi.mask;
+         bitName             = bi.bitName;
+         description         = bi.description;
+         bitNum              = bi.bitNum;
+         mask                = bi.mask;
+         fAssociatedHardware = bi.fAssociatedHardware;
       }
       
+      @Override
+      public
+      String toString() {
+         return "[na="+bitName+", nu"+bitNum+", m="+mask+", '"+description+"']";
+      }
+
+      /**
+       * Set name of hardware associated with this field (either signal or peripheral)
+       * 
+       * @param associatedHardware Name of hardware to associate
+       */
+      public void setAssociatedHardware(String associatedHardware) {
+         fAssociatedHardware = associatedHardware;
+      }
+
+      /**
+       * Get name of hardware associated with this field (either signal or peripheral)
+       * 
+       * @return Name or null if none
+       */
+      public String getAssociatedHardware() {
+         return fAssociatedHardware;
+      }
+
    };
    
-   // Information describing each bit
+   // Cache for calculated information describing each bit
+   // This will only have high level expressions evaluated when created.
+   // bitNames and descriptions may still be dynamic
    private BitInformation fBitInformation = null;
    
    // Pin mapping information
    private String fPinMap;
-   
+
    private long   fRawPermittedBits;
    private String fRawBitNames;
    private String fRawBitDescriptions;
@@ -241,6 +272,7 @@ public class BitmaskVariable extends LongVariable {
     *    <li>A1-3;BB5-7    => A1,A2,A3,BB5,BB6,BB7 and then split on commas
     *    <li>PT(A-D)(0-7); => PTA0,PTA1,PTA2...PTD5,PTD6,PTD7<br>
     * After expansion %i is replace with the index of the name in the list<br>
+    * After expansion %n is replace with the name<br>
     * 
     * @param fBitDescriptions Descriptions for bits
     * 
@@ -366,6 +398,9 @@ public class BitmaskVariable extends LongVariable {
     * @param other   Variable to initialise from
     */
    public void init(BitmaskVariable other) {
+      if (fLogging) {
+         System.err.println("init(BitmaskVariable other)");
+      }
       this.fBitInformation = other.getBitInformation();
    }
 
@@ -375,6 +410,9 @@ public class BitmaskVariable extends LongVariable {
     * @param bitInformation Description of bits
     */
    public void init(BitInformation bitInformation) {
+      if (fLogging) {
+         System.err.println("init(BitInformation bitInformation)");
+      }
       fBitInformation = bitInformation;
    }
    
@@ -407,35 +445,67 @@ public class BitmaskVariable extends LongVariable {
     * 3a: 0x00       A,,B,,,C               => A,,B,,,C                0,3,5                A,B,C
     * 3b: 0x00       A,,B,,,C   W,,X,,,Y    => A,,B,,,C                0,3,5                A,B,C                              W,X,Y
     * 3c: 0x00       A,,B,,,C   Load %i     => A,,B,,,C                0,3,5                A,B,C                              Load 0, Load 1 ...
-    * 4:  0x36       null or ''             => B0,B1,B2,,,B5           0,1,2,-1,-1,5        B0,B1,B2,,,B5 (generated as needed, some disabled)
+    * 4:  0x36       null or ""             => B0,B1,B2,,,B5           0,1,2,-1,-1,5        B0,B1,B2,,,B5 (generated as needed, some disabled)
     * </pre>
     * @return
     * 
     * @throws Exception
     */
-   public void calculateValues() throws Exception {
+   public BitInformation calculateValues() throws Exception {
 
-      fBitInformation = new BitInformation();
+      if (fLogging) {
+         System.err.println("BitmaskVariable::calculateValues("+getName()+")");
+      }
+      if (fBitInformation != null) {
+         // Use cached value
+         return fBitInformation;
+      }
+      BitInformation tBitInformation = new BitInformation();
+
+      // Used to prevent caching
+      boolean dynamicValues = false;
       
+      // Evaluate top-level expressions and expand patterns
       String[] tBitnames;
-      if ((fRawBitNames != null)&&(fRawBitNames.startsWith("@"))) {
+      if ((fRawBitNames != null)&&(fRawBitNames.startsWith("\\@"))) {
+         // The expression is to be used to create individual names later
+         // Remove escape and don't process further yet
+         tBitnames = new String[1];
+         tBitnames[0] = fRawBitNames.substring(1);
+         dynamicValues = true;
+      }
+      else if ((fRawBitNames != null)&&(fRawBitNames.startsWith("@"))) {
          tBitnames     = PinListExpansion.expandPinList(
                Expression.getValueAsString(fRawBitNames.substring(1), getProvider()), ",");
+         dynamicValues = true;
       }
       else {
          tBitnames     = PinListExpansion.expandPinList(fRawBitNames, ",");
       }
-      
+
+      // Evaluate top-level expressions and expand patterns
       String[] tDescriptions;
-      if ((fRawBitDescriptions != null)&&(fRawBitDescriptions.startsWith("@"))) {
+      if ((fRawBitDescriptions != null)&&(fRawBitDescriptions.startsWith("\\@"))) {
+         // The expression is to be used to create individual descriptions later
+         // Remove escape and don't process further yet
+         tDescriptions = new String[1];
+         tDescriptions[0] = fRawBitDescriptions.substring(1);
+         dynamicValues = true;
+      }
+      else if ((fRawBitDescriptions != null)&&(fRawBitDescriptions.startsWith("@"))) {
          tDescriptions     = PinListExpansion.expandPinList(
                Expression.getValueAsString(fRawBitDescriptions.substring(1), getProvider()), ",");
+         dynamicValues = true;
       }
       else {
          tDescriptions     = PinListExpansion.expandPinList(fRawBitDescriptions, ",");
       }
       
-      if (fRawPermittedBits == 0) {
+      long tRawPermittedBits = fRawPermittedBits;
+      if (tRawPermittedBits == 0) {
+         if (fLogging) {
+            System.err.println("Found it");
+         }
          // Case 3 - Bitmask=0, Names must be provided with skipped bits
          // Determine bitmask and indices from bit-names
          if (tBitnames == null) {
@@ -448,31 +518,38 @@ public class BitmaskVariable extends LongVariable {
          for (int index=0; index<tBitnames.length; index++) {
             long mask = (1L<<index);
             if (!tBitnames[index].isBlank()) {
-               fRawPermittedBits |= mask;
+               tRawPermittedBits |= mask;
                bitMappingList.add(index);
                bitNamesList.add(tBitnames[index]);
             }
          }
-         fBitInformation.bits = new BitInformationEntry[bitNamesList.size()];
-         for (int index=0; index<fBitInformation.bits.length; index++) {
-            fBitInformation.bits[index]          = new BitInformationEntry();
-            fBitInformation.bits[index].bitNum   = bitMappingList.get(index);
-            fBitInformation.bits[index].bitName  = bitNamesList.get(index);
+         tBitInformation.bits = new BitInformationEntry[bitNamesList.size()];
+         for (int index=0; index<tBitInformation.bits.length; index++) {
+            tBitInformation.bits[index]          = new BitInformationEntry();
+            tBitInformation.bits[index].bitNum   = bitMappingList.get(index);
+            tBitInformation.bits[index].bitName  = bitNamesList.get(index);
          }
          
-         if (tDescriptions != null) {
-            // Cases 3b
-            if (tDescriptions.length>1) {
-               // Case 3b - matching list
-               for (int index=0; index<fBitInformation.bits.length; index++) {
-                  if ((fBitInformation.bits[index].bitNum == null)||(fBitInformation.bits[index].bitNum < 0)) {
-                     fBitInformation.bits[index].description = "";
+         if ((tDescriptions != null)&&(tDescriptions.length>1)) {
+            
+            // Case 3b - matching list
+            for (int index=0; index<tBitInformation.bits.length; index++) {
+               if (fLogging) {
+                  System.err.println("BitmaskVariable::calculateValues("+getName()+"), before");
+               }
+               if ((tBitInformation.bits[index].bitNum == null)||(tBitInformation.bits[index].bitNum < 0)) {
+                  tBitInformation.bits[index].description = "";
+               }
+               else {
+                  if (tBitInformation.bits[index].bitNum.intValue()>tDescriptions.length) {
+                     System.err.println("Found it");
                   }
-                  else {
-                     fBitInformation.bits[index].description =
-                           tDescriptions[fBitInformation.bits[index].bitNum.intValue()].
-                           replace("%i", fBitInformation.bits[index].bitNum.toString()).replace("%n", fBitInformation.bits[index].bitName);
-                  }
+                  tBitInformation.bits[index].description =
+                        tDescriptions[tBitInformation.bits[index].bitNum.intValue()].
+                        replace("%i", tBitInformation.bits[index].bitNum.toString()).replace("%n", tBitInformation.bits[index].bitName);
+               }
+               if (fLogging) {
+                  System.err.println("BitmaskVariable::calculateValues("+getName()+"), after");
                }
             }
          }
@@ -489,18 +566,18 @@ public class BitmaskVariable extends LongVariable {
          ArrayList<Integer> bitMappingList = new ArrayList<Integer>();
          for (int index=0; index<32; index++) {
             long mask = (1L<<index);
-            if (mask>fRawPermittedBits) {
+            if (mask>tRawPermittedBits) {
                break;
             }
-            if ((fRawPermittedBits&mask) != 0) {
+            if ((tRawPermittedBits&mask) != 0) {
                numberOfBitInUse++;
                bitMappingList.add(index);
             }
          }
-         fBitInformation.bits = new BitInformationEntry[bitMappingList.size()];
-         for (int index=0; index<fBitInformation.bits.length; index++) {
-            fBitInformation.bits[index] = new BitInformationEntry();
-            fBitInformation.bits[index].bitNum = bitMappingList.get(index);
+         tBitInformation.bits = new BitInformationEntry[bitMappingList.size()];
+         for (int index=0; index<tBitInformation.bits.length; index++) {
+            tBitInformation.bits[index] = new BitInformationEntry();
+            tBitInformation.bits[index].bitNum = bitMappingList.get(index);
          }
 
          String format = null;
@@ -515,74 +592,84 @@ public class BitmaskVariable extends LongVariable {
          if (format != null) {
             // Cases 1a, 1b or 4
             // Expand names
-            for (int index=0; index<fBitInformation.bits.length; index++) {
-               if ((fBitInformation.bits[index].bitNum != null)&&(fBitInformation.bits[index].bitNum >= 0)) {
-                  fBitInformation.bits[index].bitName = format.replace("%i", fBitInformation.bits[index].bitNum.toString());
+            for (int index=0; index<tBitInformation.bits.length; index++) {
+               if ((tBitInformation.bits[index].bitNum != null)&&(tBitInformation.bits[index].bitNum >= 0)) {
+                  tBitInformation.bits[index].bitName = format.replace("%i", tBitInformation.bits[index].bitNum.toString());
                }
             }
          }
          else {
             // Cases 2a or 2b
             // Check there is a name for each bit
-            if (tBitnames.length != fBitInformation.bits.length) {
+            if (tBitnames.length != tBitInformation.bits.length) {
                throw new Exception("# of bits in use doesn't match # of names provided:\n"
-                     + "PermittedBits = " + fRawPermittedBits +"\n"
+                     + "PermittedBits = " + tRawPermittedBits +"\n"
                      + "Number        = " + numberOfBitInUse +"\n"
                      + "Names         = " + Arrays.toString(tBitnames));
             }
-            for (int index=0; index<fBitInformation.bits.length; index++) {
-               fBitInformation.bits[index].bitName = tBitnames[index];
+            for (int index=0; index<tBitInformation.bits.length; index++) {
+               tBitInformation.bits[index].bitName = tBitnames[index];
             }
          }
       }
-      if ((tDescriptions != null) && (fBitInformation.bits[0].description == null)) {
+      if ((tDescriptions != null) && (tBitInformation.bits[0].description == null)) {
          // Cases 2b,3b    - explicit list
-         // Cases 1b,2c,3c - pattern
+         // Cases 1b,2c,3c - pattern or expression
          
          // Cases 1b,2b,2c,3b & 3c
 
          if (tDescriptions.length>1) {
             // Cases 2b, 3b - explicit list
             // bitName and bitDescriptions must match in format
-            if ((tDescriptions.length < fBitInformation.bits.length)) {
+            if ((tDescriptions.length < tBitInformation.bits.length)) {
                throw new Exception("# of  bit descriptions does not match # of names:\n"
                      + "Desc   = " + Arrays.toString(tDescriptions) +"\n"
                      /*+ "Names  = " + Arrays.toString(fBitNames)*/);
             }
-            for (int index=0; index<fBitInformation.bits.length; index++) {
-               fBitInformation.bits[index].description = tDescriptions[index];
+            for (int index=0; index<tBitInformation.bits.length; index++) {
+               tBitInformation.bits[index].description = tDescriptions[index];
             }
          }
-         else if (!tDescriptions[0].startsWith("@")) {
-            
+         else if (tDescriptions.length==1) {
             // Cases 1b,2c,3c - pattern
             // Need to expand description pattern to match actual bits
-            for (int index=0; index<fBitInformation.bits.length; index++) {
-               if ((fBitInformation.bits[index].bitNum != null)&&(fBitInformation.bits[index].bitNum < 0)) {
-                  fBitInformation.bits[index].description = "";
+            for (int index=0; index<tBitInformation.bits.length; index++) {
+               // Unmapped
+               if ((tBitInformation.bits[index].bitNum != null)&&(tBitInformation.bits[index].bitNum < 0)) {
+                  tBitInformation.bits[index].description = "";
                }
                else {
-                  fBitInformation.bits[index].description =
+                  // Process description
+                  tBitInformation.bits[index].description =
                         tDescriptions[0].replace("%i",
-                              fBitInformation.bits[index].bitNum.toString()).replace("%n",fBitInformation.bits[index].bitName);
+                              tBitInformation.bits[index].bitNum.toString()).replace("%n",tBitInformation.bits[index].bitName);
+//                  if (tBitInformation.bits[index].description.startsWith("@")) {
+//                     tBitInformation.bits[index].description =
+//                           Expression.getValueAsString(tBitInformation.bits[index].description.substring(1), getProvider());
+//                  }
                }
             }
          }
       }
       // Have fBitNames & fBitMapping
-      for (int index=0; index<fBitInformation.bits.length; index++) {
-         if (fBitInformation.bits[index].bitName != null) {
-            fBitInformation.bits[index].bitName     = fBitInformation.bits[index].bitName.trim();
+      for (int index=0; index<tBitInformation.bits.length; index++) {
+         if (tBitInformation.bits[index].bitName != null) {
+            tBitInformation.bits[index].bitName     = tBitInformation.bits[index].bitName.trim();
          }
-         if (fBitInformation.bits[index].description != null) {
-            fBitInformation.bits[index].description = fBitInformation.bits[index].description.trim();
+         if (tBitInformation.bits[index].description != null) {
+            tBitInformation.bits[index].description = tBitInformation.bits[index].description.trim();
          }
       }
       
-      if (isLogging()) {
-         printDebugInfo();
-         System.err.println("fPinMap = "+fPinMap);
+      tBitInformation.permittedBits = tRawPermittedBits;
+      
+      if (!dynamicValues) {
+         fBitInformation = tBitInformation;
       }
+      if (fLogging) {
+         printDebugInfo(tBitInformation);
+      }
+      return tBitInformation;
    }
    
    /**
@@ -591,59 +678,61 @@ public class BitmaskVariable extends LongVariable {
     * @return Array describing each bit
     * @throws Exception
     */
-   public BitInformation getFinalBitInformation() throws Exception {
-      if (fLogging) {
-         System.err.println("Found it");
-      }
-      if (fBitInformation == null) {
-         try {
-            calculateValues();
-         } catch (Exception e) {
-            e.printStackTrace();
+   public BitInformation getFinalBitInformation() {
+
+      try {
+         BitInformation bitInformation = calculateValues();
+
+         // Evaluate expressions in field names or descriptions
+         BitInformationEntry[] finalBitInfo = new BitInformationEntry[bitInformation.bits.length];
+         for (int index=0; index<bitInformation.bits.length; index++) {
+            
+            finalBitInfo[index] = new BitInformationEntry();
+            finalBitInfo[index].initialiseFrom(bitInformation.bits[index]);
+
+            if ((finalBitInfo[index].description!= null) &&
+                  (finalBitInfo[index].description.startsWith("@"))) {
+               try {
+                  finalBitInfo[index].description =
+                        Expression.getValueAsString(finalBitInfo[index].description.substring(1), getProvider());
+               } catch (Exception e) {
+                  e.printStackTrace();
+               }
+            }
+            if ((finalBitInfo[index].bitName != null) &&
+                  (finalBitInfo[index].bitName.startsWith("@"))) {
+               try {
+                  finalBitInfo[index].bitName =
+                        Expression.getValueAsString(finalBitInfo[index].bitName.substring(1), getProvider());
+               } catch (Exception e) {
+                  e.printStackTrace();
+               }
+            }
          }
-      }
-      BitInformationEntry[] finalBitInfo = new BitInformationEntry[fBitInformation.bits.length];
-      for (int index=0; index<fBitInformation.bits.length; index++) {
-         finalBitInfo[index] = new BitInformationEntry();
-         finalBitInfo[index].initialiseFrom(fBitInformation.bits[index]);
+         return new BitInformation(finalBitInfo, bitInformation.permittedBits);
+
+      } catch (Exception e) {
          
-         if ((finalBitInfo[index].description!= null) &&
-             (finalBitInfo[index].description.startsWith("@"))) {
-            try {
-               finalBitInfo[index].description =
-                     Expression.getValueAsString(finalBitInfo[index].description.substring(1), getProvider());
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
-         if ((finalBitInfo[index].bitName != null) &&
-             (finalBitInfo[index].bitName.startsWith("@"))) {
-            try {
-               finalBitInfo[index].bitName =
-                     Expression.getValueAsString(finalBitInfo[index].bitName.substring(1), getProvider());
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
+         System.err.println("Failed to update field information");
+         e.printStackTrace();
+         return new BitInformation();
       }
-      return new BitInformation(finalBitInfo, fBitInformation.permittedBits);
    }
    
    /**
     * Get information about bits
+    * Field names or descriptions may involve unevaluated expressions
     * 
     * @return Array describing each bit
     * @throws Exception
     */
    public BitInformation getBitInformation() {
-      if (fBitInformation == null) {
-         try {
-            calculateValues();
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
+      try {
+         return calculateValues();
+      } catch (Exception e) {
+         e.printStackTrace();
       }
-      return fBitInformation;
+      return new BitInformation();
    }
    
    @Override
@@ -672,7 +761,7 @@ public class BitmaskVariable extends LongVariable {
          valueAsLong = Long.parseLong(value);
       } catch (NumberFormatException e) {
       }
-      BitInformationEntry[] bitInformation = getBitInformation().bits;
+      BitInformationEntry[] bitInformation = getFinalBitInformation().bits;
       if ((bitInformation != null)&&(valueAsLong != null)) {
          StringBuilder sb = new StringBuilder();
          int  bitsSetCount = 0;
@@ -723,8 +812,8 @@ public class BitmaskVariable extends LongVariable {
       return result;
    }
    
-   public void printDebugInfo() {
-      BitInformationEntry[] bitInformation = getBitInformation().bits;
+   public void printDebugInfo(BitInformation bitInfo) {
+      BitInformationEntry[] bitInformation = bitInfo.bits;
       for (int index=0; index<bitInformation.length; index++) {
          System.err.println(String.format("%2d: %-2d %-35s %-20s",
                index, bitInformation[index].bitNum, bitInformation[index].bitName,bitInformation[index].description));
@@ -811,7 +900,7 @@ public class BitmaskVariable extends LongVariable {
       if (fLogging) {
          System.err.println("getUsageValue()");
       }
-      BitInformation bitInformation = getBitInformation();
+      BitInformation bitInformation = getFinalBitInformation();
       if (bitInformation != null) {
          StringBuilder sb = new StringBuilder();
          long value  = getValueAsLong();
@@ -901,20 +990,16 @@ public class BitmaskVariable extends LongVariable {
     return registerValue;
  }
 
-   /**
-    * Get the bitmask associated with this bitField
-    * @return
-    */
-   public long getBitmask() {
-      return fRawPermittedBits;
-   }
-   
    @Override
    public MaskPair generateMask() {
-      if (fBitInformation == null) {
-         return new MaskPair(null, null);
+      try {
+         BitInformation bitInformation = calculateValues();
+         return new MaskPair("0x"+Long.toHexString(bitInformation.permittedBits).toUpperCase()+"U","");
+      } catch (Exception e) {
+         System.err.println("Failed to create mask for "+getName());
+         e.printStackTrace();
       }
-      return new MaskPair("0x"+Long.toHexString(fBitInformation.permittedBits).toUpperCase()+"U","");
+      return new MaskPair(null, "");
    }
    
 }

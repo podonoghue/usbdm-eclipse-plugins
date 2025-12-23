@@ -96,7 +96,7 @@ public abstract class VariableWithChoices extends Variable {
          return false;
       }
       // Set 'safe' value
-      System.err.println("checkChoiceIndex() Changing to default option");
+      System.err.println(getName()+"::checkChoiceIndex() Changing to default option");
       return setChoiceIndex(findFirstAvailableIndex());
    }
    

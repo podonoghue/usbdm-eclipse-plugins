@@ -667,10 +667,6 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public void setDerivedFrom(Peripheral derivedFrom) {
       clearAddressBlocks();
-//      System.err.println("Found it, "+this+" derived from  " + derivedFrom.toString());
-//      if (this.toString().equals("GPIOF")) {
-//         System.err.println("Found it, "+this+" derived from  " + derivedFrom.toString());
-//      }
       this.fDerivedFrom = derivedFrom;
    }
 
@@ -1559,9 +1555,6 @@ public class Peripheral extends ModeControl implements Cloneable {
          if (dimensionIndexes.size() > 1) {
             // Remove replaced registers
             for (Register victimReg : removedRegisters) {
-               if (debugThisPeripheral) {
-                  System.err.println("Found it, Removing " + victimReg);
-               }
                registerList.remove(victimReg);
             }
             mergeReg.setDebugThis(true);

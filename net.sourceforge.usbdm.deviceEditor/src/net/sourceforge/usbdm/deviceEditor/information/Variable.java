@@ -2053,6 +2053,7 @@ public abstract class Variable extends ObservableModel implements Cloneable, IEx
     * Get mask for variable e.g. LPUART_CTRL_LOOPS|LPUART_CTRL_RSRC
     * 
     * @return
+    * @throws Exception
     */
    public MaskPair generateMask() {
 
